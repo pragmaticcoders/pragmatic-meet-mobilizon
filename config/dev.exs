@@ -17,7 +17,9 @@ config :mobilizon, Mobilizon.Web.Endpoint,
     node: [
       "node_modules/.bin/vite",
       "--host",
-      System.get_env("VITE_HOST", "localhost")
+      "0.0.0.0",
+      "--port",
+      "5173"
     ]
   ]
 

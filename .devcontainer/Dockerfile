@@ -2,7 +2,7 @@
 ARG VARIANT="1.12.3"
 FROM elixir:${VARIANT}
 
-# This Dockerfile adds a non-root user with sudo access. Update the “remoteUser” property in
+# This Dockerfile adds a non-root user with sudo access. Update the "remoteUser" property in
 # devcontainer.json to use it. More info: https://aka.ms/vscode-remote/containers/non-root-user.
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -58,6 +58,7 @@ RUN su ${USERNAME} -c "mix local.hex --force \
 RUN apt-get update \
   && export DEBIAN_FRONTEND=noninteractive \
   && apt-get -y install --no-install-recommends cmake webp bash libncurses6 git python3 inotify-tools \
+  && apt-get -y install --no-install-recommends postgresql-client file make gcc libc-dev argon2 imagemagick \
   && apt-get autoremove -y \
   && apt-get clean -y \
   && rm -rf /var/lib/apt/lists/*

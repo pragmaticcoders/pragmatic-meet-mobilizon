@@ -83,6 +83,16 @@ export default defineConfig(({ command }) => {
   return {
     plugins,
     build,
+    server: {
+      host: '0.0.0.0',
+      port: 5173,
+      strictPort: true,
+      hmr: {
+        port: 5173,
+        host: 'localhost',
+        clientPort: 5173
+      }
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

@@ -1,0 +1,58 @@
+version: "3.2"
+services:
+  postgres:
+    container_name: mobilizon_db
+    restart: unless-stopped
+    image: postgis/postgis
+    env_file:
+      - ../../.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mobilizon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mobilizon}
+      POSTGRES_DB: ${POSTGRES_DB:-mobilizon}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mobilizon} -d ${POSTGRES_DB:-mobilizon}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  api:
+    container_name: mobilizon_api
+    restart: unless-stopped
+    build:
+      context: ../..
+      dockerfile: docker/development/Dockerfile
+    env_file:
+      - ../../.env
+    volumes:
+      - "../../:/workspace:z"
+    working_dir: /workspace
+    ports:
+      - 4000:4000
+      - 5173:5173
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MIX_ENV: "dev"
+      DOCKER: "true"
+      MOBILIZON_INSTANCE_NAME: My Mobilizon Instance
+      MOBILIZON_INSTANCE_HOST: localhost
+      MOBILIZON_INSTANCE_HOST_PORT: 4000
+      MOBILIZON_INSTANCE_PORT: 4000
+      MOBILIZON_INSTANCE_EMAIL: noreply@mobilizon.me
+      MOBILIZON_INSTANCE_REGISTRATIONS_OPEN: "true"
+      MOBILIZON_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-mobilizon}
+      MOBILIZON_DATABASE_USERNAME: ${POSTGRES_USER:-mobilizon}
+      MOBILIZON_DATABASE_DBNAME: ${POSTGRES_DB:-mobilizon}
+      MOBILIZON_DATABASE_HOST: postgres
+      MOBILIZON_DATABASE_PORT: ${POSTGRES_PORT:-5432}
+      VITE_HOST: ${VITE_HOST:-0.0.0.0}
+      MOBILIZON_INSTANCE_SCHEME: "http"
+      MOBILIZON_INSTANCE_SECRET_KEY_BASE: "changethis"
+      MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
+volumes:
+  pgdata:
+  .: 

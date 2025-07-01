@@ -71,9 +71,12 @@ RUN curl -L 'https://packages.joinmobilizon.org/tz_world/timezones-geodata.dets'
 EXPOSE 4000
 
 ENV MOBILIZON_DOCKER=true
+ENV MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
 
 COPY --from=builder --chown=nobody:nobody _build/prod/rel/mobilizon ./
 RUN cp /releases/*/runtime.exs /etc/mobilizon/config.exs
+# Fix execute permissions on mobilizon_ctl script
+RUN chmod +x /bin/mobilizon_ctl
 COPY docker/production/docker-entrypoint.sh ./
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

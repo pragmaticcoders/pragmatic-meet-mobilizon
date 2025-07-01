@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: mobilizon_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf:/etc/nginx/
+      - ./nginx/certs:/etc/nginx/certs
+    depends_on:
+      - mobilizon
+    networks:
+      - mobilizon_network
+  postgres:
+    container_name: mobilizon_postgres_prod
+    restart: unless-stopped
+    image: postgis/postgis:15-3.3
+    env_file:
+      - ../../.env
+    environment:
+      POSTGRES_USER: ${MOBILIZON_DATABASE_USERNAME:-mobilizon}
+      POSTGRES_PASSWORD: ${MOBILIZON_DATABASE_PASSWORD:-mobilizon}
+      POSTGRES_DB: ${MOBILIZON_DATABASE_DBNAME:-mobilizon}
+      POSTGRES_PORT: ${MOBILIZON_DATABASE_PORT:-5432}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${MOBILIZON_DATABASE_USERNAME:-mobilizon} -d ${MOBILIZON_DATABASE_DBNAME:-mobilizon}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mobilizon_network
+
+  mobilizon:
+    container_name: mobilizon_prod
+    restart: unless-stopped
+    build:
+      context: ../..
+      dockerfile: docker/production/Dockerfile
+    env_file:
+      - ../../.env
+    volumes:
+      - mobilizon_uploads:/var/lib/mobilizon/uploads
+      - mobilizon_timezones:/var/lib/mobilizon/timezones
+      - mobilizon_tzdata:/var/lib/mobilizon/tzdata
+      - mobilizon_sitemap:/var/lib/mobilizon/sitemap
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mobilizon_network
+      
+
+volumes:
+  postgres_data:
+    driver: local
+  mobilizon_uploads:
+  mobilizon_timezones:
+  mobilizon_tzdata:
+  mobilizon_sitemap:
+
+networks:
+  mobilizon_network:
+    driver: bridge 

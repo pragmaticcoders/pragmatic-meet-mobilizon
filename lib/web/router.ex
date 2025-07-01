@@ -119,6 +119,12 @@ defmodule Mobilizon.Web.Router do
     get("/favicon.ico", ManifestController, :favicon)
   end
 
+  # Health check endpoints
+  scope "/", Mobilizon.Web do
+    get("/health", HealthController, :health)
+    get("/health/detailed", HealthController, :health_detailed)
+  end
+
   scope "/", Mobilizon.Web do
     pipe_through(:activity_pub_and_html)
     pipe_through(:activity_pub_signature)

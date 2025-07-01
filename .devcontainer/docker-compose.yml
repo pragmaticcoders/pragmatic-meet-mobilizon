@@ -6,12 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Elixir Version: 1.9, 1.10, 1.10.4, ...
-        VARIANT: "1.13.1"
-        # Phoenix Version: 1.4.17, 1.5.4, ...
-        PHOENIX_VERSION: "1.6.6"
-        # Node Version: 10, 11, ...
-        NODE_VERSION: "16"
+        # Elixir Version: Updated to match project requirements
+        VARIANT: "1.15.4"
+        # Phoenix Version: Updated to match project requirements
+        PHOENIX_VERSION: "1.7.0"
+        # Node Version: Updated to match production
+        NODE_VERSION: "20"
 
     volumes:
       - ..:/workspace:z
@@ -33,7 +33,7 @@ services:
       MOBILIZON_DATABASE_HOST: db
 
   db:
-    image: postgis/postgis:latest
+    image: postgis/postgis:15-3.3
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data

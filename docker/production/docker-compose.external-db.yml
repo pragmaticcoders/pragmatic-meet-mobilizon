@@ -1,0 +1,20 @@
+version: "3.8"
+
+# Override file for external database usage
+# Usage: docker compose -f docker/production/docker-compose.yml -f docker/production/docker-compose.external-db.yml up -d
+
+services:
+  # Remove the internal postgres service
+  postgres:
+    profiles:
+      - external-db
+
+  mobilizon:
+    env_file:
+      - ../../.env
+    # Remove dependency on internal postgres
+    depends_on: []
+    environment:
+      # Override database host to use external database
+      MOBILIZON_DATABASE_HOST: ${MOBILIZON_DATABASE_HOST}
+      MOBILIZON_DATABASE_SSL: ${MOBILIZON_DATABASE_SSL:-true} 

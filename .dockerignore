@@ -5,7 +5,6 @@ demo
 deps
 doc
 docs
-docker-compose.yml
 Dockerfile
 .elixir_ls
 .formatter.exs

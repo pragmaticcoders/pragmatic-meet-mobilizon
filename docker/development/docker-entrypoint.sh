@@ -2,24 +2,32 @@
 
 set -e
 
-# Fix execute permissions on mobilizon_ctl if needed
-chmod +x /bin/mobilizon_ctl 2>/dev/null || true
-
-# Set configuration path
-export MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
-
 echo "-- Waiting for database..."
-while ! pg_isready -U ${MOBILIZON_DATABASE_USERNAME} -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -d ${MOBILIZON_DATABASE_DBNAME} -t 1; do
-   sleep 1s
+# Wait for PostgreSQL to be ready
+while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -U postgres; do
+   echo "Waiting for PostgreSQL to be ready..."
+   sleep 2s
 done
 
-echo "-- Creating required database extensions..."
+# Wait for the specific database to be available
+while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -U ${MOBILIZON_DATABASE_USERNAME} -d ${MOBILIZON_DATABASE_DBNAME}; do
+   echo "Waiting for database ${MOBILIZON_DATABASE_DBNAME} to be ready..."
+   sleep 2s
+done
+
+echo "-- Fetching dependencies..."
+mix deps.get
+
+echo "-- Installing Node.js dependencies..."
+npm install
+
+echo "-- Creating database extensions..."
 PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
 PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
 PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS unaccent;'
 
 echo "-- Running migrations..."
-/bin/mobilizon_ctl migrate
+mix mobilizon.ecto.migrate
 
-echo "-- Starting!"
-exec /bin/mobilizon start
+echo "-- Starting Phoenix server!"
+exec mix phx.server 
