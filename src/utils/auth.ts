@@ -93,4 +93,5 @@ export const SELECTED_PROVIDERS: { [key: string]: string } = {
   keycloak: "Keycloak",
   ldap: "LDAP",
   cas: "CAS",
+  linkedin: "LinkedIn",
 };

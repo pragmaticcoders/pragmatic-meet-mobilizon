@@ -194,6 +194,7 @@ defmodule Mobilizon.Mixfile do
       {:ueberauth_keycloak_strategy, "~> 0.4.0"},
       {:ueberauth_gitlab_strategy, "~> 0.4.0"},
       {:ueberauth_cas, "~> 2.0"},
+      {:ueberauth_linkedin, "~> 0.3"},
       {:ecto_shortuuid, "~> 0.1"},
       {:tesla, "~> 1.8.0"},
       {:sitemapper, "~> 0.6"},

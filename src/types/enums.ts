@@ -34,6 +34,7 @@ export enum IAuthProvider {
   FACEBOOK = "facebook",
   GITLAB = "gitlab",
   TWITTER = "twitter",
+  LINKEDIN = "linkedin",
 }
 
 export enum ErrorCode {
