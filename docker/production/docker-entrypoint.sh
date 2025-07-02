@@ -21,5 +21,11 @@ PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d 
 echo "-- Running migrations..."
 /bin/mobilizon_ctl migrate
 
+#echo "-- Running admin commands..."
+# NOTE: CLI commands must use eval mode during startup (RPC mode fails on running containers)
+# WORKAROUND: Add CLI commands here with MOBILIZON_CTL_RPC_DISABLED=true for distributed Erlang issue
+# TODO: Fix distributed Erlang configuration to allow CLI commands on running containers
+#MOBILIZON_CTL_RPC_DISABLED=true /bin/mobilizon_ctl users.new "new@user.com" --admin --password "password"
+
 echo "-- Starting!"
 exec /bin/mobilizon start

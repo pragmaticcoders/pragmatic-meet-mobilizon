@@ -57,3 +57,5 @@ stats.html
 /playwright-report/
 .histoire
 
+/docker/production/nginx/conf/**/*
+/docker/production/nginx/certs/**/*

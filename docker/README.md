@@ -150,6 +150,22 @@ All environments require SMTP configuration for email functionality. See [SMTP_O
 
 For detailed production deployment instructions, see [PRODUCTION_DEPLOYMENT.md](../PRODUCTION_DEPLOYMENT.md).
 
+### Known Issues - Production CLI Commands
+
+⚠️ **Important**: In production Docker deployments, `mobilizon_ctl` commands cannot be run directly on running containers due to distributed Erlang RPC issues.
+
+**Affected commands**: `users.new`, `users.show`, `actors.new`, etc.
+
+**Workaround**: Add CLI commands to the startup script:
+1. Edit `docker/production/docker-entrypoint.sh`
+2. Add commands before `echo "-- Starting!"` using:
+   ```bash
+   MOBILIZON_CTL_RPC_DISABLED=true /bin/mobilizon_ctl [command]
+   ```
+3. Rebuild and restart the container
+
+This limitation does not affect development environments or non-Docker installations.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -166,6 +182,17 @@ For detailed production deployment instructions, see [PRODUCTION_DEPLOYMENT.md](
 
 3. **Permission Issues**
    - Fix upload directory permissions: `docker compose exec mobilizon chown -R nobody:nobody /var/lib/mobilizon/`
+
+4. **CLI Commands (`mobilizon_ctl`) Crash Container** 
+   - **Issue**: Running `docker exec mobilizon_prod /bin/mobilizon_ctl users.new ...` causes container to restart
+   - **Root Cause**: Distributed Erlang RPC configuration issue in production release
+   - **Workaround**: Add CLI commands to `docker/production/docker-entrypoint.sh` with `MOBILIZON_CTL_RPC_DISABLED=true`
+   - **Example**:
+     ```bash
+     # In docker-entrypoint.sh, add before "echo '-- Starting!'"
+     MOBILIZON_CTL_RPC_DISABLED=true /bin/mobilizon_ctl users.new "admin@example.com" --admin --password "password"
+     ```
+   - **Note**: This issue only affects production Docker deployments. Development and direct installations work normally.
 
 ### Debug Commands
 
