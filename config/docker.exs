@@ -261,7 +261,7 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.Linkedin, []}
+         linkedin: {Ueberauth.Strategy.LinkedIn, []}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
@@ -287,9 +287,10 @@ config :mobilizon, :auth,
   ]
 
 # Provider-specific configuration
-config :ueberauth, Ueberauth.Strategy.Linkedin.OAuth,
+config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   client_id: System.get_env("LINKEDIN_CLIENT_ID"),
-  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET")
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
+  redirect_uri: System.get_env("LINKEDIN_REDIRECT_URI")
 
 # Example configurations for other providers:
 # config :ueberauth, Ueberauth.Strategy.Google.OAuth,
