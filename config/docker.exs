@@ -254,3 +254,62 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
     connect_src:
       System.get_env("MOBILIZON_ERROR_REPORTING_SENTRY_HOST", "") |> String.split(" ", trim: true)
   ]
+
+# OAuth Configuration (following official Mobilizon documentation)
+# Configure providers using the official Ueberauth format
+
+config :ueberauth,
+       Ueberauth,
+       providers: [
+         linkedin: {Ueberauth.Strategy.Linkedin, []}
+         # Add other providers here as needed:
+         # google: {Ueberauth.Strategy.Google, []},
+         # github: {Ueberauth.Strategy.Github, []},
+         # facebook: {Ueberauth.Strategy.Facebook, []},
+         # discord: {Ueberauth.Strategy.Discord, []},
+         # gitlab: {Ueberauth.Strategy.Gitlab, [default_scope: "read_user"]},
+         # twitter: {Ueberauth.Strategy.Twitter, []},
+         # keycloak: {UeberauthKeycloakStrategy.Strategy, [default_scope: "openid email"]}
+       ]
+
+# List providers for display in UI (can include custom labels)
+config :mobilizon, :auth,
+  oauth_consumer_strategies: [
+    :linkedin
+    # {:linkedin, "LinkedIn"}  # Use this format for custom labels
+    # :google,
+    # :github,
+    # :facebook,
+    # :discord,
+    # :gitlab,
+    # :twitter,
+    # {:keycloak, "My corporate account"}
+  ]
+
+# Provider-specific configuration
+config :ueberauth, Ueberauth.Strategy.Linkedin.OAuth,
+  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET")
+
+# Example configurations for other providers:
+# config :ueberauth, Ueberauth.Strategy.Google.OAuth,
+#   client_id: System.get_env("GOOGLE_CLIENT_ID"),
+#   client_secret: System.get_env("GOOGLE_CLIENT_SECRET")
+
+# config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+#   client_id: System.get_env("GITHUB_CLIENT_ID"),
+#   client_secret: System.get_env("GITHUB_CLIENT_SECRET")
+
+# config :ueberauth, Ueberauth.Strategy.Facebook.OAuth,
+#   client_id: System.get_env("FACEBOOK_CLIENT_ID"),
+#   client_secret: System.get_env("FACEBOOK_CLIENT_SECRET")
+
+# keycloak_url = System.get_env("KEYCLOAK_URL", "https://some-keycloak-instance.org")
+# config :ueberauth, UeberauthKeycloakStrategy.Strategy.OAuth,
+#   client_id: System.get_env("KEYCLOAK_CLIENT_ID"),
+#   client_secret: System.get_env("KEYCLOAK_CLIENT_SECRET"),
+#   site: keycloak_url,
+#   authorize_url: "#{keycloak_url}/auth/realms/master/protocol/openid-connect/auth",
+#   token_url: "#{keycloak_url}/auth/realms/master/protocol/openid-connect/token",
+#   userinfo_url: "#{keycloak_url}/auth/realms/master/protocol/openid-connect/userinfo",
+#   token_method: :post

@@ -106,3 +106,21 @@ config :mobilizon, :anonymous,
   ]
 
 config :unplug, :init_mode, :runtime
+
+# OAuth Configuration for development (following official Mobilizon documentation)
+
+config :ueberauth,
+       Ueberauth,
+       providers: [
+         linkedin: {Ueberauth.Strategy.Linkedin, []}
+         # Add other providers here as needed for development
+       ]
+
+config :mobilizon, :auth,
+  oauth_consumer_strategies: [
+    :linkedin
+  ]
+
+config :ueberauth, Ueberauth.Strategy.Linkedin.OAuth,
+  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET")
