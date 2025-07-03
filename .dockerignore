@@ -1,5 +1,5 @@
 _build
-CONTRIBUTING.md
+docs/CONTRIBUTING.md
 coverage
 demo
 deps
@@ -16,7 +16,7 @@ Dockerfile
 LICENSE
 Makefile
 README.md
-SECURITY.md
+docs/SECURITY.md
 ssh_match_hostname
 package-lock.json
 node_modules

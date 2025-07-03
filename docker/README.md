@@ -144,15 +144,15 @@ docker compose -f docker/production/docker-compose.yml exec mobilizon /bin/mobil
 
 ## SMTP Configuration
 
-All environments require SMTP configuration for email functionality. See [SMTP_OPTIONS.md](../SMTP_OPTIONS.md) for detailed configuration options.
+All environments require SMTP configuration for email functionality. See [SMTP_OPTIONS.md](../docs/SMTP_OPTIONS.md) for detailed configuration options.
 
 ## OAuth Authentication
 
-Mobilizon supports multiple OAuth providers for user authentication including LinkedIn, Google, GitHub, Facebook, Discord, GitLab, Twitter, and Keycloak. See [OAUTH_SETUP.md](../OAUTH_SETUP.md) for detailed configuration instructions.
+Mobilizon supports multiple OAuth providers for user authentication including LinkedIn, Google, GitHub, Facebook, Discord, GitLab, Twitter, and Keycloak. See [OAUTH_SETUP.md](../docs/OAUTH_SETUP.md) for detailed configuration instructions.
 
 ## Production Deployment
 
-For detailed production deployment instructions, see [PRODUCTION_DEPLOYMENT.md](../PRODUCTION_DEPLOYMENT.md).
+For detailed production deployment instructions, see [PRODUCTION_DEPLOYMENT.md](../docs/PRODUCTION_DEPLOYMENT.md).
 
 ### Known Issues - Production CLI Commands
 
