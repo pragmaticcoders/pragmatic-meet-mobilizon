@@ -35,7 +35,10 @@ listen_ip =
 
 config :mobilizon, Mobilizon.Web.Endpoint,
   server: true,
-  url: [host: System.get_env("MOBILIZON_INSTANCE_HOST", "mobilizon.lan")],
+  url: [
+    host: System.get_env("MOBILIZON_INSTANCE_HOST", "mobilizon.lan"),
+    scheme: System.get_env("MOBILIZON_INSTANCE_SCHEME", "https")
+  ],
   http: [
     port: String.to_integer(System.get_env("MOBILIZON_INSTANCE_PORT", "4000")),
     ip: listen_ip
@@ -314,3 +317,27 @@ config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
 #   token_url: "#{keycloak_url}/auth/realms/master/protocol/openid-connect/token",
 #   userinfo_url: "#{keycloak_url}/auth/realms/master/protocol/openid-connect/userinfo",
 #   token_method: :post
+
+# Content Security Policy configuration for media domain
+media_host = System.get_env("MOBILIZON_INSTANCE_HOST", "mobilizon.lan")
+media_port = System.get_env("MOBILIZON_INSTANCE_PORT", "4000")
+media_scheme = System.get_env("MOBILIZON_INSTANCE_SCHEME", "https")
+
+# Build media URL for CSP
+media_url = 
+  if media_port in ["80", "443"] or 
+     (media_scheme == "http" and media_port == "80") or 
+     (media_scheme == "https" and media_port == "443") do
+    media_host
+  else
+    "#{media_host}:#{media_port}"
+  end
+
+config :mobilizon, :http_security,
+  enabled: true,
+  csp_policy: [
+    img_src: [
+      "*.tile.openstreetmap.org",
+      media_url
+    ]
+  ]
