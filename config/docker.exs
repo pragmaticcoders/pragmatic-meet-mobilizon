@@ -37,7 +37,14 @@ config :mobilizon, Mobilizon.Web.Endpoint,
   server: true,
   url: [
     host: System.get_env("MOBILIZON_INSTANCE_HOST", "mobilizon.lan"),
-    scheme: System.get_env("MOBILIZON_INSTANCE_SCHEME", "https")
+    scheme: System.get_env("MOBILIZON_INSTANCE_SCHEME", "https"),
+    port: 
+      case {System.get_env("MOBILIZON_INSTANCE_SCHEME", "https"), System.get_env("MOBILIZON_INSTANCE_EXTERNAL_PORT")} do
+        {"https", nil} -> 443  # Default HTTPS port
+        {"http", nil} -> 80    # Default HTTP port  
+        {_, port_str} when is_binary(port_str) -> String.to_integer(port_str)
+        _ -> 443 # Fallback to HTTPS default
+      end
   ],
   http: [
     port: String.to_integer(System.get_env("MOBILIZON_INSTANCE_PORT", "4000")),
