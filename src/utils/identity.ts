@@ -21,7 +21,7 @@ export async function changeIdentity(identity: IPerson): Promise<void> {
 
   // Update current actor in cache
   updateCurrentActorClient(identity);
-  
+
   if (identity.id) {
     console.debug("Saving actor data");
     saveActorData(identity);
@@ -31,33 +31,41 @@ export async function changeIdentity(identity: IPerson): Promise<void> {
   try {
     // Clear conversation cache for clean state
     apolloClient.cache.evict({
-      fieldName: "loggedPerson"
+      fieldName: "loggedPerson",
     });
-    
+
     // Clear specific conversation-related cache entries
     apolloClient.cache.evict({
-      fieldName: "conversations"
+      fieldName: "conversations",
     });
-    
+
     // Force garbage collection of evicted cache entries
     apolloClient.cache.gc();
-    
+
     console.debug("Cache cleared for profile switch");
-    
+
     // Refetch profile-specific data for the new identity
     // This ensures conversations and other profile data are loaded fresh
-    await apolloClient.query({
-      query: PROFILE_CONVERSATIONS,
-      variables: { page: 1, limit: 10 },
-      fetchPolicy: "network-only" // Force fresh fetch from server
-    }).catch((error) => {
-      console.debug("Could not refetch conversations after profile switch:", error);
-      // Don't throw - this is not critical for the profile switch to succeed
-    });
-    
+    await apolloClient
+      .query({
+        query: PROFILE_CONVERSATIONS,
+        variables: { page: 1, limit: 10 },
+        fetchPolicy: "network-only", // Force fresh fetch from server
+      })
+      .catch((error) => {
+        console.debug(
+          "Could not refetch conversations after profile switch:",
+          error
+        );
+        // Don't throw - this is not critical for the profile switch to succeed
+      });
+
     console.debug("Profile-specific data refetched");
   } catch (error) {
-    console.warn("Error during cache cleanup/refetch after profile switch:", error);
+    console.warn(
+      "Error during cache cleanup/refetch after profile switch:",
+      error
+    );
     // Don't throw - profile switch should still succeed
   }
 

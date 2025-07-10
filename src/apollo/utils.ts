@@ -83,6 +83,14 @@ export const typePolicies: TypePolicies = {
       metadata: { merge: replaceMergePolicy },
     },
   },
+  User: {
+    // Allow Apollo to merge User objects with different field sets
+    merge: true,
+    fields: {
+      // Ensure settings field is properly merged (can be null or object)
+      settings: { merge: replaceMergePolicy },
+    },
+  },
   Instance: {
     keyFields: ["domain"],
   },
@@ -114,6 +122,13 @@ export const typePolicies: TypePolicies = {
         "local",
         "suspended",
       ]),
+      // Custom merge for loggedUser field to handle partial vs complete User objects
+      loggedUser: {
+        merge: (existing, incoming) => {
+          // Always prefer the incoming data to avoid cache conflicts
+          return incoming;
+        },
+      },
     },
   },
 };
