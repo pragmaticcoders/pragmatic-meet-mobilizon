@@ -75,6 +75,14 @@ export const typePolicies: TypePolicies = {
       participantStats: { merge: replaceMergePolicy },
     },
   },
+  Media: {
+    // Custom merge policy for Media objects to handle different field sets
+    merge: true,
+    fields: {
+      // Ensure metadata field is properly merged
+      metadata: { merge: replaceMergePolicy },
+    },
+  },
   Instance: {
     keyFields: ["domain"],
   },
