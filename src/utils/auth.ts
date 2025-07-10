@@ -14,6 +14,7 @@ import { ICurrentUserRole } from "@/types/enums";
 import { LOGOUT } from "@/graphql/auth";
 import { provideApolloClient, useMutation } from "@vue/apollo-composable";
 import { apolloClient } from "@/vue-apollo";
+import { IPerson } from "@/types/actor";
 
 export function saveTokenData(obj: IToken): void {
   localStorage.setItem(AUTH_ACCESS_TOKEN, obj.accessToken);
@@ -26,6 +27,12 @@ export function saveUserData(obj: ILogin): void {
   localStorage.setItem(AUTH_USER_ROLE, obj.user.role);
 
   saveTokenData(obj);
+}
+
+export function saveActorData(actor: IPerson): void {
+  if (actor.id) {
+    localStorage.setItem(AUTH_USER_ACTOR_ID, `${actor.id}`);
+  }
 }
 
 export function saveLocaleData(locale: string): void {
