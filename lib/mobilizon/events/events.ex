@@ -1941,15 +1941,21 @@ defmodule Mobilizon.Events do
   @spec filter_local_or_from_followed_instances_events(Ecto.Queryable.t()) ::
           Ecto.Query.t()
   defp filter_local_or_from_followed_instances_events(query) do
-    %Actor{id: follower_actor_id} = Relay.get_actor()
+    # If federation is disabled, only show local events
+    if Config.get([:instance, :federating]) do
+      %Actor{id: follower_actor_id} = Relay.get_actor()
 
-    query
-    |> join(:left, [q], s in Share, on: s.uri == q.url)
-    |> join(:left, [_q, ..., s], f in Follower, on: f.target_actor_id == s.actor_id)
-    |> where(
-      [q, ..., s, f],
-      q.local == true or (f.actor_id == ^follower_actor_id and not is_nil(s.uri))
-    )
+      query
+      |> join(:left, [q], s in Share, on: s.uri == q.url)
+      |> join(:left, [_q, ..., s], f in Follower, on: f.target_actor_id == s.actor_id)
+      |> where(
+        [q, ..., s, f],
+        q.local == true or (f.actor_id == ^follower_actor_id and not is_nil(s.uri))
+      )
+    else
+      # Federation disabled, only show local events
+      where(query, [q], q.local == true)
+    end
   end
 
   @spec filter_participant_role(Ecto.Queryable.t()) :: Ecto.Query.t()
