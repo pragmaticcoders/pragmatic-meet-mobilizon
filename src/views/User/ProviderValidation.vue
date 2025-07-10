@@ -14,18 +14,12 @@ import { useLazyQuery, useMutation } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 import { computed, onMounted } from "vue";
-import { getValueFromMeta } from "@/utils/html";
+import { getValueFromMetaWithRetry } from "@/utils/html";
 
 const { t } = useI18n({ useScope: "global" });
 useHead({
   title: computed(() => t("Redirecting to Mobilizon")),
 });
-
-const accessToken = getValueFromMeta("auth-access-token");
-const refreshToken = getValueFromMeta("auth-refresh-token");
-const userId = getValueFromMeta("auth-user-id");
-const userEmail = getValueFromMeta("auth-user-email");
-const userRole = getValueFromMeta("auth-user-role") as ICurrentUserRole;
 
 const router = useRouter();
 
@@ -58,14 +52,35 @@ onUpdateCurrentUserClientDone(async () => {
 });
 
 onMounted(async () => {
-  if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
-    await router.push("/");
-  } else {
+  try {
+    // Use enhanced meta tag reading with retry logic to handle OAuth callback timing
+    const [accessToken, refreshToken, userId, userEmail, userRole] = await Promise.all([
+      getValueFromMetaWithRetry("auth-access-token"),
+      getValueFromMetaWithRetry("auth-refresh-token"),
+      getValueFromMetaWithRetry("auth-user-id"),
+      getValueFromMetaWithRetry("auth-user-email"),
+      getValueFromMetaWithRetry("auth-user-role"),
+    ]);
+
+    if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
+      console.error("OAuth callback: Missing required authentication data", {
+        hasUserId: !!userId,
+        hasUserEmail: !!userEmail,
+        hasUserRole: !!userRole,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+      });
+      await router.push({ name: RouteName.LOGIN, query: { code: "oauth_callback_failed" } });
+      return;
+    }
+
+    console.debug("OAuth callback: Successfully retrieved authentication data");
+
     const login = {
       user: {
         id: userId,
         email: userEmail,
-        role: userRole,
+        role: userRole as ICurrentUserRole,
         isLoggedIn: true,
         defaultActor: undefined,
         actors: [],
@@ -73,14 +88,20 @@ onMounted(async () => {
       accessToken,
       refreshToken,
     };
+
+    // Save authentication data
     saveUserData(login);
 
+    // Update Apollo cache
     updateCurrentUserClient({
       id: userId,
       email: userEmail,
       isLoggedIn: true,
-      role: userRole,
+      role: userRole as ICurrentUserRole,
     });
+  } catch (error) {
+    console.error("OAuth callback: Error processing authentication", error);
+    await router.push({ name: RouteName.LOGIN, query: { code: "oauth_processing_failed" } });
   }
 });
 </script>
