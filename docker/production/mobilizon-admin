@@ -1,0 +1,16 @@
+#!/bin/sh
+# Wrapper script for running mobilizon_ctl commands safely in production
+
+set -e
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <command> [args...]"
+    echo "Example: $0 users.new admin@example.com --admin --password mypassword"
+    exit 1
+fi
+
+# Always use eval mode to avoid RPC issues
+export MOBILIZON_CTL_RPC_DISABLED=true
+export MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
+
+exec /bin/mobilizon_ctl "$@"
