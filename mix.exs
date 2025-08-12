@@ -130,7 +130,7 @@ defmodule Mobilizon.Mixfile do
         end
       end)
 
-    for s <- oauth_strategy_packages, do: {String.to_atom(s), ">= 0.0.0"}
+    for s <- oauth_strategy_packages, s != "ueberauth_linkedin", do: {String.to_atom(s), ">= 0.0.0"}
   end
 
   # Specifies your project dependencies.
