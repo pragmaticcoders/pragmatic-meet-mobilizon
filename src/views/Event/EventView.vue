@@ -240,6 +240,84 @@
               class="my-2"
             />
           </section>
+          
+          <!-- Attendees Section Above Comments -->
+          <section
+            class="bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded my-4"
+            v-if="event && !eventLoading"
+          >
+            <h2 class="text-2xl mb-3">{{ t("Attendees") }}</h2>
+            
+            <!-- Show participant count and basic info -->
+            <div v-if="event.participantStats && (event.participantStats.going > 0 || event.participantStats.participant > 0)">
+              <div class="flex items-center gap-3 mb-4">
+                <AccountMultiple :size="24" class="text-violet-title" />
+                <div class="text-lg">
+                  <span class="font-semibold">
+                    {{ event.participantStats.going || event.participantStats.participant || 0 }}
+                  </span>
+                  <span class="text-gray-600 dark:text-gray-400 ml-1">
+                    {{ (event.participantStats.going || event.participantStats.participant || 0) === 1 ? t("person attending") : t("people attending") }}
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Show actual participants if available -->
+              <div v-if="eventParticipants && eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR).length > 0" class="space-y-3">
+                <div 
+                  v-for="participant in eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR)" 
+                  :key="participant.id"
+                  class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-600 rounded-lg"
+                >
+                  <img
+                    v-if="participant.actor.avatar"
+                    :src="participant.actor.avatar.url"
+                    :alt="displayName(participant.actor)"
+                    class="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div
+                    v-else
+                    class="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-400 flex items-center justify-center"
+                  >
+                    <span class="text-sm font-semibold text-gray-600 dark:text-zinc-200">
+                      {{ displayName(participant.actor).charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-900 dark:text-gray-100">
+                      {{ displayName(participant.actor) }}
+                    </div>
+                    <div v-if="participant.actor.preferredUsername && participant.actor.preferredUsername !== 'anonymous'" class="text-sm text-gray-500 dark:text-gray-400">
+                      @{{ participant.actor.preferredUsername }}
+                    </div>
+                  </div>
+                  <tag
+                    v-if="participant.role !== ParticipantRole.PARTICIPANT"
+                    :variant="participant.role === ParticipantRole.CREATOR ? 'primary' : 'info'"
+                    size="small"
+                  >
+                    {{ t(participant.role) }}
+                  </tag>
+                </div>
+              </div>
+              
+              <!-- Loading state for participants -->
+              <div v-else-if="participantsLoading" class="text-gray-600 dark:text-gray-400 italic">
+                {{ t("Loading attendees...") }}
+              </div>
+              
+              <!-- No participants available after filtering -->
+              <div v-else class="text-gray-600 dark:text-gray-400 italic">
+                {{ t("Participant information will appear here once available.") }}
+              </div>
+            </div>
+            
+            <!-- No participants yet -->
+            <div v-else class="text-gray-600 dark:text-gray-400 italic">
+              {{ t("No participants yet. Be the first to join!") }}
+            </div>
+          </section>
+          
           <section
             class="bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded my-4"
             ref="commentsObserver"
@@ -305,6 +383,7 @@ import StartTimeIcon from "@/components/Event/StartTimeIcon.vue";
 import SkeletonDateCalendarIcon from "@/components/Event/SkeletonDateCalendarIcon.vue";
 import Earth from "vue-material-design-icons/Earth.vue";
 import Link from "vue-material-design-icons/Link.vue";
+import AccountMultiple from "vue-material-design-icons/AccountMultiple.vue";
 import MultiCard from "@/components/Event/MultiCard.vue";
 import RouteName from "@/router/name";
 import CommentTree from "@/components/Comment/CommentTree.vue";
@@ -340,6 +419,7 @@ import { useI18n } from "vue-i18n";
 import { Notifier } from "@/plugins/notifier";
 import { AbsintheGraphQLErrors } from "@/types/errors.model";
 import { useHead } from "@/utils/head";
+import { useEventParticipants } from "@/composition/apollo/participants";
 
 const IntegrationTwitch = defineAsyncComponent(
   () => import("@/components/Event/Integrations/TwitchIntegration.vue")
@@ -419,6 +499,12 @@ const groupFederatedUsername = computed(() =>
 const { person } = usePersonStatusGroup(groupFederatedUsername);
 
 const { eventCategories } = useEventCategories();
+
+// Fetch event participants
+const { participants: eventParticipants, loading: participantsLoading, refetch: refetchParticipants } = useEventParticipants(propsUUID, {
+  limit: 5, // Show only first 5 attendees
+  roles: "participant,moderator,administrator" // Exclude creators, only show attendees
+});
 
 // metaInfo() {
 //   return {
@@ -521,14 +607,19 @@ onMounted(async () => {
 
 const notifier = inject<Notifier>("notifier");
 
-watch(participations, () => {
-  if (participations.value.length > 0) {
+watch(participations, (newParticipations, oldParticipations) => {
+  // Refresh participants list when participation status changes
+  if (newParticipations.length !== oldParticipations?.length) {
+    refetchParticipants();
+  }
+  
+  if (newParticipations.length > 0) {
     if (
       oldParticipationRole.value &&
-      participations.value[0].role !== ParticipantRole.NOT_APPROVED &&
-      oldParticipationRole.value !== participations.value[0].role
+      newParticipations[0].role !== ParticipantRole.NOT_APPROVED &&
+      oldParticipationRole.value !== newParticipations[0].role
     ) {
-      switch (participations.value[0].role) {
+      switch (newParticipations[0].role) {
         case ParticipantRole.PARTICIPANT:
           participationConfirmedMessage();
           break;
@@ -539,8 +630,13 @@ watch(participations, () => {
           participationChangedMessage();
           break;
       }
+      // Refresh participants list when role changes
+      refetchParticipants();
     }
-    oldParticipationRole.value = participations.value[0].role;
+    oldParticipationRole.value = newParticipations[0].role;
+  } else if (oldParticipationRole.value !== undefined) {
+    // User left the event, clear the old role
+    oldParticipationRole.value = undefined;
   }
 });
 
