@@ -40,9 +40,7 @@ services:
   mobilizon:
     container_name: mobilizon_prod
     restart: unless-stopped
-    build:
-      context: ../..
-      dockerfile: docker/production/Dockerfile
+    image: ${DOCKER_REGISTRY:-docker.io}/${DOCKER_USERNAME}/${DOCKER_IMAGE_NAME:-mobilizon-app}:${IMAGE_TAG:-latest}
     env_file:
       - ../../.env
     volumes:
