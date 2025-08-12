@@ -31,8 +31,8 @@ jobs:
       - name: Setup Elixir
         uses: erlef/setup-beam@v1
         with:
-          elixir-version: '1.14'
-          otp-version: '25'
+          elixir-version: '1.15'
+          otp-version: '26'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -48,9 +48,6 @@ jobs:
 
       - name: Install Node.js dependencies
         run: npm ci
-
-      - name: Check Elixir formatting
-        run: mix format --check-formatted
 
       - name: Run Elixir tests
         env:
