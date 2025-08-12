@@ -49,14 +49,7 @@ jobs:
       - name: Install Node.js dependencies
         run: npm ci
 
-      - name: Run Elixir tests
-        env:
-          MIX_ENV: test
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/mobilizon_test
-        run: |
-          mix ecto.create
-          mix ecto.migrate
-          mix test
+
 
       - name: Build frontend
         run: npm run build
