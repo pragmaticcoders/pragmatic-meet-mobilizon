@@ -1,0 +1,141 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, test]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: mobilizon_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.14'
+          otp-version: '25'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Elixir dependencies
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Check Elixir formatting
+        run: mix format --check-formatted
+
+      - name: Run Elixir tests
+        env:
+          MIX_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/mobilizon_test
+        run: |
+          mix ecto.create
+          mix ecto.migrate
+          mix test
+
+      - name: Build frontend
+        run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    
+    steps:
+      - name: Determine deployment environment
+        id: env
+        run: |
+          if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+            echo "environment=production" >> $GITHUB_OUTPUT
+            echo "branch=main" >> $GITHUB_OUTPUT
+          elif [[ $GITHUB_REF == 'refs/heads/test' ]]; then
+            echo "environment=test" >> $GITHUB_OUTPUT
+            echo "branch=test" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            set -e  # Exit on any error
+            
+            echo "🚀 Starting deployment to ${{ steps.env.outputs.environment }} environment"
+            echo "📂 Navigating to application directory"
+            cd /root/mobilizon
+            
+            echo "📥 Pulling latest code from ${{ steps.env.outputs.branch }} branch"
+            git fetch origin
+            git checkout ${{ steps.env.outputs.branch }}
+            git pull origin ${{ steps.env.outputs.branch }}
+            
+            echo "🛑 Stopping existing containers"
+            docker-compose -f docker/production/docker-compose.yml down || true
+            
+            echo "🗑️ Cleaning up old images and containers"
+            docker system prune -f
+            
+            echo "🔨 Building new Docker image"
+            docker-compose -f docker/production/docker-compose.yml build --no-cache
+            
+            echo "🚀 Starting new containers"
+            docker-compose -f docker/production/docker-compose.yml up -d
+            
+            echo "⏳ Waiting for containers to be ready"
+            sleep 30
+            
+            echo "🗃️ Running database migrations"
+            docker-compose -f docker/production/docker-compose.yml exec -T mobilizon mix ecto.migrate
+            
+            echo "🔍 Checking container health"
+            docker-compose -f docker/production/docker-compose.yml ps
+            
+            echo "✅ Deployment completed successfully!"
+            echo "🌐 Application should be available at your domain"
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Deployment to ${{ steps.env.outputs.environment }} completed successfully!"
+          echo "📦 Branch: ${{ steps.env.outputs.branch }}"
+          echo "🔗 Commit: ${{ github.sha }}"
+          echo "🌐 Server: ${{ secrets.DEPLOY_HOST }}"
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Deployment to ${{ steps.env.outputs.environment }} failed!"
+          echo "📦 Branch: ${{ steps.env.outputs.branch }}"
+          echo "🔗 Commit: ${{ github.sha }}"
+          echo "💡 Check the SSH action logs above for details"
