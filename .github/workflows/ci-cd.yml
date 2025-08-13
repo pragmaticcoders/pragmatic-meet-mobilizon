@@ -104,23 +104,23 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-                - name: Deploy to server
-            uses: appleboy/ssh-action@v1.0.3
-            with:
-              host: ${{ secrets.DEPLOY_HOST }}
-              username: ${{ secrets.DEPLOY_USER }}
-              key: ${{ secrets.DEPLOY_SSH_KEY }}
-              port: ${{ secrets.DEPLOY_PORT || 22 }}
-              agent_forwarding: true
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          agent_forwarding: true
           script: |
             set -e  # Exit on any error
             
-                            echo "🚀 Starting fast deployment to ${{ steps.env.outputs.environment }} environment"
-                echo "📂 Navigating to application directory"
-                cd /root/mobilizon
-                
-                echo "📥 Pulling latest configuration from git"
-                git pull origin main
+            echo "🚀 Starting fast deployment to ${{ steps.env.outputs.environment }} environment"
+            echo "📂 Navigating to application directory"
+            cd /root/mobilizon
+            
+            echo "📥 Pulling latest configuration from git"
+            git pull origin main
             
             echo "🔑 Login to Docker Hub"
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
@@ -132,7 +132,7 @@ jobs:
             docker compose -f docker/production/docker-compose.yml down || true
             
             echo "🚀 Starting new containers with pulled image"
-            IMAGE_TAG=${{ steps.env.outputs.tag }} docker compose -f docker/production/docker-compose.yml up -d
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} IMAGE_TAG=${{ steps.env.outputs.tag }} docker compose -f docker/production/docker-compose.yml up -d
             
             echo "⏳ Waiting for containers to be ready"
             sleep 20
