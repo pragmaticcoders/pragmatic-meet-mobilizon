@@ -134,7 +134,7 @@ jobs:
             sleep 20
             
             echo "🗃️ Running database migrations"
-            docker compose -f docker/production/docker-compose.yml exec -T mobilizon mix ecto.migrate
+            docker compose -f docker/production/docker-compose.yml exec -T mobilizon bin/mobilizon eval "Mobilizon.Release.migrate"
             
             echo "🔍 Checking container health"
             docker compose -f docker/production/docker-compose.yml ps
