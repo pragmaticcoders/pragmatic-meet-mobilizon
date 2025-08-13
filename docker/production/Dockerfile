@@ -78,7 +78,6 @@ RUN cp /releases/*/runtime.exs /etc/mobilizon/config.exs
 # Fix execute permissions on mobilizon_ctl script
 RUN chmod +x /bin/mobilizon_ctl
 COPY docker/production/docker-entrypoint.sh ./
-COPY docker/production/mobilizon-admin /usr/local/bin/
-RUN chmod +x /usr/local/bin/mobilizon-admin
+COPY --chmod=755 docker/production/mobilizon-admin /usr/local/bin/
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
