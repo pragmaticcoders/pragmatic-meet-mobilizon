@@ -16,7 +16,7 @@ import LazyImage from "../Image/LazyImage.vue";
 
 const { defaultPicture } = useDefaultPicture();
 
-const DEFAULT_CARD_URL = "/img/mobilizon_default_card.png";
+const DEFAULT_CARD_URL = "/img/pragmatic_social_media.svg";
 const DEFAULT_BLURHASH = "MCHKI4El-P-U}+={R-WWoes,Iu-P=?R,xD";
 const DEFAULT_WIDTH = 630;
 const DEFAULT_HEIGHT = 350;

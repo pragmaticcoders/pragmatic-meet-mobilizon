@@ -197,6 +197,8 @@ onMounted(() => {
     });
   });
   darkModePreference.addEventListener("change", changeTheme);
+  // Enforce light theme on app start to match Figma design system
+  changeTheme();
 });
 
 onUnmounted(() => {
@@ -305,16 +307,11 @@ watch(config, async (configWatched: IConfig | undefined) => {
 const isDemoMode = computed(() => config.value?.demoMode);
 
 const changeTheme = () => {
-  console.debug("changing theme");
-  if (
-    localStorage.getItem("theme") === "dark" ||
-    (!("theme" in localStorage) &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches)
-  ) {
-    document.documentElement.classList.add("dark");
-  } else {
-    document.documentElement.classList.remove("dark");
-  }
+  console.debug("enforcing light theme to match Figma design system");
+  // Always use light theme as per Figma design system
+  document.documentElement.classList.remove("dark");
+  // Ensure localStorage is set to light theme
+  localStorage.setItem("theme", "light");
 };
 
 onBeforeUnmount(() => {

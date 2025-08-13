@@ -1,6 +1,6 @@
 <template>
   <LinkOrRouterLink
-    class="mbz-card snap-center dark:bg-mbz-purple"
+    class="bg-white border border-gray-200 shadow-sm snap-center"
     :class="{
       'sm:flex sm:items-start': mode === 'row',
       'sm:max-w-xs w-[18rem] shrink-0 flex flex-col': mode === 'column',
@@ -9,7 +9,6 @@
     :isInternal="isInternal"
   >
     <div
-      class="rounded-lg"
       :class="{ 'sm:w-full sm:max-w-[20rem]': mode === 'row' }"
     >
       <div
@@ -33,7 +32,7 @@
         <date-calendar-icon
           :small="true"
           v-if="!mergedOptions.hideDate && isDifferentBeginsEndsDate"
-          :date="event.endsOn?.toString()"
+          :date="(event.endsOn ?? event.beginsOn).toString()"
         />
       </div>
 
@@ -279,6 +278,7 @@ const formatBeginsOnDateWithCurrentLocale = computed(() => {
 
 const formatEndsOnDateWithCurrentLocale = computed(() => {
   if (!dateFnsLocale) return;
+  if (!props.event.endsOn) return;
   return formatDateForEvent(new Date(props.event.endsOn), dateFnsLocale);
 });
 

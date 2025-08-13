@@ -1,6 +1,6 @@
 <template>
   <article
-    class="bg-white dark:bg-zinc-700 dark:text-white dark:hover:text-white rounded-lg shadow-md max-w-3xl p-2"
+    class="bg-white border border-gray-200 shadow-sm max-w-3xl p-5"
   >
     <div class="flex gap-2">
       <div class="">

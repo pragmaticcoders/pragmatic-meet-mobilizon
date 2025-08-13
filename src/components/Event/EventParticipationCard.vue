@@ -1,9 +1,9 @@
 <template>
   <article
-    class="bg-white dark:bg-mbz-purple dark:hover:bg-mbz-purple-400 mb-5 mt-4 pb-2 md:p-0 rounded-t-lg"
+    class="bg-white mb-5 mt-4 pb-2 md:p-0"
   >
     <div
-      class="bg-mbz-yellow-alt-100 flex p-2 text-violet-title rounded-t-lg"
+      class="bg-mbz-yellow-alt-100 flex p-2 text-violet-title"
       dir="auto"
     >
       <figure

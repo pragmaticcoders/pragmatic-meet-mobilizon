@@ -1,13 +1,11 @@
 <template>
   <div
-    class="starttime-container flex flex-col rounded-lg text-center justify-center overflow-hidden items-stretch bg-white dark:bg-gray-700 text-violet-3 dark:text-white"
+    class="starttime-container flex items-center justify-center rounded-lg bg-white text-gray-700"
     :class="{ small }"
-    :style="`--small: ${smallStyle}`"
   >
-    <div class="starttime-container-content font-semibold">
-      <Clock class="clock-icon" /><time :datetime="dateObj.toISOString()">{{
-        time
-      }}</time>
+    <div class="starttime-container-content flex items-center gap-2 font-bold">
+      <Clock class="clock-icon" />
+      <time :datetime="dateObj.toISOString()">{{ time }}</time>
     </div>
   </div>
 </template>
@@ -38,14 +36,28 @@ const smallStyle = computed<string>(() => (props.small ? "0.9" : "2"));
 <style lang="scss" scoped>
 div.starttime-container {
   width: auto;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  padding: 0.25rem 0.25rem;
-  font-size: calc(1rem * var(--small));
+  border: 1px solid var(--color-gray-200);
+  box-shadow: var(--shadow-sm);
+  padding: 8px;
+  font-family: var(--font-family-primary);
+
+  .starttime-container-content {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.33;
+    color: var(--color-gray-700);
+  }
+
+  &.small {
+    .starttime-container-content {
+      font-size: 24px;
+    }
+  }
 }
 
 .clock-icon {
-  vertical-align: middle;
-  padding-right: 0.2rem;
-  display: inline-block;
+  width: 24px;
+  height: 24px;
+  color: var(--color-gray-500);
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <router-link
-    class="block md:flex gap-x-2 gap-y-3 bg-white dark:bg-violet-2 rounded-lg shadow-md w-full"
+    class="block md:flex gap-x-2 gap-y-3 bg-white border border-gray-200 shadow-sm w-full"
     dir="auto"
     :to="{ name: RouteName.EVENT, params: { uuid: event.uuid } }"
   >
@@ -19,15 +19,15 @@
             v-if="isDifferentBeginsEndsDate"
           />
           <date-calendar-icon
-            :date="event.endsOn?.toString()"
+            :date="(event.endsOn ?? event.beginsOn).toString()"
             :small="true"
             v-if="isDifferentBeginsEndsDate"
           />
         </div>
         <lazy-image-wrapper
           :picture="event.picture"
-          :rounded="true"
-          class="object-cover flex-none h-40 md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg"
+          :rounded="false"
+          class="object-cover flex-none h-40 md:w-48"
         />
       </div>
     </div>

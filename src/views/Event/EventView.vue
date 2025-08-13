@@ -1,44 +1,57 @@
 <template>
-  <div class="container mx-auto">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
     <o-loading v-model:active="eventLoading" />
     <div class="flex flex-col mb-3">
-      <event-banner :picture="event?.picture" />
-      <div
-        class="flex flex-col relative pb-2 bg-white dark:bg-zinc-700 my-4 rounded"
-      >
-        <div class="date-calendar-icon-wrapper relative" v-if="event?.beginsOn">
+      <!-- Event Banner with Floating Elements -->
+      <div class="relative mb-4">
+        <event-banner :picture="event?.picture" />
+        
+        <!-- Floating Calendar Icon - positioned over banner -->
+        <div 
+          class="absolute bg-white shadow-lg border border-gray-200 z-10 left-4 md:left-8 bottom-[-32px] w-20"
+          v-if="event?.beginsOn"
+        >
           <skeleton-date-calendar-icon
             v-if="eventLoading"
-            class="absolute left-3 -top-16"
+            class="w-full"
           />
           <date-calendar-icon
             v-else
             :date="event.beginsOn.toString()"
-            class="absolute left-3 -top-16"
+            class="w-full"
           />
         </div>
 
-        <div
-          class="start-time-icon-wrapper relative"
+        <!-- Floating Time Icon - positioned over banner -->
+        <div 
+          class="absolute bg-white shadow-lg border border-gray-200 z-10 right-0 bottom-0 flex items-center gap-2"
           v-if="event?.beginsOn && event?.options.showStartTime"
         >
           <start-time-icon
             :date="event.beginsOn.toString()"
             :timezone="event.options.timezone"
-            class="absolute right-3 -top-16"
+            class="flex items-center gap-2"
           />
         </div>
+      </div>
 
-        <section class="intro px-2 pt-4" dir="auto">
-          <div class="flex flex-wrap gap-2 justify-end">
+      <!-- Event Info Section -->
+      <div
+        class="flex flex-col relative pb-2 bg-white rounded-lg shadow-sm border border-gray-200"
+        style="margin-bottom: 16px;"
+      >
+
+        <section class="intro" style="padding: 20px;" dir="auto">
+          <div class="flex flex-wrap justify-end" style="gap: 16px;">
             <div class="flex-1 min-w-[300px]">
               <div
                 v-if="eventLoading"
-                class="animate-pulse mb-2 h-12 bg-slate-200 w-3/4"
+                class="animate-pulse mb-3 h-12 bg-slate-200 w-3/4 rounded"
               />
               <h1
                 v-else
-                class="text-4xl font-bold m-0"
+                class="text-2xl font-bold text-gray-700 m-0 mb-3"
+                style="font-size: 36px; line-height: 1.33; font-family: var(--font-family-primary);"
                 dir="auto"
                 :lang="event?.language"
               >
@@ -57,7 +70,8 @@
                     <i18n-t
                       keypath="By {username}"
                       dir="auto"
-                      class="block truncate max-w-xs md:max-w-sm"
+                      class="block truncate max-w-xs md:max-w-sm text-gray-600"
+                      style="font-size: 15px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);"
                     >
                       <template #username>
                         <span dir="ltr">{{
@@ -75,7 +89,8 @@
                     <i18n-t
                       keypath="By {group}"
                       dir="auto"
-                      class="block truncate max-w-xs md:max-w-sm"
+                      class="block truncate max-w-xs md:max-w-sm text-gray-600"
+                      style="font-size: 15px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);"
                     >
                       <template #group>
                         <router-link
@@ -95,7 +110,7 @@
                   </popover-actor-card>
                 </span>
               </div>
-              <div class="flex flex-wrap items-center gap-2 gap-y-4 mt-2 my-3">
+              <div class="flex flex-wrap items-center mt-2 my-3" style="gap: 8px;">
                 <div
                   v-if="eventLoading"
                   class="animate-pulse mb-2 h-6 space-y-6 bg-slate-200 w-64"
@@ -115,14 +130,16 @@
                 <template v-if="!eventLoading && !event?.draft">
                   <p
                     v-if="event?.visibility === EventVisibility.PUBLIC"
-                    class="inline-flex gap-1"
+                    class="inline-flex gap-1 text-gray-600"
+                    style="font-size: 15px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);"
                   >
                     <Earth />
                     {{ t("Public event") }}
                   </p>
                   <p
                     v-if="event?.visibility === EventVisibility.UNLISTED"
-                    class="inline-flex gap-1"
+                    class="inline-flex gap-1 text-gray-600"
+                    style="font-size: 15px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);"
                   >
                     <Link />
                     {{ t("Private event") }}
@@ -142,7 +159,7 @@
                     eventCategory
                   }}</tag>
                   <router-link
-                    class="rounded-md truncate text-sm text-violet-title py-1 bg-purple-3 dark:text-violet-3 category"
+                    class="rounded-md truncate text-sm text-violet-title py-1 bg-purple-3 category"
                     v-for="tag in event?.tags ?? []"
                     :key="tag.title"
                     :to="{ name: RouteName.TAG, params: { tag: tag.title } }"
@@ -172,23 +189,23 @@
       </div>
 
       <div
-        class="rounded-lg dark:border-violet-title flex flex-wrap flex-col md:flex-row-reverse gap-4"
+        class="flex flex-col md:flex-row gap-4 w-full mt-1"
       >
         <aside
-          class="rounded bg-white dark:bg-zinc-700 shadow-md h-min max-w-screen-sm"
+          class="rounded-lg bg-white shadow-sm border border-gray-200 h-min md:w-[300px] lg:w-[420px] xl:w-[515px] md:flex-shrink-0 md:order-2"
         >
-          <div class="sticky p-4">
+          <div class="sticky" style="padding: 20px;">
             <aside
               v-if="eventLoading"
-              class="animate-pulse rounded bg-white dark:bg-zinc-700 h-min max-w-screen-sm"
+              class="animate-pulse rounded-lg bg-white h-min max-w-screen-sm"
             >
               <div class="mb-6 p-2" v-for="i in 3" :key="i">
-                <div class="mb-2 h-6 bg-slate-200 w-64" />
+                <div class="mb-3 h-6 bg-slate-200 w-64 rounded" />
                 <div class="flex space-x-4 flex-row">
                   <div class="rounded-full bg-slate-200 h-10 w-10"></div>
                   <div class="flex flex-col flex-1 space-y-2">
-                    <div class="h-3 bg-slate-200"></div>
-                    <div class="h-3 bg-slate-200"></div>
+                    <div class="h-3 bg-slate-200 rounded"></div>
+                    <div class="h-3 bg-slate-200 rounded"></div>
                   </div>
                 </div>
               </div>
@@ -199,33 +216,120 @@
               :user="loggedUser"
               @showMapModal="showMap = true"
             />
+            
+            <!-- Attendees Section in Sidebar -->
+            <div 
+              v-if="event && !eventLoading"
+              class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              style="margin-top: 16px;"
+            >
+              <div style="padding: 20px;">
+                <h3 class="text-gray-700 mb-4" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary);">
+                  {{ t("Attendees") }}
+                  <span v-if="event.participantStats && (event.participantStats.going > 0 || event.participantStats.participant > 0)" class="text-gray-500" style="font-weight: 500; font-size: 15px; font-family: var(--font-family-primary);">
+                    ({{ event.participantStats.going || event.participantStats.participant || 0 }})
+                  </span>
+                </h3>
+                
+                <!-- Participants List -->
+                <div v-if="event.participantStats && (event.participantStats.going > 0 || event.participantStats.participant > 0)">
+                  <!-- Show actual participants if available -->
+                  <div v-if="eventParticipants && eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR).length > 0" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div 
+                      v-for="participant in eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR).slice(0, 5)" 
+                      :key="participant.id"
+                      class="flex items-center"
+                      style="gap: 12px;"
+                    >
+                      <img
+                        v-if="participant.actor.avatar"
+                        :src="participant.actor.avatar.url"
+                        :alt="displayName(participant.actor)"
+                        class="rounded-full object-cover"
+                        style="width: 32px; height: 32px;"
+                      />
+                      <div
+                        v-else
+                        class="rounded-full bg-gray-300 flex items-center justify-center"
+                        style="width: 32px; height: 32px;"
+                      >
+                        <span class="font-semibold text-gray-600" style="font-size: 12px;">
+                          {{ displayName(participant.actor).charAt(0).toUpperCase() }}
+                        </span>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="text-gray-900 truncate" style="font-size: 17px; line-height: 1.53; font-weight: 700; font-family: var(--font-family-primary);">
+                          {{ displayName(participant.actor) }}
+                        </div>
+                        <div v-if="participant.actor.preferredUsername && participant.actor.preferredUsername !== 'anonymous'" class="text-gray-500 truncate" style="font-size: 15px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
+                          @{{ participant.actor.preferredUsername }}
+                        </div>
+                      </div>
+                      <tag
+                        v-if="participant.role !== ParticipantRole.PARTICIPANT"
+                        :variant="participant.role === ParticipantRole.CREATOR ? 'primary' : 'info'"
+                        size="small"
+                      >
+                        {{ t(participant.role) }}
+                      </tag>
+                    </div>
+                    
+                    <!-- Show All Button -->
+                    <div v-if="eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR).length > 5" class="border-t border-gray-100" style="padding-top: 16px; margin-top: 16px;">
+                      <button class="btn btn-secondary w-full" style="padding: 12px 16px; font-size: 17px; font-weight: 700; font-family: var(--font-family-primary);">
+                        {{ t("Show all attendees") }}
+                        <svg class="ml-2" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <!-- Loading state for participants -->
+                  <div v-else-if="participantsLoading" class="text-gray-500 text-center py-6" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
+                    {{ t("Loading attendees...") }}
+                  </div>
+                  
+                  <!-- No participants available after filtering -->
+                  <div v-else class="text-gray-500 text-center py-6" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
+                    {{ t("Participant information will appear here once available.") }}
+                  </div>
+                </div>
+                
+                <!-- No participants yet -->
+                <div v-else class="text-gray-500 text-center py-6" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
+                  {{ t("No participants yet. Be the first to join!") }}
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
-        <div class="flex-1">
+        <div class="flex-1 md:order-1">
           <section
-            class="event-description bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded mb-4"
+            class="event-description bg-white rounded-lg shadow-sm border border-gray-200"
+            style="padding: 20px; margin-bottom: 16px;"
           >
-            <h2 class="text-2xl">{{ t("About this event") }}</h2>
+            <h2 class="text-gray-700 mb-4" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary);">{{ t("About this event") }}</h2>
             <div
               v-if="eventLoading"
-              class="animate-pulse mb-2 h-6 space-y-6 bg-slate-200 w-3/4"
+              class="animate-pulse mb-3 h-4 bg-slate-200 w-3/4 rounded"
             />
             <div
               v-if="eventLoading"
-              class="animate-pulse mb-2 h-6 space-y-6 bg-slate-200 w-3/4"
+              class="animate-pulse mb-3 h-4 bg-slate-200 w-3/4 rounded"
             />
             <div
               v-if="eventLoading"
-              class="animate-pulse mb-2 h-6 space-y-6 bg-slate-200 w-1/4"
+              class="animate-pulse mb-3 h-4 bg-slate-200 w-1/4 rounded"
             />
-            <p v-else-if="!event?.description">
+            <p v-else-if="!event?.description" class="text-gray-500 italic text-center py-8" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
               {{ t("The event organizer didn't add any description.") }}
             </p>
             <div v-else>
               <div
                 :lang="event?.language"
                 dir="auto"
-                class="mt-4 prose md:prose-lg lg:prose-xl dark:prose-invert prose-h1:text-xl prose-h1:font-semibold prose-h2:text-lg prose-h3:text-base md:prose-h1:text-2xl md:prose-h1:font-semibold md:prose-h2:text-xl md:prose-h3:text-lg lg:prose-h1:text-2xl lg:prose-h1:font-semibold lg:prose-h2:text-xl lg:prose-h3:text-lg"
+                class="prose md:prose-lg lg:prose-xl prose-h1:text-xl prose-h1:font-semibold prose-h2:text-lg prose-h3:text-base md:prose-h1:text-2xl md:prose-h1:font-semibold md:prose-h2:text-xl md:prose-h3:text-lg lg:prose-h1:text-2xl lg:prose-h1:font-semibold lg:prose-h2:text-xl lg:prose-h3:text-lg max-w-none"
                 ref="eventDescriptionElement"
                 v-html="event.description"
               />
@@ -241,89 +345,15 @@
             />
           </section>
           
-          <!-- Attendees Section Above Comments -->
-          <section
-            class="bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded my-4"
-            v-if="event && !eventLoading"
-          >
-            <h2 class="text-2xl mb-3">{{ t("Attendees") }}</h2>
-            
-            <!-- Show participant count and basic info -->
-            <div v-if="event.participantStats && (event.participantStats.going > 0 || event.participantStats.participant > 0)">
-              <div class="flex items-center gap-3 mb-4">
-                <AccountMultiple :size="24" class="text-violet-title" />
-                <div class="text-lg">
-                  <span class="font-semibold">
-                    {{ event.participantStats.going || event.participantStats.participant || 0 }}
-                  </span>
-                  <span class="text-gray-600 dark:text-gray-400 ml-1">
-                    {{ (event.participantStats.going || event.participantStats.participant || 0) === 1 ? t("person attending") : t("people attending") }}
-                  </span>
-                </div>
-              </div>
-              
-              <!-- Show actual participants if available -->
-              <div v-if="eventParticipants && eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR).length > 0" class="space-y-3">
-                <div 
-                  v-for="participant in eventParticipants.filter(p => p.role !== ParticipantRole.CREATOR)" 
-                  :key="participant.id"
-                  class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-zinc-600 rounded-lg"
-                >
-                  <img
-                    v-if="participant.actor.avatar"
-                    :src="participant.actor.avatar.url"
-                    :alt="displayName(participant.actor)"
-                    class="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div
-                    v-else
-                    class="w-10 h-10 rounded-full bg-gray-300 dark:bg-zinc-400 flex items-center justify-center"
-                  >
-                    <span class="text-sm font-semibold text-gray-600 dark:text-zinc-200">
-                      {{ displayName(participant.actor).charAt(0).toUpperCase() }}
-                    </span>
-                  </div>
-                  <div class="flex-1">
-                    <div class="font-medium text-gray-900 dark:text-gray-100">
-                      {{ displayName(participant.actor) }}
-                    </div>
-                    <div v-if="participant.actor.preferredUsername && participant.actor.preferredUsername !== 'anonymous'" class="text-sm text-gray-500 dark:text-gray-400">
-                      @{{ participant.actor.preferredUsername }}
-                    </div>
-                  </div>
-                  <tag
-                    v-if="participant.role !== ParticipantRole.PARTICIPANT"
-                    :variant="participant.role === ParticipantRole.CREATOR ? 'primary' : 'info'"
-                    size="small"
-                  >
-                    {{ t(participant.role) }}
-                  </tag>
-                </div>
-              </div>
-              
-              <!-- Loading state for participants -->
-              <div v-else-if="participantsLoading" class="text-gray-600 dark:text-gray-400 italic">
-                {{ t("Loading attendees...") }}
-              </div>
-              
-              <!-- No participants available after filtering -->
-              <div v-else class="text-gray-600 dark:text-gray-400 italic">
-                {{ t("Participant information will appear here once available.") }}
-              </div>
-            </div>
-            
-            <!-- No participants yet -->
-            <div v-else class="text-gray-600 dark:text-gray-400 italic">
-              {{ t("No participants yet. Be the first to join!") }}
-            </div>
-          </section>
+
           
           <section
-            class="bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded my-4"
+            class="bg-white rounded-lg shadow-sm border border-gray-200"
+            style="padding: 20px; margin: 16px 0;"
             ref="commentsObserver"
           >
-            <a href="#comments">
-              <h2 class="text-2xl" id="comments">{{ t("Comments") }}</h2>
+            <a href="#comments" class="no-underline">
+              <h2 class="text-gray-700 mb-4" id="comments" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary);">{{ t("Comments") }}</h2>
             </a>
             <comment-tree v-if="event && loadComments" :event="event" />
           </section>
@@ -331,10 +361,11 @@
       </div>
 
       <section
-        class="bg-white dark:bg-zinc-700 px-3 pt-1 pb-3 rounded my-4"
+        class="bg-white rounded-lg shadow-sm border border-gray-200"
+        style="padding: 20px; margin: 16px 0;"
         v-if="(event?.relatedEvents ?? []).length > 0"
       >
-        <h2 class="text-2xl mb-2">
+        <h2 class="text-gray-700 mb-4" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary);">
           {{ t("These events may interest you") }}
         </h2>
         <multi-card :events="event?.relatedEvents ?? []" />
@@ -731,6 +762,6 @@ useHead({
 }
 
 .event-description .mention.h-card {
-  @apply inline-block border border-zinc-600 dark:border-zinc-300 rounded py-0.5 px-1;
+  @apply inline-block border border-gray-300 rounded py-0.5 px-1;
 }
 </style>

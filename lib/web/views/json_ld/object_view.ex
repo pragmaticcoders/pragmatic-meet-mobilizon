@@ -77,7 +77,7 @@ defmodule Mobilizon.Web.JsonLD.ObjectView do
           do: [
             event.picture.file.url
           ],
-          else: ["#{Endpoint.url()}/img/mobilizon_default_card.png"]
+          else: ["#{Endpoint.url()}/img/pragmatic_social_media.svg"]
         )
     }
 
@@ -131,7 +131,7 @@ defmodule Mobilizon.Web.JsonLD.ObjectView do
           do: [
             post.picture.file.url
           ],
-          else: ["#{Endpoint.url()}/img/mobilizon_default_card.png"]
+          else: ["#{Endpoint.url()}/img/pragmatic_social_media.svg"]
         )
     }
   end

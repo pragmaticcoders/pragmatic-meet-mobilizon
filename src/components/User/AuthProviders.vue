@@ -1,6 +1,5 @@
 <template>
   <div>
-    <b>{{ t("Sign in with") }}</b>
     <div class="flex gap-1 flex-wrap">
       <auth-provider
         v-for="provider in oauthProviders"

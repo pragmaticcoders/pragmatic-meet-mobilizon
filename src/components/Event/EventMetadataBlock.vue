@@ -1,21 +1,9 @@
 <template>
-  <div>
-    <h2>{{ title }}</h2>
-    <div class="flex items-center mb-3 gap-1 eventMetadataBlock">
+  <div style="margin-bottom: 20px;">
+    <h2 class="text-gray-700" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary); margin-bottom: 8px;">{{ title }}</h2>
+    <div class="flex items-center eventMetadataBlock" style="gap: 12px;">
       <slot name="icon"></slot>
-      <!-- Custom icons -->
-      <!-- <span
-        class="icon is-medium"
-        v-if="icon && icon.substring(0, 7) === 'mz:icon'"
-      >
-        <img
-          :src="`/img/${icon.substring(8)}_monochrome.svg`"
-          width="32"
-          height="32"
-        />
-      </span>
-      <o-icon v-else-if="icon" :icon="icon" size="is-medium" /> -->
-      <div class="content-wrapper overflow-hidden w-full">
+      <div class="content-wrapper overflow-hidden w-full" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
         <slot></slot>
       </div>
     </div>

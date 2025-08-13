@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="`bg-white dark:bg-slate-800 shadow rounded-md ${
+    :class="`bg-white border border-gray-200 shadow-sm ${
       isRowMode ? 'max-w-4xl' : 'max-w-sm'
     } w-full mx-auto`"
   >

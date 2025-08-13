@@ -1,14 +1,21 @@
 <template>
-  <footer
-    class="bg-violet-2 color-secondary flex flex-col items-center py-3 px-3"
-    ref="footer"
-  >
-    <ul
-      class="inline-flex flex-wrap justify-around gap-3 text-lg text-white underline decoration-yellow-1"
-    >
-      <li>
+  <footer class="bg-white border-t border-gray-200" ref="footer">
+    <div class="container mx-auto px-4 md:px-16 py-12 flex flex-col items-center text-center gap-6">
+      <!-- Brand -->
+      <img
+        src="/img/pragmatic_logo.svg"
+        alt="Pragmatic Meet"
+        width="176"
+        height="32"
+        class="w-[176px] h-8"
+      />
+
+      <!-- Language selector -->
+      <div>
+        <label class="sr-only" for="footer-language">{{ t('Language') }}</label>
         <o-select
-          class="text-black dark:text-white"
+          id="footer-language"
+          class="min-w-[220px] text-gray-900 border border-gray-300 px-4 py-3 bg-white"
           :aria-label="t('Language')"
           v-model="locale"
           :placeholder="t('Select a language')"
@@ -19,58 +26,39 @@
             :key="lang"
             :selected="isLangSelected(lang)"
           >
-            {{ language }}
+            {{ flagForLocale(lang) }} {{ language }}
           </option>
         </o-select>
-      </li>
-      <li>
-        <router-link :to="{ name: RouteName.ABOUT }">{{
-          t("About")
-        }}</router-link>
-      </li>
-      <li>
-        <router-link :to="{ name: RouteName.TERMS }">{{
-          t("Terms")
-        }}</router-link>
-      </li>
-      <li>
-        <a
-          rel="external"
-          hreflang="en"
-          href="https://framagit.org/framasoft/mobilizon/blob/main/LICENSE"
-        >
-          {{ t("License") }}
-        </a>
-      </li>
-      <li>
-        <a href="#navbar">{{ t("Back to top") }}</a>
-      </li>
-    </ul>
-    <div class="text-center flex-1 pt-2 text-yellow-1">
-      <i18n-t
-        tag="span"
-        keypath="Powered by {mobilizon}. © 2018 - {date} The Mobilizon Contributors - Made with the financial support of {contributors}."
-      >
-        <template #mobilizon>
-          <a
-            rel="external"
-            class="text-white underline decoration-yellow-1"
-            href="https://joinmobilizon.org"
-            >{{ t("Mobilizon") }}</a
-          >
-        </template>
-        <template #date
-          ><span>{{ new Date().getFullYear() }}</span></template
-        >
-        <template #contributors>
-          <a
-            rel="external"
-            class="text-white underline decoration-yellow-1"
-            href="https://joinmobilizon.org/hall-of-fame"
-            >{{ t("more than 1360 contributors") }}</a
-          >
-        </template>
-      </i18n-t>
+      </div>
+
+      <!-- Primary links -->
+      <nav>
+        <ul class="flex items-center gap-6 text-base text-blue-700">
+          <li>
+            <router-link class="hover:underline" :to="{ name: RouteName.ABOUT }">
+              O Pragmatic Meet
+            </router-link>
+          </li>
+          <li class="text-gray-300">|</li>
+          <li>
+            <a class="hover:underline" href="#navbar">Powrót do góry</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Secondary links -->
+      <div class="flex items-center gap-3 text-sm text-gray-700">
+        <span class="text-green-600">💚</span>
+        <span>Powstało dzięki</span>
+        <a class="underline" href="https://www.pragmaticcoders.com" rel="external">Pragmatic Coders</a>
+        <span class="text-gray-300">|</span>
+        <router-link class="underline" :to="{ name: RouteName.TERMS }">Polityka prywatności</router-link>
+      </div>
+    </div>
+    <div class="border-t border-gray-200">
+      <div class="container mx-auto px-4 md:px-16 py-6 text-gray-500 text-xs text-center">
+        © {{ new Date().getFullYear() }} Pragmatic Meet. Wszelkie prawa zastrzeżone.
+      </div>
     </div>
   </footer>
 </template>
@@ -80,6 +68,7 @@ import { loadLanguageAsync } from "@/utils/i18n";
 import RouteName from "../router/name";
 import langs from "../i18n/langs.json";
 import { watch } from "vue";
+import { flagForLocale } from "@/utils/locale";
 import { useI18n } from "vue-i18n";
 
 const { locale, t } = useI18n({ useScope: "global" });
@@ -95,6 +84,8 @@ watch(locale, async () => {
 const isLangSelected = (lang: string): boolean => {
   return lang === locale.value;
 };
+
+// flagForLocale now imported from utils
 </script>
 
 <style lang="scss">

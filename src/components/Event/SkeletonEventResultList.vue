@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white dark:bg-slate-800 shadow rounded-md w-full mx-auto">
+  <div class="bg-white border border-gray-200 shadow-sm w-full mx-auto">
     <div class="animate-pulse flex flex-col sm:flex-row space-3-4 items-center">
       <div class="object-cover h-40 w-72 bg-slate-700 m-2 md:m-4 shrink-0" />
 

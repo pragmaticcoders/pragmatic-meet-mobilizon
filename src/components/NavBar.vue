@@ -1,15 +1,15 @@
 <template>
   <nav
-    class="bg-white border-gray-200 px-2 sm:px-4 py-2.5 dark:bg-zinc-900"
+    class="bg-white border-b border-gray-200 py-4"
     id="navbar"
   >
-    <div class="container mx-auto flex flex-wrap items-center gap-2 sm:gap-4">
+    <div class="max-w-screen-xl mx-auto px-4 md:px-16 flex flex-wrap items-center gap-2 sm:gap-4">
       <router-link
         :to="{ name: RouteName.HOME }"
         class="flex items-center"
         :class="{ 'flex-1': !currentActor?.id }"
       >
-        <MobilizonLogo class="w-40" />
+        <img src="/img/pragmatic_logo.svg" alt="Pragmatic Meet" width="176" height="32" class="w-[176px] h-8" />
       </router-link>
       <div
         class="flex items-center md:order-2 ml-auto gap-2"
@@ -25,7 +25,7 @@
           <Inbox :size="32" />
           <span
             v-show="unreadConversationsCount > 0"
-            class="absolute bottom-0.5 -left-2 bg-primary rounded-full inline-block h-3 w-3 mx-2"
+            class="absolute bottom-0.5 -left-2 bg-primary inline-block h-3 w-3 mx-2"
           >
           </span>
         </router-link>
@@ -33,7 +33,7 @@
           <template #trigger>
             <button
               type="button"
-              class="flex sm:mr-3 text-sm rounded-full md:mr-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+              class="flex sm:mr-3 text-sm md:mr-0 focus:ring-4 focus:ring-gray-300"
               id="user-menu-button"
               aria-expanded="false"
             >
@@ -53,22 +53,22 @@
           </template>
 
           <!-- Dropdown menu -->
-          <div
-            class="z-50 text-base list-none bg-white rounded divide-y divide-gray-100 dark:bg-zinc-700 dark:divide-gray-600 max-w-xs"
-            position="bottom-left"
-          >
+            <div
+              class="z-50 text-base list-none bg-white divide-y divide-gray-100 max-w-xs"
+              position="bottom-left"
+            >
             <o-dropdown-item aria-role="listitem">
               <div class="px-4">
-                <span class="block text-sm text-zinc-900 dark:text-white">{{
+                <span class="block text-sm text-zinc-900">{{
                   displayName(currentActor) || currentUser.email
                 }}</span>
                 <span
-                  class="block text-sm font-medium text-zinc-500 truncate dark:text-zinc-400"
+                  class="block text-sm font-medium text-zinc-500 truncate"
                   v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
                   >{{ t("Administrator") }}</span
                 >
                 <span
-                  class="block text-sm font-medium text-zinc-500 truncate dark:text-zinc-400"
+                  class="block text-sm font-medium text-zinc-500 truncate"
                   v-if="currentUser?.role === ICurrentUserRole.MODERATOR"
                   >{{ t("Moderator") }}</span
                 >
@@ -121,7 +121,7 @@
               :to="{ name: RouteName.SETTINGS }"
             >
               <span
-                class="block py-2 px-4 text-sm text-zinc-700 dark:text-zinc-200 dark:hover:text-white"
+                class="block py-2 px-4 text-sm text-zinc-700"
                 >{{ t("My account") }}</span
               >
             </o-dropdown-item>
@@ -132,7 +132,7 @@
               :to="{ name: RouteName.ADMIN_DASHBOARD }"
             >
               <span
-                class="block py-2 px-4 text-sm text-zinc-700 dark:text-zinc-200 dark:hover:text-white"
+                class="block py-2 px-4 text-sm text-zinc-700"
                 >{{ t("Administration") }}</span
               >
             </o-dropdown-item>
@@ -142,7 +142,7 @@
               @keyup.enter="performLogout"
             >
               <span
-                class="block py-2 px-4 text-sm text-zinc-700 dark:text-zinc-200 dark:hover:text-white"
+                class="block py-2 px-4 text-sm text-zinc-700"
                 >{{ t("Log out") }}</span
               >
             </o-dropdown-item>
@@ -152,7 +152,7 @@
       <button
         @click="showMobileMenu = !showMobileMenu"
         type="button"
-        class="inline-flex items-center p-2 ml-1 text-sm text-zinc-500 rounded-lg md:hidden hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:focus:ring-gray-600"
+        class="inline-flex items-center p-2 ml-1 text-sm text-zinc-500 md:hidden hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
         aria-controls="mobile-menu-2"
         aria-expanded="false"
       >
@@ -182,7 +182,7 @@
           <li class="m-auto">
             <router-link
               :to="{ name: RouteName.SEARCH }"
-              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("Search") }}</router-link
             >
           </li>
@@ -190,7 +190,7 @@
           <li class="m-auto">
             <router-link
               :to="{ name: RouteName.EVENT_CALENDAR }"
-              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("Calendar")
               }}<span class="absolute right-0 text-xs"
                 ><br />(beta)</span
@@ -200,28 +200,28 @@
           <li class="m-auto" v-if="currentActor?.id">
             <router-link
               :to="{ name: RouteName.MY_EVENTS }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("My events") }}</router-link
             >
           </li>
           <li class="m-auto" v-if="currentActor?.id">
             <router-link
               :to="{ name: RouteName.MY_GROUPS }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("My groups") }}</router-link
             >
           </li>
           <li class="m-auto" v-if="!currentUser?.isLoggedIn">
             <router-link
               :to="{ name: RouteName.LOGIN }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("Login") }}</router-link
             >
           </li>
           <li class="m-auto" v-if="!currentUser?.isLoggedIn && canRegister">
             <router-link
               :to="{ name: RouteName.REGISTER }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0 dark:text-zinc-400 md:dark:hover:text-white dark:hover:bg-zinc-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
               >{{ t("Register") }}</router-link
             >
           </li>
@@ -232,7 +232,6 @@
 </template>
 
 <script lang="ts" setup>
-import MobilizonLogo from "@/components/MobilizonLogo.vue";
 import { ICurrentUserRole } from "@/types/enums";
 import { logout } from "../utils/auth";
 import { displayName, IPerson } from "../types/actor";
