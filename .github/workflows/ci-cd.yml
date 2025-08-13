@@ -125,19 +125,19 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.env.outputs.tag }}
             
             echo "🛑 Stopping existing containers"
-            docker-compose -f docker/production/docker-compose.yml down || true
+            docker compose -f docker/production/docker-compose.yml down || true
             
             echo "🚀 Starting new containers with pulled image"
-            IMAGE_TAG=${{ steps.env.outputs.tag }} docker-compose -f docker/production/docker-compose.yml up -d
+            IMAGE_TAG=${{ steps.env.outputs.tag }} docker compose -f docker/production/docker-compose.yml up -d
             
             echo "⏳ Waiting for containers to be ready"
             sleep 20
             
             echo "🗃️ Running database migrations"
-            docker-compose -f docker/production/docker-compose.yml exec -T mobilizon mix ecto.migrate
+            docker compose -f docker/production/docker-compose.yml exec -T mobilizon mix ecto.migrate
             
             echo "🔍 Checking container health"
-            docker-compose -f docker/production/docker-compose.yml ps
+            docker compose -f docker/production/docker-compose.yml ps
             
             echo "✅ Fast deployment completed successfully!"
             echo "🌐 Application should be available at your domain"
