@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto py-4 md:py-12 px-2 md:px-60">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-4 md:py-12">
     <main>
       <h1>{{ t("Category list") }}</h1>
       <div

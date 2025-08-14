@@ -4,11 +4,11 @@
     :class="{ 'mt-20 mb-10': inline, 'mt-80': !inline, 'text-center': center }"
     role="note"
   >
-    <o-icon :icon="icon" customSize="48" />
-    <h2 class="mb-3">
+    <o-icon :icon="icon" customSize="36" />
+    <h4 class="mb-3">
       <!-- @slot Mandatory title -->
       <slot />
-    </h2>
+    </h4>
     <p v-show="slots.desc" :class="descriptionClasses">
       <!-- @slot Optional description -->
       <slot name="desc" />

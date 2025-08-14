@@ -1,7 +1,7 @@
 <template>
   <form
     id="search-anchor"
-    class="container mx-auto p-2 flex flex-col flex-wrap items-stretch gap-2 justify-center dark:text-slate-100"
+    class="container mx-auto flex flex-col flex-wrap items-stretch gap-2 justify-center dark:text-slate-100"
     role="search"
     @submit.prevent="submit"
   >
@@ -50,30 +50,6 @@
           />
         </o-dropdown>
       </full-address-auto-complete>
-    </div>
-    <div class="flex flex-col flex-wrap sm:flex-row gap-2 justify-center">
-      <o-button
-        :class="'search-Event min-w-40 ' + select_button_class('EVENTS')"
-        native-type="submit"
-        icon-left="calendar"
-      >
-        {{ t("Events") + number_result("EVENTS") }}
-      </o-button>
-      <o-button
-        :class="'search-Activity min-w-40 ' + select_button_class('LONGEVENTS')"
-        native-type="submit"
-        icon-left="calendar-star"
-        v-if="isLongEvents"
-      >
-        {{ t("Activities") + number_result("LONGEVENTS") }}
-      </o-button>
-      <o-button
-        :class="'search-Group min-w-40 ' + select_button_class('GROUPS')"
-        native-type="submit"
-        icon-left="account-multiple"
-      >
-        {{ t("Groups") + number_result("GROUPS") }}
-      </o-button>
     </div>
   </form>
 </template>
@@ -174,27 +150,7 @@ const distanceList = computed(() => {
   return distances;
 });
 
-const select_button_class = (current_content_type: string) => {
-  if (route.query.contentType === undefined) {
-    return "";
-  } else {
-    return current_content_type === route.query.contentType
-      ? "active"
-      : "disactive";
-  }
-};
 
-const number_result = (current_content_type: string) => {
-  console.log(">> number_result", props.numberOfSearch);
-  if (props.numberOfSearch == undefined) {
-    return "";
-  }
-  const nb_value = props.numberOfSearch[current_content_type];
-  if (nb_value == undefined) {
-    return "";
-  }
-  return " (" + nb_value.toString() + ")";
-};
 
 console.debug("initial", distance.value, search.value, address.value);
 

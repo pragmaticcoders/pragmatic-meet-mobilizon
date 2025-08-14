@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto w-96">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16 w-96">
     <div v-show="authApplicationLoading && !resultCode">
       <o-skeleton active size="large" class="mt-6" />
       <o-skeleton active width="80%" />

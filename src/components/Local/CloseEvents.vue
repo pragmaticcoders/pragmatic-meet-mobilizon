@@ -17,7 +17,13 @@
       </template>
     </template>
     <template #subtitle>
-      <div v-if="!loading && events.total == 0">
+      <empty-content 
+        v-if="!loading && events.total == 0" 
+        icon="calendar" 
+        inline 
+        center
+        class="my-8"
+      >
         <template v-if="userLocation?.name">
           {{
             t(
@@ -27,9 +33,9 @@
           }}
         </template>
         <template v-else>
-          {{ t("No events found") }}
+          {{ t("No upcoming events at this time.") }}
         </template>
-      </div>
+      </empty-content>
     </template>
     <template #content>
       <skeleton-event-result
@@ -43,44 +49,12 @@
         :event="event"
         :key="event.uuid"
       />
-      <more-content
-        v-if="userLocation?.name && userLocation?.lat && userLocation?.lon"
-        :to="{
-          name: RouteName.SEARCH,
-          query: {
-            locationName: userLocation?.name,
-            lat: userLocation.lat?.toString(),
-            lon: userLocation.lon?.toString(),
-            contentType: 'ALL',
-            distance: `${distance}_km`,
-          },
-        }"
-        :picture="userLocation?.picture"
-      >
-        {{
-          t("View more events and activities around {position}", {
-            position: userLocation?.name,
-          })
-        }}
-      </more-content>
-      <more-content
-        v-else
-        :to="{
-          name: RouteName.SEARCH,
-          query: {
-            contentType: 'ALL',
-          },
-        }"
-      >
-        {{ t("View more events and activities") }}
-      </more-content>
     </template>
   </close-content>
 </template>
 
 <script lang="ts" setup>
 import { LocationType } from "../../types/user-location.model";
-import MoreContent from "./MoreContent.vue";
 import CloseContent from "./CloseContent.vue";
 import { watch, computed, useAttrs } from "vue";
 import { FETCH_EVENTS } from "@/graphql/event";
@@ -89,6 +63,7 @@ import { useQuery } from "@vue/apollo-composable";
 import EventCard from "../Event/EventCard.vue";
 import { Paginate } from "@/types/paginate";
 import SkeletonEventResult from "../Event/SkeletonEventResult.vue";
+import EmptyContent from "../Utils/EmptyContent.vue";
 import { useI18n } from "vue-i18n";
 import { coordsToGeoHash } from "@/utils/location";
 import RouteName from "@/router/name";
@@ -114,7 +89,7 @@ const geoHash = computed(() => {
 });
 
 const distance = computed<number>(() => {
-  return props.distance | 25;
+  return props.distance ?? 25;
 });
 
 const eventsQuery = useQuery<{
@@ -129,7 +104,7 @@ const eventsQuery = useQuery<{
 }));
 
 const events = computed(
-  () => eventsQuery.result.value?.events ?? { elements: [], total: 0 }
+  () => eventsQuery.result.value?.searchEvents ?? { elements: [], total: 0 }
 );
 watch(events, (e) => console.debug("events: ", e));
 

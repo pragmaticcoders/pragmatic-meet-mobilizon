@@ -5,7 +5,7 @@
       <p dir="auto">{{ config.description }}</p>
     </section>
     <section
-      class="px-2 flex flex-wrap gap-2 contact-statistics"
+      class="max-w-screen-xl mx-auto px-4 md:px-16 flex flex-wrap gap-2 contact-statistics"
       v-if="statistics"
     >
       <div class="statistics flex-1 min-w-[20rem]">
@@ -44,7 +44,7 @@
       <div v-html="config.longDescription" />
     </section>
     <hr role="presentation" />
-    <section class="px-3">
+    <section class="max-w-screen-xl mx-auto px-4 md:px-16">
       <h2 class="text-xl">{{ t("Instance configuration") }}</h2>
       <table class="border-collapse table-auto w-full">
         <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">

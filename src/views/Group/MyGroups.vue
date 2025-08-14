@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto px-1 mb-6">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6">
     <h1 class="title">{{ t("My groups") }}</h1>
     <p>
       {{

@@ -22,7 +22,7 @@
     />
     <o-loading :active="loading" />
     <section
-      class="container mx-auto section"
+      class="max-w-screen-xl mx-auto px-4 md:px-16 section"
       v-if="group && isCurrentActorAGroupAdmin && followers"
     >
       <h1>{{ t("Group Followers") }} ({{ followers.total }})</h1>

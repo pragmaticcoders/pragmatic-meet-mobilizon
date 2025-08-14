@@ -1,171 +1,190 @@
 <template>
-  <!-- <o-loading v-model:active="$apollo.loading" /> -->
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
+    <!-- <o-loading v-model:active="$apollo.loading" /> -->
+    
+    <!-- Unlogged introduction -->
+    <unlogged-introduction :config="config" />
 
-  <!-- Quick publish -->
-  <quick-publish></quick-publish>
-
-  <!-- Nice looking SVGs -->
-  <section class="mt-5 sm:mt-24">
-    <div class="-z-10 overflow-hidden">
-      <img
-        alt=""
-        src="/img/shape-1.svg"
-        class="-z-10 absolute left-[2%] top-36"
-        width="300"
-      />
-      <img
-        alt=""
-        src="/img/shape-2.svg"
-        class="-z-10 absolute left-[50%] top-[5%] -translate-x-2/4 opacity-60"
-        width="800"
-      />
-      <img
-        alt=""
-        src="/img/shape-3.svg"
-        class="-z-10 absolute top-0 right-36"
-        width="200"
-      />
-    </div>
-  </section>
-  <!-- Unlogged introduction -->
-  <unlogged-introduction :config="config" v-if="config && !isLoggedIn" />
-
-  <!-- Search fields -->
-  <short-search></short-search>
-  <search-fields
-    v-model:search="search"
-    v-model:address="userAddress"
-    v-model:distance="distance"
-    v-on:update:address="updateAddress"
-    :fromLocalStorage="true"
-    :addressDefaultText="userLocation?.name"
-    :key="increated"
-  />
-  <!-- Welcome back -->
-  <section
-    class="container mx-auto"
-    v-if="currentActor?.id && (welcomeBack || newRegisteredUser)"
-  >
-    <o-notification variant="info" v-if="welcomeBack">{{
-      t("Welcome back {username}!", {
-        username: displayName(currentActor),
-      })
-    }}</o-notification>
-    <o-notification variant="info" v-if="newRegisteredUser">{{
-      t("Welcome to Mobilizon, {username}!", {
-        username: displayName(currentActor),
-      })
-    }}</o-notification>
-  </section>
-  <!-- Your upcoming events -->
-  <section v-if="canShowMyUpcomingEvents" class="container mx-auto">
-    <h2 class="dark:text-white font-bold">
-      {{ t("Your upcoming events") }}
-    </h2>
-    <div
-      v-for="row of goingToEvents"
-      class="text-slate-700 dark:text-slate-300"
-      :key="row[0]"
+    <!-- Welcome back -->
+    <section
+      class="mx-auto my-6"
+      v-if="currentActor?.id && (welcomeBack || newRegisteredUser)"
     >
-      <p class="date-component-container" v-if="isInLessThanSevenDays(row[0])">
-        <span v-if="isToday(row[0])">{{
-          t(
-            "You have one event today.",
-            {
-              count: row[1].size,
-            },
-            row[1].size
-          )
-        }}</span>
-        <span v-else-if="isTomorrow(row[0])">{{
-          t(
-            "You have one event tomorrow.",
-            {
-              count: row[1].size,
-            },
-            row[1].size
-          )
-        }}</span>
-        <span v-else-if="isInLessThanSevenDays(row[0])">
-          {{
+      <o-notification variant="info" v-if="welcomeBack">{{
+        t("Welcome back {username}!", {
+          username: displayName(currentActor),
+        })
+      }}</o-notification>
+      <o-notification variant="info" v-if="newRegisteredUser">{{
+        t("Welcome to Pragmatic Meet, {username}!", {
+          username: displayName(currentActor),
+        })
+      }}</o-notification>
+    </section>
+    <!-- Your upcoming events -->
+    <section v-if="canShowMyUpcomingEvents" class="mx-auto mb-8 mt-4">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6">
+        {{ t("Your upcoming events") }}
+      </h2>
+      <div
+        v-for="row of goingToEvents"
+        class="text-gray-700 mb-4"
+        :key="row[0]"
+      >
+        <p class="date-component-container" v-if="isInLessThanSevenDays(row[0])">
+          <span v-if="isToday(row[0])">{{
             t(
-              "You have one event in {days} days.",
+              "You have one event today.",
               {
                 count: row[1].size,
-                days: calculateDiffDays(row[0]),
               },
               row[1].size
             )
-          }}
-        </span>
-      </p>
-      <div>
-        <event-participation-card
-          v-for="participation in thisWeek(row)"
-          :key="participation[1].id"
-          :participation="participation[1]"
-        />
+          }}</span>
+          <span v-else-if="isTomorrow(row[0])">{{
+            t(
+              "You have one event tomorrow.",
+              {
+                count: row[1].size,
+              },
+              row[1].size
+            )
+          }}</span>
+          <span v-else-if="isInLessThanSevenDays(row[0])">
+            {{
+              t(
+                "You have one event in {days} days.",
+                {
+                  count: row[1].size,
+                  days: calculateDiffDays(row[0]),
+                },
+                row[1].size
+              )
+            }}
+          </span>
+        </p>
+        <div>
+          <event-participation-card
+            v-for="participation in thisWeek(row)"
+            :key="participation[1].id"
+            :participation="participation[1]"
+          />
+        </div>
       </div>
+      <div class="text-right mt-6">
+        <router-link
+          :to="{ name: RouteName.MY_EVENTS }"
+          class="text-blue-600 hover:text-blue-700 font-medium"
+          >{{ t("View everything") }} →</router-link
+        >
+      </div>
+    </section>
+    <!-- Events from your followed groups -->
+    <section
+      class="mx-auto mb-8"
+      v-if="canShowFollowedGroupEvents"
+    >
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">
+        {{ t("Upcoming events from your groups") }}
+      </h2>
+      <p class="text-gray-600 mb-6">{{ t("That you follow or of which you are a member") }}</p>
+      <multi-card :events="filteredFollowedGroupsEvents" />
+      <div class="text-right mt-6">
+        <router-link
+          class="text-blue-600 hover:text-blue-700 font-medium"
+          :to="{
+            name: RouteName.MY_EVENTS,
+            query: {
+              showUpcoming: 'true',
+              showDrafts: 'false',
+              showAttending: 'false',
+              showMyGroups: 'true',
+            },
+          }"
+          >{{ t("View everything") }} →</router-link
+        >
+      </div>
+    </section>
+
+    <!-- Recent events (only show when user has no upcoming events) -->
+    <div class="mx-auto" v-if="!canShowMyUpcomingEvents">
+      <CloseEvents
+        @doGeoLoc="performGeoLocation()"
+        :userLocation="(userLocation as any) || { lat: 0, lon: 0, name: '', isIPLocation: false }"
+        :doingGeoloc="doingGeoloc"
+        :distance="distance as any"
+      />
     </div>
-    <span
-      class="block mt-2 text-right underline text-slate-700 dark:text-slate-300"
-    >
-      <router-link
-        :to="{ name: RouteName.MY_EVENTS }"
-        class="hover:text-slate-800 hover:dark:text-slate-400"
-        >{{ t("View everything") }} >></router-link
+    <!-- Groups section -->
+    <section class="mx-auto mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">
+        {{ groupsSectionTitle }}
+      </h2>
+      <p class="text-gray-600 mb-6">{{ groupsSectionDescription }}</p>
+      
+      <!-- Groups content -->
+      <div v-if="canShowUserGroups">
+        <multi-group-card :groups="displayedGroups" />
+        <div class="text-right mt-6" v-if="currentUser?.id">
+          <router-link
+            class="text-blue-600 hover:text-blue-700 font-medium"
+            :to="{ name: ActorRouteName.MY_GROUPS }"
+            >{{ t("View everything") }} →</router-link
+          >
+        </div>
+        <div class="text-right mt-6" v-else>
+          <router-link
+            class="text-blue-600 hover:text-blue-700 font-medium"
+            :to="{ name: RouteName.SEARCH }"
+            >{{ t("View everything") }} →</router-link
+          >
+        </div>
+      </div>
+      
+      <!-- Empty state for groups -->
+      <empty-content 
+        v-else
+        icon="account-group" 
+        inline 
+        center
+        class="my-8"
       >
-    </span>
-  </section>
-  <!-- Events from your followed groups -->
-  <section
-    class="relative pt-10 px-2 container mx-auto px-2"
-    v-if="canShowFollowedGroupEvents"
-  >
-    <h2
-      class="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mt-0"
-    >
-      {{ t("Upcoming events from your groups") }}
-    </h2>
-    <p>{{ t("That you follow or of which you are a member") }}</p>
-    <multi-card :events="filteredFollowedGroupsEvents" />
-    <span
-      class="block mt-2 text-right underline text-slate-700 dark:text-slate-300"
-    >
-      <router-link
-        class="hover:text-slate-800 hover:dark:text-slate-400"
-        :to="{
-          name: RouteName.MY_EVENTS,
-          query: {
-            showUpcoming: 'true',
-            showDrafts: 'false',
-            showAttending: 'false',
-            showMyGroups: 'true',
-          },
-        }"
-        >{{ t("View everything") }} >></router-link
-      >
-    </span>
-  </section>
-  <!-- Recent events -->
-  <CloseEvents
-    @doGeoLoc="performGeoLocation()"
-    :userLocation="userLocation"
-    :doingGeoloc="doingGeoloc"
-    :distance="distance"
-  />
+        <template v-if="currentUser?.id">
+          {{ t("No groups yet") }}
+        </template>
+        <template v-else>
+          {{ t("No groups available") }}
+        </template>
+        <template #desc>
+          <p class="text-gray-600 dark:text-gray-300">
+            <template v-if="currentUser?.id">
+              {{ t("Join groups to connect with like-minded people") }}
+            </template>
+            <template v-else>
+              {{ t("Sign up to discover and join groups") }}
+            </template>
+          </p>
+        </template>
+      </empty-content>
+    </section>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ParticipantRole } from "@/types/enums";
 import { IParticipant } from "../types/participant.model";
 import MultiCard from "../components/Event/MultiCard.vue";
-import { CURRENT_ACTOR_CLIENT } from "../graphql/actor";
-import { IPerson, displayName } from "../types/actor";
+import MultiGroupCard from "../components/Group/MultiGroupCard.vue";
+import EmptyContent from "../components/Utils/EmptyContent.vue";
+import { CURRENT_ACTOR_CLIENT, LOGGED_USER_MEMBERSHIPS } from "../graphql/actor";
+import { IPerson, displayName, IGroup } from "../types/actor";
 import { ICurrentUser, IUser } from "../types/current-user.model";
 import { CURRENT_USER_CLIENT } from "../graphql/user";
 import { HOME_USER_QUERIES } from "../graphql/home";
+import { IMember } from "../types/actor/member.model";
+import { LIST_GROUPS } from "../graphql/group";
 import RouteName from "../router/name";
+import { ActorRouteName } from "../router/actor";
 import { IEvent } from "../types/event.model";
 // import { IFollowedGroupEvent } from "../types/followedGroupEvent.model";
 import CloseEvents from "@/components/Local/CloseEvents.vue";
@@ -246,18 +265,44 @@ const followedGroupEvents = computed(
   () => userResult.value?.loggedUser?.followedGroupEvents
 );
 
+// Fetch user's group memberships (when logged in)
+const { result: userMembershipsResult } = useQuery<{
+  loggedUser: { memberships: { elements: IMember[] } };
+}>(LOGGED_USER_MEMBERSHIPS, { limit: 6 }, () => ({
+  enabled: currentUser.value?.id != undefined,
+}));
+
+// Fetch all available groups (when not logged in)
+const { result: allGroupsResult } = useQuery<{
+  groups: { elements: IGroup[] };
+}>(LIST_GROUPS, { limit: 6 }, () => ({
+  enabled: currentUser.value?.id === undefined,
+}));
+
+const displayedGroups = computed<IGroup[]>(() => {
+  if (currentUser.value?.id) {
+    // User is logged in - show their groups
+    return (userMembershipsResult.value?.loggedUser?.memberships?.elements || [])
+      .map((membership: IMember) => membership.parent)
+      .slice(0, 6);
+  } else {
+    // User is not logged in - show all available groups
+    return (allGroupsResult.value?.groups?.elements || []).slice(0, 6);
+  }
+});
+
 const currentUserParticipations = computed(
   () => loggedUser.value?.participations.elements
 );
 
 const increated = ref(0);
-const address = ref(null);
-const search = ref(null);
+const address = ref<IAddress | null>(null);
+const search = ref<string | null>(null);
 const noAddress = ref(false);
-const current_distance = ref(null);
+const current_distance = ref<number | null>(null);
 
 watch(address, (newAdd, oldAdd) =>
-  console.debug("ADDRESS UPDATED from", { ...oldAdd }, " to ", { ...newAdd })
+  console.debug("ADDRESS UPDATED from", oldAdd, " to ", newAdd)
 );
 
 const isToday = (date: string): boolean => {
@@ -341,6 +386,20 @@ const canShowMyUpcomingEvents = computed<boolean>(() => {
 
 const canShowFollowedGroupEvents = computed<boolean>(() => {
   return filteredFollowedGroupsEvents.value.length > 0;
+});
+
+const canShowUserGroups = computed<boolean>(() => {
+  return displayedGroups.value.length > 0;
+});
+
+const groupsSectionTitle = computed(() => {
+  return currentUser.value?.id ? t("Your groups") : t("Discover groups");
+});
+
+const groupsSectionDescription = computed(() => {
+  return currentUser.value?.id 
+    ? t("Groups you're a member of") 
+    : t("Find and join interesting groups");
 });
 
 const filteredFollowedGroupsEvents = computed<IEvent[]>(() => {
@@ -485,7 +544,7 @@ const userLocation = computed(() => {
   return userSettingsLocation.value;
 });
 
-const userAddress = computed({
+const userAddress = computed<IAddress | null>({
   get(): IAddress | null {
     if (noAddress.value) {
       return null;
@@ -504,7 +563,7 @@ const userAddress = computed({
     ) {
       return locationToAddress(currentUserLocation.value);
     }
-    return locationToAddress(userSettingsLocation.value);
+    return locationToAddress(userSettingsLocation.value as any);
   },
   set(newAddress: IAddress | null) {
     address.value = newAddress;
@@ -512,7 +571,7 @@ const userAddress = computed({
   },
 });
 
-const distance = computed({
+const distance = computed<number | null>({
   get(): number | null {
     if (noAddress.value || !userLocation.value?.name) {
       return null;
@@ -521,7 +580,7 @@ const distance = computed({
     }
     return current_distance.value;
   },
-  set(newDistance: number) {
+  set(newDistance: number | null) {
     current_distance.value = newDistance;
   },
 });
@@ -587,7 +646,7 @@ const performGeoLocation = () => {
 };
 
 const updateAddress = (newAddress: IAddress | null) => {
-  if (address.value?.geom != newAddress?.geom || newAddress == null) {
+  if (address.value?.geom !== newAddress?.geom || newAddress == null) {
     increated.value += 1;
     storeAddressInLocal(newAddress);
   }

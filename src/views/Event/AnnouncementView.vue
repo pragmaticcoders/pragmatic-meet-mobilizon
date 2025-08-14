@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto" v-if="event">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="event">
     <breadcrumbs-nav
       :links="[
         { name: RouteName.MY_EVENTS, text: t('My events') },

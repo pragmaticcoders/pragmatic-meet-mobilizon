@@ -132,6 +132,8 @@
   "From the {startDate} at {startTime} to the {endDate} at {endTime}": "Fra d. {startDate} kl. {startTime} til d. {endDate} kl. {endTime}",
   "From the {startDate} to the {endDate}": "Fra d. {startDate} til d. {endDate}",
   "Gather ⋅ Organize ⋅ Mobilize": "Samles ⋅ Organiser ⋅ Mobiliser",
+  "mainPageSlogan": "Gratis begivenheder. Grupper.Her. I Pragmatic Meet.",
+  "mainPageDescription": "Et sted at fordybe dine interesser, fra at læse bøger til AI-konferencer. I Pragmatic Meet finder du begivenheder, konferencer og møder, der finder sted hver dag - tilmeld dig for at deltage.",
   "General": "Generelt",
   "General information": "Generel information",
   "Getting location": "Henter placering",

@@ -1,7 +1,7 @@
 <template>
   <div>
     <form @submit.prevent="publish(false)" v-if="isCurrentActorAGroupModerator">
-      <div class="container mx-auto">
+      <div class="max-w-screen-xl mx-auto px-4 md:px-16">
         <breadcrumbs-nav v-if="actualGroup" :links="breadcrumbLinks" />
         <h1 v-if="isUpdate === true">
           {{ t("Edit post") }}
@@ -83,7 +83,7 @@
         </fieldset>
       </div>
       <nav class="navbar">
-        <div class="container mx-auto">
+        <div class="max-w-screen-xl mx-auto px-4 md:px-16">
           <div class="navbar-menu flex flex-wrap py-2">
             <div class="flex flex-wrap justify-end ml-auto gap-1">
               <o-button variant="text" @click="$router.go(-1)">{{
@@ -122,7 +122,7 @@
       v-model:active="postLoading"
       :can-cancel="false"
     ></o-loading>
-    <div class="container mx-auto" v-else>
+    <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-else>
       <o-notification variant="danger">
         {{ t("Only group moderators can create, edit and delete posts.") }}
       </o-notification>

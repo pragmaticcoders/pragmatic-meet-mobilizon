@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto" v-if="conversations">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="conversations">
     <breadcrumbs-nav
       :links="[
         {

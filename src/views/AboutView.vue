@@ -1,6 +1,6 @@
 <template>
   <div>
-    <section class="container mx-auto">
+    <section class="max-w-screen-xl mx-auto px-4 md:px-16">
       <div class="flex flex-wrap gap-4">
         <aside class="w-64 mt-6">
           <div
@@ -48,13 +48,13 @@
             </ul>
           </div>
         </aside>
-        <div class="container mx-auto flex-1 bg-white dark:bg-gray-700">
+        <div class="max-w-screen-xl mx-auto px-4 md:px-16 flex-1 bg-white dark:bg-gray-700">
           <router-view />
         </div>
       </div>
     </section>
     <div class="bg-secondary dark:bg-gray-700 p-6">
-      <div class="container mx-auto">
+      <div class="max-w-screen-xl mx-auto px-4 md:px-16">
         <h1 class="text-4xl font-bold text-black/70">
           {{ t("Powered by Mobilizon") }}
         </h1>
@@ -75,7 +75,7 @@
       </div>
     </div>
     <div v-if="!currentUser || !currentUser.id" class="bg-purple-2 pb-3">
-      <div class="container mx-auto text-center py-10 px-6">
+      <div class="max-w-screen-xl mx-auto px-4 md:px-16 text-center py-10">
         <div class="flex flex-wrap">
           <div class="flex-1" v-if="config && config.registrationsOpen">
             <h2 class="text-4xl text-violet-1 font-bold">

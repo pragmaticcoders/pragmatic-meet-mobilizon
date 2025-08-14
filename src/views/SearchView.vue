@@ -1,79 +1,84 @@
 <template>
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
+    <!-- Page Title -->
+    <h1 class="text-3xl font-bold text-gray-900 text-center mb-8">
+      {{ t("Browse events and groups:") }}
+    </h1>
+    
+    <!-- Search Fields -->
     <search-fields
       v-model:search="search"
       v-model:address="address"
-      v-model:distance="radius"
+      v-model:distance="radius as any"
       :numberOfSearch="numberOfSearch"
       :addressDefaultText="addressName"
       :fromLocalStorage="true"
     />
+    
+    <!-- Content Type Tabs -->
+    <div class="flex justify-center mt-6 mb-8">
+      <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+        <button
+          @click="contentType = ContentType.EVENTS"
+          :class="[
+            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-r border-gray-300',
+            contentType === ContentType.EVENTS
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ t("Events") }}
+        </button>
+        <button
+          @click="contentType = ContentType.GROUPS"
+          :class="[
+            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors',
+            contentType === ContentType.GROUPS
+              ? 'bg-blue-600 text-white'
+              : 'bg-white text-gray-700 hover:bg-gray-50'
+          ]"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          {{ t("Groups") }}
+        </button>
+      </div>
+    </div>
   </div>
   <div
-    class="container mx-auto md:py-3 md:px-4 flex flex-col lg:flex-row gap-x-5 gap-y-1"
+    class="max-w-screen-xl mx-auto px-4 md:px-16 py-6 flex flex-col lg:flex-row gap-6"
   >
     <aside
-      class="flex-none lg:block lg:sticky top-8 rounded-md w-full lg:w-80 flex-col justify-between mt-2 lg:pb-10 lg:px-8 overflow-y-auto dark:text-slate-100 bg-white dark:bg-mbz-purple"
+      class="flex-none lg:block lg:sticky top-8 w-full lg:w-80 flex-col justify-between bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
     >
       <o-button
         @click="toggleFilters"
         icon-left="filter"
-        class="w-full inline-flex lg:!hidden text-white px-4 py-2 justify-center"
+        class="w-full inline-flex lg:!hidden bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
         <span v-if="!filtersPanelOpened">{{ t("Hide filters") }}</span>
         <span v-else>{{ t("Show filters") }}</span>
       </o-button>
+      <div class="hidden lg:block mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t("Filters") }}</h3>
+      </div>
       <form
-        @submit.prevent="doNewSearch"
+        @submit.prevent="() => {}"
         :class="{ hidden: filtersPanelOpened }"
-        class="lg:block mt-4 px-2"
+        class="lg:block mt-4"
       >
         <div
-          class="py-4 border-b border-gray-200 dark:border-gray-500"
-          v-show="globalSearchEnabled"
-        >
-          <fieldset class="flex flex-col">
-            <legend class="sr-only">{{ t("Search target") }}</legend>
-
-            <div>
-              <input
-                id="selfTarget"
-                v-model="searchTarget"
-                type="radio"
-                name="selfTarget"
-                :value="SearchTargets.SELF"
-                class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label
-                for="selfTarget"
-                class="cursor-pointer ml-3 font-medium text-gray-900 dark:text-gray-300"
-                >{{ t("From this instance only") }}</label
-              >
-            </div>
-
-            <div>
-              <input
-                id="internalTarget"
-                v-model="searchTarget"
-                type="radio"
-                name="searchTarget"
-                :value="SearchTargets.INTERNAL"
-                class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
-              />
-              <label
-                for="internalTarget"
-                class="cursor-pointer ml-3 font-medium text-gray-900 dark:text-gray-300"
-                >{{ t("In this instance's network") }}</label
-              >
-            </div>
-          </fieldset>
-        </div>
-
-        <div
-          class="py-4 border-b border-gray-200 dark:border-gray-500"
+          class="py-4 border-b border-gray-200"
           v-show="contentType !== 'GROUPS'"
         >
-          <o-switch v-model="isOnline">{{ t("Online events") }}</o-switch>
+          <div class="flex items-center justify-between">
+            <label class="text-sm font-medium text-gray-900">{{ t("Online events") }}</label>
+            <o-switch v-model="isOnline" />
+          </div>
         </div>
 
         <filter-section
@@ -94,11 +99,11 @@
                   type="radio"
                   name="eventStartDateRange"
                   :value="key"
-                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
+                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
                 />
                 <label
                   :for="key"
-                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
                   >{{ eventStartDateRangeOption.label }}</label
                 >
               </div>
@@ -106,7 +111,7 @@
           </template>
           <template #preview>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
             >
               {{
                 Object.entries(dateOptions).find(([key]) => key === when)?.[1]
@@ -131,11 +136,11 @@
                   type="checkbox"
                   name="category"
                   :value="category.id"
-                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
+                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
                 />
                 <label
                   :for="category.id"
-                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
                   >{{ category.label }}</label
                 >
               </div>
@@ -143,7 +148,7 @@
           </template>
           <template #preview>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-if="categoryOneOf.length > 2"
             >
               {{
@@ -153,7 +158,7 @@
               }}
             </span>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-else-if="categoryOneOf.length > 0"
             >
               {{
@@ -167,7 +172,7 @@
               }}
             </span>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-else-if="categoryOneOf.length === 0"
             >
               {{ t("Categories", "All") }}
@@ -192,11 +197,11 @@
                   type="checkbox"
                   name="eventStatus"
                   :value="eventStatusOption.id"
-                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
+                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
                 />
                 <label
                   :for="eventStatusOption.id"
-                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
                   >{{ eventStatusOption.label }}</label
                 >
               </div>
@@ -204,13 +209,13 @@
           </template>
           <template #preview>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-if="statusOneOf.length === Object.values(EventStatus).length"
             >
               {{ t("Statuses", "All") }}
             </span>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-else-if="statusOneOf.length > 0"
             >
               {{
@@ -239,11 +244,11 @@
                   name="eventStartDateRange"
                   :value="key"
                   v-model="languageOneOf"
-                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600 dark:focus:bg-blue-600 dark:bg-gray-700 dark:border-gray-600"
+                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
                 />
                 <label
                   :for="key"
-                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
                   >{{ language }}</label
                 >
               </div>
@@ -251,7 +256,7 @@
           </template>
           <template #preview>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-if="languageOneOf.length > 2"
             >
               {{
@@ -261,17 +266,17 @@
               }}
             </span>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-else-if="languageOneOf.length > 0"
             >
               {{
                 listShortDisjunctionFormatter(
-                  languageOneOf.map((lang) => langs[lang])
+                  languageOneOf.map((lang) => langs[lang as keyof typeof langs] || lang)
                 )
               }}
             </span>
             <span
-              class="bg-blue-100 text-blue-800 text-sm font-semibold p-0.5 rounded dark:bg-blue-200 dark:text-blue-800 grow-0"
+              class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full grow-0"
               v-else-if="languageOneOf.length === 0"
             >
               {{ t("Languages", "All") }}
@@ -281,7 +286,7 @@
 
         <div class="sr-only">
           <button
-            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             type="submit"
           >
             {{ t("Apply filters") }}
@@ -291,25 +296,23 @@
         <o-button
           @click="toggleFilters"
           icon-left="filter"
-          class="w-full inline-flex lg:!hidden text-white px-4 py-2 justify-center"
+          class="w-full inline-flex lg:!hidden bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 justify-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           {{ t("Hide filters") }}
         </o-button>
       </form>
     </aside>
-    <div class="flex-1 px-2">
+    <div class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
       <div
         id="results-anchor"
-        class="hidden sm:flex items-center justify-between dark:text-slate-100 mb-2"
+        class="hidden sm:flex items-center justify-between mb-6"
       >
         <p v-if="searchLoading">{{ t("Loading search results...") }}</p>
         <p v-else-if="totalCount === 0">
           <span v-if="contentType === ContentType.EVENTS">{{
             t("No events found")
           }}</span>
-          <span v-else-if="contentType === ContentType.LONGEVENTS">{{
-            t("No activities found")
-          }}</span>
+
           <span v-else-if="contentType === ContentType.GROUPS">{{
             t("No groups found")
           }}</span>
@@ -325,15 +328,7 @@
               )
             }}
           </span>
-          <span v-else-if="contentType === ContentType.LONGEVENTS">
-            {{
-              t(
-                "{eventsCount} activities found",
-                { eventsCount: searchEvents?.total },
-                searchEvents?.total ?? 0
-              )
-            }}
-          </span>
+
           <span v-else-if="contentType === ContentType.GROUPS">
             {{
               t(
@@ -404,10 +399,7 @@
       </div>
       <div v-if="mode === ViewMode.LIST">
         <template
-          v-if="
-            contentType === ContentType.EVENTS ||
-            contentType === ContentType.LONGEVENTS
-          "
+          v-if="contentType === ContentType.EVENTS"
         >
           <template v-if="searchLoading">
             <SkeletonEventResultList v-for="i in 8" :key="i" />
@@ -438,21 +430,15 @@
           </template>
           <EmptyContent
             v-else-if="searchLoading === false"
-            :icon="
-              contentType === ContentType.LONGEVENTS
-                ? 'calendar-star'
-                : 'calendar'
-            "
+            icon="calendar"
           >
             <span v-if="searchIsUrl">
               {{ t("No event found at this address") }}
             </span>
-            <span v-else-if="!search && contentType !== ContentType.LONGEVENTS">
+            <span v-else-if="!search">
               {{ t("No events found") }}
             </span>
-            <span v-else-if="!search && contentType === ContentType.LONGEVENTS">
-              {{ t("No activities found") }}
-            </span>
+
             <i18n-t keypath="No events found for {search}" tag="span" v-else>
               <template #search>
                 <b>{{ search }}</b>
@@ -546,8 +532,8 @@
         :longitude="longitude"
         :locationName="addressName"
         @map-updated="setBounds"
-        :events="searchEvents"
-        :groups="searchGroups"
+        :events="searchEvents || { elements: [], total: 0 }"
+        :groups="searchGroups || { elements: [], total: 0 }"
         :isLoggedIn="currentUser?.isLoggedIn"
       />
     </div>
@@ -620,7 +606,7 @@ const searchDebounced = refDebounced(search, 1000);
 const addressName = useRouteQuery("locationName", null);
 const address = ref<IAddress | null>(null);
 
-watch(address, (newAddress: IAddress) => {
+watch(address, (newAddress: IAddress | null) => {
   console.debug("address change", newAddress);
   if (newAddress?.geom) {
     latitude.value = parseFloat(newAddress?.geom.split(";")[1]);
@@ -691,6 +677,7 @@ const statusOneOf = useRouteQuery(
 );
 const languageOneOf = useRouteQuery("languageOneOf", [], arrayTransformer);
 
+// Default to INTERNAL since we removed the search target selector from UI
 const searchTarget = useRouteQuery(
   "target",
   SearchTargets.INTERNAL,
@@ -707,7 +694,7 @@ const sortByGroups = useRouteQuery(
   GroupSortValues.LAST_EVENT_ACTIVITY,
   enumTransformer(GroupSortValues)
 );
-const bbox = useRouteQuery("bbox", undefined);
+const bbox = useRouteQuery("bbox", null);
 const zoom = useRouteQuery("zoom", undefined, integerTransformer);
 
 const EVENT_PAGE_LIMIT = 16;
@@ -734,7 +721,6 @@ const searchGroups = computed(() => searchElementsResult.value?.searchGroups);
 const numberOfSearch = computed(() => {
   return {
     EVENTS: searchShortEvents.value?.total,
-    LONGEVENTS: searchLongEvents.value?.total,
     GROUPS: searchGroups.value?.total,
   };
 });
@@ -876,7 +862,7 @@ const geoHashLocation = computed(() =>
   coordsToGeoHash(latitude.value, longitude.value)
 );
 
-const radius = computed({
+const radius = computed<number | null>({
   get(): number | null {
     if (addressName.value) {
       return Number.parseInt(distance.value.slice(0, -3));
@@ -884,16 +870,16 @@ const radius = computed({
       return null;
     }
   },
-  set(newRadius: number) {
-    distance.value = newRadius.toString() + "_km";
+  set(newRadius: number | null) {
+    if (newRadius !== null) {
+      distance.value = newRadius.toString() + "_km";
+    }
   },
 });
 
 const longEvents = computed(() => {
   if (contentType.value === ContentType.EVENTS) {
     return false;
-  } else if (contentType.value === ContentType.LONGEVENTS) {
-    return true;
   } else {
     return null;
   }
@@ -1044,9 +1030,7 @@ watch(
       case ContentType.EVENTS:
         eventPage.value = 1;
         break;
-      case ContentType.LONGEVENTS:
-        eventPage.value = 1;
-        break;
+
       case ContentType.GROUPS:
         groupPage.value = 1;
         break;

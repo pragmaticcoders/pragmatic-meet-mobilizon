@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16">
     <h1 class="title" v-if="loading">
       {{ t("Your email is being changed") }}
     </h1>

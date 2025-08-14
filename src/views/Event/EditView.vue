@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto" v-if="hasCurrentActorPermissionsToEdit">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="hasCurrentActorPermissionsToEdit">
     <h1 v-if="isUpdate === true">
       {{ t("Update event {name}", { name: event.title }) }}
     </h1>
@@ -471,7 +471,7 @@
       </section>
     </form>
   </div>
-  <div class="container mx-auto" v-else>
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-else>
     <o-notification variant="danger">
       {{ t("Only group moderators can create, edit and delete events.") }}
     </o-notification>
@@ -541,7 +541,7 @@
     :class="{ 'is-fixed-bottom': showFixedNavbar }"
     v-if="hasCurrentActorPermissionsToEdit"
   >
-    <div class="container mx-auto">
+    <div class="max-w-screen-xl mx-auto px-4 md:px-16">
       <div class="lg:flex lg:justify-between lg:items-center lg:flex-wrap">
         <div
           class="text-red-900 text-center w-full margin m-1 lg:m-0 lg:w-auto lg:text-left"

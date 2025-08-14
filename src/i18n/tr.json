@@ -204,5 +204,7 @@
   "No groups found": "Gruplar bulunamadı",
   "No instance follows your instance yet.": "Henüz hiçbir oluşum sizin oluşumunuzu takip etmiyor.",
   "No instance to approve|Approve instance|Approve {number} instances": "Onaylanacak oluşum yok| Oluşum onayla| {number} oluşumu onayla",
-  "Please do not use it in any real way.": "Lütfen bunu gerçek anlamda kullanmayın."
+  "Please do not use it in any real way.": "Lütfen bunu gerçek anlamda kullanmayın.",
+  "mainPageSlogan": "Ücretsiz etkinlikler. Gruplar.Burada. Pragmatic Meet'te.",
+  "mainPageDescription": "İlgi alanlarınızı derinleştirmek için bir yer, kitap okumaktan AI konferanslarına kadar. Pragmatic Meet'te her gün düzenlenen etkinlikler, konferanslar ve toplantılar bulacaksınız - katılmak için kayıt olun."
 }

@@ -10,7 +10,7 @@
         @click="$emit('update:opened', !opened)"
       >
         <div class="flex flex-wrap gap-1 flex-col items-start">
-          <span class="font-medium text-gray-900 dark:text-slate-100 text-left">
+          <span class="font-medium text-gray-900 dark:text-slate-100 text-left text-lg">
             {{ title }}
           </span>
           <slot name="preview" />

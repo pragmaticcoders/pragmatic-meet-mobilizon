@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto py-4 is-max-desktop max-w-2xl">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16 py-4">
     <div class="">
       <div class="">
         <h1 class="text-4xl mb-3">

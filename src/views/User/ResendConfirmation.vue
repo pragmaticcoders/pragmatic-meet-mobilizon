@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto pt-4 max-w-2xl">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16 pt-4">
     <h1>
       {{ $t("Resend confirmation email") }}
     </h1>

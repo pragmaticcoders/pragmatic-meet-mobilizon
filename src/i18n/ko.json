@@ -1,5 +1,6 @@
 {
   "About": "소개",
+  "Gather ⋅ Organize ⋅ Mobilize": "모이기 ⋅ 조직하기 ⋅ 동원하기",
   "About this instance": "이 인스턴스에 대하여",
   "Accepted": "수락함",
   "Account": "계정",
@@ -34,5 +35,7 @@
   "Mobilizon": "Mobilizon",
   "Reports list": "제보 목록",
   "Software details: {software_details}": "소프트웨어 세부사항: {software_details}",
-  "Visit {instance_domain}": "{instance_domain} 인스턴스 방문하기"
+  "Visit {instance_domain}": "{instance_domain} 인스턴스 방문하기",
+  "mainPageSlogan": "무료 이벤트. 그룹.여기에. Pragmatic Meet에서.",
+  "mainPageDescription": "책 읽기부터 AI 컨퍼런스까지 당신의 관심사를 깊이 있게 탐구할 수 있는 곳. Pragmatic Meet에서 매일 열리는 이벤트, 컨퍼런스, 미팅을 찾아보세요 - 참여하려면 등록하세요."
 }

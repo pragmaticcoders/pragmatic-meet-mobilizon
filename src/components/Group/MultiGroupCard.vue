@@ -20,13 +20,23 @@ defineProps<{
 .multi-card-group {
   display: grid;
   grid-auto-rows: 1fr;
-  grid-column-gap: 30px;
-  grid-row-gap: 30px;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  .group-card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+  grid-column-gap: 24px;
+  grid-row-gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    grid-column-gap: 16px;
+    grid-row-gap: 16px;
   }
+  
+  @media (min-width: 641px) and (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+:deep(.group-card) {
+  height: 100%;
+  min-height: 200px;
 }
 </style>

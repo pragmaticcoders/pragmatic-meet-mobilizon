@@ -13,36 +13,6 @@
       ]"
     />
     <div>
-      <o-field :label="t('Theme')" addonsClass="flex flex-col">
-        <o-field>
-          <o-checkbox v-model="systemTheme">{{
-            t("Adapt to system theme")
-          }}</o-checkbox>
-        </o-field>
-        <o-field>
-          <fieldset>
-            <legend class="sr-only">{{ t("Theme") }}</legend>
-            <o-radio
-              :class="{ 'border-mbz-bluegreen': theme === 'light' }"
-              class="p-4 bg-white text-zinc-800 rounded-md mt-2 mr-2 border-2"
-              :disabled="systemTheme"
-              v-model="theme"
-              name="theme"
-              native-value="light"
-              >{{ t("Light") }}</o-radio
-            >
-            <o-radio
-              :class="{ 'border-mbz-bluegreen': theme === 'dark' }"
-              class="p-4 bg-zinc-800 rounded-md text-white mt-2 ml-2 border-2"
-              :disabled="systemTheme"
-              v-model="theme"
-              name="theme"
-              native-value="dark"
-              >{{ t("Dark") }}</o-radio
-            >
-          </fieldset>
-        </o-field>
-      </o-field>
       <o-field :label="t('Language')" label-for="setting-language">
         <o-select
           :loading="loadingTimezones || loadingUserSettings"

@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-1 mb-6">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6">
     <h1>
       {{ t("My events") }}
     </h1>

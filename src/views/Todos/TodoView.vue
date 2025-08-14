@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto" v-if="todo">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="todo">
     <breadcrumbs-nav
       :links="[
         {

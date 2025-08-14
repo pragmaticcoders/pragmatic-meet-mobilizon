@@ -22,7 +22,7 @@
     />
     <o-loading :active="loading" />
     <section
-      class="container mx-auto mb-6"
+      class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6"
       v-if="group && isCurrentActorAGroupAdmin"
     >
       <form @submit.prevent="updateGroup(buildVariables)" v-if="editableGroup">

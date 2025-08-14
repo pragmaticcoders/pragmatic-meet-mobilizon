@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto px-2">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
     <h1>{{ t("Terms") }}</h1>
     <o-loading v-model="termsLoading" />
     <div

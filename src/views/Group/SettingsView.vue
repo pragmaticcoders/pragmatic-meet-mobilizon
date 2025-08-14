@@ -1,5 +1,5 @@
 <template>
-  <div class="container mx-auto">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
     <h1 class="">{{ t("Settings") }}</h1>
     <div class="flex flex-wrap gap-2">
       <aside class="sm:max-w-xs flex-1 min-w-[320px]">
