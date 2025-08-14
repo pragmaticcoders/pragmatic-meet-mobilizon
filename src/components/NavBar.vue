@@ -1,231 +1,327 @@
 <template>
-  <nav
-    class="bg-white border-b border-gray-200 py-4"
-    id="navbar"
-  >
-    <div class="max-w-screen-xl mx-auto px-4 md:px-16 flex flex-wrap items-center gap-2 sm:gap-4">
-      <router-link
-        :to="{ name: RouteName.HOME }"
-        class="flex items-center"
-        :class="{ 'flex-1': !currentActor?.id }"
-      >
-        <img src="/img/pragmatic_logo.svg" alt="Pragmatic Meet" width="176" height="32" class="w-[176px] h-8" />
-      </router-link>
-      <div
-        class="flex items-center md:order-2 ml-auto gap-2"
-        v-if="currentUser?.isLoggedIn"
-      >
+  <nav class="bg-white border-b border-gray-200" id="navbar">
+    <div class="max-w-screen-xl mx-auto px-4 md:px-16">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
         <router-link
-          :to="{ name: RouteName.CONVERSATION_LIST }"
-          class="flex sm:mr-3 text-sm md:mr-0 relative"
-          id="conversations-menu-button"
-          aria-expanded="false"
+          :to="{ name: RouteName.HOME }"
+          class="flex items-center flex-shrink-0"
         >
-          <span class="sr-only">{{ t("Open conversations") }}</span>
-          <Inbox :size="32" />
-          <span
-            v-show="unreadConversationsCount > 0"
-            class="absolute bottom-0.5 -left-2 bg-primary inline-block h-3 w-3 mx-2"
-          >
-          </span>
+          <img 
+            src="/img/pragmatic_logo.svg" 
+            alt="Pragmatic Meet" 
+            width="176" 
+            height="32" 
+            class="w-[176px] h-8" 
+          />
         </router-link>
-        <o-dropdown position="bottom-right">
-          <template #trigger>
-            <button
-              type="button"
-              class="flex sm:mr-3 text-sm md:mr-0 focus:ring-4 focus:ring-gray-300"
-              id="user-menu-button"
-              aria-expanded="false"
-            >
-              <span class="sr-only">{{ t("Open user menu") }}</span>
-              <figure class="h-8 w-8" v-if="currentActor?.avatar">
-                <img
-                  class="rounded-full w-full h-full object-cover"
-                  alt=""
-                  :src="currentActor?.avatar.url"
-                  width="32"
-                  height="32"
-                  loading="lazy"
-                />
-              </figure>
-              <AccountCircle v-else :size="32" />
-            </button>
-          </template>
 
-          <!-- Dropdown menu -->
-            <div
-              class="z-50 text-base list-none bg-white divide-y divide-gray-100 max-w-xs"
-              position="bottom-left"
+        <!-- Desktop Navigation - Logged In -->
+        <div v-if="currentUser?.isLoggedIn" class="hidden md:flex md:items-center md:space-x-6">
+          <nav class="flex items-center space-x-6">
+            <router-link
+              :to="{ name: RouteName.SEARCH }"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
             >
-            <o-dropdown-item aria-role="listitem">
-              <div class="px-4">
-                <span class="block text-sm text-zinc-900">{{
-                  displayName(currentActor) || currentUser.email
-                }}</span>
-                <span
-                  class="block text-sm font-medium text-zinc-500 truncate"
-                  v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
-                  >{{ t("Administrator") }}</span
-                >
-                <span
-                  class="block text-sm font-medium text-zinc-500 truncate"
-                  v-if="currentUser?.role === ICurrentUserRole.MODERATOR"
-                  >{{ t("Moderator") }}</span
-                >
-              </div>
-            </o-dropdown-item>
-            <o-dropdown-item
-              v-for="identity in identities"
-              :active="identity.id === currentActor?.id"
-              :key="identity.id"
-              tabindex="0"
-              @click="
-                setIdentity({
-                  preferredUsername: identity.preferredUsername,
-                })
-              "
-              @keyup.enter="
-                setIdentity({
-                  preferredUsername: identity.preferredUsername,
-                })
-              "
+              {{ t("Search") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.EVENT_CALENDAR }"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors relative"
             >
-              <div class="flex gap-1 items-center w-full">
-                <div class="flex-none">
-                  <figure class="h-8 w-8" v-if="identity.avatar">
+              {{ t("Calendar") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.MY_EVENTS }"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              {{ t("My events") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.MY_GROUPS }"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              {{ t("My groups") }}
+            </router-link>
+          </nav>
+
+          <!-- User Actions -->
+          <div class="flex items-center space-x-3">
+            <!-- Conversations/Inbox -->
+            <router-link
+              :to="{ name: RouteName.CONVERSATION_LIST }"
+              class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              id="conversations-menu-button"
+            >
+              <span class="sr-only">{{ t("Open conversations") }}</span>
+              <Inbox :size="24" />
+              <span
+                v-show="unreadConversationsCount > 0"
+                class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {{ unreadConversationsCount }}
+              </span>
+            </router-link>
+
+            <!-- User Avatar Dropdown -->
+            <o-dropdown position="bottom-right">
+              <template #trigger>
+                <button
+                  type="button"
+                  class="flex items-center p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="user-menu-button"
+                >
+                  <span class="sr-only">{{ t("Open user menu") }}</span>
+                  <figure class="h-8 w-8" v-if="currentActor?.avatar">
                     <img
-                      class="rounded-full object-cover h-full"
-                      loading="lazy"
-                      :src="identity.avatar.url"
+                      class="rounded-full w-full h-full object-cover"
                       alt=""
-                      height="32"
+                      :src="currentActor?.avatar.url"
                       width="32"
+                      height="32"
+                      loading="lazy"
                     />
                   </figure>
                   <AccountCircle v-else :size="32" />
-                </div>
+                </button>
+              </template>
 
-                <div
-                  class="text-base text-zinc-700 dark:text-zinc-100 flex flex-col flex-auto overflow-hidden items-start w-full"
+              <!-- Dropdown menu -->
+              <div class="z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-100">
+                <o-dropdown-item aria-role="listitem">
+                  <div class="px-4 py-3 border-b border-gray-100">
+                    <span class="block text-sm font-medium text-gray-900">{{
+                      displayName(currentActor) || currentUser.email
+                    }}</span>
+                    <span
+                      class="block text-sm text-gray-500 truncate"
+                      v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
+                    >{{ t("Administrator") }}</span>
+                    <span
+                      class="block text-sm text-gray-500 truncate"
+                      v-if="currentUser?.role === ICurrentUserRole.MODERATOR"
+                    >{{ t("Moderator") }}</span>
+                  </div>
+                </o-dropdown-item>
+
+                <o-dropdown-item
+                  v-for="identity in identities"
+                  :active="identity.id === currentActor?.id"
+                  :key="identity.id"
+                  tabindex="0"
+                  @click="setIdentity({ preferredUsername: identity.preferredUsername })"
+                  @keyup.enter="setIdentity({ preferredUsername: identity.preferredUsername })"
                 >
-                  <p class="truncate w-full">{{ displayName(identity) }}</p>
-                  <p class="truncate text-sm w-full" v-if="identity.name">
-                    @{{ identity.preferredUsername }}
-                  </p>
+                  <div class="flex items-center px-4 py-2 hover:bg-gray-50">
+                    <div class="flex-shrink-0">
+                      <figure class="h-8 w-8" v-if="identity.avatar">
+                        <img
+                          class="rounded-full object-cover h-full w-full"
+                          loading="lazy"
+                          :src="identity.avatar.url"
+                          alt=""
+                          height="32"
+                          width="32"
+                        />
+                      </figure>
+                      <AccountCircle v-else :size="32" />
+                    </div>
+                    <div class="ml-3 flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900 truncate">{{ displayName(identity) }}</p>
+                      <p class="text-sm text-gray-500 truncate" v-if="identity.name">
+                        @{{ identity.preferredUsername }}
+                      </p>
+                    </div>
+                  </div>
+                </o-dropdown-item>
+
+                <div class="border-t border-gray-100">
+                  <o-dropdown-item
+                    aria-role="listitem"
+                    tag="router-link"
+                    :to="{ name: RouteName.SETTINGS }"
+                  >
+                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      {{ t("My account") }}
+                    </span>
+                  </o-dropdown-item>
+                  <o-dropdown-item
+                    aria-role="listitem"
+                    v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
+                    tag="router-link"
+                    :to="{ name: RouteName.ADMIN_DASHBOARD }"
+                  >
+                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      {{ t("Administration") }}
+                    </span>
+                  </o-dropdown-item>
+                  <o-dropdown-item
+                    aria-role="listitem"
+                    @click="performLogout"
+                    @keyup.enter="performLogout"
+                  >
+                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      {{ t("Log out") }}
+                    </span>
+                  </o-dropdown-item>
                 </div>
               </div>
-            </o-dropdown-item>
-            <o-dropdown-item
-              aria-role="listitem"
-              tag="router-link"
-              :to="{ name: RouteName.SETTINGS }"
-            >
-              <span
-                class="block py-2 px-4 text-sm text-zinc-700"
-                >{{ t("My account") }}</span
-              >
-            </o-dropdown-item>
-            <o-dropdown-item
-              aria-role="listitem"
-              v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
-              tag="router-link"
-              :to="{ name: RouteName.ADMIN_DASHBOARD }"
-            >
-              <span
-                class="block py-2 px-4 text-sm text-zinc-700"
-                >{{ t("Administration") }}</span
-              >
-            </o-dropdown-item>
-            <o-dropdown-item
-              aria-role="listitem"
-              @click="performLogout"
-              @keyup.enter="performLogout"
-            >
-              <span
-                class="block py-2 px-4 text-sm text-zinc-700"
-                >{{ t("Log out") }}</span
-              >
-            </o-dropdown-item>
+            </o-dropdown>
           </div>
-        </o-dropdown>
-      </div>
-      <button
-        @click="showMobileMenu = !showMobileMenu"
-        type="button"
-        class="inline-flex items-center p-2 ml-1 text-sm text-zinc-500 md:hidden hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-gray-200"
-        aria-controls="mobile-menu-2"
-        aria-expanded="false"
-      >
-        <span class="sr-only">{{ t("Open main menu") }}</span>
-        <svg
-          class="w-6 h-6"
-          aria-hidden="true"
-          fill="currentColor"
-          viewBox="0 0 20 20"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-            clip-rule="evenodd"
-          ></path>
-        </svg>
-      </button>
-      <div
-        class="justify-between items-center w-full md:flex md:w-auto md:order-1"
-        id="mobile-menu-2"
-        :class="{ hidden: !showMobileMenu }"
-      >
-        <ul
-          class="flex flex-col md:flex-row md:space-x-8 mt-2 md:mt-0 md:font-lightbold"
-        >
-          <li class="m-auto">
+        </div>
+
+        <!-- Desktop Navigation - Not Logged In -->
+        <div v-else class="hidden md:flex md:items-center md:space-x-6">
+          <nav class="flex items-center space-x-6">
             <router-link
               :to="{ name: RouteName.SEARCH }"
-              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("Search") }}</router-link
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
             >
-          </li>
-
-          <li class="m-auto">
+              {{ t("Search") }}
+            </router-link>
             <router-link
               :to="{ name: RouteName.EVENT_CALENDAR }"
-              class="block relative py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("Calendar")
-              }}<span class="absolute right-0 text-xs"
-                ><br />(beta)</span
-              ></router-link
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors relative"
             >
-          </li>
-          <li class="m-auto" v-if="currentActor?.id">
-            <router-link
-              :to="{ name: RouteName.MY_EVENTS }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("My events") }}</router-link
-            >
-          </li>
-          <li class="m-auto" v-if="currentActor?.id">
-            <router-link
-              :to="{ name: RouteName.MY_GROUPS }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("My groups") }}</router-link
-            >
-          </li>
-          <li class="m-auto" v-if="!currentUser?.isLoggedIn">
+              {{ t("Calendar") }}
+            </router-link>
+          </nav>
+          
+          <div class="flex items-center space-x-4">
             <router-link
               :to="{ name: RouteName.LOGIN }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("Login") }}</router-link
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
             >
-          </li>
-          <li class="m-auto" v-if="!currentUser?.isLoggedIn && canRegister">
+              {{ t("Login") }}
+            </router-link>
             <router-link
+              v-if="canRegister"
               :to="{ name: RouteName.REGISTER }"
-              class="block py-2 pr-4 pl-3 text-zinc-700 border-b border-gray-100 hover:bg-zinc-50 md:hover:bg-transparent md:border-0 md:hover:text-mbz-purple-700 md:p-0"
-              >{{ t("Register") }}</router-link
+              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-          </li>
-        </ul>
+              {{ t("Register") }}
+            </router-link>
+          </div>
+        </div>
+
+        <!-- Mobile menu button -->
+        <button
+          @click="showMobileMenu = !showMobileMenu"
+          type="button"
+          class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+          aria-controls="mobile-menu"
+          aria-expanded="false"
+        >
+          <span class="sr-only">{{ t("Open main menu") }}</span>
+          <svg
+            class="h-6 w-6"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile menu -->
+      <div 
+        v-show="showMobileMenu"
+        class="md:hidden"
+        id="mobile-menu"
+      >
+        <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
+          <!-- Logged In Mobile Menu -->
+          <template v-if="currentUser?.isLoggedIn">
+            <router-link
+              :to="{ name: RouteName.SEARCH }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Search") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.EVENT_CALENDAR }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Calendar") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.MY_EVENTS }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("My events") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.MY_GROUPS }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("My groups") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.CONVERSATION_LIST }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md relative"
+            >
+              {{ t("Conversations") }}
+              <span
+                v-show="unreadConversationsCount > 0"
+                class="ml-2 bg-blue-600 text-white text-xs rounded-full px-2 py-1"
+              >
+                {{ unreadConversationsCount }}
+              </span>
+            </router-link>
+            <div class="border-t border-gray-200 my-2"></div>
+            <router-link
+              :to="{ name: RouteName.SETTINGS }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("My account") }}
+            </router-link>
+            <router-link
+              v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
+              :to="{ name: RouteName.ADMIN_DASHBOARD }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Administration") }}
+            </router-link>
+            <button
+              @click="performLogout"
+              class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Log out") }}
+            </button>
+          </template>
+
+          <!-- Not Logged In Mobile Menu -->
+          <template v-else>
+            <router-link
+              :to="{ name: RouteName.SEARCH }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Search") }}
+            </router-link>
+            <router-link
+              :to="{ name: RouteName.EVENT_CALENDAR }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Calendar") }}
+            </router-link>
+            <div class="border-t border-gray-200 my-2"></div>
+            <router-link
+              :to="{ name: RouteName.LOGIN }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Login") }}
+            </router-link>
+            <router-link
+              v-if="canRegister"
+              :to="{ name: RouteName.REGISTER }"
+              class="block px-3 py-2 text-base font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-md"
+            >
+              {{ t("Register") }}
+            </router-link>
+          </template>
+        </div>
       </div>
     </div>
   </nav>
