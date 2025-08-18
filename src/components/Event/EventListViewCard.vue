@@ -1,7 +1,5 @@
 <template>
-  <article
-    class="bg-white border border-gray-200 shadow-sm max-w-3xl p-5"
-  >
+  <article class="bg-white border border-gray-200 shadow-sm max-w-3xl p-5">
     <div class="flex gap-2">
       <div class="">
         <date-calendar-icon :date="event.beginsOn.toString()" :small="true" />

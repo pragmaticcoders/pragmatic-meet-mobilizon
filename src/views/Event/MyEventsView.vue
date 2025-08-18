@@ -3,14 +3,14 @@
     <h1>
       {{ t("My events") }}
     </h1>
-    <p>
+    <p class="mb-6 max-w-prose">
       {{
         t(
           "You will find here all the events you have created or of which you are a participant, as well as events organized by groups you follow or are a member of."
         )
       }}
     </p>
-    <div class="my-2" v-if="!hideCreateEventButton">
+    <div class="mt-4 mb-8" v-if="!hideCreateEventButton">
       <o-button
         tag="router-link"
         variant="primary"
@@ -18,12 +18,12 @@
         >{{ t("Create event") }}</o-button
       >
     </div>
-    <div class="flex flex-wrap gap-4 items-start">
+    <div class="flex flex-wrap gap-6 items-start">
       <div
-        class="rounded p-3 flex-auto md:flex-none bg-zinc-300 dark:bg-zinc-700"
+        class="w-full md:w-80 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 p-4"
       >
         <o-field
-          class="date-filter"
+          class="date-filter mb-4"
           expanded
           :label="
             showUpcoming
@@ -32,30 +32,49 @@
           "
           labelFor="events-start-datepicker"
         >
-          <event-date-picker
-            id="events-start-datepicker"
-            :time="false"
-            v-model="datePick"
-          ></event-date-picker>
-          <o-button
-            @click="datePick = new Date()"
-            class="reset-area !h-auto"
-            icon-left="close"
-            :title="t('Clear date filter field')"
-          />
+          <div class="flex gap-2">
+            <event-date-picker
+              id="events-start-datepicker"
+              :time="false"
+              v-model="datePick"
+              class="flex-1"
+            ></event-date-picker>
+            <o-button
+              @click="datePick = new Date()"
+              variant="primary"
+              class="px-3"
+              icon-left="close"
+              :title="t('Clear date filter field')"
+            />
+          </div>
         </o-field>
-        <o-field v-if="showUpcoming">
-          <o-checkbox v-model="showDrafts">{{ t("Drafts") }}</o-checkbox>
-        </o-field>
-        <o-field v-if="showUpcoming">
-          <o-checkbox v-model="showAttending">{{ t("Attending") }}</o-checkbox>
-        </o-field>
-        <o-field v-if="showUpcoming">
-          <o-checkbox v-model="showMyGroups">{{
-            t("From my groups")
-          }}</o-checkbox>
-        </o-field>
-        <p v-if="!showUpcoming">
+        <div class="space-y-3" v-if="showUpcoming">
+          <o-field>
+            <o-checkbox
+              v-model="showDrafts"
+              class="text-sm text-gray-700 dark:text-gray-300"
+              >{{ t("Drafts") }}</o-checkbox
+            >
+          </o-field>
+          <o-field>
+            <o-checkbox
+              v-model="showAttending"
+              class="text-sm text-gray-700 dark:text-gray-300"
+              >{{ t("Attending") }}</o-checkbox
+            >
+          </o-field>
+          <o-field>
+            <o-checkbox
+              v-model="showMyGroups"
+              class="text-sm text-gray-700 dark:text-gray-300"
+              >{{ t("From my groups") }}</o-checkbox
+            >
+          </o-field>
+        </div>
+        <p
+          v-if="!showUpcoming"
+          class="text-sm text-gray-600 dark:text-gray-400 mt-4"
+        >
           {{
             t(
               "You have attended {count} events in the past.",
@@ -72,7 +91,7 @@
           class="py-4 first:pt-0"
           v-if="showUpcoming && showDrafts && drafts && drafts.total > 0"
         >
-          <h2 class="text-2xl mb-2">{{ t("Drafts") }}</h2>
+          <h2 class="text-2xl mb-2 mt-0">{{ t("Drafts") }}</h2>
           <multi-event-minimalist-card
             :events="drafts.elements"
             :showOrganizer="true"
@@ -142,7 +161,7 @@
           </div>
         </section>
         <section
-          class="text-center not-found"
+          class="text-center not-found py-12"
           v-if="
             showUpcoming &&
             monthlyFutureEvents &&
@@ -150,33 +169,102 @@
             !loading
           "
         >
-          <div class="text-center prose dark:prose-invert max-w-full">
-            <p>
+          <div class="flex flex-col items-center justify-center">
+            <div class="mb-6">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 48 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                class="text-gray-400"
+              >
+                <rect
+                  x="4"
+                  y="10"
+                  width="40"
+                  height="34"
+                  rx="2"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                />
+                <line
+                  x1="4"
+                  y1="18"
+                  x2="44"
+                  y2="18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <line
+                  x1="12"
+                  y1="4"
+                  x2="12"
+                  y2="10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <line
+                  x1="36"
+                  y1="4"
+                  x2="36"
+                  y2="10"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+                <rect
+                  x="10"
+                  y="24"
+                  width="6"
+                  height="6"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="21"
+                  y="24"
+                  width="6"
+                  height="6"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="32"
+                  y="24"
+                  width="6"
+                  height="6"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="10"
+                  y="34"
+                  width="6"
+                  height="6"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="21"
+                  y="34"
+                  width="6"
+                  height="6"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+              </svg>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 text-base mb-2">
+              {{ t("Nie masz żadnych nadchodzących wydarzeń.") }}
+            </p>
+            <p class="text-gray-500 dark:text-gray-500 text-sm">
               {{
-                t(
-                  "You don't have any upcoming events. Maybe try another filter?"
-                )
+                t("Czy chcesz utworzyć wydarzenie lub przejrzeć wydarzenia?")
               }}
             </p>
-            <i18n-t
-              keypath="Do you wish to {create_event} or {explore_events}?"
-              tag="p"
-            >
-              <template #create_event>
-                <router-link :to="{ name: RouteName.CREATE_EVENT }">{{
-                  t("create an event")
-                }}</router-link>
-              </template>
-              <template #explore_events>
-                <router-link
-                  :to="{
-                    name: RouteName.SEARCH,
-                    query: { contentType: ContentType.EVENTS },
-                  }"
-                  >{{ t("explore the events") }}</router-link
-                >
-              </template>
-            </i18n-t>
           </div>
         </section>
         <section v-if="!showUpcoming && pastParticipations.elements.length > 0">
@@ -213,7 +301,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ParticipantRole, ContentType } from "@/types/enums";
+import { ParticipantRole } from "@/types/enums";
 import RouteName from "@/router/name";
 import type { IParticipant } from "../../types/participant.model";
 import { LOGGED_USER_DRAFTS } from "../../graphql/actor";

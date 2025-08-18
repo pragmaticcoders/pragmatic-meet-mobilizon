@@ -7,17 +7,20 @@
           :to="{ name: RouteName.HOME }"
           class="flex items-center flex-shrink-0"
         >
-          <img 
-            src="/img/pragmatic_logo.svg" 
-            alt="Pragmatic Meet" 
-            width="176" 
-            height="32" 
-            class="w-[176px] h-8" 
+          <img
+            src="/img/pragmatic_logo.svg"
+            alt="Pragmatic Meet"
+            width="176"
+            height="32"
+            class="w-[176px] h-8"
           />
         </router-link>
 
         <!-- Desktop Navigation - Logged In -->
-        <div v-if="currentUser?.isLoggedIn" class="hidden md:flex md:items-center md:space-x-6">
+        <div
+          v-if="currentUser?.isLoggedIn"
+          class="hidden md:flex md:items-center md:space-x-6"
+        >
           <nav class="flex items-center space-x-6">
             <router-link
               :to="{ name: RouteName.SEARCH }"
@@ -87,7 +90,9 @@
               </template>
 
               <!-- Dropdown menu -->
-              <div class="z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-100">
+              <div
+                class="z-50 w-64 bg-white rounded-lg shadow-lg border border-gray-100"
+              >
                 <o-dropdown-item aria-role="listitem">
                   <div class="px-4 py-3 border-b border-gray-100">
                     <span class="block text-sm font-medium text-gray-900">{{
@@ -95,12 +100,16 @@
                     }}</span>
                     <span
                       class="block text-sm text-gray-500 truncate"
-                      v-if="currentUser?.role === ICurrentUserRole.ADMINISTRATOR"
-                    >{{ t("Administrator") }}</span>
+                      v-if="
+                        currentUser?.role === ICurrentUserRole.ADMINISTRATOR
+                      "
+                      >{{ t("Administrator") }}</span
+                    >
                     <span
                       class="block text-sm text-gray-500 truncate"
                       v-if="currentUser?.role === ICurrentUserRole.MODERATOR"
-                    >{{ t("Moderator") }}</span>
+                      >{{ t("Moderator") }}</span
+                    >
                   </div>
                 </o-dropdown-item>
 
@@ -109,8 +118,16 @@
                   :active="identity.id === currentActor?.id"
                   :key="identity.id"
                   tabindex="0"
-                  @click="setIdentity({ preferredUsername: identity.preferredUsername })"
-                  @keyup.enter="setIdentity({ preferredUsername: identity.preferredUsername })"
+                  @click="
+                    setIdentity({
+                      preferredUsername: identity.preferredUsername,
+                    })
+                  "
+                  @keyup.enter="
+                    setIdentity({
+                      preferredUsername: identity.preferredUsername,
+                    })
+                  "
                 >
                   <div class="flex items-center px-4 py-2 hover:bg-gray-50">
                     <div class="flex-shrink-0">
@@ -127,8 +144,13 @@
                       <AccountCircle v-else :size="32" />
                     </div>
                     <div class="ml-3 flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">{{ displayName(identity) }}</p>
-                      <p class="text-sm text-gray-500 truncate" v-if="identity.name">
+                      <p class="text-sm font-medium text-gray-900 truncate">
+                        {{ displayName(identity) }}
+                      </p>
+                      <p
+                        class="text-sm text-gray-500 truncate"
+                        v-if="identity.name"
+                      >
                         @{{ identity.preferredUsername }}
                       </p>
                     </div>
@@ -141,7 +163,9 @@
                     tag="router-link"
                     :to="{ name: RouteName.SETTINGS }"
                   >
-                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <span
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
                       {{ t("My account") }}
                     </span>
                   </o-dropdown-item>
@@ -151,7 +175,9 @@
                     tag="router-link"
                     :to="{ name: RouteName.ADMIN_DASHBOARD }"
                   >
-                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <span
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
                       {{ t("Administration") }}
                     </span>
                   </o-dropdown-item>
@@ -160,7 +186,9 @@
                     @click="performLogout"
                     @keyup.enter="performLogout"
                   >
-                    <span class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                    <span
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
                       {{ t("Log out") }}
                     </span>
                   </o-dropdown-item>
@@ -186,7 +214,7 @@
               {{ t("Calendar") }}
             </router-link>
           </nav>
-          
+
           <div class="flex items-center space-x-4">
             <router-link
               :to="{ name: RouteName.LOGIN }"
@@ -220,17 +248,18 @@
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
           </svg>
         </button>
       </div>
 
       <!-- Mobile menu -->
-      <div 
-        v-show="showMobileMenu"
-        class="md:hidden"
-        id="mobile-menu"
-      >
+      <div v-show="showMobileMenu" class="md:hidden" id="mobile-menu">
         <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
           <!-- Logged In Mobile Menu -->
           <template v-if="currentUser?.isLoggedIn">

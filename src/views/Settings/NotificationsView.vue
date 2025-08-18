@@ -1,111 +1,176 @@
 <template>
-  <div v-if="loggedUser">
-    <breadcrumbs-nav
-      :links="[
-        {
-          name: RouteName.ACCOUNT_SETTINGS,
-          text: $t('Account'),
-        },
-        {
-          name: RouteName.NOTIFICATIONS,
-          text: $t('Notifications'),
-        },
-      ]"
-    />
-    <section class="my-4">
-      <h2>{{ $t("Browser notifications") }}</h2>
-      <o-button
-        v-if="subscribed"
-        @click="unsubscribeToWebPush()"
-        @keyup.enter="unsubscribeToWebPush()"
-        >{{ $t("Unsubscribe to browser push notifications") }}</o-button
+  <div v-if="loggedUser" class="bg-white">
+    <!-- Powiadomienia przeglądarki -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
       >
-      <o-button
-        icon-left="rss"
-        @click="subscribeToWebPush"
-        @keyup.enter="subscribeToWebPush"
-        v-else-if="canShowWebPush && webPushEnabled"
-        >{{ $t("Activate browser push notifications") }}</o-button
-      >
-      <o-notification variant="warning" v-else-if="!webPushEnabled">
-        {{ $t("This instance hasn't got push notifications enabled.") }}
-        <i18n-t keypath="Ask your instance admin to {enable_feature}.">
-          <template #enable_feature>
-            <a
-              href="https://docs.joinmobilizon.org/administration/configure/push/"
-              target="_blank"
-              rel="noopener noreferer"
-              >{{ $t("enable the feature") }}</a
-            >
-          </template>
-        </i18n-t>
-      </o-notification>
-      <o-notification variant="danger" v-else>{{
-        $t("You can't use push notifications in this browser.")
-      }}</o-notification>
+        {{ t("Browser notifications") }}
+      </h2>
+
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <p
+            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+          >
+            {{ t("Enable browser notifications to receive real-time alerts") }}
+          </p>
+          <o-switch
+            v-model="subscribed"
+            @update:modelValue="handleWebPushToggle"
+            :disabled="!webPushEnabled || !canShowWebPush"
+          />
+        </div>
+
+        <o-notification
+          variant="warning"
+          v-if="!webPushEnabled"
+          :closable="false"
+        >
+          {{ t("This instance hasn't got push notifications enabled.") }}
+          <i18n-t keypath="Ask your instance admin to {enable_feature}.">
+            <template #enable_feature>
+              <a
+                href="https://docs.joinmobilizon.org/administration/configure/push/"
+                target="_blank"
+                rel="noopener noreferer"
+                class="text-[#155eef] underline"
+                >{{ t("enable the feature") }}</a
+              >
+            </template>
+          </i18n-t>
+        </o-notification>
+
+        <o-notification
+          variant="danger"
+          v-else-if="!canShowWebPush"
+          :closable="false"
+        >
+          {{ t("You can't use push notifications in this browser.") }}
+        </o-notification>
+      </div>
     </section>
-    <section class="my-4">
-      <h2>{{ $t("Notification settings") }}</h2>
-      <p>
+
+    <!-- Ustawienia powiadomień -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("Notification settings") }}
+      </h2>
+
+      <p
+        class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f] mb-6"
+      >
         {{
-          $t(
+          t(
             "Select the activities for which you wish to receive an email or a push notification."
           )
         }}
       </p>
-      <table class="table table-auto">
-        <tbody>
-          <template
-            v-for="notificationType in notificationTypes"
-            :key="notificationType"
-          >
-            <tr>
-              <th colspan="3">
-                {{ notificationType.label }}
-              </th>
-            </tr>
-            <tr>
-              <th v-for="(method, key) in notificationMethods" :key="key">
-                {{ method }}
-              </th>
-              <th>{{ $t("Description") }}</th>
-            </tr>
-            <tr v-for="subType in notificationType.subtypes" :key="subType.id">
-              <td v-for="(method, key) in notificationMethods" :key="key">
-                <o-checkbox
-                  :modelValue="notificationValues?.[subType.id]?.[key]?.enabled"
-                  @update:modelValue="
-                    (e: boolean) =>
-                      updateNotificationValue({
-                        key: subType.id,
-                        method: key,
-                        enabled: e,
-                      })
-                  "
-                  :disabled="notificationValues?.[subType.id]?.[key]?.disabled"
-                />
-              </td>
-              <td>
-                {{ subType.label }}
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
 
-      <o-field
-        :label="$t('Send notification e-mails')"
-        label-for="groupNotifications"
-        :message="
-          $t(
-            'Announcements and mentions notifications are always sent straight away.'
-          )
-        "
-      >
+      <div class="space-y-6">
+        <!-- Notification types table -->
+        <div
+          v-for="notificationType in notificationTypes"
+          :key="notificationType.label"
+          class="border border-[#cac9cb]"
+        >
+          <div class="bg-gray-50 px-4 py-3 border-b border-[#cac9cb]">
+            <h3 class=" text-[17px] text-[#1c1b1f]">
+              {{ notificationType.label }}
+            </h3>
+          </div>
+
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-[#cac9cb]">
+                <th
+                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f] w-20"
+                >
+                  {{ t("Email") }}
+                </th>
+                <th
+                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f] w-20"
+                >
+                  {{ t("Push") }}
+                </th>
+                <th
+                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f]"
+                >
+                  {{ t("Description") }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="subType in notificationType.subtypes"
+                :key="subType.id"
+                class="border-b border-gray-100 last:border-b-0"
+              >
+                <td class="px-4 py-3">
+                  <o-checkbox
+                    :modelValue="
+                      notificationValues?.[subType.id]?.email?.enabled
+                    "
+                    @update:modelValue="
+                      (e: boolean) =>
+                        updateNotificationValue({
+                          key: subType.id,
+                          method: 'email',
+                          enabled: e,
+                        })
+                    "
+                    :disabled="
+                      notificationValues?.[subType.id]?.email?.disabled
+                    "
+                  />
+                </td>
+                <td class="px-4 py-3">
+                  <o-checkbox
+                    :modelValue="
+                      notificationValues?.[subType.id]?.push?.enabled
+                    "
+                    @update:modelValue="
+                      (e: boolean) =>
+                        updateNotificationValue({
+                          key: subType.id,
+                          method: 'push',
+                          enabled: e,
+                        })
+                    "
+                    :disabled="notificationValues?.[subType.id]?.push?.disabled"
+                  />
+                </td>
+                <td
+                  class="px-4 py-3  font-medium text-[15px] text-[#1c1b1f]"
+                >
+                  {{ subType.label }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Grupowanie powiadomień -->
+      <div class="mt-6">
+        <label
+          class="block  text-[17px] text-[#1c1b1f] mb-2"
+        >
+          {{ t("Send notification e-mails") }}
+        </label>
+        <p class=" font-medium text-[15px] text-gray-600 mb-3">
+          {{
+            t(
+              "Announcements and mentions notifications are always sent straight away."
+            )
+          }}
+        </p>
         <o-select
           v-model="groupNotifications"
           @update:modelValue="updateSetting({ groupNotifications })"
-          id="groupNotifications"
+          class="w-full max-w-md"
         >
           <option
             v-for="(value, key) in groupNotificationsValues"
@@ -115,102 +180,142 @@
             {{ value }}
           </option>
         </o-select>
-      </o-field>
+      </div>
     </section>
-    <section class="my-4">
-      <h2>{{ $t("Participation notifications") }}</h2>
-      <div class="field">
-        <strong>{{
-          $t(
+
+    <!-- Powiadomienia o uczestnictwie -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("Participation notifications") }}
+      </h2>
+
+      <p class=" text-[17px] text-[#1c1b1f] mb-4">
+        {{
+          t(
             "Mobilizon will send you an email when the events you are attending have important changes: date and time, address, confirmation or cancellation, etc."
           )
-        }}</strong>
-      </div>
-      <p>
-        {{ $t("Other notification options:") }}
+        }}
       </p>
-      <div class="field">
-        <o-checkbox
-          v-model="notificationOnDay"
-          @input="updateSetting({ notificationOnDay })"
-        >
-          <strong>{{ $t("Notification on the day of the event") }}</strong>
-          <p>
-            {{
-              $t(
-                "We'll use your timezone settings to send a recap of the morning of the event."
-              )
-            }}
-          </p>
-          <div v-if="loggedUser.settings && loggedUser.settings.timezone">
-            <em>{{
-              $t("Your timezone is currently set to {timezone}.", {
-                timezone: loggedUser.settings.timezone,
-              })
-            }}</em>
-            <router-link
-              class="change-timezone"
-              :to="{ name: RouteName.PREFERENCES }"
-              >{{ $t("Change timezone") }}</router-link
+
+      <p class=" font-medium text-[17px] text-[#1c1b1f] mb-4">
+        {{ t("Other notification options:") }}
+      </p>
+
+      <div class="space-y-4">
+        <div class="flex items-start">
+          <o-checkbox
+            v-model="notificationOnDay"
+            @update:modelValue="updateSetting({ notificationOnDay })"
+            class="mt-1"
+          />
+          <div class="ml-3">
+            <label
+              class=" text-[17px] text-[#1c1b1f] block mb-1"
             >
+              {{ t("Notification on the day of the event") }}
+            </label>
+            <p class=" font-medium text-[15px] text-gray-600">
+              {{
+                t(
+                  "We use your timezone to make sure you get notifications for an event at the correct time."
+                )
+              }}
+            </p>
+            <div v-if="loggedUser.settings?.timezone" class="mt-2">
+              <em class=" text-[15px] text-gray-600">
+                {{
+                  t("Your timezone is currently set to {timezone}.", {
+                    timezone: loggedUser.settings.timezone,
+                  })
+                }}
+              </em>
+              <router-link
+                :to="{ name: RouteName.PREFERENCES }"
+                class="text-[#155eef] underline ml-2"
+              >
+                {{ t("Change timezone") }}
+              </router-link>
+            </div>
           </div>
-          <span v-else>{{
-            $t("You can pick your timezone into your preferences.")
-          }}</span>
-        </o-checkbox>
-      </div>
-      <div class="field">
-        <o-checkbox
-          v-model="notificationEachWeek"
-          @input="updateSetting({ notificationEachWeek })"
-        >
-          <strong>{{ $t("Recap every week") }}</strong>
-          <p>
-            {{
-              $t(
-                "You'll get a weekly recap every Monday for upcoming events, if you have any."
-              )
-            }}
-          </p>
-        </o-checkbox>
-      </div>
-      <div class="field">
-        <o-checkbox
-          v-model="notificationBeforeEvent"
-          @input="updateSetting({ notificationBeforeEvent })"
-        >
-          <strong>{{ $t("Notification before the event") }}</strong>
-          <p>
-            {{
-              $t(
-                "We'll send you an email one hour before the event begins, to be sure you won't forget about it."
-              )
-            }}
-          </p>
-        </o-checkbox>
+        </div>
+
+        <div class="flex items-start">
+          <o-checkbox
+            v-model="notificationEachWeek"
+            @update:modelValue="updateSetting({ notificationEachWeek })"
+            class="mt-1"
+          />
+          <div class="ml-3">
+            <label
+              class=" text-[17px] text-[#1c1b1f] block mb-1"
+            >
+              {{ t("Weekly summary") }}
+            </label>
+            <p class=" font-medium text-[15px] text-gray-600">
+              {{
+                t(
+                  "You'll receive a weekly summary every Monday for upcoming events, if you have any."
+                )
+              }}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-start">
+          <o-checkbox
+            v-model="notificationBeforeEvent"
+            @update:modelValue="updateSetting({ notificationBeforeEvent })"
+            class="mt-1"
+          />
+          <div class="ml-3">
+            <label
+              class=" text-[17px] text-[#1c1b1f] block mb-1"
+            >
+              {{ t("Notification before the event") }}
+            </label>
+            <p class=" font-medium text-[15px] text-gray-600">
+              {{
+                t(
+                  "We'll send you an email one hour before the event begins, to be sure you won't forget about it."
+                )
+              }}
+            </p>
+          </div>
+        </div>
       </div>
     </section>
-    <section class="my-4">
-      <h2>{{ $t("Organizer notifications") }}</h2>
-      <div class="field is-primary">
+
+    <!-- Powiadomienia organizatora -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("Organizer notifications") }}
+      </h2>
+
+      <div>
         <label
-          class="has-text-weight-bold"
-          for="notificationPendingParticipation"
-          >{{
-            $t("Notifications for manually approved participations to an event")
-          }}</label
+          class=" text-[17px] text-[#1c1b1f] block mb-2"
         >
-        <p>
           {{
-            $t(
+            t("Notifications for manually approved participations to an event")
+          }}
+        </label>
+        <p class=" font-medium text-[15px] text-gray-600 mb-4">
+          {{
+            t(
               "If you have opted for manual validation of participants, Mobilizon will send you an email to inform you of new participations to be processed. You can choose the frequency of these notifications below."
             )
           }}
         </p>
         <o-select
           v-model="notificationPendingParticipation"
-          id="notificationPendingParticipation"
-          @input="updateSetting({ notificationPendingParticipation })"
+          @update:modelValue="
+            updateSetting({ notificationPendingParticipation })
+          "
+          class="w-full max-w-md"
         >
           <option
             v-for="(value, key) in notificationPendingParticipationValues"
@@ -222,27 +327,29 @@
         </o-select>
       </div>
     </section>
-    <section class="my-4">
-      <h2>{{ $t("Personal feeds") }}</h2>
-      <p>
+
+    <!-- Kanały osobiste -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("Personal feeds") }}
+      </h2>
+
+      <p class=" font-medium text-[17px] text-[#1c1b1f] mb-4">
         {{
-          $t(
-            "These feeds contain event data for the events for which any of your profiles is a participant or creator. You should keep these private. You can find feeds for specific profiles on each profile edition page."
+          t(
+            "These feeds contain event data for the events for which this specific profile is a participant or creator. You should keep these private. You can find feeds for all of your profiles into your notification settings."
           )
         }}
       </p>
-      <div v-if="feedTokens && feedTokens.length > 0">
+
+      <div v-if="feedTokens && feedTokens.length > 0" class="space-y-3">
         <div
-          class="flex gap-2"
           v-for="feedToken in feedTokens"
           :key="feedToken.token"
+          class="flex gap-3"
         >
-          <o-tooltip
-            :label="$t('URL copied to clipboard')"
-            :active="showCopiedTooltip.atom"
-            variant="success"
-            position="left"
-          />
           <o-button
             tag="a"
             icon-left="rss"
@@ -250,57 +357,50 @@
               (e: Event) =>
                 copyURL(e, tokenToURL(feedToken.token, 'atom'), 'atom')
             "
-            @keyup.enter="
-              (e: Event) =>
-                copyURL(e, tokenToURL(feedToken.token, 'atom'), 'atom')
-            "
             :href="tokenToURL(feedToken.token, 'atom')"
             target="_blank"
-            >{{ $t("RSS/Atom Feed") }}</o-button
+            class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
           >
+            {{ t("RSS/Atom Feed") }}
+          </o-button>
 
-          <o-tooltip
-            :label="$t('URL copied to clipboard')"
-            :active="showCopiedTooltip.ics"
-            variant="success"
-            position="left"
-          />
           <o-button
             tag="a"
             @click="
               (e: Event) =>
                 copyURL(e, tokenToURL(feedToken.token, 'ics'), 'ics')
             "
-            @keyup.enter="
-              (e: Event) =>
-                copyURL(e, tokenToURL(feedToken.token, 'ics'), 'ics')
-            "
             icon-left="calendar-sync"
             :href="tokenToURL(feedToken.token, 'ics')"
             target="_blank"
-            >{{ $t("ICS/WebCal Feed") }}</o-button
+            class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
           >
+            {{ t("ICS/WebCal Feed") }}
+          </o-button>
+
           <o-button
             icon-left="refresh"
             variant="text"
             @click="openRegenerateFeedTokensConfirmation"
-            @keyup.enter="openRegenerateFeedTokensConfirmation"
-            >{{ $t("Regenerate new links") }}</o-button
+            class="text-[#155eef]"
           >
+            {{ t("Regenerate new links") }}
+          </o-button>
         </div>
       </div>
       <div v-else>
         <o-button
           icon-left="refresh"
-          variant="text"
           @click="generateFeedTokens"
-          @keyup.enter="generateFeedTokens"
-          >{{ $t("Create new links") }}</o-button
+          class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
         >
+          {{ t("Create new links") }}
+        </o-button>
       </div>
     </section>
   </div>
 </template>
+
 <script lang="ts" setup>
 import { INotificationPendingEnum } from "@/types/enums";
 import {
@@ -366,7 +466,7 @@ const webPushEnabled = computed(
 const { t } = useI18n({ useScope: "global" });
 
 useHead({
-  title: computed(() => t("Notification settings")),
+  title: computed(() => t("Notifications")),
 });
 
 const notificationOnDay = ref<boolean | undefined>(true);
@@ -383,11 +483,6 @@ const groupNotificationsValues = ref<Record<string, unknown>>({});
 const showCopiedTooltip = reactive({ ics: false, atom: false });
 const subscribed = ref(false);
 const canShowWebPush = ref(false);
-
-const notificationMethods = {
-  email: t("Email"),
-  push: t("Push"),
-};
 
 const defaultNotificationValues = {
   participation_event_updated: {
@@ -466,15 +561,15 @@ const notificationTypes: NotificationType[] = [
     subtypes: [
       {
         id: "conversation_mention",
-        label: t("I've been mentionned in a conversation") as string,
+        label: t("I was mentioned in a conversation") as string,
       },
       {
         id: "event_comment_mention",
-        label: t("I've been mentionned in a comment under an event") as string,
+        label: t("I was mentioned in an event comment") as string,
       },
       {
         id: "discussion_mention",
-        label: t("I've been mentionned in a group discussion") as string,
+        label: t("I was mentioned in a group discussion") as string,
       },
     ],
   },
@@ -487,7 +582,7 @@ const notificationTypes: NotificationType[] = [
       },
       {
         id: "participation_event_comment",
-        label: t("An event I'm going to has posted an announcement") as string,
+        label: t("An event I'm going to published an announcement") as string,
       },
     ],
   },
@@ -602,14 +697,14 @@ const notificationValues = computed(
 
 onMounted(async () => {
   notificationPendingParticipationValues.value = {
-    [INotificationPendingEnum.NONE]: t("Do not receive any mail"),
+    [INotificationPendingEnum.NONE]: t("Disabled"),
     [INotificationPendingEnum.DIRECT]: t("Receive one email per request"),
     [INotificationPendingEnum.ONE_HOUR]: t("Hourly email summary"),
     [INotificationPendingEnum.ONE_DAY]: t("Daily email summary"),
     [INotificationPendingEnum.ONE_WEEK]: t("Weekly email summary"),
   };
   groupNotificationsValues.value = {
-    [INotificationPendingEnum.NONE]: t("Do not receive any mail"),
+    [INotificationPendingEnum.NONE]: t("Disabled"),
     [INotificationPendingEnum.DIRECT]: t("Receive one email for each activity"),
     [INotificationPendingEnum.ONE_HOUR]: t("Hourly email summary"),
     [INotificationPendingEnum.ONE_DAY]: t("Daily email summary"),
@@ -657,7 +752,7 @@ const openRegenerateFeedTokensConfirmation = () => {
     variant: "warning",
     title: t("Regenerate new links") as string,
     message: t(
-      "You'll need to change the URLs where there were previously entered."
+      "You'll need to change the URLs where they were previously entered."
     ) as string,
     confirmText: t("Regenerate new links") as string,
     cancelText: t("Cancel") as string,
@@ -684,7 +779,6 @@ const regenerateFeedTokens = async (): Promise<void> => {
           id: `User:${userId}`,
           fragment: USER_FRAGMENT_FEED_TOKENS,
         });
-        // Remove the old token
         cachedData = {
           id: cachedData?.id,
           feedTokens: [
@@ -720,6 +814,14 @@ registerPushMutationError((err) => {
   console.error(err);
 });
 
+const handleWebPushToggle = async (value: boolean): Promise<void> => {
+  if (value) {
+    await subscribeToWebPush();
+  } else {
+    await unsubscribeToWebPush();
+  }
+};
+
 const subscribeToWebPush = async (): Promise<void> => {
   if (canShowWebPush.value) {
     const subscription = await subscribeUserToPush();
@@ -731,13 +833,7 @@ const subscribeToWebPush = async (): Promise<void> => {
         p256dh: subscriptionJSON?.keys?.p256dh,
       });
       subscribed.value = true;
-    } else {
-      // tnotifier.error(
-      //   t("Error while subscribing to push notifications") as string
-      // );
     }
-  } else {
-    console.error("can't do webpush");
   }
 };
 
@@ -819,7 +915,6 @@ const { mutate: createNewFeedToken } = useMutation(CREATE_FEED_TOKEN, () => ({
       id: `User:${userId}`,
       fragment: USER_FRAGMENT_FEED_TOKENS,
     });
-    // Add the new token to the list
     cachedData = {
       id: cachedData?.id,
       feedTokens: [...(cachedData?.feedTokens ?? []), { token: newFeedToken }],
@@ -832,23 +927,3 @@ const { mutate: createNewFeedToken } = useMutation(CREATE_FEED_TOKEN, () => ({
   },
 }));
 </script>
-
-<style lang="scss" scoped>
-@use "@/styles/_mixins" as *;
-.field {
-  &:not(:last-child) {
-    margin-bottom: 1.5rem;
-  }
-
-  a.change-timezone {
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    @include margin-left(5px);
-  }
-}
-
-:deep(.buttons > *:not(:last-child) .button) {
-  margin-right: 0.5rem;
-  @include margin-right(0.5rem);
-}
-</style>

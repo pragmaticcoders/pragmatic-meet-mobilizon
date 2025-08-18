@@ -38,17 +38,21 @@ export function useEventParticipants(
   );
 
   const event = computed(() => result.value?.event);
-  const participants = computed(() => result.value?.event?.participants?.elements ?? []);
-  const participantStats = computed(() => result.value?.event?.participantStats);
+  const participants = computed(
+    () => result.value?.event?.participants?.elements ?? []
+  );
+  const participantStats = computed(
+    () => result.value?.event?.participantStats
+  );
 
-  return { 
-    event, 
-    participants, 
-    participantStats, 
-    error, 
-    loading, 
-    onResult, 
-    onError, 
-    refetch 
+  return {
+    event,
+    participants,
+    participantStats,
+    error,
+    loading,
+    onResult,
+    onError,
+    refetch,
   };
 }

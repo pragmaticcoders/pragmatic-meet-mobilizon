@@ -23,14 +23,13 @@ if (!import.meta.env.VITE_HISTOIRE_ENV) {
     // split based on operation type AND authentication status
     ({ query }) => {
       const definition = getMainDefinition(query);
-      const isSubscription = (
+      const isSubscription =
         definition.kind === "OperationDefinition" &&
-        definition.operation === "subscription"
-      );
-      
+        definition.operation === "subscription";
+
       // Only use WebSocket for subscriptions when user is authenticated
       const hasToken = localStorage.getItem(AUTH_ACCESS_TOKEN);
-      
+
       return isSubscription && hasToken;
     },
     absintheSocketLink,

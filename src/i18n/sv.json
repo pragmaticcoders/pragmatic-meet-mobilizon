@@ -1659,5 +1659,12 @@
   "Sign in!": "Logga in!",
   "Check your email": "Kontrollera din e-post",
   "We sent a verification link to": "Vi skickade en verifieringslänk till",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klicka på länken i e-postmeddelandet för att verifiera ditt konto. Om du inte ser det, kontrollera din skräppostmapp."
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klicka på länken i e-postmeddelandet för att verifiera ditt konto. Om du inte ser det, kontrollera din skräppostmapp.",
+  "Zgody": "Avtal",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Jag förklarar att jag förstår att konsekvensen av gratis användning av Pragmatic Meet-plattformen är att placera en synlig logotyp på min community-sida som innehåller en länk till webbplatsen",
+  "Pobierz": "Ladda ner",
+  "Wymagane zgody": "Obligatoriska avtal",
+  "Utwórz wydarzenie": "Skapa evenemang",
+  "Zapisz szkic": "Spara utkast",
+  "Anuluj": "Avbryt"
 }

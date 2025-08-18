@@ -8,9 +8,7 @@
     :to="to"
     :isInternal="isInternal"
   >
-    <div
-      :class="{ 'sm:w-full sm:max-w-[20rem]': mode === 'row' }"
-    >
+    <div :class="{ 'sm:w-full sm:max-w-[20rem]': mode === 'row' }">
       <div
         class="-mt-3 h-0 mb-3 ltr:ml-0 rtl:mr-0 block relative z-10"
         :class="{

@@ -1291,5 +1291,12 @@
   "Check your email": "Tarkista sähköpostisi",
   "We sent a verification link to": "Lähetimme vahvistuslinkin osoitteeseen",
   "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Vahvista tilisi napsauttamalla sähköpostissa olevaa linkkiä. Jos et näe sitä, tarkista roskapostikansio.",
-  "Back to homepage": "Takaisin kotisivulle"
+  "Back to homepage": "Takaisin kotisivulle",
+  "Zgody": "Sopimukset",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Vakuutan ymmärtäväni, että Pragmatic Meet -alustan ilmaisen käytön seurauksena on yhteisöni sivulle näkyvän logon sijoittaminen, joka sisältää linkin verkkosivustolle",
+  "Pobierz": "Lataa",
+  "Wymagane zgody": "Pakolliset sopimukset",
+  "Utwórz wydarzenie": "Luo tapahtuma",
+  "Zapisz szkic": "Tallenna luonnos",
+  "Anuluj": "Peruuta"
 }

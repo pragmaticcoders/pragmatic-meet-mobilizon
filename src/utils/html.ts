@@ -20,13 +20,13 @@ export const getValueFromMetaWithRetry = async (
     if (element && element.getAttribute("content")) {
       return element.getAttribute("content");
     }
-    
+
     // Wait before next attempt
     if (attempt < maxRetries - 1) {
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
   }
-  
+
   console.warn(`Meta tag '${name}' not found after ${maxRetries} attempts`);
   return null;
 };

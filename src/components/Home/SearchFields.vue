@@ -150,8 +150,6 @@ const distanceList = computed(() => {
   return distances;
 });
 
-
-
 console.debug("initial", distance.value, search.value, address.value);
 
 const modelValueUpdate = (newaddress: IAddress | null) => {

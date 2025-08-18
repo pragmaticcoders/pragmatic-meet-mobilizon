@@ -1,26 +1,45 @@
 <template>
-  <div>
+  <div class="bg-white min-h-screen">
     <breadcrumbs-nav :links="breadcrumbsLinks" />
-    <div v-if="identity">
-      <h1 class="flex justify-center">
+    <div v-if="identity" class="py-4">
+      <h1 class="font-bold text-[28px] leading-[36px] text-[#1c1b1f] mb-8">
         <span v-if="isUpdate" class="line-clamp-2">{{
           displayName(identity)
         }}</span>
         <span v-else>{{ t("Create a new profile") }}</span>
       </h1>
-      <div v-if="identities?.length == 0">
+      <div
+        v-if="identities?.length == 0"
+        class="text-[16px] leading-[24px] text-[#1c1b1f] mb-8"
+      >
         {{ t("Congratulations, your account is now created!") }}
         {{ t("Now, create your first profile:") }}
       </div>
-      <o-field :label="t('Avatar')">
-        <picture-upload
-          v-model="avatarFile"
-          :defaultImage="identity.avatar"
-          :maxSize="avatarMaxSize"
-        />
-      </o-field>
 
-      <o-field :label="t('Display name')" label-for="identity-display-name">
+      <!-- Avatar Section -->
+      <div class="mb-8">
+        <label
+          class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-3"
+        >
+          {{ t("Avatar") }}
+        </label>
+        <div class="flex justify-center">
+          <picture-upload
+            v-model="avatarFile"
+            :defaultImage="identity.avatar"
+            :maxSize="avatarMaxSize"
+          />
+        </div>
+      </div>
+
+      <!-- Display Name Field -->
+      <div class="mb-6">
+        <label
+          for="identity-display-name"
+          class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-2"
+        >
+          {{ t("Display name") }}
+        </label>
         <o-input
           aria-required="true"
           required
@@ -29,19 +48,21 @@
           id="identity-display-name"
           dir="auto"
           expanded
+          class="w-full"
         />
-      </o-field>
+      </div>
 
-      <o-field
-        class="username-field"
-        :label="t('Username')"
-        label-for="identity-username"
-        :message="message"
-      >
-        <o-field class="!mt-0">
+      <!-- Username Field -->
+      <div class="mb-6">
+        <label
+          for="identity-username"
+          class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-2"
+        >
+          {{ t("Username") }}
+        </label>
+        <div class="flex">
           <o-input
             expanded
-            class="!mt-0"
             aria-required="true"
             required
             v-model="identity.preferredUsername"
@@ -50,23 +71,42 @@
             :use-html5-validation="!isUpdate"
             pattern="[a-z0-9_]+"
             id="identity-username"
+            class="flex-1"
           />
+          <span
+            class="inline-flex items-center px-3 bg-gray-100 text-gray-600 border border-l-0 border-gray-300 text-[14px]"
+          >
+            @{{ getInstanceHost }}
+          </span>
+        </div>
+        <p v-if="message" class="text-[13px] text-gray-500 mt-2">
+          {{ message }}
+        </p>
+      </div>
 
-          <p class="control">
-            <span class="button is-static !h-auto">@{{ getInstanceHost }}</span>
-          </p>
-        </o-field>
-      </o-field>
-
-      <p class="prose dark:prose-invert">
-        {{
+      <p
+        class="text-[14px] leading-[20px] text-gray-600 mb-6 flex items-start gap-2"
+      >
+        <o-icon
+          icon="information-outline"
+          size="small"
+          class="mt-0.5 text-gray-500"
+        />
+        <span>{{
           t(
             "This identifier is unique to your profile. It allows others to find you."
           )
-        }}
+        }}</span>
       </p>
 
-      <o-field :label="t('Description')" label-for="identity-summary">
+      <!-- Description Field -->
+      <div class="mb-8">
+        <label
+          for="identity-summary"
+          class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-2"
+        >
+          {{ t("Description") }}
+        </label>
         <o-input
           type="textarea"
           dir="auto"
@@ -74,9 +114,12 @@
           v-model="identity.summary"
           id="identity-summary"
           expanded
+          class="w-full"
+          :rows="6"
         />
-      </o-field>
+      </div>
 
+      <!-- Error Notifications -->
       <o-notification
         variant="danger"
         has-icon
@@ -84,30 +127,35 @@
         role="alert"
         :key="error"
         v-for="error in errors"
+        class="mb-4"
         >{{ error }}</o-notification
       >
 
-      <o-field class="flex justify-center !my-6">
-        <div class="control">
-          <o-button type="button" variant="primary" @click="submit()">
-            {{ t("Create my profile") }}
-          </o-button>
-        </div>
-      </o-field>
-
-      <o-field class="flex justify-center">
-        <o-button
+      <!-- Action Buttons -->
+      <div class="flex gap-4 mb-12">
+        <button
+          type="button"
+          @click="submit()"
+          class="px-6 py-3 bg-[#155eef] text-white font-bold text-[16px] leading-[24px] hover:bg-blue-600 transition-colors"
+        >
+          {{ isUpdate ? t("Save") : t("Create my profile") }}
+        </button>
+        <button
           v-if="isUpdate"
           @click="openDeleteIdentityConfirmation()"
-          variant="text"
+          type="button"
+          class="px-6 py-3 bg-[#cc0000] text-white font-bold text-[16px] leading-[24px] hover:bg-red-700 transition-colors"
         >
           {{ t("Delete this identity") }}
-        </o-button>
-      </o-field>
+        </button>
+      </div>
 
-      <section v-if="isUpdate">
-        <h2>{{ t("Profile feeds") }}</h2>
-        <p>
+      <!-- Profile Feeds Section -->
+      <section v-if="isUpdate" class="border-t border-gray-200 pt-8">
+        <h2 class="font-bold text-[20px] leading-[28px] text-[#1c1b1f] mb-4">
+          {{ t("Profile feeds") }}
+        </h2>
+        <p class="text-[14px] leading-[20px] text-gray-600 mb-6">
           {{
             t(
               "These feeds contain event data for the events for which this specific profile is a participant or creator." +
@@ -118,7 +166,7 @@
         </p>
         <div v-if="identity.feedTokens && identity.feedTokens.length > 0">
           <div
-            class="flex flex-wrap gap-2"
+            class="flex flex-wrap gap-3"
             v-for="feedToken in identity.feedTokens"
             :key="feedToken.token"
           >
@@ -128,49 +176,49 @@
               variant="success"
               position="left"
             />
-            <o-button
-              tag="a"
-              icon-left="rss"
+            <button
               @click="
                 (e: Event) =>
                   copyURL(e, tokenToURL(feedToken.token, 'atom'), 'atom')
               "
-              :href="tokenToURL(feedToken.token, 'atom')"
-              target="_blank"
-              >{{ t("RSS/Atom Feed") }}</o-button
+              class="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#155eef] border border-[#155eef] font-medium text-[14px] hover:bg-blue-50 transition-colors"
             >
+              <o-icon icon="rss" size="small" />
+              {{ t("RSS/Atom Feed") }}
+            </button>
             <o-tooltip
               :label="t('URL copied to clipboard')"
               :active="showCopiedTooltip.ics"
               variant="success"
               position="left"
             />
-            <o-button
-              tag="a"
+            <button
               @click="
                 (e: Event) =>
                   copyURL(e, tokenToURL(feedToken.token, 'ics'), 'ics')
               "
-              icon-left="calendar-sync"
-              :href="tokenToURL(feedToken.token, 'ics')"
-              target="_blank"
-              >{{ t("ICS/WebCal Feed") }}</o-button
+              class="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#155eef] border border-[#155eef] font-medium text-[14px] hover:bg-blue-50 transition-colors"
             >
-            <o-button
-              icon-left="refresh"
-              variant="text"
+              <o-icon icon="calendar-sync" size="small" />
+              {{ t("ICS/WebCal Feed") }}
+            </button>
+            <button
               @click="openRegenerateFeedTokensConfirmation"
-              >{{ t("Regenerate new links") }}</o-button
+              class="inline-flex items-center gap-2 px-4 py-2 text-[#155eef] font-medium text-[14px] hover:bg-gray-50 transition-colors"
             >
+              <o-icon icon="refresh" size="small" />
+              {{ t("Regenerate new links") }}
+            </button>
           </div>
         </div>
         <div v-else>
-          <o-button
-            icon-left="refresh"
-            variant="text"
+          <button
             @click="generateFeedTokens"
-            >{{ t("Create new links") }}</o-button
+            class="inline-flex items-center gap-2 px-4 py-2 text-[#155eef] font-medium text-[14px] hover:bg-gray-50 transition-colors"
           >
+            <o-icon icon="refresh" size="small" />
+            {{ t("Create new links") }}
+          </button>
         </div>
       </section>
     </div>

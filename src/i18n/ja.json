@@ -1312,5 +1312,12 @@
   "Check your email": "メールを確認してください",
   "We sent a verification link to": "認証リンクを送信しました：",
   "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "メール内のリンクをクリックしてアカウントを認証してください。見つからない場合は、スパムフォルダーを確認してください。",
-  "Back to homepage": "ホームページに戻る"
+  "Back to homepage": "ホームページに戻る",
+  "Zgody": "合意",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Pragmatic Meetプラットフォームの無料使用の結果として、コミュニティページにサイトへのリンクを含む見えるロゴを配置することを理解していることを宣言します",
+  "Pobierz": "ダウンロード",
+  "Wymagane zgody": "必要な合意",
+  "Utwórz wydarzenie": "イベントを作成",
+  "Zapisz szkic": "下書きを保存",
+  "Anuluj": "キャンセル"
 }

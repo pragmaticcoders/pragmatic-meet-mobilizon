@@ -8,15 +8,15 @@
       drag-drop
     >
       <div
-        class="w-100 text-center p-4 rounded-xl border-dashed border-2 border-gray-600"
+        class="w-full flex flex-col items-center justify-center py-8 px-4 border border-gray-300 bg-white hover:bg-gray-50 transition-colors cursor-pointer"
       >
-        <span class="mx-auto flex w-fit">
-          <Upload />
-          <span class="capitalize"
+        <span class="flex flex-col items-center gap-2">
+          <Upload class="w-6 h-6 text-gray-500" />
+          <span class="text-base font-medium text-gray-700"
             >{{ $t("Click to upload") }} {{ textFallbackWithDefault }}</span
           >
         </span>
-        <p v-if="pictureTooBig" class="text-mbz-danger">
+        <p v-if="pictureTooBig" class="text-red-600 mt-2 text-sm">
           {{
             $t(
               "The selected picture is too heavy. You need to select a file smaller than {size}.",
@@ -25,7 +25,7 @@
           }}
         </p>
         <span
-          class="has-text-centered text-mbz-danger"
+          class="text-center text-red-600 mt-2 text-sm"
           v-if="imagePreviewLoadingError"
           >{{ $t("Error while loading the preview") }}</span
         >
@@ -42,17 +42,18 @@
     "
   >
     <figure
-      class="w-fit relative image mx-auto my-4"
+      class="w-full relative mx-auto my-4"
       v-if="imageSrc && !imagePreviewLoadingError"
     >
       <img
-        class="max-h-52 rounded-xl"
+        class="w-full h-48 object-cover border border-gray-300"
         :src="imageSrc"
         @error="showImageLoadingError"
       />
       <o-button
-        class="!absolute right-1 bottom-1"
+        class="!absolute right-2 bottom-2"
         variant="danger"
+        size="small"
         v-if="imageSrc"
         @click="removeOrClearPicture"
         @keyup.enter="removeOrClearPicture"

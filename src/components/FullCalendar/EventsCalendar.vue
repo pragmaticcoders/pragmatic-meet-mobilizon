@@ -1,5 +1,7 @@
 <template>
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+  <div
+    class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+  >
     <FullCalendar ref="calendarRef" :options="calendarOptions">
       <template v-slot:eventContent="arg">
         <div
@@ -76,7 +78,8 @@ const calendarOptions = computed((): object => {
     },
     nextDayThreshold: "09:00:00",
     dayMaxEventRows: 5,
-    moreLinkClassNames: "bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded",
+    moreLinkClassNames:
+      "bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded",
     moreLinkContent: (arg: { num: number; text: string }) => {
       return "+" + arg.num.toString();
     },
@@ -98,12 +101,12 @@ const calendarOptions = computed((): object => {
       list: t("List"),
     },
     eventDisplay: "block",
-    eventMouseEnter: function(info: any) {
+    eventMouseEnter: function (info: any) {
       info.el.style.transform = "scale(1.02)";
       info.el.style.transition = "transform 0.2s ease";
       info.el.style.zIndex = "10";
     },
-    eventMouseLeave: function(info: any) {
+    eventMouseLeave: function (info: any) {
       info.el.style.transform = "scale(1)";
       info.el.style.zIndex = "auto";
     },

@@ -1,112 +1,106 @@
 <template>
-  <div v-if="loggedUser" class="max-w-4xl mx-auto">
-    <breadcrumbs-nav
-      :links="[
-        {
-          name: RouteName.ACCOUNT_SETTINGS,
-          text: t('Account'),
-        },
-        {
-          name: RouteName.ACCOUNT_SETTINGS_GENERAL,
-          text: t('General'),
-        },
-      ]"
-    />
-    
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-      <div class="p-6 border-b border-gray-200">
-        <h1 class="text-2xl font-bold text-gray-900">{{ t("Account Settings") }}</h1>
-        <p class="text-gray-600 mt-1">{{ t("Manage your account information and security settings") }}</p>
-      </div>
-
+  <div v-if="loggedUser">
+    <!-- Main Content Area -->
+    <div class="bg-white">
       <!-- Email Section -->
-      <div class="p-6 border-b border-gray-200">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t("Email Address") }}</h3>
-            <p class="text-gray-600 mb-4">
-              {{ t("Your current email is") }} <span class="font-medium text-gray-900">{{ loggedUser.email }}</span>
-            </p>
-            
-            <o-notification
-              v-if="!canChangeEmail && loggedUser.provider"
-              variant="warning"
-              :closable="false"
-              class="mb-4"
-            >
-              {{
-                t(
-                  "Your email address was automatically set based on your {provider} account.",
-                  {
-                    provider: providerName(loggedUser.provider),
-                  }
-                )
-              }}
-            </o-notification>
-          </div>
-          <div v-if="canChangeEmail">
-            <button
-              @click="openChangeEmailModal"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              {{ t("Change Email") }}
-            </button>
-          </div>
+      <div class="mb-8">
+        <div class="mb-4">
+          <h2
+            class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-2"
+          >
+            {{ t("Email") }}
+          </h2>
+          <p
+            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+            v-html="
+              t('Your current email is {email}. You use it to log in.', {
+                email: `<b class='font-bold'>${loggedUser.email}</b>`,
+              })
+            "
+          ></p>
         </div>
+
+        <o-notification
+          v-if="!canChangeEmail && loggedUser.provider"
+          variant="warning"
+          :closable="false"
+          class="mb-4"
+        >
+          {{
+            t(
+              "Your email address was automatically set based on your {provider} account.",
+              {
+                provider: providerName(loggedUser.provider),
+              }
+            )
+          }}
+        </o-notification>
+
+        <button
+          v-if="canChangeEmail"
+          @click="openChangeEmailModal"
+          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors  text-[17px] leading-[26px]"
+        >
+          {{ t("Zmień") }}
+        </button>
       </div>
 
       <!-- Password Section -->
-      <div class="p-6 border-b border-gray-200">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ t("Password") }}</h3>
-            <p class="text-gray-600 mb-4">{{ t("Update your password to keep your account secure") }}</p>
-            
-            <o-notification
-              v-if="!canChangePassword && loggedUser.provider"
-              variant="warning"
-              :closable="false"
-              class="mb-4"
-            >
-              {{
-                t(
-                  "You can't change your password because you are registered through {provider}.",
-                  {
-                    provider: providerName(loggedUser.provider),
-                  }
-                )
-              }}
-            </o-notification>
-          </div>
-          <div v-if="canChangePassword">
-            <button
-              @click="openChangePasswordModal"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              {{ t("Change Password") }}
-            </button>
-          </div>
-        </div>
+      <div class="mb-8">
+        <h2 class=" text-[20px] leading-[30px] mb-4">
+          {{ t("Password") }}
+        </h2>
+
+        <o-notification
+          v-if="!canChangePassword && loggedUser.provider"
+          variant="warning"
+          :closable="false"
+          class="mb-4"
+        >
+          {{
+            t(
+              "You can't change your password because you are registered through {provider}.",
+              {
+                provider: providerName(loggedUser.provider),
+              }
+            )
+          }}
+        </o-notification>
+
+        <button
+          v-if="canChangePassword"
+          @click="openChangePasswordModal"
+          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors  text-[17px] leading-[26px]"
+        >
+          {{ t("Change") }}
+        </button>
       </div>
 
       <!-- Delete Account Section -->
-      <div class="p-6">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold text-red-600 mb-2">{{ t("Delete Account") }}</h3>
-            <p class="text-gray-600 mb-4">
-              {{ t("Permanently delete your account and all associated data. This action cannot be undone.") }}
-            </p>
-          </div>
-          <div>
-            <button
-              @click="openDeleteAccountModal"
-              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
-              {{ t("Delete Account") }}
-            </button>
-          </div>
+      <div>
+        <div class="mb-4">
+          <h2
+            class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-2"
+          >
+            {{ t("Delete Account") }}
+          </h2>
+          <p
+            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+          >
+            {{
+              t(
+                "Usunięcie konta spowoduje usunięcie wszystkich Twoich tożsamości."
+              )
+            }}
+          </p>
         </div>
+
+        <button
+          @click="openDeleteAccountModal"
+          class="px-8 py-[18px] bg-[#cc0000] text-white hover:bg-red-700 transition-colors  text-[17px] leading-[26px]"
+        >
+          {{ t("Delete Account") }}
+        </button>
       </div>
     </div>
 
@@ -119,9 +113,11 @@
     >
       <div class="bg-white rounded-lg max-w-md mx-auto">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">{{ t("Change Email Address") }}</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            {{ t("Change Email Address") }}
+          </h2>
         </div>
-        
+
         <form @submit.prevent="resetEmailAction" ref="emailForm" class="p-6">
           <o-notification
             variant="danger"
@@ -136,8 +132,11 @@
           </o-notification>
 
           <div class="mb-4">
-            <label for="modal-email" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('New Email Address') }}
+            <label
+              for="modal-email"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("New Email Address") }}
             </label>
             <input
               type="email"
@@ -147,12 +146,17 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               :placeholder="t('Enter new email address')"
             />
-            <p class="text-sm text-gray-500 mt-1">{{ t("You'll receive a confirmation email.") }}</p>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ t("You'll receive a confirmation email.") }}
+            </p>
           </div>
 
           <div class="mb-6">
-            <label for="modal-email-password" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('Current Password') }}
+            <label
+              for="modal-email-password"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("Current Password") }}
             </label>
             <input
               type="password"
@@ -177,7 +181,7 @@
               type="submit"
               class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {{ t("Update Email") }}
+              {{ t("Update") }}
             </button>
           </div>
         </form>
@@ -193,10 +197,16 @@
     >
       <div class="bg-white rounded-lg max-w-md mx-auto">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">{{ t("Change Password") }}</h2>
+          <h2 class="text-xl font-semibold text-gray-900">
+            {{ t("Change Password") }}
+          </h2>
         </div>
-        
-        <form @submit.prevent="resetPasswordAction" ref="passwordForm" class="p-6">
+
+        <form
+          @submit.prevent="resetPasswordAction"
+          ref="passwordForm"
+          class="p-6"
+        >
           <o-notification
             variant="danger"
             has-icon
@@ -210,8 +220,11 @@
           </o-notification>
 
           <div class="mb-4">
-            <label for="modal-old-password" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('Current Password') }}
+            <label
+              for="modal-old-password"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("Current Password") }}
             </label>
             <input
               type="password"
@@ -225,8 +238,11 @@
           </div>
 
           <div class="mb-6">
-            <label for="modal-new-password" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('New Password') }}
+            <label
+              for="modal-new-password"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("New Password") }}
             </label>
             <input
               type="password"
@@ -237,7 +253,9 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               :placeholder="t('Enter new password')"
             />
-            <p class="text-sm text-gray-500 mt-1">{{ t("Password must be at least 6 characters long.") }}</p>
+            <p class="text-sm text-gray-500 mt-1">
+              {{ t("Password must be at least 6 characters long.") }}
+            </p>
           </div>
 
           <div class="flex gap-3">
@@ -252,7 +270,7 @@
               type="submit"
               class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
             >
-              {{ t("Update Password") }}
+              {{ t("Update") }}
             </button>
           </div>
         </form>
@@ -268,9 +286,11 @@
     >
       <div class="bg-white rounded-lg max-w-md mx-auto">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-red-600">{{ t("Delete Account") }}</h2>
+          <h2 class="text-xl font-semibold text-red-600">
+            {{ t("Delete Account") }}
+          </h2>
         </div>
-        
+
         <div class="p-6">
           <div class="mb-6">
             <p class="text-gray-600 mb-4">
@@ -297,7 +317,10 @@
             </div>
 
             <div v-if="hasUserGotAPassword" class="mb-6">
-              <label for="delete-password" class="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                for="delete-password"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
                 {{ t("Please enter your password to confirm this action.") }}
               </label>
               <input
@@ -516,10 +539,6 @@ const hasUserGotAPassword = computed((): boolean => {
     loggedUser.value?.provider == null ||
     loggedUser.value?.provider === IAuthProvider.LDAP
   );
-});
-
-const deleteAccountPasswordFieldType = computed((): string | null => {
-  return deletePasswordErrors.value.length > 0 ? "is-danger" : null;
 });
 
 const handleErrors = (type: string, err: any) => {

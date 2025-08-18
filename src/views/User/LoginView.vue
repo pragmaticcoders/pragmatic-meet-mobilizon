@@ -1,6 +1,9 @@
 <template>
   <!-- Full screen layout with centered content -->
-  <div class="flex items-center justify-center px-4" v-if="!currentUser?.isLoggedIn">
+  <div
+    class="flex items-center justify-center px-4"
+    v-if="!currentUser?.isLoggedIn"
+  >
     <div class="w-full max-w-md">
       <!-- Brand and heading section -->
       <div class="text-center mb-8">
@@ -21,13 +24,23 @@
           v-else-if="errorCode === LoginError.LOGIN_PROVIDER_ERROR"
           class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
         >
-          {{ t("Error while login with {provider}. Retry or login another way.", { provider: currentProvider }) }}
+          {{
+            t(
+              "Error while login with {provider}. Retry or login another way.",
+              { provider: currentProvider }
+            )
+          }}
         </div>
         <div
           v-else-if="errorCode === LoginError.LOGIN_PROVIDER_NOT_FOUND"
           class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
         >
-          {{ t("Error while login with {provider}. This login provider doesn't exist.", { provider: currentProvider }) }}
+          {{
+            t(
+              "Error while login with {provider}. This login provider doesn't exist.",
+              { provider: currentProvider }
+            )
+          }}
         </div>
         <div
           v-for="error in errors"
@@ -41,11 +54,18 @@
       <!-- Main login card -->
       <div class="bg-white shadow-sm border border-gray-200 px-6 py-8">
         <!-- Login form -->
-        <form @submit="loginAction" v-if="config?.auth?.databaseLogin" class="space-y-6">
+        <form
+          @submit="loginAction"
+          v-if="config?.auth?.databaseLogin"
+          class="space-y-6"
+        >
           <!-- Email field -->
           <div>
-            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('Email') }}
+            <label
+              for="email"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("Email") }}
             </label>
             <input
               id="email"
@@ -64,8 +84,11 @@
 
           <!-- Password field -->
           <div>
-            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-              {{ t('Password') }}
+            <label
+              for="password"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("Password") }}
             </label>
             <div class="relative">
               <input
@@ -83,12 +106,39 @@
                 @click="showPassword = !showPassword"
                 class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
               >
-                <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <svg
+                  v-if="!showPassword"
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
                 </svg>
-                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                <svg
+                  v-else
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                  />
                 </svg>
               </button>
             </div>
@@ -97,7 +147,10 @@
           <!-- "Forgot password" link - placed after password field -->
           <div class="text-left">
             <router-link
-              :to="{ name: RouteName.SEND_PASSWORD_RESET, params: { email: credentials.email } }"
+              :to="{
+                name: RouteName.SEND_PASSWORD_RESET,
+                params: { email: credentials.email },
+              }"
               class="text-sm text-blue-600 hover:text-blue-500 font-medium"
             >
               {{ t("Forgot your password?") }}
@@ -114,9 +167,25 @@
             >
               <span v-if="!submitted">{{ t("Login") }}</span>
               <span v-else class="flex items-center justify-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 {{ t("Signing in...") }}
               </span>
@@ -130,7 +199,9 @@
             >
               <!-- LinkedIn Icon -->
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                <path
+                  d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"
+                />
               </svg>
               {{ t("Log in with LinkedIn") }}
             </a>
@@ -140,7 +211,10 @@
         <!-- "Didn't receive instructions" link - after the form -->
         <div class="mt-6 text-left">
           <router-link
-            :to="{ name: RouteName.RESEND_CONFIRMATION, params: { email: credentials.email } }"
+            :to="{
+              name: RouteName.RESEND_CONFIRMATION,
+              params: { email: credentials.email },
+            }"
             class="text-sm text-blue-600 hover:text-blue-500 underline"
           >
             {{ t("Didn't receive the instructions?") }}
@@ -151,15 +225,17 @@
         <div class="mt-8 pt-6 border-t border-gray-200">
           <!-- "Create account" link at bottom -->
           <div class="text-left">
-            <span class="text-sm text-gray-600">{{ t("Don't have an account?") }}</span>
+            <span class="text-sm text-gray-600">{{
+              t("Don't have an account?")
+            }}</span>
             <router-link
               v-if="canRegister"
-              :to="{ 
-                name: RouteName.REGISTER, 
-                query: { 
-                  default_email: credentials.email, 
-                  default_password: credentials.password 
-                } 
+              :to="{
+                name: RouteName.REGISTER,
+                query: {
+                  default_email: credentials.email,
+                  default_password: credentials.password,
+                },
               }"
               class="ml-1 text-sm text-blue-600 hover:text-blue-500 font-medium underline"
             >
@@ -300,9 +376,9 @@ const loginAction = async (e: Event) => {
       | false
       | { loggedUser: IUser };
     storeUserLocationAndRadiusFromUserSettings(
-      (loggedUserLocationResult && (loggedUserLocationResult as any).loggedUser
+      loggedUserLocationResult && (loggedUserLocationResult as any).loggedUser
         ? (loggedUserLocationResult as any).loggedUser.settings?.location
-        : undefined)
+        : undefined
     );
 
     // Soft redirect
@@ -371,7 +447,9 @@ const currentProvider = computed(() => {
 });
 
 const linkedinProvider = computed(() => {
-  return config.value?.auth?.oauthProviders?.find(provider => provider.id === 'linkedin');
+  return config.value?.auth?.oauthProviders?.find(
+    (provider) => provider.id === "linkedin"
+  );
 });
 
 onMounted(() => {

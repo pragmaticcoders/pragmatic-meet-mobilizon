@@ -1,15 +1,17 @@
 <template>
-  <li
-    class="bg-mbz-yellow-alt-300 text-violet-2 dark:bg-mbz-purple-700 dark:text-zinc-100 text-xl"
-  >
+  <li class="pb-5 border-b border-[#cac9cb] last:border-b-0">
     <router-link
-      class="cursor-pointer my-2 mx-0 py-2 px-3 font-medium block no-underline"
+      class="text-[20px] font-bold leading-[30px] text-[#1c1b1f] dark:text-white block mb-5 no-underline"
       v-if="to"
       :to="to"
       >{{ title }}</router-link
     >
-    <b v-else>{{ title }}</b>
-    <ul>
+    <b
+      v-else
+      class="text-[20px] leading-[30px] text-[#1c1b1f] dark:text-white block mb-5"
+      >{{ title }}</b
+    >
+    <ul class="flex flex-col">
       <slot></slot>
     </ul>
   </li>

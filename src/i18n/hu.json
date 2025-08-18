@@ -1679,5 +1679,12 @@
   "Sign in!": "Bejelentkezés!",
   "Check your email": "Ellenőrizd az e-mailedet",
   "We sent a verification link to": "Elküldtünk egy ellenőrző linket ide:",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Kattints az e-mailben lévő linkre a fiókod megerősítéséhez. Ha nem látod, nézd meg a spam mappát."
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Kattints az e-mailben lévő linkre a fiókod megerősítéséhez. Ha nem látod, nézd meg a spam mappát.",
+  "Zgody": "Megállapodások",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Kijelentem, hogy megértem: a Pragmatic Meet platform ingyenes használatának következménye, hogy a közösségem oldalán elhelyezek egy látható logót, amely a weboldalra mutató linket tartalmaz",
+  "Pobierz": "Letöltés",
+  "Wymagane zgody": "Kötelező megállapodások",
+  "Utwórz wydarzenie": "Esemény létrehozása",
+  "Zapisz szkic": "Vázlat mentése",
+  "Anuluj": "Mégsem"
 }

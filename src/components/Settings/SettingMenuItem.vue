@@ -1,16 +1,31 @@
 <template>
   <li
-    class="setting-menu-item"
+    class="w-full"
     :class="{
-      'cursor-pointer bg-mbz-yellow-alt-500 dark:bg-mbz-purple-600': isActive,
-      'bg-mbz-yellow-alt-100 hover:bg-mbz-yellow-alt-200 dark:bg-mbz-purple-500 dark:hover:bg-mbz-purple-600 dark:text-white':
+      'bg-[#e8effd]': isActive,
+      'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700':
         !isActive,
     }"
   >
-    <router-link v-if="to" :to="to">
-      <span class="truncate">{{ title }}</span>
+    <router-link
+      v-if="to"
+      :to="to"
+      class="flex items-center px-3 py-2 w-full no-underline"
+    >
+      <span
+        class="font-small text-[17px] leading-[26px] truncate"
+        :class="{
+          'text-[#155eef]': isActive,
+          'text-[#1c1b1f] dark:text-white': !isActive,
+        }"
+        >{{ title }}</span
+      >
     </router-link>
-    <span v-else>{{ title }}</span>
+    <span
+      v-else
+      class="flex items-center px-3 py-2 w-full font-medium text-[17px] leading-[26px] text-[#1c1b1f] dark:text-white"
+      >{{ title }}</span
+    >
   </li>
 </template>
 <script lang="ts" setup>
@@ -34,27 +49,3 @@ const isActive = computed((): boolean => {
   return false;
 });
 </script>
-
-<style lang="scss" scoped>
-li.setting-menu-item {
-  font-size: 1.05rem;
-  // background-color: #fff1de;
-  margin: auto;
-
-  span {
-    padding: 5px 15px;
-    display: block;
-  }
-
-  a {
-    display: block;
-    color: inherit;
-  }
-
-  &:hover,
-  &.active {
-    cursor: pointer;
-    // background-color: lighten(#fea72b, 10%);
-  }
-}
-</style>

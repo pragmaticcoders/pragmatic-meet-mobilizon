@@ -48,7 +48,9 @@
             </ul>
           </div>
         </aside>
-        <div class="max-w-screen-xl mx-auto px-4 md:px-16 flex-1 bg-white dark:bg-gray-700">
+        <div
+          class="max-w-screen-xl mx-auto px-4 md:px-16 flex-1 bg-white dark:bg-gray-700"
+        >
           <router-view />
         </div>
       </div>

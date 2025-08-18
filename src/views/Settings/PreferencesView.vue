@@ -1,41 +1,45 @@
 <template>
-  <div>
-    <breadcrumbs-nav
-      :links="[
-        {
-          name: RouteName.ACCOUNT_SETTINGS,
-          text: t('Account'),
-        },
-        {
-          name: RouteName.PREFERENCES,
-          text: t('Preferences'),
-        },
-      ]"
-    />
-    <div>
-      <o-field :label="t('Language')" label-for="setting-language">
+  <div class="bg-white">
+    <!-- Language Section -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("Language") }}
+      </h2>
+
+      <div class="max-w-md">
         <o-select
           :loading="loadingTimezones || loadingUserSettings"
           v-model="$i18n.locale"
           @update:modelValue="updateLanguage"
           :placeholder="t('Select a language')"
           id="setting-language"
+          class="w-full"
         >
           <option v-for="(language, lang) in langs" :value="lang" :key="lang">
             {{ language }}
           </option>
         </o-select>
-      </o-field>
-      <o-field
-        :label="t('Timezone')"
-        v-if="selectedTimezone"
-        label-for="setting-timezone"
+      </div>
+    </section>
+
+    <!-- Timezone Section -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
       >
+        {{ t("Timezone") }}
+      </h2>
+
+      <div class="max-w-md">
         <o-select
+          v-if="selectedTimezone"
           :placeholder="t('Select a timezone')"
           :loading="loadingTimezones || loadingUserSettings"
           v-model="selectedTimezone"
           id="setting-timezone"
+          class="w-full mb-3"
         >
           <optgroup
             :label="group"
@@ -51,64 +55,108 @@
             </option>
           </optgroup>
         </o-select>
-      </o-field>
-      <em v-if="Intl.DateTimeFormat().resolvedOptions().timeZone">{{
-        t("Timezone detected as {timezone}.", {
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        })
-      }}</em>
-      <o-notification v-else variant="danger">{{
-        t("Unable to detect timezone.")
-      }}</o-notification>
-      <hr role="presentation" />
-      <o-field grouped>
-        <o-field :label="t('City or region')" expanded label-for="setting-city">
-          <full-address-auto-complete
-            :resultType="AddressSearchType.ADMINISTRATIVE"
-            v-model="address"
-            :default-text="address?.description"
-            id="setting-city"
-            class="grid"
-            :hideMap="true"
-            :hideSelected="true"
-            labelClass="sr-only"
-            :placeholder="t('e.g. Nantes, Berlin, Cork, …')"
-          />
-        </o-field>
-        <o-field :label="t('Radius')" label-for="setting-radius">
-          <o-select
-            :placeholder="t('Select a radius')"
-            v-model="locationRange"
-            id="setting-radius"
+
+        <div class="flex items-center gap-2 text-gray-600">
+          <o-icon icon="information-outline" size="small" />
+          <em
+            v-if="Intl.DateTimeFormat().resolvedOptions().timeZone"
+            class=" text-[14px]"
           >
-            <option
-              v-for="index in [1, 5, 10, 25, 50, 100]"
-              :key="index"
-              :value="index"
+            {{
+              t("Timezone detected as {timezone}.", {
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              })
+            }}
+          </em>
+          <span v-else class=" text-[14px] text-red-600">
+            {{ t("Unable to detect timezone.") }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="mb-8">
+      <h2
+        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
+      >
+        {{ t("City or region") }}
+      </h2>
+
+      <div class="space-y-4">
+        <div class="flex gap-4">
+          <div class="flex-1 max-w-md">
+            <label
+              class="block  font-medium text-[15px] text-[#1c1b1f] mb-2"
             >
-              {{ t("{count} km", { count: index }, index) }}
-            </option>
-          </o-select>
-        </o-field>
-        <o-button
-          :disabled="address == undefined"
-          @click="resetArea"
-          @keyup.enter="resetArea"
-          class="reset-area self-center"
-          icon-left="close"
-          :aria-label="t('Reset')"
-        />
-      </o-field>
-      <p>
-        {{
-          t(
-            "Your city or region and the radius will only be used to suggest you events nearby. The event radius will consider the administrative center of the area."
-          )
-        }}
-      </p>
-    </div>
+              {{ t("City") }}
+            </label>
+            <full-address-auto-complete
+              :resultType="AddressSearchType.ADMINISTRATIVE"
+              v-model="address"
+              :default-text="address?.description"
+              id="setting-city"
+              class="w-full"
+              :hideMap="true"
+              :hideSelected="true"
+              labelClass="sr-only"
+              :placeholder="t('e.g. Nantes, Berlin, Cork, …')"
+            />
+          </div>
+
+          <div class="w-32">
+            <label
+              class="block  font-medium text-[15px] text-[#1c1b1f] mb-2"
+            >
+              {{ t("Radius") }}
+            </label>
+            <o-select
+              :placeholder="t('Select a radius')"
+              v-model="locationRange"
+              id="setting-radius"
+              class="w-full"
+            >
+              <option
+                v-for="index in [1, 5, 10, 25, 50, 100]"
+                :key="index"
+                :value="index"
+              >
+                {{ t("{count} km", { count: index }, index) }}
+              </option>
+            </o-select>
+          </div>
+
+          <button
+            v-if="address"
+            @click="resetArea"
+            class="self-end mb-2 p-2 text-gray-500 hover:text-gray-700 transition-colors"
+            :aria-label="t('Reset')"
+          >
+            <o-icon icon="close" />
+          </button>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-lg max-w-2xl">
+          <div class="flex gap-2">
+            <o-icon
+              icon="information-outline"
+              class="text-blue-600 mt-0.5"
+              size="small"
+            />
+            <p class=" text-[14px] text-gray-700">
+              {{
+                t(
+                  "Your city or region and the radius will only be used to suggest you events nearby. The event radius will consider the administrative center of the area."
+                )
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
+
 <script lang="ts" setup>
 import ngeohash from "ngeohash";
 import { USER_SETTINGS, SET_USER_SETTINGS } from "../../graphql/user";
@@ -136,8 +184,6 @@ const { t } = useI18n({ useScope: "global" });
 useHead({
   title: computed(() => t("Preferences")),
 });
-
-// langs: Record<string, string> = langs;
 
 const theme = ref(localStorage.getItem("theme"));
 const systemTheme = ref(!("theme" in localStorage));
@@ -311,10 +357,3 @@ const { mutate: updateUserSettings } = useMutation<{ setUserSetting: string }>(
   })
 );
 </script>
-<style lang="scss" scoped>
-.reset-area {
-  align-self: center;
-  position: relative;
-  top: 10px;
-}
-</style>

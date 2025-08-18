@@ -17,10 +17,10 @@
       </template>
     </template>
     <template #subtitle>
-      <empty-content 
-        v-if="!loading && events.total == 0" 
-        icon="calendar" 
-        inline 
+      <empty-content
+        v-if="!loading && events.total == 0"
+        icon="calendar"
+        inline
         center
         class="my-8"
       >

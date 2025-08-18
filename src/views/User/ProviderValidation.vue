@@ -54,13 +54,14 @@ onUpdateCurrentUserClientDone(async () => {
 onMounted(async () => {
   try {
     // Use enhanced meta tag reading with retry logic to handle OAuth callback timing
-    const [accessToken, refreshToken, userId, userEmail, userRole] = await Promise.all([
-      getValueFromMetaWithRetry("auth-access-token"),
-      getValueFromMetaWithRetry("auth-refresh-token"),
-      getValueFromMetaWithRetry("auth-user-id"),
-      getValueFromMetaWithRetry("auth-user-email"),
-      getValueFromMetaWithRetry("auth-user-role"),
-    ]);
+    const [accessToken, refreshToken, userId, userEmail, userRole] =
+      await Promise.all([
+        getValueFromMetaWithRetry("auth-access-token"),
+        getValueFromMetaWithRetry("auth-refresh-token"),
+        getValueFromMetaWithRetry("auth-user-id"),
+        getValueFromMetaWithRetry("auth-user-email"),
+        getValueFromMetaWithRetry("auth-user-role"),
+      ]);
 
     if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
       console.error("OAuth callback: Missing required authentication data", {
@@ -70,7 +71,10 @@ onMounted(async () => {
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
       });
-      await router.push({ name: RouteName.LOGIN, query: { code: "oauth_callback_failed" } });
+      await router.push({
+        name: RouteName.LOGIN,
+        query: { code: "oauth_callback_failed" },
+      });
       return;
     }
 
@@ -101,7 +105,10 @@ onMounted(async () => {
     });
   } catch (error) {
     console.error("OAuth callback: Error processing authentication", error);
-    await router.push({ name: RouteName.LOGIN, query: { code: "oauth_processing_failed" } });
+    await router.push({
+      name: RouteName.LOGIN,
+      query: { code: "oauth_processing_failed" },
+    });
   }
 });
 </script>

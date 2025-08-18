@@ -1,106 +1,118 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="hasCurrentActorPermissionsToEdit">
-    <h1 v-if="isUpdate === true">
+  <div
+    class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[40%]"
+    v-if="hasCurrentActorPermissionsToEdit"
+  >
+    <h1 class="text-3xl font-bold text-gray-900 mb-8" v-if="isUpdate === true">
       {{ t("Update event {name}", { name: event.title }) }}
     </h1>
-    <h1 v-else-if="configResult?.config.longEvents">
-      {{ t("Create a new event or a new activity") }}
-    </h1>
-    <h1 v-else>
+    <h1 class="text-3xl font-bold text-gray-900 mb-8" v-else>
       {{ t("Create a new event") }}
     </h1>
 
-    <form ref="form">
-      <h2>{{ t("General information") }}</h2>
+    <form ref="form" class="space-y-10">
+      <section>
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
+          {{ t("General information") }}
+        </h2>
 
-      <o-field :label="t('Headline picture')">
-        <picture-upload
-          v-model:modelValue="pictureFile"
-          :textFallback="t('Headline picture')"
-          :defaultImage="event.picture"
-        />
-      </o-field>
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{
+            t("Headline picture")
+          }}</label>
+          <picture-upload
+            v-model:modelValue="pictureFile"
+            :textFallback="t('Headline picture')"
+            :defaultImage="event.picture"
+            class="w-full"
+          />
+        </div>
 
-      <o-field
-        :label="t('Title')"
-        label-for="title"
-        :type="checkTitleLength[0]"
-        :message="checkTitleLength[1]"
-      >
-        <o-input
-          size="large"
-          aria-required="true"
-          required
-          v-model="event.title"
-          id="title"
-          dir="auto"
-          expanded
-        />
-      </o-field>
-
-      <div class="flex flex-wrap gap-4">
-        <o-field
-          v-if="orderedCategories"
-          :label="t('Category')"
-          label-for="categoryField"
-          class="w-full md:max-w-fit"
-        >
-          <o-select
-            :placeholder="t('Select a category')"
-            v-model="event.category"
-            id="categoryField"
+        <div class="mb-6">
+          <label for="title" class="block text-sm font-medium mb-2">{{
+            t("Title")
+          }}</label>
+          <o-input
+            class="w-full"
+            size="large"
+            aria-required="true"
+            required
+            v-model="event.title"
+            id="title"
+            dir="auto"
             expanded
-          >
-            <option
-              v-for="category in orderedCategories"
-              :value="category.id"
-              :key="category.id"
-            >
-              {{ category.label }}
-            </option>
-          </o-select>
-        </o-field>
-        <tag-input v-model="event.tags" class="flex-1" />
-      </div>
+          />
+          <p v-if="checkTitleLength[1]" class="text-sm text-blue-600 mt-1">
+            {{ checkTitleLength[1] }}
+          </p>
+        </div>
 
-      <o-field
-        grouped
-        groupMultiline
-        :label="t('Starts on…')"
-        class="items-center"
-        label-for="begins-on-field"
-      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div v-if="orderedCategories">
+            <label
+              for="categoryField"
+              class="block text-sm font-medium text-gray-700 mb-2"
+              >{{ t("Category") }}</label
+            >
+            <o-select
+              :placeholder="t('Select a category')"
+              v-model="event.category"
+              id="categoryField"
+              expanded
+              class="w-full"
+            >
+              <option
+                v-for="category in orderedCategories"
+                :value="category.id"
+                :key="category.id"
+              >
+                {{ category.label }}
+              </option>
+            </o-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">{{
+              t("Tags")
+            }}</label>
+            <tag-input v-model="event.tags" class="w-full" />
+          </div>
+        </div>
+      </section>
+
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+          t("Starts on…")
+        }}</label>
         <event-date-picker
           :time="showStartTime"
           v-model="beginsOn"
           @blur="consistencyBeginsOnBeforeEndsOn"
+          class="w-full"
         ></event-date-picker>
-        <div class="my-2">
+        <div class="mt-2">
           <o-switch v-model="showStartTime">{{
             t("Show the time when the event begins")
           }}</o-switch>
         </div>
-      </o-field>
+      </div>
 
-      <o-field
-        grouped
-        groupMultiline
-        :label="t('Ends on…')"
-        label-for="ends-on-field"
-        class="items-center"
-      >
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+          t("Ends on…")
+        }}</label>
         <event-date-picker
           :time="showEndTime"
           v-model="endsOn"
           @blur="consistencyBeginsOnBeforeEndsOn"
           :min="beginsOn"
+          class="w-full"
         ></event-date-picker>
-        <div class="my-2">
+        <div class="mt-2">
           <o-switch v-model="showEndTime">{{
             t("Show the time when the event ends")
           }}</o-switch>
         </div>
-      </o-field>
+      </div>
 
       <p
         v-if="
@@ -117,35 +129,47 @@
         }}
       </p>
 
-      <o-button class="block" variant="text" @click="dateSettingsIsOpen = true">
+      <o-button class="mb-6" variant="text" @click="dateSettingsIsOpen = true">
         {{ t("Timezone parameters") }}
       </o-button>
 
-      <div class="my-6">
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+          t("Location")
+        }}</label>
         <full-address-auto-complete
           v-model="eventPhysicalAddress"
           :user-timezone="userActualTimezone"
           :disabled="event.options.isOnline"
           :allowManualDetails="true"
           :hideSelected="true"
+          class="w-full"
         />
-        <o-switch class="my-4" v-model="isOnline">{{
-          t("The event is fully online")
-        }}</o-switch>
+        <div class="mt-3">
+          <o-switch v-model="isOnline">{{
+            t("The event is fully online")
+          }}</o-switch>
+        </div>
       </div>
 
-      <div class="o-field field">
-        <label class="o-field__label field-label">{{ t("Description") }}</label>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+          t("Description")
+        }}</label>
         <editor-component
           v-if="currentActor"
           :current-actor="currentActor as IPerson"
           v-model="event.description"
           :aria-label="t('Event description body')"
           :placeholder="t('Describe your event')"
+          class="w-full min-h-[200px]"
         />
       </div>
 
-      <o-field :label="t('Website / URL')" label-for="website-url">
+      <div class="mb-6">
+        <label for="website-url" class="block text-sm font-medium mb-2">{{
+          t("Website / URL")
+        }}</label>
         <o-input
           icon="link"
           type="url"
@@ -153,11 +177,12 @@
           placeholder="URL"
           id="website-url"
           expanded
+          class="w-full"
         />
-      </o-field>
+      </div>
 
-      <section class="my-4">
-        <h2>{{ t("Organizers") }}</h2>
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-bold mb-6">{{ t("Organizers") }}</h2>
 
         <div v-if="features?.groups && organizerActor?.id">
           <o-field>
@@ -202,9 +227,9 @@
           </p>
         </div>
       </section>
-      <section class="my-4">
-        <h2>{{ t("Event metadata") }}</h2>
-        <p>
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-bold mb-4">{{ t("Event metadata") }}</h2>
+        <p class="text-sm text-gray-600 mb-4">
           {{
             t(
               "Integrate this event with 3rd-party tools and show metadata for the event."
@@ -213,12 +238,12 @@
         </p>
         <event-metadata-list v-model="event.metadata" />
       </section>
-      <section class="my-4">
-        <h2>
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-bold mb-6">
           {{ t("Who can view this event and participate") }}
         </h2>
-        <fieldset>
-          <legend>
+        <fieldset class="space-y-3">
+          <legend class="text-sm text-gray-600 mb-4">
             {{
               t(
                 "When the event is private, you'll need to share the link around."
@@ -250,29 +275,33 @@
           </o-radio>
         </div>-->
       </section>
-      <section class="my-4">
-        <h2>
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-bold mb-6">
           {{ t("How to register") }}
         </h2>
 
-        <div class="field">
-          <o-radio
-            v-model="registerOption"
-            name="registerOption"
-            :native-value="RegisterOption.MOBILIZON"
-            >{{ t("I want to manage the registration on Mobilizon") }}</o-radio
-          >
-        </div>
+        <div class="space-y-3 mb-4">
+          <div>
+            <o-radio
+              v-model="registerOption"
+              name="registerOption"
+              :native-value="RegisterOption.MOBILIZON"
+              >{{
+                t("I want to manage the registration on Mobilizon")
+              }}</o-radio
+            >
+          </div>
 
-        <div class="field">
-          <o-radio
-            v-model="registerOption"
-            name="registerOption"
-            :native-value="RegisterOption.EXTERNAL"
-            >{{
-              t("I want to manage the registration with an external provider")
-            }}</o-radio
-          >
+          <div>
+            <o-radio
+              v-model="registerOption"
+              name="registerOption"
+              :native-value="RegisterOption.EXTERNAL"
+              >{{
+                t("I want to manage the registration with an external provider")
+              }}</o-radio
+            >
+          </div>
         </div>
 
         <o-field
@@ -369,8 +398,10 @@
           </o-field>-->
         </div>
       </section>
-      <section class="my-4">
-        <h2>{{ t("Public comment moderation") }}</h2>
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
+          {{ t("Public comment moderation") }}
+        </h2>
 
         <fieldset>
           <legend>{{ t("Who can post a comment?") }}</legend>
@@ -401,73 +432,108 @@
           </o-field>
         </fieldset>
       </section>
-      <section class="my-4">
-        <h2>{{ t("Status") }}</h2>
-
-        <fieldset id="status">
-          <legend>
-            {{
-              t(
-                "Does the event needs to be confirmed later or is it cancelled?"
-              )
-            }}
-          </legend>
-          <o-field class="radio-buttons">
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+          {{ t("Status") }}
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          {{
+            t("Does the event needs to be confirmed later or is it cancelled?")
+          }}
+        </p>
+        <div class="space-y-3">
+          <label class="flex items-start gap-3">
             <o-radio
               v-model="event.status"
               name="status"
-              variant="warning"
               :native-value="EventStatus.TENTATIVE"
-            >
-              <div
-                class="mr-2 p-2 rounded border flex gap-x-1"
-                :class="{
-                  'btn-warning': event.status === EventStatus.TENTATIVE,
-                  'btn-outlined-warning':
-                    event.status !== EventStatus.TENTATIVE,
-                }"
-              >
-                <o-icon icon="calendar-question" />
-                {{ t("Tentative: Will be confirmed later") }}
-              </div>
-            </o-radio>
+              class="mt-1"
+            />
+            <div class="flex items-center gap-2">
+              <o-icon icon="calendar-question" class="text-orange-500" />
+              <span>{{ t("Tentative: Will be confirmed later") }}</span>
+            </div>
+          </label>
+          <label class="flex items-start gap-3">
             <o-radio
               v-model="event.status"
               name="status"
-              variant="success"
               :native-value="EventStatus.CONFIRMED"
-            >
-              <div
-                class="mr-2 p-2 rounded border flex gap-x-1"
-                :class="{
-                  'btn-success': event.status === EventStatus.CONFIRMED,
-                  'btn-outlined-success':
-                    event.status !== EventStatus.CONFIRMED,
-                }"
-              >
-                <o-icon icon="calendar-check" />
-                {{ t("Confirmed: Will happen") }}
-              </div>
-            </o-radio>
+              class="mt-1"
+            />
+            <div class="flex items-center gap-2">
+              <o-icon icon="calendar-check" class="text-green-600" />
+              <span>{{ t("Confirmed: Will happen") }}</span>
+            </div>
+          </label>
+          <label class="flex items-start gap-3">
             <o-radio
               v-model="event.status"
               name="status"
-              variant="danger"
               :native-value="EventStatus.CANCELLED"
-            >
-              <div
-                class="p-2 rounded border flex gap-x-1"
-                :class="{
-                  'btn-danger': event.status === EventStatus.CANCELLED,
-                  'btn-outlined-danger': event.status !== EventStatus.CANCELLED,
-                }"
-              >
-                <o-icon icon="calendar-remove" />
-                {{ t("Cancelled: Won't happen") }}
-              </div>
-            </o-radio>
-          </o-field>
-        </fieldset>
+              class="mt-1"
+            />
+            <div class="flex items-center gap-2">
+              <o-icon icon="calendar-remove" class="text-red-600" />
+              <span>{{ t("Cancelled: Won't happen") }}</span>
+            </div>
+          </label>
+        </div>
+      </section>
+
+      <section
+        class="my-8 p-4 bg-gray-50 border border-gray-200"
+        :class="{
+          'border-red-300 bg-red-50':
+            props.isUpdate === false && !agreedToTerms,
+        }"
+      >
+        <h2
+          class="text-lg font-semibold mb-3"
+          :class="{
+            'text-red-700': props.isUpdate === false && !agreedToTerms,
+          }"
+        >
+          {{ t("Zgody") }} <span class="text-red-500">*</span>
+        </h2>
+        <div class="space-y-3">
+          <label
+            class="flex items-start gap-3"
+            :class="{
+              'text-red-700': props.isUpdate === false && !agreedToTerms,
+            }"
+          >
+            <o-checkbox
+              v-model="agreedToTerms"
+              class="mt-1"
+              :class="{
+                'border-red-300': props.isUpdate === false && !agreedToTerms,
+              }"
+            />
+            <span class="text-sm">
+              *
+              {{
+                t(
+                  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony"
+                )
+              }}
+              <a
+                href="https://www.pragmaticcoders.com/"
+                target="_blank"
+                class="text-blue-600 hover:underline"
+                >Pragmatic Coders</a
+              >.
+            </span>
+          </label>
+        </div>
+        <o-button
+          variant="text"
+          class="mt-4 text-blue-600"
+          @click="showMoreInfo"
+        >
+          <o-icon icon="information-outline" />
+          {{ t("Pobierz") }}
+        </o-button>
       </section>
     </form>
   </div>
@@ -537,49 +603,53 @@
   <nav
     role="navigation"
     aria-label="main navigation"
-    class="bg-mbz-yellow-alt-200 p-3 mt-3 rounded"
-    :class="{ 'is-fixed-bottom': showFixedNavbar }"
+    class="bg-white border-t border-gray-200 py-4 mt-8"
+    :class="{ 'sticky bottom-0 shadow-lg': showFixedNavbar }"
     v-if="hasCurrentActorPermissionsToEdit"
   >
-    <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-      <div class="lg:flex lg:justify-between lg:items-center lg:flex-wrap">
+    <div class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[40%]">
+      <div class="flex justify-between items-center">
         <div
-          class="text-red-900 text-center w-full margin m-1 lg:m-0 lg:w-auto lg:text-left"
-          v-if="isEventModified"
+          class="text-sm text-orange-600"
+          v-if="props.isUpdate === false && !agreedToTerms"
         >
-          {{ t("Unsaved changes") }}
+          * {{ t("Wymagane zgody") }}
         </div>
-        <div class="flex flex-wrap gap-3 items-center justify-end">
+        <div class="flex gap-3 items-center ml-auto">
           <o-button
-            expanded
-            variant="text"
-            @click="confirmGoBack"
-            class="dark:!text-black ml-auto"
-            >{{ t("Cancel") }}</o-button
-          >
-          <!-- If an event has been published we can't make it draft anymore -->
-          <o-button
-            v-if="event.draft === true"
-            expanded
             variant="primary"
-            class="!text-black hover:!text-white"
-            outlined
-            @click="createOrUpdateDraft"
-            :disabled="saving"
-            :loading="saving"
-            >{{ t("Save draft") }}</o-button
-          >
-          <o-button
-            expanded
-            variant="primary"
-            :disabled="saving"
+            size="medium"
+            class="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700"
+            :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
             :loading="saving"
             @click="createOrUpdatePublish"
             @keyup.enter="createOrUpdatePublish"
           >
-            <span v-if="isUpdate === false">{{ t("Create my event") }}</span>
+            <span v-if="props.isUpdate === false">{{
+              t("Utwórz wydarzenie")
+            }}</span>
             <span v-else-if="event.draft === true">{{ t("Publish") }}</span>
             <span v-else>{{ t("Update my event") }}</span>
+          </o-button>
+          <o-button
+            v-if="event.draft === true"
+            variant="text"
+            size="medium"
+            class="px-6 py-2 border border-gray-300 hover:bg-gray-50"
+            @click="createOrUpdateDraft"
+            :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
+            :loading="saving"
+          >
+            <o-icon icon="content-save-outline" />
+            {{ t("Zapisz szkic") }}
+          </o-button>
+          <o-button
+            variant="text"
+            size="medium"
+            class="px-6 py-2 text-gray-600 hover:text-gray-800"
+            @click="confirmGoBack"
+          >
+            {{ t("Anuluj") }}
           </o-button>
         </div>
       </div>
@@ -730,6 +800,7 @@ const bottomObserver = ref<HTMLElement | null>(null);
 const dateSettingsIsOpen = ref(false);
 
 const saving = ref(false);
+const agreedToTerms = ref(false);
 
 const setEventTimezoneToUserTimezoneIfUnset = () => {
   if (userTimezone.value && event.value.options.timezone == null) {
@@ -862,6 +933,18 @@ const router = useRouter();
 
 const validateForm = () => {
   if (!form.value) return;
+
+  // Check if agreement is ticked (only for new events, not drafts or updates)
+  if (props.isUpdate === false && !agreedToTerms.value) {
+    notification.open({
+      message: t("Wymagane zgody"),
+      variant: "danger",
+      position: "bottom-right",
+      duration: 3000,
+    });
+    return false;
+  }
+
   if (form.value.checkValidity()) {
     return true;
   }
@@ -1210,6 +1293,13 @@ const confirmGoElsewhere = (): Promise<boolean> => {
 };
 
 /**
+ * Show more info about the agreement
+ */
+const showMoreInfo = (): void => {
+  window.open("https://www.pragmaticcoders.com/", "_blank");
+};
+
+/**
  * Confirm cancel
  */
 const confirmGoBack = (): void => {
@@ -1229,15 +1319,6 @@ onBeforeRouteLeave(
     return next(false);
   }
 );
-
-const isEventModified = computed((): boolean => {
-  return (
-    event.value &&
-    unmodifiedEvent.value &&
-    JSON.stringify(toEditJSON(event.value)) !==
-      JSON.stringify(unmodifiedEvent.value)
-  );
-});
 
 const showStartTime = computed({
   get(): boolean {
@@ -1310,7 +1391,7 @@ watch(endsOn, (newEndsOn) => {
   updateEventDateRelatedToTimezone();
 });
 
-/* 
+/*
 For endsOn, we need to check consistencyBeginsOnBeforeEndsOn() at blur
 because the datetime-local component update itself immediately
 Ex : your event start at 10:00 and stops at 12:00

@@ -1,6 +1,8 @@
 <template>
   <footer class="bg-white border-t border-gray-200" ref="footer">
-    <div class="container mx-auto px-4 md:px-16 py-12 flex flex-col items-center text-center gap-6">
+    <div
+      class="container mx-auto px-4 md:px-16 py-12 flex flex-col items-center text-center gap-6"
+    >
       <!-- Brand -->
       <img
         src="/img/pragmatic_logo.svg"
@@ -12,7 +14,7 @@
 
       <!-- Language selector -->
       <div>
-        <label class="sr-only" for="footer-language">{{ t('Language') }}</label>
+        <label class="sr-only" for="footer-language">{{ t("Language") }}</label>
         <o-select
           id="footer-language"
           class="min-w-[220px] text-gray-900 border border-gray-300 px-4 py-3 bg-white"
@@ -35,7 +37,10 @@
       <nav>
         <ul class="flex items-center gap-6 text-base text-blue-700">
           <li>
-            <router-link class="hover:underline" :to="{ name: RouteName.ABOUT }">
+            <router-link
+              class="hover:underline"
+              :to="{ name: RouteName.ABOUT }"
+            >
               O Pragmatic Meet
             </router-link>
           </li>
@@ -50,14 +55,24 @@
       <div class="flex items-center gap-3 text-sm text-gray-700">
         <span class="text-green-600">💚</span>
         <span>Powstało dzięki</span>
-        <a class="underline" href="https://www.pragmaticcoders.com" rel="external">Pragmatic Coders</a>
+        <a
+          class="underline"
+          href="https://www.pragmaticcoders.com"
+          rel="external"
+          >Pragmatic Coders</a
+        >
         <span class="text-gray-300">|</span>
-        <router-link class="underline" :to="{ name: RouteName.TERMS }">Polityka prywatności</router-link>
+        <router-link class="underline" :to="{ name: RouteName.TERMS }"
+          >Polityka prywatności</router-link
+        >
       </div>
     </div>
     <div class="border-t border-gray-200">
-      <div class="container mx-auto px-4 md:px-16 py-6 text-gray-500 text-xs text-center">
-        © {{ new Date().getFullYear() }} Pragmatic Meet. Wszelkie prawa zastrzeżone.
+      <div
+        class="container mx-auto px-4 md:px-16 py-6 text-gray-500 text-xs text-center"
+      >
+        © {{ new Date().getFullYear() }} Pragmatic Meet. Wszelkie prawa
+        zastrzeżone.
       </div>
     </div>
   </footer>

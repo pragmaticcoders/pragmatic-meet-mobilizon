@@ -1,6 +1,6 @@
 <template>
-  <aside class="mb-6">
-    <ul>
+  <aside class="bg-white dark:bg-gray-900 border border-[#cac9cb] p-5">
+    <ul class="flex flex-col gap-5">
       <SettingMenuSection
         :title="t('Account')"
         :to="{ name: RouteName.ACCOUNT_SETTINGS }"
@@ -23,7 +23,7 @@
         />
       </SettingMenuSection>
       <SettingMenuSection
-        :title="t('Profiles')"
+        :title="t('Profile')"
         :to="{ name: RouteName.IDENTITIES }"
       >
         <SettingMenuItem

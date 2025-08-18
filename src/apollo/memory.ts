@@ -9,7 +9,7 @@ export const cache = new InMemoryCache({
     if (object.__typename === "Address") {
       return object.origin_id;
     }
-    
+
     // Handle Media objects - use uuid if available, fallback to combination of url + name
     if (object.__typename === "Media") {
       if (object.uuid) {
@@ -22,7 +22,7 @@ export const cache = new InMemoryCache({
       // Last resort - use default behavior
       return defaultDataIdFromObject(object);
     }
-    
+
     return defaultDataIdFromObject(object);
   },
 });

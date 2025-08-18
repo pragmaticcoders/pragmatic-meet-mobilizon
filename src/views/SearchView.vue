@@ -4,7 +4,7 @@
     <h1 class="text-3xl font-bold text-gray-900 text-center mb-8">
       {{ t("Browse events and groups:") }}
     </h1>
-    
+
     <!-- Search Fields -->
     <search-fields
       v-model:search="search"
@@ -14,7 +14,7 @@
       :addressDefaultText="addressName"
       :fromLocalStorage="true"
     />
-    
+
     <!-- Content Type Tabs -->
     <div class="flex justify-center mt-6 mb-8">
       <div class="flex border border-gray-300 rounded-lg overflow-hidden">
@@ -24,11 +24,21 @@
             'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-r border-gray-300',
             contentType === ContentType.EVENTS
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              : 'bg-white text-gray-700 hover:bg-gray-50',
           ]"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
           {{ t("Events") }}
         </button>
@@ -38,11 +48,21 @@
             'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors',
             contentType === ContentType.GROUPS
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-700 hover:bg-gray-50'
+              : 'bg-white text-gray-700 hover:bg-gray-50',
           ]"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
           {{ t("Groups") }}
         </button>
@@ -64,7 +84,9 @@
         <span v-else>{{ t("Show filters") }}</span>
       </o-button>
       <div class="hidden lg:block mb-4">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">{{ t("Filters") }}</h3>
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+          {{ t("Filters") }}
+        </h3>
       </div>
       <form
         @submit.prevent="() => {}"
@@ -76,7 +98,9 @@
           v-show="contentType !== 'GROUPS'"
         >
           <div class="flex items-center justify-between">
-            <label class="text-sm font-medium text-gray-900">{{ t("Online events") }}</label>
+            <label class="text-sm font-medium text-gray-900">{{
+              t("Online events")
+            }}</label>
             <o-switch v-model="isOnline" />
           </div>
         </div>
@@ -271,7 +295,9 @@
             >
               {{
                 listShortDisjunctionFormatter(
-                  languageOneOf.map((lang) => langs[lang as keyof typeof langs] || lang)
+                  languageOneOf.map(
+                    (lang) => langs[lang as keyof typeof langs] || lang
+                  )
                 )
               }}
             </span>
@@ -302,7 +328,9 @@
         </o-button>
       </form>
     </aside>
-    <div class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+    <div
+      class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm p-6"
+    >
       <div
         id="results-anchor"
         class="hidden sm:flex items-center justify-between mb-6"
@@ -398,9 +426,7 @@
         </div>
       </div>
       <div v-if="mode === ViewMode.LIST">
-        <template
-          v-if="contentType === ContentType.EVENTS"
-        >
+        <template v-if="contentType === ContentType.EVENTS">
           <template v-if="searchLoading">
             <SkeletonEventResultList v-for="i in 8" :key="i" />
           </template>
@@ -428,10 +454,7 @@
             >
             </o-pagination>
           </template>
-          <EmptyContent
-            v-else-if="searchLoading === false"
-            icon="calendar"
-          >
+          <EmptyContent v-else-if="searchLoading === false" icon="calendar">
             <span v-if="searchIsUrl">
               {{ t("No event found at this address") }}
             </span>

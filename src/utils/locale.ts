@@ -7,7 +7,7 @@ const countryFlagEmoji = (region2: string): string => {
 };
 
 export const flagForLocale = (lang: string): string => {
-  const original = (lang || "");
+  const original = lang || "";
   const normalized = original.replace("_", "-").toLowerCase();
 
   // Exact mapping for languages present in src/i18n/langs.json
@@ -34,7 +34,7 @@ export const flagForLocale = (lang: string): string => {
     nn: "🇳🇴",
     oc: "🇫🇷",
     pl: "🇵🇱",
-    "pt_BR": "🇧🇷",
+    pt_BR: "🇧🇷",
     ru: "🇷🇺",
     sl: "🇸🇮",
     sv: "🇸🇪",

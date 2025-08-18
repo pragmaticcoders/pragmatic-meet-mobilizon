@@ -1,9 +1,28 @@
 <template>
-  <div style="margin-bottom: 20px;">
-    <h2 class="text-gray-700" style="font-size: 20px; line-height: 1.5; font-weight: 700; font-family: var(--font-family-primary); margin-bottom: 8px;">{{ title }}</h2>
-    <div class="flex items-center eventMetadataBlock" style="gap: 12px;">
+  <div style="margin-bottom: 20px">
+    <h2
+      class="text-gray-700"
+      style="
+        font-size: 20px;
+        line-height: 1.5;
+        font-weight: 700;
+        font-family: var(--font-family-primary);
+        margin-bottom: 8px;
+      "
+    >
+      {{ title }}
+    </h2>
+    <div class="flex items-center eventMetadataBlock" style="gap: 12px">
       <slot name="icon"></slot>
-      <div class="content-wrapper overflow-hidden w-full" style="font-size: 17px; line-height: 1.53; font-weight: 500; font-family: var(--font-family-primary);">
+      <div
+        class="content-wrapper overflow-hidden w-full"
+        style="
+          font-size: 17px;
+          line-height: 1.53;
+          font-weight: 500;
+          font-family: var(--font-family-primary);
+        "
+      >
         <slot></slot>
       </div>
     </div>

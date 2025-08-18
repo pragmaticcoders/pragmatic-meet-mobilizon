@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16">
     <!-- <o-loading v-model:active="$apollo.loading" /> -->
-    
+
     <!-- Unlogged introduction -->
     <unlogged-introduction :config="config" />
 
@@ -31,7 +31,10 @@
         class="text-gray-700 mb-4"
         :key="row[0]"
       >
-        <p class="date-component-container" v-if="isInLessThanSevenDays(row[0])">
+        <p
+          class="date-component-container"
+          v-if="isInLessThanSevenDays(row[0])"
+        >
           <span v-if="isToday(row[0])">{{
             t(
               "You have one event today.",
@@ -80,14 +83,13 @@
       </div>
     </section>
     <!-- Events from your followed groups -->
-    <section
-      class="mx-auto mb-8"
-      v-if="canShowFollowedGroupEvents"
-    >
+    <section class="mx-auto mb-8" v-if="canShowFollowedGroupEvents">
       <h2 class="text-2xl font-bold text-gray-900 mb-2">
         {{ t("Upcoming events from your groups") }}
       </h2>
-      <p class="text-gray-600 mb-6">{{ t("That you follow or of which you are a member") }}</p>
+      <p class="text-gray-600 mb-6">
+        {{ t("That you follow or of which you are a member") }}
+      </p>
       <multi-card :events="filteredFollowedGroupsEvents" />
       <div class="text-right mt-6">
         <router-link
@@ -110,7 +112,14 @@
     <div class="mx-auto" v-if="!canShowMyUpcomingEvents">
       <CloseEvents
         @doGeoLoc="performGeoLocation()"
-        :userLocation="(userLocation as any) || { lat: 0, lon: 0, name: '', isIPLocation: false }"
+        :userLocation="
+          (userLocation as any) || {
+            lat: 0,
+            lon: 0,
+            name: '',
+            isIPLocation: false,
+          }
+        "
         :doingGeoloc="doingGeoloc"
         :distance="distance as any"
       />
@@ -121,7 +130,7 @@
         {{ groupsSectionTitle }}
       </h2>
       <p class="text-gray-600 mb-6">{{ groupsSectionDescription }}</p>
-      
+
       <!-- Groups content -->
       <div v-if="canShowUserGroups">
         <multi-group-card :groups="displayedGroups" />
@@ -140,15 +149,9 @@
           >
         </div>
       </div>
-      
+
       <!-- Empty state for groups -->
-      <empty-content 
-        v-else
-        icon="account-group" 
-        inline 
-        center
-        class="my-8"
-      >
+      <empty-content v-else icon="account-group" inline center class="my-8">
         <template v-if="currentUser?.id">
           {{ t("No groups yet") }}
         </template>
@@ -176,7 +179,10 @@ import { IParticipant } from "../types/participant.model";
 import MultiCard from "../components/Event/MultiCard.vue";
 import MultiGroupCard from "../components/Group/MultiGroupCard.vue";
 import EmptyContent from "../components/Utils/EmptyContent.vue";
-import { CURRENT_ACTOR_CLIENT, LOGGED_USER_MEMBERSHIPS } from "../graphql/actor";
+import {
+  CURRENT_ACTOR_CLIENT,
+  LOGGED_USER_MEMBERSHIPS,
+} from "../graphql/actor";
 import { IPerson, displayName, IGroup } from "../types/actor";
 import { ICurrentUser, IUser } from "../types/current-user.model";
 import { CURRENT_USER_CLIENT } from "../graphql/user";
@@ -282,7 +288,9 @@ const { result: allGroupsResult } = useQuery<{
 const displayedGroups = computed<IGroup[]>(() => {
   if (currentUser.value?.id) {
     // User is logged in - show their groups
-    return (userMembershipsResult.value?.loggedUser?.memberships?.elements || [])
+    return (
+      userMembershipsResult.value?.loggedUser?.memberships?.elements || []
+    )
       .map((membership: IMember) => membership.parent)
       .slice(0, 6);
   } else {
@@ -397,8 +405,8 @@ const groupsSectionTitle = computed(() => {
 });
 
 const groupsSectionDescription = computed(() => {
-  return currentUser.value?.id 
-    ? t("Groups you're a member of") 
+  return currentUser.value?.id
+    ? t("Groups you're a member of")
     : t("Find and join interesting groups");
 });
 

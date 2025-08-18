@@ -23,13 +23,13 @@ defineProps<{
   grid-column-gap: 24px;
   grid-row-gap: 24px;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  
+
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
     grid-column-gap: 16px;
     grid-row-gap: 16px;
   }
-  
+
   @media (min-width: 641px) and (max-width: 1024px) {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }

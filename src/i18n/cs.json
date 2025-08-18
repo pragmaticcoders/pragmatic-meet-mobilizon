@@ -1679,5 +1679,12 @@
   "Sign in!": "Přihlásit se!",
   "Check your email": "Zkontrolujte svůj email",
   "We sent a verification link to": "Poslali jsme ověřovací odkaz na",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klikněte na odkaz v emailu pro ověření účtu. Pokud ho nevidíte, zkontrolujte složku se spamem."
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klikněte na odkaz v emailu pro ověření účtu. Pokud ho nevidíte, zkontrolujte složku se spamem.",
+  "Zgody": "Dohody",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Prohlašuji, že rozumím tomu, že důsledkem bezplatného používání platformy Pragmatic Meet je umístění viditelného loga na stránku mé komunity obsahující odkaz na web",
+  "Pobierz": "Stáhnout",
+  "Wymagane zgody": "Povinné dohody",
+  "Utwórz wydarzenie": "Vytvořit událost",
+  "Zapisz szkic": "Uložit návrh",
+  "Anuluj": "Zrušit"
 }

@@ -6,257 +6,294 @@
     <o-notification v-if="!group && groupLoading === false" variant="danger">
       {{ t("No group found") }}
     </o-notification>
-    
+
     <div v-if="group">
       <!-- Breadcrumbs -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 pt-4">
-      <breadcrumbs-nav
-        :links="[
-          { name: RouteName.MY_GROUPS, text: t('My groups') },
-          {
-            name: RouteName.GROUP,
-            params: { preferredUsername: usernameWithDomain(group) },
-            text: displayName(group),
-          },
-        ]"
-      />
-        </div>
+        <breadcrumbs-nav
+          :links="[
+            { name: RouteName.MY_GROUPS, text: t('My groups') },
+            {
+              name: RouteName.GROUP,
+              params: { preferredUsername: usernameWithDomain(group) },
+              text: displayName(group),
+            },
+          ]"
+        />
+      </div>
 
-                                    <!-- Header Section - Banner Area -->
+      <!-- Header Section - Banner Area -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 pt-4">
         <!-- Top Banner - Bigger without gray background -->
         <div class="relative overflow-hidden h-64" v-if="group.banner">
           <!-- Group Banner Background -->
-          <lazy-image-wrapper 
-            :picture="group.banner" 
+          <lazy-image-wrapper
+            :picture="group.banner"
             class="w-full h-full object-cover"
           />
         </div>
         <!-- Fallback when no banner -->
-        <div class="relative bg-gray-200 dark:bg-gray-800 overflow-hidden h-64" v-else>
-        </div>
-        
+        <div
+          class="relative bg-gray-200 dark:bg-gray-800 overflow-hidden h-64"
+          v-else
+        ></div>
+
         <!-- Floating Avatar positioned at bottom of banner -->
         <div class="relative max-w-screen-xl mx-auto px-4 md:px-16">
-          <div class="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+          <div
+            class="absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20"
+          >
             <!-- Avatar with proper rounded styling -->
             <div class="w-28 h-28 bg-transparent">
-                <img
-                  v-if="group.avatar"
-                  class="w-full h-full object-cover rounded-full border-4 border-white"
-                  :src="group.avatar.url"
-                  :alt="displayName(group)"
-                  width="130"
-                  height="130"
-                />            
+              <img
+                v-if="group.avatar"
+                class="w-full h-full object-cover rounded-full border-4 border-white"
+                :src="group.avatar.url"
+                :alt="displayName(group)"
+                width="130"
+                height="130"
+              />
             </div>
           </div>
         </div>
-        
+
         <!-- Bottom Section with Gray Border and NavBar width -->
         <div class="mt-8">
-          <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm w-full">
+          <div
+            class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm w-full"
+          >
             <div class="text-center">
               <!-- Group Info -->
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2" v-if="group.name">
-              {{ group.name }}
-            </h1>
-              <p class="text-gray-600 dark:text-gray-400 text-lg mb-8" v-if="group.preferredUsername">
+              <h1
+                class="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+                v-if="group.name"
+              >
+                {{ group.name }}
+              </h1>
+              <p
+                class="text-gray-600 dark:text-gray-400 text-lg mb-8"
+                v-if="group.preferredUsername"
+              >
                 @{{ usernameWithDomain(group) }}
               </p>
-              
+
               <!-- Action Buttons with Icons -->
               <div class="flex flex-wrap justify-center gap-3 max-w-lg mx-auto">
-                                <!-- Follow Button -->
-              <o-button
+                <!-- Follow Button -->
+                <o-button
                   v-if="showFollowButton"
                   @click="followGroup"
-                    icon-left="rss"
+                  icon-left="rss"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-                  >
+                >
                   {{ t("Obserwuj") }}
-                  </o-button>
-                
+                </o-button>
+
                 <!-- Contact Button -->
-              <o-button
-                tag="router-link"
-                :to="{
-                  name: RouteName.CONVERSATION_LIST,
-                  query: {
-                    newMessage: 'true',
-                    groupMentions: usernameWithDomain(group),
-                  },
-                }"
-                icon-left="email"
+                <o-button
+                  tag="router-link"
+                  :to="{
+                    name: RouteName.CONVERSATION_LIST,
+                    query: {
+                      newMessage: 'true',
+                      groupMentions: usernameWithDomain(group),
+                    },
+                  }"
+                  icon-left="email"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-              >
+                >
                   {{ t("Kontakt") }}
-              </o-button>
-                
+                </o-button>
+
                 <!-- Share Button -->
-              <o-button
-                @click="triggerShare()"
+                <o-button
+                  @click="triggerShare()"
                   icon-left="share"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-              >
+                >
                   {{ t("Udostępnij") }}
-              </o-button>
-                
+                </o-button>
+
                 <!-- More Options Menu -->
-              <o-dropdown aria-role="list">
-                <template #trigger>
-                  <o-button
-                    icon-left="dots-horizontal"
+                <o-dropdown aria-role="list">
+                  <template #trigger>
+                    <o-button
+                      icon-left="dots-horizontal"
                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md font-medium transition-colors"
                     >
                     </o-button>
-                </template>
-                  
-                                    <!-- Settings for Admins -->
-                <o-dropdown-item
+                  </template>
+
+                  <!-- Settings for Admins -->
+                  <o-dropdown-item
                     v-if="isCurrentActorAGroupAdmin && !previewPublic"
-                  aria-role="menuitem"
-                >
-                  <router-link
-                    :to="{
-                      name: RouteName.GROUP_PUBLIC_SETTINGS,
-                      params: { preferredUsername: usernameWithDomain(group) },
-                    }"
-                    class="flex items-center w-full px-4 py-2"
+                    aria-role="menuitem"
                   >
-                    <Cog class="mr-2" :size="18" />
-                    {{ t("Group settings") }}
-                  </router-link>
-                </o-dropdown-item>
-                  
+                    <router-link
+                      :to="{
+                        name: RouteName.GROUP_PUBLIC_SETTINGS,
+                        params: {
+                          preferredUsername: usernameWithDomain(group),
+                        },
+                      }"
+                      class="flex items-center w-full px-4 py-2"
+                    >
+                      <Cog class="mr-2" :size="18" />
+                      {{ t("Group settings") }}
+                    </router-link>
+                  </o-dropdown-item>
+
                   <!-- Activity for Members -->
-                <o-dropdown-item
+                  <o-dropdown-item
                     v-if="isCurrentActorAGroupMember && !previewPublic"
-                  aria-role="menuitem"
-                >
-                  <router-link
-                    :to="{
-                      name: RouteName.TIMELINE,
-                      params: { preferredUsername: usernameWithDomain(group) },
-                    }"
-                    class="flex items-center w-full px-4 py-2"
+                    aria-role="menuitem"
                   >
-                    <ViewList class="mr-2" :size="18" />
-                    {{ t("Activity") }}
-                  </router-link>
-                </o-dropdown-item>
-                  
+                    <router-link
+                      :to="{
+                        name: RouteName.TIMELINE,
+                        params: {
+                          preferredUsername: usernameWithDomain(group),
+                        },
+                      }"
+                      class="flex items-center w-full px-4 py-2"
+                    >
+                      <ViewList class="mr-2" :size="18" />
+                      {{ t("Activity") }}
+                    </router-link>
+                  </o-dropdown-item>
+
                   <!-- Join Button for eligible users -->
-                <o-dropdown-item
+                  <o-dropdown-item
                     v-if="showJoinButton && !isCurrentActorAGroupMember"
-                  aria-role="menuitem"
-                >
-                  <button
-                    @click="joinGroup"
-                    class="flex items-center w-full px-4 py-2"
+                    aria-role="menuitem"
                   >
-                    <AccountMultiplePlus class="mr-2" :size="18" />
-                    {{ t("Join Group") }}
-                  </button>
-                </o-dropdown-item>
-                  
+                    <button
+                      @click="joinGroup"
+                      class="flex items-center w-full px-4 py-2"
+                    >
+                      <AccountMultiplePlus class="mr-2" :size="18" />
+                      {{ t("Join Group") }}
+                    </button>
+                  </o-dropdown-item>
+
                   <!-- Additional options -->
-                <o-dropdown-item
-                  v-if="ableToReport"
-                  aria-role="menuitem"
-                  @click="isReportModalActive = true"
-                >
-                  <span class="flex items-center px-4 py-2">
-                    <Flag class="mr-2" :size="18" />
-                    {{ t("Report") }}
-                  </span>
-                </o-dropdown-item>
-                  
-                <o-dropdown-item
-                  v-if="isCurrentActorAGroupMember && !previewPublic"
-                  aria-role="menuitem"
-                  @click="openLeaveGroupModal"
-                >
-                  <span class="flex items-center px-4 py-2">
-                    <ExitToApp class="mr-2" :size="18" />
-                    {{ t("Leave Group") }}
-                  </span>
-                </o-dropdown-item>
-              </o-dropdown>
-            </div>
-              
+                  <o-dropdown-item
+                    v-if="ableToReport"
+                    aria-role="menuitem"
+                    @click="isReportModalActive = true"
+                  >
+                    <span class="flex items-center px-4 py-2">
+                      <Flag class="mr-2" :size="18" />
+                      {{ t("Report") }}
+                    </span>
+                  </o-dropdown-item>
+
+                  <o-dropdown-item
+                    v-if="isCurrentActorAGroupMember && !previewPublic"
+                    aria-role="menuitem"
+                    @click="openLeaveGroupModal"
+                  >
+                    <span class="flex items-center px-4 py-2">
+                      <ExitToApp class="mr-2" :size="18" />
+                      {{ t("Leave Group") }}
+                    </span>
+                  </o-dropdown-item>
+                </o-dropdown>
+              </div>
+
               <!-- Notifications and Status Messages -->
               <div class="mt-8 space-y-4">
                 <!-- Invitation Notice -->
-          <InvitationsList
-                  v-if="isCurrentActorAnInvitedGroupMember && groupMember !== undefined"
-            :invitations="[groupMember]"
-          />
-                
+                <InvitationsList
+                  v-if="
+                    isCurrentActorAnInvitedGroupMember &&
+                    groupMember !== undefined
+                  "
+                  :invitations="[groupMember]"
+                />
+
                 <!-- Rejection Notice -->
-          <o-notification
-            v-if="isCurrentActorARejectedGroupMember"
-            variant="danger"
-                  class="max-w-2xl mx-auto"
-          >
-            {{ t("You have been removed from this group's members.") }}
-          </o-notification>
-                
-                <!-- New Member Notice -->
-          <o-notification
-            v-if="
-              isCurrentActorAGroupMember &&
-              isCurrentActorARecentMember &&
-              isCurrentActorOnADifferentDomainThanGroup
-            "
-            variant="info"
+                <o-notification
+                  v-if="isCurrentActorARejectedGroupMember"
+                  variant="danger"
                   class="max-w-2xl mx-auto"
                 >
-                  {{ t("Since you are a new member, private content can take a few minutes to appear.") }}
-          </o-notification>
-                
+                  {{ t("You have been removed from this group's members.") }}
+                </o-notification>
+
+                <!-- New Member Notice -->
+                <o-notification
+                  v-if="
+                    isCurrentActorAGroupMember &&
+                    isCurrentActorARecentMember &&
+                    isCurrentActorOnADifferentDomainThanGroup
+                  "
+                  variant="info"
+                  class="max-w-2xl mx-auto"
+                >
+                  {{
+                    t(
+                      "Since you are a new member, private content can take a few minutes to appear."
+                    )
+                  }}
+                </o-notification>
+
                 <!-- External Instance Notice -->
-          <o-notification
-            v-if="group && group.domain && !isCurrentActorAGroupMember"
-            variant="info"
+                <o-notification
+                  v-if="group && group.domain && !isCurrentActorAGroupMember"
+                  variant="info"
                   class="max-w-2xl mx-auto"
                 >
                   <p>
-                    {{ t("This profile is from another instance, the informations shown here may be incomplete.") }}
-            </p>
-            <o-button
-              variant="text"
-              tag="a"
-              :href="group.url"
-              rel="noopener noreferrer external"
+                    {{
+                      t(
+                        "This profile is from another instance, the informations shown here may be incomplete."
+                      )
+                    }}
+                  </p>
+                  <o-button
+                    variant="text"
+                    tag="a"
+                    :href="group.url"
+                    rel="noopener noreferrer external"
                     class="mt-2"
-            >
+                  >
                     {{ t("View full profile") }}
                   </o-button>
-          </o-notification>
-        </div>
-    </div>
+                </o-notification>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Main Content -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
-                <!-- Three-column layout for main sections -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16" style="grid-template-rows: 1fr;">
+        <!-- Three-column layout for main sections -->
+        <div
+          class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
+          style="grid-template-rows: 1fr"
+        >
           <!-- Members Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center mb-4">
               <AccountGroup class="text-blue-500 mr-3" :size="24" />
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Members') }}</h2>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ t("Members") }}
+              </h2>
             </div>
-            
+
             <!-- Content area that grows -->
-            <div class="flex-grow flex flex-col justify-center items-center min-h-[160px]">
+            <div
+              class="flex-grow flex flex-col justify-center items-center min-h-[160px]"
+            >
               <div
                 class="flex flex-wrap justify-center mb-4"
-              v-if="isCurrentActorAGroupMember && !previewPublic && members"
-            >
+                v-if="isCurrentActorAGroupMember && !previewPublic && members"
+              >
                 <figure
                   v-for="member in members.elements.slice(0, 6)"
                   :key="member.actor.id"
@@ -279,7 +316,7 @@
                   <AccountCircle v-else :size="40" class="text-gray-400" />
                 </figure>
               </div>
-              
+
               <div class="text-center">
                 <p class="text-lg font-semibold text-gray-900 dark:text-white">
                   {{
@@ -292,71 +329,90 @@
                     )
                   }}
                 </p>
+              </div>
             </div>
-            </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-          <o-button
-            v-if="isCurrentActorAGroupAdmin && !previewPublic"
-            tag="router-link"
-            :to="{
-              name: RouteName.GROUP_MEMBERS_SETTINGS,
-              params: { preferredUsername: usernameWithDomain(group) },
-            }"
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
+              <o-button
+                v-if="isCurrentActorAGroupAdmin && !previewPublic"
+                tag="router-link"
+                :to="{
+                  name: RouteName.GROUP_MEMBERS_SETTINGS,
+                  params: { preferredUsername: usernameWithDomain(group) },
+                }"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
               >
                 {{ t("Manage Members") }}
               </o-button>
             </div>
           </div>
-          
+
           <!-- Information Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center mb-4">
               <Information class="text-green-500 mr-3" :size="24" />
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Information') }}</h2>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ t("Information") }}
+              </h2>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow flex flex-col justify-center min-h-[160px]">
               <div
                 v-if="group?.summary"
-            dir="auto"
+                dir="auto"
                 class="prose prose-sm dark:prose-invert text-gray-600 dark:text-gray-300"
-            v-html="group.summary"
-          ></div>
-              <div v-else class="text-center text-gray-500 dark:text-gray-400 py-8">
+                v-html="group.summary"
+              ></div>
+              <div
+                v-else
+                class="text-center text-gray-500 dark:text-gray-400 py-8"
+              >
                 <Information class="mx-auto mb-4 opacity-50" :size="48" />
                 <p>{{ t("No information available yet") }}</p>
               </div>
             </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-          <o-button
-            v-if="isCurrentActorAGroupAdmin && !previewPublic"
-            tag="router-link"
-            :to="{
-              name: RouteName.GROUP_PUBLIC_SETTINGS,
-              params: { preferredUsername: usernameWithDomain(group) },
-            }"
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
+              <o-button
+                v-if="isCurrentActorAGroupAdmin && !previewPublic"
+                tag="router-link"
+                :to="{
+                  name: RouteName.GROUP_PUBLIC_SETTINGS,
+                  params: { preferredUsername: usernameWithDomain(group) },
+                }"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
               >
                 {{ t("Edit Information") }}
               </o-button>
             </div>
           </div>
-          
+
           <!-- Location Section -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center mb-4">
               <MapMarker class="text-red-500 mr-3" :size="24" />
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Location') }}</h2>
+              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                {{ t("Location") }}
+              </h2>
             </div>
-            
+
             <!-- Content area that grows -->
-            <div class="flex-grow flex flex-col justify-center items-center text-center min-h-[160px]">
+            <div
+              class="flex-grow flex flex-col justify-center items-center text-center min-h-[160px]"
+            >
               <div v-if="physicalAddress && physicalAddress.url">
                 <div class="mb-4">
                   <component
@@ -365,59 +421,73 @@
                     :size="48"
                   />
                 </div>
-                
+
                 <address class="not-italic">
                   <p class="font-semibold text-gray-900 dark:text-white mb-1">
-                      {{ physicalAddress.poiInfos.name }}
-                    </p>
+                    {{ physicalAddress.poiInfos.name }}
+                  </p>
                   <p class="text-gray-600 dark:text-gray-300 text-sm">
-                      {{ physicalAddress.poiInfos.alternativeName }}
-                    </p>
-                  </address>
-                
+                    {{ physicalAddress.poiInfos.alternativeName }}
+                  </p>
+                </address>
+
                 <div class="mt-4">
-          <o-button
+                  <o-button
                     v-if="physicalAddress.geom"
-            @click="showMap = !showMap"
-            @keyup.enter="showMap = !showMap"
+                    @click="showMap = !showMap"
+                    @keyup.enter="showMap = !showMap"
                     class="text-blue-600 hover:text-blue-700 text-sm font-medium"
-          >
-            {{ t("Show map") }}
-          </o-button>
+                  >
+                    {{ t("Show map") }}
+                  </o-button>
                 </div>
               </div>
-              
-              <div v-else class="text-center text-gray-500 dark:text-gray-400 py-8">
+
+              <div
+                v-else
+                class="text-center text-gray-500 dark:text-gray-400 py-8"
+              >
                 <MapMarker class="mx-auto mb-4 opacity-50" :size="48" />
                 <p>{{ t("No location defined yet") }}</p>
               </div>
             </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
-          <o-button
-            v-if="isCurrentActorAGroupAdmin && !previewPublic"
-            tag="router-link"
-            :to="{
-              name: RouteName.GROUP_PUBLIC_SETTINGS,
-              params: { preferredUsername: usernameWithDomain(group) },
-            }"
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
+              <o-button
+                v-if="isCurrentActorAGroupAdmin && !previewPublic"
+                tag="router-link"
+                :to="{
+                  name: RouteName.GROUP_PUBLIC_SETTINGS,
+                  params: { preferredUsername: usernameWithDomain(group) },
+                }"
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-          >
+              >
                 {{ t("Edit Location") }}
               </o-button>
-    </div>
+            </div>
           </div>
         </div>
-        
+
         <!-- Bottom sections for Activities, Events, and Announcements -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12" style="grid-template-rows: 1fr;">
+        <div
+          class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12"
+          style="grid-template-rows: 1fr"
+        >
           <!-- Activities Section (Long Events) -->
-          <div v-if="group" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            v-if="group"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <CalendarToday class="text-purple-500 mr-3" :size="24" />
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Activities') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  {{ t("Activities") }}
+                </h2>
               </div>
               <router-link
                 :to="{
@@ -426,20 +496,27 @@
                 }"
                 class="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {{ t('View all') }}
+                {{ t("View all") }}
               </router-link>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow space-y-4 min-h-[160px]">
               <div
-                v-for="event in (isLongEvents 
-                  ? group.organizedEvents.elements.filter((event) => event.longEvent)
+                v-for="event in (isLongEvents
+                  ? group.organizedEvents.elements.filter(
+                      (event) => event.longEvent
+                    )
                   : group.organizedEvents.elements
                 ).slice(0, 2)"
                 :key="event.uuid"
                 class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                @click="$router.push({ name: RouteName.EVENT, params: { uuid: event.uuid } })"
+                @click="
+                  $router.push({
+                    name: RouteName.EVENT,
+                    params: { uuid: event.uuid },
+                  })
+                "
               >
                 <div class="flex items-start space-x-3">
                   <div class="flex-shrink-0">
@@ -449,35 +526,52 @@
                       :alt="event.title"
                       class="w-12 h-12 rounded-lg object-cover"
                     />
-                    <div v-else class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                    <div
+                      v-else
+                      class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center"
+                    >
                       <CalendarToday class="text-purple-500" :size="20" />
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <h3
+                      class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                    >
                       {{ event.title }}
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       🕒 {{ new Date(event.beginsOn).toLocaleDateString() }}
                     </p>
-                    <p v-if="event.physicalAddress" class="text-xs text-gray-500 dark:text-gray-400">
+                    <p
+                      v-if="event.physicalAddress"
+                      class="text-xs text-gray-500 dark:text-gray-400"
+                    >
                       📍 {{ event.physicalAddress.locality }}
                     </p>
                   </div>
                 </div>
               </div>
-              
-              <div v-if="(isLongEvents 
-                ? group.organizedEvents.elements.filter((event) => event.longEvent)
-                : group.organizedEvents.elements
-              ).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+
+              <div
+                v-if="
+                  (isLongEvents
+                    ? group.organizedEvents.elements.filter(
+                        (event) => event.longEvent
+                      )
+                    : group.organizedEvents.elements
+                  ).length === 0
+                "
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
                 <CalendarToday class="mx-auto mb-4 opacity-50" :size="48" />
                 <p>{{ t("No upcoming activities") }}</p>
               </div>
             </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
               <o-button
                 v-if="isCurrentActorAGroupModerator && !previewPublic"
                 tag="router-link"
@@ -491,13 +585,19 @@
               </o-button>
             </div>
           </div>
-          
+
           <!-- Events Section -->
-          <div v-if="group" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            v-if="group"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <Calendar class="text-blue-500 mr-3" :size="24" />
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Events') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  {{ t("Events") }}
+                </h2>
               </div>
               <router-link
                 :to="{
@@ -506,10 +606,10 @@
                 }"
                 class="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {{ t('View all') }}
+                {{ t("View all") }}
               </router-link>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow space-y-4 min-h-[160px]">
               <div
@@ -518,7 +618,12 @@
                   .slice(0, 2)"
                 :key="event.uuid"
                 class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                @click="$router.push({ name: RouteName.EVENT, params: { uuid: event.uuid } })"
+                @click="
+                  $router.push({
+                    name: RouteName.EVENT,
+                    params: { uuid: event.uuid },
+                  })
+                "
               >
                 <div class="flex items-start space-x-3">
                   <div class="flex-shrink-0">
@@ -528,32 +633,49 @@
                       :alt="event.title"
                       class="w-12 h-12 rounded-lg object-cover"
                     />
-                    <div v-else class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <div
+                      v-else
+                      class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+                    >
                       <Calendar class="text-blue-500" :size="20" />
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <h3
+                      class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                    >
                       {{ event.title }}
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       🕒 {{ new Date(event.beginsOn).toLocaleDateString() }}
                     </p>
-                    <p v-if="event.physicalAddress" class="text-xs text-gray-500 dark:text-gray-400">
+                    <p
+                      v-if="event.physicalAddress"
+                      class="text-xs text-gray-500 dark:text-gray-400"
+                    >
                       📍 {{ event.physicalAddress.locality }}
                     </p>
                   </div>
                 </div>
               </div>
-              
-              <div v-if="group.organizedEvents.elements.filter((event) => !event.longEvent).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+
+              <div
+                v-if="
+                  group.organizedEvents.elements.filter(
+                    (event) => !event.longEvent
+                  ).length === 0
+                "
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
                 <Calendar class="mx-auto mb-4 opacity-50" :size="48" />
                 <p>{{ t("No upcoming events") }}</p>
               </div>
             </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
               <o-button
                 v-if="isCurrentActorAGroupModerator && !previewPublic"
                 tag="router-link"
@@ -567,13 +689,19 @@
               </o-button>
             </div>
           </div>
-          
+
           <!-- Announcements Section -->
-          <div v-if="group" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            v-if="group"
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <Bullhorn class="text-orange-500 mr-3" :size="24" />
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Announcements') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  {{ t("Announcements") }}
+                </h2>
               </div>
               <router-link
                 :to="{
@@ -582,20 +710,27 @@
                 }"
                 class="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {{ t('View all') }}
+                {{ t("View all") }}
               </router-link>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow space-y-4 min-h-[160px]">
               <div
-                v-for="post in (isCurrentActorAGroupMember && !previewPublic 
-                  ? group.posts?.elements 
-                  : group.posts?.elements?.filter(post => !post.draft && post.visibility === 'PUBLIC')
+                v-for="post in (isCurrentActorAGroupMember && !previewPublic
+                  ? group.posts?.elements
+                  : group.posts?.elements?.filter(
+                      (post) => !post.draft && post.visibility === 'PUBLIC'
+                    )
                 )?.slice(0, 2) || []"
                 :key="post.id"
                 class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                @click="$router.push({ name: RouteName.POST, params: { slug: post.slug } })"
+                @click="
+                  $router.push({
+                    name: RouteName.POST,
+                    params: { slug: post.slug },
+                  })
+                "
               >
                 <div class="flex items-start space-x-3">
                   <div class="flex-shrink-0">
@@ -605,32 +740,52 @@
                       :alt="post.title"
                       class="w-12 h-12 rounded-lg object-cover"
                     />
-                    <div v-else class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                    <div
+                      v-else
+                      class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center"
+                    >
                       <Bullhorn class="text-orange-500" :size="20" />
-      </div>
+                    </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <h3
+                      class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                    >
                       {{ post.title }}
                     </h3>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      🕒 {{ new Date(post.publishAt || post.insertedAt || new Date()).toLocaleDateString() }}
+                      🕒
+                      {{
+                        new Date(
+                          post.publishAt || post.insertedAt || new Date()
+                        ).toLocaleDateString()
+                      }}
                     </p>
-                    <p v-if="post.author" class="text-xs text-gray-500 dark:text-gray-400">
+                    <p
+                      v-if="post.author"
+                      class="text-xs text-gray-500 dark:text-gray-400"
+                    >
                       👤 {{ displayName(post.author) }}
                     </p>
                   </div>
                 </div>
               </div>
-              
-              <div v-if="(!group.posts?.elements || group.posts.elements.length === 0)" class="text-center py-8 text-gray-500 dark:text-gray-400">
+
+              <div
+                v-if="
+                  !group.posts?.elements || group.posts.elements.length === 0
+                "
+                class="text-center py-8 text-gray-500 dark:text-gray-400"
+              >
                 <Bullhorn class="mx-auto mb-4 opacity-50" :size="48" />
                 <p>{{ t("No announcements yet") }}</p>
               </div>
             </div>
-            
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
               <o-button
                 v-if="isCurrentActorAGroupModerator && !previewPublic"
                 tag="router-link"
@@ -645,15 +800,24 @@
             </div>
           </div>
         </div>
-        
-                        <!-- Private sections -->
-        <div v-if="isCurrentActorAGroupMember && !previewPublic" class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2" style="grid-template-rows: 1fr;">
+
+        <!-- Private sections -->
+        <div
+          v-if="isCurrentActorAGroupMember && !previewPublic"
+          class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2"
+          style="grid-template-rows: 1fr"
+        >
           <!-- Group discussions -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <Chat class="text-blue-500 mr-3" :size="24" />
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Discussions') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  {{ t("Discussions") }}
+                </h2>
               </div>
               <router-link
                 :to="{
@@ -662,50 +826,75 @@
                 }"
                 class="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {{ t('View all') }}
+                {{ t("View all") }}
               </router-link>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow min-h-[160px]">
               <div class="space-y-4">
                 <div
-                  v-for="discussion in (discussionGroup || group)?.discussions?.elements?.slice(0, 2) || []"
+                  v-for="discussion in (
+                    discussionGroup || group
+                  )?.discussions?.elements?.slice(0, 2) || []"
                   :key="discussion.id"
                   class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  @click="$router.push({ name: RouteName.DISCUSSION, params: { slug: discussion.slug } })"
+                  @click="
+                    $router.push({
+                      name: RouteName.DISCUSSION,
+                      params: { slug: discussion.slug },
+                    })
+                  "
                 >
                   <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0">
-                                          <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                      <Chat class="text-blue-600" :size="20" />
-                    </div>
+                      <div
+                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+                      >
+                        <Chat class="text-blue-600" :size="20" />
+                      </div>
                     </div>
                     <div class="flex-1 min-w-0">
-                      <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <h3
+                        class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                      >
                         {{ discussion.title }}
                       </h3>
                       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <i class="fas fa-clock mr-1"></i>
-                        {{ new Date(discussion.updatedAt || new Date()).toLocaleDateString() }}
+                        {{
+                          new Date(
+                            discussion.updatedAt || new Date()
+                          ).toLocaleDateString()
+                        }}
                       </p>
-                      <p v-if="discussion.lastComment?.actor" class="text-xs text-gray-500 dark:text-gray-400">
+                      <p
+                        v-if="discussion.lastComment?.actor"
+                        class="text-xs text-gray-500 dark:text-gray-400"
+                      >
                         <i class="fas fa-user mr-1"></i>
                         {{ displayName(discussion.lastComment.actor) }}
                       </p>
                     </div>
                   </div>
                 </div>
-                
-                <div v-if="!(discussionGroup || group)?.discussions?.elements?.length" class="text-center py-12 text-gray-500 dark:text-gray-400">
+
+                <div
+                  v-if="
+                    !(discussionGroup || group)?.discussions?.elements?.length
+                  "
+                  class="text-center py-12 text-gray-500 dark:text-gray-400"
+                >
                   <Chat class="mx-auto mb-4 opacity-50" :size="48" />
                   <p class="text-lg">{{ t("No discussions yet") }}</p>
                 </div>
               </div>
             </div>
-              
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
               <o-button
                 tag="router-link"
                 :to="{
@@ -718,13 +907,18 @@
               </o-button>
             </div>
           </div>
-                    
+
           <!-- Resources -->
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col" style="height: 380px;">
+          <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
+            style="height: 380px"
+          >
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <Link class="text-green-500 mr-3" :size="24" />
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ t('Resources') }}</h2>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+                  {{ t("Resources") }}
+                </h2>
               </div>
               <router-link
                 :to="{
@@ -733,54 +927,84 @@
                 }"
                 class="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                {{ t('View all') }}
+                {{ t("View all") }}
               </router-link>
             </div>
-            
+
             <!-- Content area that grows -->
             <div class="flex-grow min-h-[160px]">
               <div class="space-y-4">
                 <div
-                  v-for="resource in (resourcesGroup || group)?.resources?.elements?.slice(0, 2) || []"
+                  v-for="resource in (
+                    resourcesGroup || group
+                  )?.resources?.elements?.slice(0, 2) || []"
                   :key="resource.id"
                   class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  @click="$router.push({ name: RouteName.RESOURCE_FOLDER, params: { preferredUsername: usernameWithDomain(group), path: resource.path } })"
+                  @click="
+                    $router.push({
+                      name: RouteName.RESOURCE_FOLDER,
+                      params: {
+                        preferredUsername: usernameWithDomain(group),
+                        path: resource.path,
+                      },
+                    })
+                  "
                 >
                   <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0">
-                                          <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                      <component 
-                        :is="resource.type === 'folder' ? 'FolderOutline' : 'FileDocumentOutline'"
-                        class="text-blue-600" 
-                        :size="20"
-        />
-      </div>
-    </div>
+                      <div
+                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center"
+                      >
+                        <component
+                          :is="
+                            resource.type === 'folder'
+                              ? 'FolderOutline'
+                              : 'FileDocumentOutline'
+                          "
+                          class="text-blue-600"
+                          :size="20"
+                        />
+                      </div>
+                    </div>
                     <div class="flex-1 min-w-0">
-                      <h3 class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <h3
+                        class="text-sm font-medium text-gray-900 dark:text-white truncate"
+                      >
                         {{ resource.title }}
                       </h3>
                       <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         <i class="fas fa-clock mr-1"></i>
-                        {{ new Date(resource.updatedAt || new Date()).toLocaleDateString() }}
+                        {{
+                          new Date(
+                            resource.updatedAt || new Date()
+                          ).toLocaleDateString()
+                        }}
                       </p>
-                      <p v-if="resource.creator" class="text-xs text-gray-500 dark:text-gray-400">
+                      <p
+                        v-if="resource.creator"
+                        class="text-xs text-gray-500 dark:text-gray-400"
+                      >
                         <i class="fas fa-user mr-1"></i>
                         {{ displayName(resource.creator) }}
                       </p>
                     </div>
                   </div>
                 </div>
-                
-                <div v-if="!(resourcesGroup || group)?.resources?.elements?.length" class="text-center py-12 text-gray-500 dark:text-gray-400">
+
+                <div
+                  v-if="!(resourcesGroup || group)?.resources?.elements?.length"
+                  class="text-center py-12 text-gray-500 dark:text-gray-400"
+                >
                   <Link class="mx-auto mb-4 opacity-50" :size="48" />
                   <p class="text-lg">{{ t("No resources yet") }}</p>
                 </div>
               </div>
             </div>
-              
+
             <!-- Button at bottom -->
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+            <div
+              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
+            >
               <o-button
                 tag="router-link"
                 :to="{
@@ -795,29 +1019,29 @@
           </div>
         </div>
       </div>
-    
-    <!-- Notifications and Additional Information -->
-    <div v-if="group" class="max-w-screen-xl mx-auto px-4 md:px-16 pb-8">
-      <div v-if="isCurrentActorFollowing" class="my-2">
-        <i18n-t
-          class="my-2 text-sm text-gray-600 dark:text-gray-400"
-          keypath="You will receive notifications about this group's public activity depending on %{notification_settings}."
-        >
-          <template #notification_settings>
-            <router-link 
-              :to="{ name: RouteName.NOTIFICATIONS }" 
-              class="text-blue-600 hover:text-blue-700 underline"
-            >
-              {{ t("your notification settings") }}
-            </router-link>
-          </template>
-        </i18n-t>
-    </div>
-    </div>
 
-    <!-- Modals -->
+      <!-- Notifications and Additional Information -->
+      <div v-if="group" class="max-w-screen-xl mx-auto px-4 md:px-16 pb-8">
+        <div v-if="isCurrentActorFollowing" class="my-2">
+          <i18n-t
+            class="my-2 text-sm text-gray-600 dark:text-gray-400"
+            keypath="You will receive notifications about this group's public activity depending on %{notification_settings}."
+          >
+            <template #notification_settings>
+              <router-link
+                :to="{ name: RouteName.NOTIFICATIONS }"
+                class="text-blue-600 hover:text-blue-700 underline"
+              >
+                {{ t("your notification settings") }}
+              </router-link>
+            </template>
+          </i18n-t>
+        </div>
+      </div>
+
+      <!-- Modals -->
       <o-modal
-      v-if="group && physicalAddress && physicalAddress.geom"
+        v-if="group && physicalAddress && physicalAddress.geom"
         v-model:active="showMap"
         :close-button-aria-label="t('Close')"
       >
@@ -831,26 +1055,26 @@
           />
         </div>
       </o-modal>
-    
-    <o-modal
-      v-if="group"
-      v-model:active="isReportModalActive"
-      :autoFocus="false"
-      :trapFocus="false"
-    >
-      <report-modal
-        ref="reportModalRef"
-        :on-confirm="reportGroup"
-        :title="t('Report this group')"
-        :outside-domain="group.domain"
-        @close="isReportModalActive = false"
-      />
-    </o-modal>
-    
-    <o-modal v-model:active="isShareModalActive" v-if="group">
-      <ShareGroupModal :group="group" />
-    </o-modal>
-  </div>
+
+      <o-modal
+        v-if="group"
+        v-model:active="isReportModalActive"
+        :autoFocus="false"
+        :trapFocus="false"
+      >
+        <report-modal
+          ref="reportModalRef"
+          :on-confirm="reportGroup"
+          :title="t('Report this group')"
+          :outside-domain="group.domain"
+          @close="isReportModalActive = false"
+        />
+      </o-modal>
+
+      <o-modal v-model:active="isShareModalActive" v-if="group">
+        <ShareGroupModal :group="group" />
+      </o-modal>
+    </div>
   </div>
 </template>
 
@@ -1392,13 +1616,23 @@ watch(isCurrentActorAGroupMember, () => {
 <style lang="scss" scoped>
 // Custom animations for geometric shapes
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-10px) rotate(5deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .geometric-shape {
@@ -1424,8 +1658,8 @@ watch(isCurrentActorAGroupMember, () => {
 }
 
 // Address styling
-      address {
-        font-style: normal;
+address {
+  font-style: normal;
 }
 
 // Map modal
@@ -1443,7 +1677,7 @@ watch(isCurrentActorAGroupMember, () => {
         align-items: start;
       }
     }
-    
+
     @media (min-width: 1024px) {
       &.lg\\:grid-cols-3 {
         grid-template-columns: repeat(3, 1fr);
@@ -1465,13 +1699,14 @@ watch(isCurrentActorAGroupMember, () => {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .geometric-shape {
     display: none; // Hide geometric shapes on mobile for better performance
   }
-  
+
   // Stack cards vertically on mobile with proper spacing
-  .bg-white, .dark .bg-gray-800 {
+  .bg-white,
+  .dark .bg-gray-800 {
     margin-bottom: 1rem;
   }
 }
@@ -1502,8 +1737,10 @@ watch(isCurrentActorAGroupMember, () => {
   .prose {
     color: #d1d5db;
   }
-  
-  .prose h1, .prose h2, .prose h3 {
+
+  .prose h1,
+  .prose h2,
+  .prose h3 {
     color: #f9fafb;
   }
 }
