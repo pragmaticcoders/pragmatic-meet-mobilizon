@@ -53,6 +53,10 @@ services:
       MOBILIZON_INSTANCE_SCHEME: "http"
       MOBILIZON_INSTANCE_SECRET_KEY_BASE: "changethis"
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
+      MOBILIZON_SMTP_SERVER: email-smtp.eu-north-1.amazonaws.com
+      MOBILIZON_SMTP_PORT: 587
+      MOBILIZON_SMTP_USERNAME: AKIAQIDHXO7DPX3OANND
+      MOBILIZON_SMTP_PASSWORD: BMdIY5hSPcUK1OO+ya4VAfPVgQQlLQFladHWovoa47su
 volumes:
   pgdata:
   .: 

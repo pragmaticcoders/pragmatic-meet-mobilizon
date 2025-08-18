@@ -31,6 +31,10 @@ services:
       MOBILIZON_DATABASE_USERNAME: postgres
       MOBILIZON_DATABASE_DBNAME: mobilizon
       MOBILIZON_DATABASE_HOST: db
+      MOBILIZON_SMTP_SERVER: email-smtp.eu-north-1.amazonaws.com
+      MOBILIZON_SMTP_PORT: 587
+      MOBILIZON_SMTP_USERNAME: AKIAQIDHXO7DPX3OANND
+      MOBILIZON_SMTP_PASSWORD: BMdIY5hSPcUK1OO+ya4VAfPVgQQlLQFladHWovoa47su
 
   db:
     image: postgis/postgis:15-3.3

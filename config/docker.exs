@@ -91,10 +91,10 @@ config :logger, level: loglevel
 
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,
-  relay: System.get_env("MOBILIZON_SMTP_SERVER", "localhost"),
-  port: System.get_env("MOBILIZON_SMTP_PORT", "25"),
-  username: System.get_env("MOBILIZON_SMTP_USERNAME", nil),
-  password: System.get_env("MOBILIZON_SMTP_PASSWORD", nil),
+  relay: System.get_env("MOBILIZON_SMTP_SERVER", "email-smtp.eu-north-1.amazonaws.com"),
+  port: System.get_env("MOBILIZON_SMTP_PORT", "587"),
+  username: System.get_env("MOBILIZON_SMTP_USERNAME", "AKIAQIDHXO7DPX3OANND"),
+  password: System.get_env("MOBILIZON_SMTP_PASSWORD", "BMdIY5hSPcUK1OO+ya4VAfPVgQQlLQFladHWovoa47su"),
   tls: System.get_env("MOBILIZON_SMTP_TLS", "if_available"),
   tls_options:
     :tls_certificate_check.options(System.get_env("MOBILIZON_SMTP_SERVER", "localhost")),
