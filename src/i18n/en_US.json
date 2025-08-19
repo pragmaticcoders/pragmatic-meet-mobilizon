@@ -1073,7 +1073,7 @@
   "Not accessible with a wheelchair": "Not accessible with a wheelchair",
   "Partially accessible with a wheelchair": "Partially accessible with a wheelchair",
   "Fully accessible with a wheelchair": "Fully accessible with a wheelchair",
-  "mainPageSlogan": "Free events. Groups.Here. In Pragmatic Meet.",
+  "mainPageSlogan": "Free events. Groups. Here. In Pragmatic Meet.",
   "mainPageDescription": "A place to deepen your interests, from reading books, AI conferences. In Pragmatic Meet you will find events, conferences, meetings that take place every day - register to join.",
   "No upcoming events at this time.": "No upcoming events at this time.",
   "Check back later for new events": "Check back later for new events",
@@ -1711,5 +1711,10 @@
   "Wymagane zgody": "Required agreements",
   "Utwórz wydarzenie": "Create event",
   "Zapisz szkic": "Save draft",
-  "Anuluj": "Cancel"
+  "Anuluj": "Cancel",
+  "How to register": "How to register",
+  "I want to manage the registration on Mobilizon": "I want to manage the registration on Mobilizon",
+  "I want to manage the registration with an external provider": "I want to manage the registration with an external provider",
+  "Showing participants": "Showing participants",
+  "Hide the number of participants": "Hide the number of participants"
 }

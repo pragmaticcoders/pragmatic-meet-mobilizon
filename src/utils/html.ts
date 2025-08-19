@@ -40,3 +40,11 @@ export function escapeHtml(html: string) {
 
   return escapedContent;
 }
+
+export function stripHtmlTags(html: string): string {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  const text = div.textContent || div.innerText || "";
+  div.remove();
+  return text.trim();
+}

@@ -22,10 +22,19 @@
     />
     <o-loading :active="loading" />
     <section
-      class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6"
+      class="max-w-4xl mx-auto px-4 mb-6 bg-white"
       v-if="group && isCurrentActorAGroupAdmin"
     >
-      <form @submit.prevent="updateGroup(buildVariables)" v-if="editableGroup">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">
+          {{ t("Group settings") }}
+        </h2>
+      </div>
+      <form
+        @submit.prevent="updateGroup(buildVariables)"
+        v-if="editableGroup"
+        class="space-y-6"
+      >
         <o-field :label="t('Group name')" label-for="group-settings-name">
           <o-input
             v-model="editableGroup.name"

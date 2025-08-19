@@ -1,33 +1,32 @@
 <template>
-  <div class="">
-    <header class="" v-if="title">
-      <h2 class="">{{ title }}</h2>
-    </header>
+  <div class="bg-white p-6 max-w-lg w-full">
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-xl font-bold text-gray-900" v-if="title">{{ title }}</h2>
+      <button
+        @click="cancel('close')"
+        class="text-gray-400 hover:text-gray-600"
+        aria-label="Close"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
 
-    <section :class="{ 'flex gap-1': hasIcon }">
-      <div class="" v-if="hasIcon && (icon || iconByType)">
-        <o-icon
-          :icon="icon ? icon : iconByType"
-          :variant="variant"
-          :both="!icon"
-          custom-size="48"
-        />
-      </div>
-      <div class="">
-        <p>
-          <template v-if="$slots.default">
-            <slot />
-          </template>
-          <template v-else>
-            <div v-html="message" />
-          </template>
-        </p>
+    <section class="mb-6">
+      <div class="text-gray-700">
+        <template v-if="$slots.default">
+          <slot />
+        </template>
+        <template v-else>
+          <div v-html="message" class="text-sm leading-relaxed" />
+        </template>
 
-        <o-field v-if="hasInput">
+        <o-field v-if="hasInput" class="mt-4">
           <o-input
             v-model="prompt"
             expanded
-            class="input"
+            class="input w-full px-3 py-2 border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             ref="input"
             v-bind="inputAttrs"
             @keydown.enter="confirm"
@@ -37,11 +36,23 @@
       </div>
     </section>
 
-    <footer v-if="canCancel" class="flex gap-2 my-2">
-      <o-button ref="cancelButton" outlined @click="cancel('button')">{{
+    <footer v-if="canCancel" class="flex gap-3">
+      <o-button
+        ref="cancelButton"
+        @click="cancel('button')"
+        class="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
+      >{{
         cancelText ?? t("Cancel")
       }}</o-button>
-      <o-button :variant="variant" ref="confirmButton" @click="confirm">{{
+      <o-button
+        :variant="variant"
+        ref="confirmButton"
+        @click="confirm"
+        :class="[
+          'px-6 py-2 font-medium text-white',
+          variant === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
+        ]"
+      >{{
         confirmText ?? t("Confirm")
       }}</o-button>
     </footer>

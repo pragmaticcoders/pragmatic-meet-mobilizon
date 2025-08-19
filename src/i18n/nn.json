@@ -1461,5 +1461,17 @@
   "Sign in!": "Logg inn!",
   "Check your email": "Sjekk e-posten din",
   "We sent a verification link to": "Vi sende ein stadfestingslenke til",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klikk på lenka i e-posten for å stadfeste kontoen din. Dersom du ikkje ser den, sjekk søppelpostmappa di."
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Klikk på lenka i e-posten for å stadfeste kontoen din. Dersom du ikkje ser den, sjekk søppelpostmappa di.",
+  "Zgody": "Avtalar",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Eg forklarar at eg forstår at følgja av gratis bruk av Pragmatic Meet-plattforma er å plassere ein synleg logo på samfunnssida mi som inneheld ei lenke til nettstaden",
+  "Pobierz": "Last ned",
+  "Wymagane zgody": "Påkravde avtalar",
+  "Utwórz wydarzenie": "Lag arrangement",
+  "Zapisz szkic": "Lagre utkast",
+  "Anuluj": "Avbryt",
+  "How to register": "Korleis registrere seg",
+  "I want to manage the registration on Mobilizon": "Eg vil handsame registreringa på Mobilizon",
+  "I want to manage the registration with an external provider": "Eg vil handsame registreringa med ein ekstern leverandør",
+  "Showing participants": "Vise deltakarar",
+  "Hide the number of participants": "Gøyme talet på deltakarar"
 }

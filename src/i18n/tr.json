@@ -205,6 +205,18 @@
   "No instance follows your instance yet.": "Henüz hiçbir oluşum sizin oluşumunuzu takip etmiyor.",
   "No instance to approve|Approve instance|Approve {number} instances": "Onaylanacak oluşum yok| Oluşum onayla| {number} oluşumu onayla",
   "Please do not use it in any real way.": "Lütfen bunu gerçek anlamda kullanmayın.",
-  "mainPageSlogan": "Ücretsiz etkinlikler. Gruplar.Burada. Pragmatic Meet'te.",
-  "mainPageDescription": "İlgi alanlarınızı derinleştirmek için bir yer, kitap okumaktan AI konferanslarına kadar. Pragmatic Meet'te her gün düzenlenen etkinlikler, konferanslar ve toplantılar bulacaksınız - katılmak için kayıt olun."
+  "mainPageSlogan": "Ücretsiz etkinlikler. Gruplar. Burada. Pragmatic Meet'te.",
+  "mainPageDescription": "İlgi alanlarınızı derinleştirmek için bir yer, kitap okumaktan AI konferanslarına kadar. Pragmatic Meet'te her gün düzenlenen etkinlikler, konferanslar ve toplantılar bulacaksınız - katılmak için kayıt olun.",
+  "Zgody": "Anlaşmalar",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Pragmatic Meet platformunun ücretsiz kullanımının sonucunun topluluk sayfamda bir bağlantı içeren görünür bir logo yerleştirilmesi olduğunu anladığımı beyan ederim",
+  "Pobierz": "İndir",
+  "Wymagane zgody": "Gerekli anlaşmalar",
+  "Utwórz wydarzenie": "Etkinlik oluştur",
+  "Zapisz szkic": "Taslağı kaydet",
+  "Anuluj": "İptal",
+  "How to register": "Nasıl kayıt olunur",
+  "I want to manage the registration on Mobilizon": "Kayıtları Mobilizon üzerinde yönetmek istiyorum",
+  "I want to manage the registration with an external provider": "Kayıtları harici bir sağlayıcı ile yönetmek istiyorum",
+  "Showing participants": "Katılımcıları göster",
+  "Hide the number of participants": "Katılımcı sayısını gizle"
 }

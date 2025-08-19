@@ -364,7 +364,7 @@
   "From the {startDate} to the {endDate}": "",
   "From yourself": "",
   "Fully accessible with a wheelchair": "",
-  "mainPageSlogan": "Eventos gratuitos. Grupos.Aqui. No Pragmatic Meet.",
+  "mainPageSlogan": "Eventos gratuitos. Grupos. Aqui. No Pragmatic Meet.",
   "mainPageDescription": "Um lugar para aprofundar seus interesses, desde ler livros até conferências de IA. No Pragmatic Meet você encontrará eventos, conferências e reuniões que acontecem todos os dias - registre-se para participar.",
   "Gather ⋅ Organize ⋅ Mobilize": "",
   "General": "",
@@ -1255,5 +1255,17 @@
   "{timezoneLongName} ({timezoneShortName})": "",
   "{title} ({count} todos)": "",
   "{username} was invited to {group}": "",
-  "© The OpenStreetMap Contributors": ""
+  "© The OpenStreetMap Contributors": "",
+  "Zgody": "Acordos",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Declaro que compreendo que a consequência do uso gratuito da plataforma Pragmatic Meet é colocar um logótipo visível na página da minha comunidade contendo uma ligação para o site",
+  "Pobierz": "Descarregar",
+  "Wymagane zgody": "Acordos obrigatórios",
+  "Utwórz wydarzenie": "Criar evento",
+  "Zapisz szkic": "Guardar rascunho",
+  "Anuluj": "Cancelar",
+  "How to register": "Como registar-se",
+  "I want to manage the registration on Mobilizon": "Quero gerir o registo no Mobilizon",
+  "I want to manage the registration with an external provider": "Quero gerir o registo com um fornecedor externo",
+  "Showing participants": "Mostrar participantes",
+  "Hide the number of participants": "Ocultar o número de participantes"
 }

@@ -34,9 +34,50 @@
         </div>
         <!-- Fallback when no banner -->
         <div
-          class="relative bg-gray-200 dark:bg-gray-800 overflow-hidden h-64"
+          class="relative bg-gray-50 dark:bg-gray-800 overflow-hidden h-64 flex items-center justify-center"
           v-else
-        ></div>
+        >
+          <svg
+            width="96"
+            height="96"
+            viewBox="0 0 48 48"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="text-gray-300 dark:text-gray-600"
+          >
+            <!-- Group/People icon -->
+            <circle
+              cx="20"
+              cy="16"
+              r="6"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            />
+            <circle
+              cx="32"
+              cy="20"
+              r="4"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            />
+            <path
+              d="M8 38v-4c0-4.418 3.582-8 8-8h8c4.418 0 8 3.582 8 8v4"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <path
+              d="M36 38v-2c0-2.761-1.567-5.149-3.861-6.349"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
 
         <!-- Floating Avatar positioned at bottom of banner -->
         <div class="relative max-w-screen-xl mx-auto px-4 md:px-16">
@@ -53,6 +94,16 @@
                 width="130"
                 height="130"
               />
+              <!-- Default avatar when no avatar is set -->
+              <div
+                v-else
+                class="w-full h-full rounded-full border-4 border-white bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center shadow-lg"
+              >
+                <AccountGroup
+                  class="text-gray-500 dark:text-gray-400"
+                  :size="56"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1086,7 +1137,7 @@ import {
   IPerson,
   usernameWithDomain,
 } from "@/types/actor";
-import { Address, addressFullName } from "@/types/address.model";
+import { Address } from "@/types/address.model";
 import InvitationsList from "@/components/Group/InvitationsList.vue";
 import { addMinutes } from "date-fns";
 import { JOIN_GROUP } from "@/graphql/member";
@@ -1099,7 +1150,6 @@ import {
   PERSON_STATUS_GROUP,
 } from "@/graphql/actor";
 import LazyImageWrapper from "../../components/Image/LazyImageWrapper.vue";
-import EmptyContent from "../../components/Utils/EmptyContent.vue";
 import {
   FOLLOW_GROUP,
   UNFOLLOW_GROUP,
@@ -1114,19 +1164,16 @@ import { useRouter } from "vue-router";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
-import RSS from "vue-material-design-icons/Rss.vue";
-import Share from "vue-material-design-icons/Share.vue";
-import CalendarSync from "vue-material-design-icons/CalendarSync.vue";
+
 import Flag from "vue-material-design-icons/Flag.vue";
 import ExitToApp from "vue-material-design-icons/ExitToApp.vue";
 import AccountMultiplePlus from "vue-material-design-icons/AccountMultiplePlus.vue";
-import Earth from "vue-material-design-icons/Earth.vue";
+
 import Cog from "vue-material-design-icons/Cog.vue";
 import ViewList from "vue-material-design-icons/ViewList.vue";
 import Chat from "vue-material-design-icons/Chat.vue";
 import Link from "vue-material-design-icons/Link.vue";
-import FolderOutline from "vue-material-design-icons/FolderOutline.vue";
-import FileDocumentOutline from "vue-material-design-icons/FileDocumentOutline.vue";
+
 import Information from "vue-material-design-icons/Information.vue";
 import MapMarker from "vue-material-design-icons/MapMarker.vue";
 import CalendarToday from "vue-material-design-icons/CalendarToday.vue";
@@ -1135,15 +1182,12 @@ import Bullhorn from "vue-material-design-icons/Bullhorn.vue";
 import { useI18n } from "vue-i18n";
 import { useCreateReport } from "@/composition/apollo/report";
 import { useHead } from "@/utils/head";
-import Discussions from "@/components/Group/Sections/DiscussionsSection.vue";
-import Resources from "@/components/Group/Sections/ResourcesSection.vue";
-import Posts from "@/components/Group/Sections/PostsSection.vue";
-import Events from "@/components/Group/Sections/EventsSection.vue";
+
 import { Dialog } from "@/plugins/dialog";
 import { Notifier } from "@/plugins/notifier";
 import { useGroupResourcesList } from "@/composition/apollo/resources";
 import { useGroupMembers } from "@/composition/apollo/members";
-import GroupSection from "@/components/Group/GroupSection.vue";
+
 import { useIsLongEvents } from "@/composition/apollo/config";
 
 const props = defineProps<{

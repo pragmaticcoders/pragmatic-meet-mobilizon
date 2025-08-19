@@ -216,9 +216,11 @@
           </div>
           <p v-else>{{ t("Unknown actor") }}</p>
         </div>
-        <div class="prose dark:prose-invert" v-if="report.content">
-          {{ report.content }}
-        </div>
+        <div
+          class="prose dark:prose-invert"
+          v-if="report.content"
+          v-html="report.content"
+        ></div>
         <p v-else>{{ t("No comment") }}</p>
       </div>
     </section>

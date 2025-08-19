@@ -489,7 +489,7 @@
   "Gather ⋅ Organize ⋅ Mobilize": "Rassembler ⋅ Organiser ⋅ Mobiliser",
   "From yourself": "De vous",
   "Fully accessible with a wheelchair": "Entièrement accessible avec un fauteuil roulant",
-  "mainPageSlogan": "Événements gratuits. Groupes.Ici. Dans Pragmatic Meet.",
+  "mainPageSlogan": "Événements gratuits. Groupes. Ici. Dans Pragmatic Meet.",
   "mainPageDescription": "Un lieu pour approfondir vos intérêts, de la lecture de livres aux conférences IA. Dans Pragmatic Meet, vous trouverez des événements, conférences et réunions qui ont lieu chaque jour - inscrivez-vous pour rejoindre.",
   "No upcoming events at this time.": "Aucun événement à venir pour le moment.",
   "Check back later for new events": "Revenez plus tard pour de nouveaux événements",
@@ -1701,10 +1701,15 @@
   "Filters": "Filtres",
   "Browse events and groups:": "Parcourir les événements et groupes :",
   "Zgody": "Accords",
-  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Je déclare comprendre que la conséquence de l'utilisation gratuite de la plateforme Pragmatic Meet est de placer un logo visible sur la page de ma communauté contenant un lien vers le site",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Je déclare comprendre que l'utilisation gratuite de la plateforme Pragmatic Meet implique l'affichage d'un logo visible sur la page de ma communauté contenant un lien vers",
   "Pobierz": "Télécharger",
   "Wymagane zgody": "Accords requis",
   "Utwórz wydarzenie": "Créer un événement",
   "Zapisz szkic": "Sauvegarder le brouillon",
-  "Anuluj": "Annuler"
+  "Anuluj": "Annuler",
+  "How to register": "Comment s'inscrire",
+  "I want to manage the registration on Mobilizon": "Je veux gérer l'inscription sur Mobilizon",
+  "I want to manage the registration with an external provider": "Je veux gérer l'inscription avec un fournisseur externe",
+  "Showing participants": "Afficher les participants",
+  "Hide the number of participants": "Masquer le nombre de participants"
 }

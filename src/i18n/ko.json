@@ -37,5 +37,17 @@
   "Software details: {software_details}": "소프트웨어 세부사항: {software_details}",
   "Visit {instance_domain}": "{instance_domain} 인스턴스 방문하기",
   "mainPageSlogan": "무료 이벤트. 그룹.여기에. Pragmatic Meet에서.",
-  "mainPageDescription": "책 읽기부터 AI 컨퍼런스까지 당신의 관심사를 깊이 있게 탐구할 수 있는 곳. Pragmatic Meet에서 매일 열리는 이벤트, 컨퍼런스, 미팅을 찾아보세요 - 참여하려면 등록하세요."
+  "mainPageDescription": "책 읽기부터 AI 컨퍼런스까지 당신의 관심사를 깊이 있게 탐구할 수 있는 곳. Pragmatic Meet에서 매일 열리는 이벤트, 컨퍼런스, 미팅을 찾아보세요 - 참여하려면 등록하세요.",
+  "Zgody": "동의",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Pragmatic Meet 플랫폼의 무료 사용의 결과로 내 커뮤니티 페이지에 링크가 포함된 보이는 로고가 배치된다는 것을 이해한다고 선언합니다",
+  "Pobierz": "다운로드",
+  "Wymagane zgody": "필수 동의",
+  "Utwórz wydarzenie": "이벤트 생성",
+  "Zapisz szkic": "초안 저장",
+  "Anuluj": "취소",
+  "How to register": "등록 방법",
+  "I want to manage the registration on Mobilizon": "Mobilizon에서 등록을 관리하고 싶습니다",
+  "I want to manage the registration with an external provider": "외부 제공업체로 등록을 관리하고 싶습니다",
+  "Showing participants": "참가자 표시",
+  "Hide the number of participants": "참가자 수 숨기기"
 }

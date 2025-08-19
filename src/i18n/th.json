@@ -1,5 +1,17 @@
 {
     "Gather ⋅ Organize ⋅ Mobilize": "รวมตัว ⋅ จัดระเบียบ ⋅ ขับเคลื่อน",
     "mainPageSlogan": "กิจกรรมฟรี กลุ่ม ที่นี่ ใน Pragmatic Meet",
-    "mainPageDescription": "สถานที่เพื่อทำให้ความสนใจของคุณลึกซึ้งขึ้น ตั้งแต่การอ่านหนังสือไปจนถึงการประชุม AI ใน Pragmatic Meet คุณจะพบกิจกรรม การประชุม และการพบปะที่เกิดขึ้นทุกวัน - ลงทะเบียนเพื่อเข้าร่วม"
+    "mainPageDescription": "สถานที่เพื่อทำให้ความสนใจของคุณลึกซึ้งขึ้น ตั้งแต่การอ่านหนังสือไปจนถึงการประชุม AI ใน Pragmatic Meet คุณจะพบกิจกรรม การประชุม และการพบปะที่เกิดขึ้นทุกวัน - ลงทะเบียนเพื่อเข้าร่วม",
+    "Zgody": "ข้อตกลง",
+    "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "ฉันขอยืนยันว่าฉันเข้าใจแล้วว่าผลจากการใช้งานแพลตฟอร์ม Pragmatic Meet ฟรี คือการวางโลโก้ที่มองเห็นได้บนหน้าชุมชนของฉันที่มีลิงค์ไปยัง",
+    "Pobierz": "ดาวน์โหลด",
+    "Wymagane zgody": "ข้อตกลงที่จำเป็น",
+    "Utwórz wydarzenie": "สร้างกิจกรรม",
+    "Zapisz szkic": "บันทึกร่าง",
+    "Anuluj": "ยกเลิก",
+    "How to register": "วิธีการลงทะเบียน",
+    "I want to manage the registration on Mobilizon": "ฉันต้องการจัดการการลงทะเบียนใน Mobilizon",
+    "I want to manage the registration with an external provider": "ฉันต้องการจัดการการลงทะเบียนกับผู้ให้บริการภายนอก",
+    "Showing participants": "แสดงผู้เข้าร่วม",
+    "Hide the number of participants": "ซ่อนจำนวนผู้เข้าร่วม"
 }

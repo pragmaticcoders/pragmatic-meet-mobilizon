@@ -1,6 +1,6 @@
 <template>
   <div
-    class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[40%]"
+    class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[20%] lg:pr-[20%]"
     v-if="hasCurrentActorPermissionsToEdit"
   >
     <h1 class="text-3xl font-bold text-gray-900 mb-8" v-if="isUpdate === true">
@@ -537,7 +537,10 @@
       </section>
     </form>
   </div>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-else>
+  <div
+    class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[20%] lg:pr-[20%]"
+    v-else
+  >
     <o-notification variant="danger">
       {{ t("Only group moderators can create, edit and delete events.") }}
     </o-notification>
@@ -607,19 +610,25 @@
     :class="{ 'sticky bottom-0 shadow-lg': showFixedNavbar }"
     v-if="hasCurrentActorPermissionsToEdit"
   >
-    <div class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[40%]">
-      <div class="flex justify-between items-center">
+    <div
+      class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[20%] lg:pr-[20%]"
+    >
+      <div
+        class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
+      >
         <div
-          class="text-sm text-orange-600"
+          class="text-sm text-orange-600 order-2 sm:order-1"
           v-if="props.isUpdate === false && !agreedToTerms"
         >
           * {{ t("Wymagane zgody") }}
         </div>
-        <div class="flex gap-3 items-center ml-auto">
+        <div
+          class="flex flex-col sm:flex-row gap-3 sm:items-center sm:ml-auto order-1 sm:order-2"
+        >
           <o-button
             variant="primary"
             size="medium"
-            class="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700"
+            class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white hover:bg-blue-700"
             :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
             :loading="saving"
             @click="createOrUpdatePublish"
@@ -635,7 +644,7 @@
             v-if="event.draft === true"
             variant="text"
             size="medium"
-            class="px-6 py-2 border border-gray-300 hover:bg-gray-50"
+            class="w-full sm:w-auto px-6 py-2 border border-gray-300 hover:bg-gray-50"
             @click="createOrUpdateDraft"
             :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
             :loading="saving"
@@ -646,7 +655,7 @@
           <o-button
             variant="text"
             size="medium"
-            class="px-6 py-2 text-gray-600 hover:text-gray-800"
+            class="w-full sm:w-auto px-6 py-2 text-gray-600 hover:text-gray-800"
             @click="confirmGoBack"
           >
             {{ t("Anuluj") }}
@@ -1204,7 +1213,7 @@ const buildVariables = async () => {
         pictureFile.value as File
       );
       if (oldPictureFileContent === newPictureFileContent) {
-        res.picture = { mediaId: event.value?.picture.id };
+        res.picture = { mediaId: event.value?.picture?.uuid };
       }
     }
     console.debug("builded variables", res);

@@ -1319,5 +1319,10 @@
   "Wymagane zgody": "必要な合意",
   "Utwórz wydarzenie": "イベントを作成",
   "Zapisz szkic": "下書きを保存",
-  "Anuluj": "キャンセル"
+  "Anuluj": "キャンセル",
+  "How to register": "登録方法",
+  "I want to manage the registration on Mobilizon": "Mobilizonで登録を管理したい",
+  "I want to manage the registration with an external provider": "外部プロバイダーで登録を管理したい",
+  "Showing participants": "参加者を表示",
+  "Hide the number of participants": "参加者数を非表示"
 }

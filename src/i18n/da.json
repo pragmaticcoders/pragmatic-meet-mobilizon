@@ -132,7 +132,7 @@
   "From the {startDate} at {startTime} to the {endDate} at {endTime}": "Fra d. {startDate} kl. {startTime} til d. {endDate} kl. {endTime}",
   "From the {startDate} to the {endDate}": "Fra d. {startDate} til d. {endDate}",
   "Gather ⋅ Organize ⋅ Mobilize": "Samles ⋅ Organiser ⋅ Mobiliser",
-  "mainPageSlogan": "Gratis begivenheder. Grupper.Her. I Pragmatic Meet.",
+  "mainPageSlogan": "Gratis begivenheder. Grupper. Her. I Pragmatic Meet.",
   "mainPageDescription": "Et sted at fordybe dine interesser, fra at læse bøger til AI-konferencer. I Pragmatic Meet finder du begivenheder, konferencer og møder, der finder sted hver dag - tilmeld dig for at deltage.",
   "General": "Generelt",
   "General information": "Generel information",
@@ -217,5 +217,17 @@
   "Number of places": "Antal steder",
   "OK": "OK",
   "Old password": "Gammelt kodeord",
-  "Please do not use it in any real way.": "Brug det venligst ikke som andet end en prøve."
+  "Please do not use it in any real way.": "Brug det venligst ikke som andet end en prøve.",
+  "Zgody": "Aftaler",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Jeg erklærer, at jeg forstår, at konsekvensen af gratis brug af Pragmatic Meet-platformen er at placere et synligt logo på min fællesskabsside, der indeholder et link til",
+  "Pobierz": "Download",
+  "Wymagane zgody": "Påkrævede aftaler",
+  "Utwórz wydarzenie": "Opret begivenhed",
+  "Zapisz szkic": "Gem udkast",
+  "Anuluj": "Annuller",
+  "How to register": "Sådan tilmelder du dig",
+  "I want to manage the registration on Mobilizon": "Jeg vil gerne administrere tilmeldingen på Mobilizon",
+  "I want to manage the registration with an external provider": "Jeg vil gerne administrere tilmeldingen med en ekstern udbyder",
+  "Showing participants": "Viser deltagere",
+  "Hide the number of participants": "Skjul antal deltagere"
 }

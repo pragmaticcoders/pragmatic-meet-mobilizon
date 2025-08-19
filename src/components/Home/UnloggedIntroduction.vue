@@ -1,10 +1,10 @@
 <template>
-  <section class="container mx-auto my-8 px-4">
-    <div class="max-w-4xl mx-auto">
+  <section class="container mx-auto my-8 lg:pl-[20%]">
+    <div class="mx-auto">
       <!-- Header with slogan and publish button -->
-      <div class="relative mb-6">
-        <!-- Publish button positioned at far right -->
-        <div class="absolute top-0 right-0 z-10">
+      <div class="relative mb-6 lg:pr-[10%] md:pr-[20%]">
+        <!-- Publish button positioned at far right on desktop, hidden on mobile -->
+        <div class="hidden md:block absolute top-0 right-0 z-10">
           <router-link
             :to="{ name: RouteName.CREATE_EVENT }"
             class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
@@ -14,21 +14,32 @@
           </router-link>
         </div>
 
-        <!-- Slogan with space for button -->
+        <!-- Slogan with space for button on desktop -->
         <h1
-          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl leading-tight pr-32"
+          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl lg:pr-[40%] leading-[1.4]"
         >
           <span class="bg-blue-600 text-white px-3 py-1 rounded-lg">{{
             t("Free")
           }}</span>
-          <span class="ml-2">{{ restOfSlogan }}</span>
+          <span class="ml-4">{{ restOfSlogan }}</span>
         </h1>
+
+        <!-- Publish button below slogan on mobile -->
+        <div class="md:hidden mt-4">
+          <router-link
+            :to="{ name: RouteName.CREATE_EVENT }"
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            <Plus :size="20" />
+            {{ t("Publish") }}
+          </router-link>
+        </div>
       </div>
 
       <!-- Description with max width -->
-      <div class="max-w-3xl mx-auto">
+      <div class="md:pr-[20%]">
         <p
-          class="dark:text-white text-lg md:text-xl text-center leading-relaxed text-gray-600 dark:text-gray-300"
+          class="dark:text-white text-lg md:text-xl text-center leading-relaxed text-gray-600"
         >
           {{ description }}
         </p>
@@ -51,6 +62,6 @@ const description = computed(() => t("mainPageDescription"));
 const restOfSlogan = computed(() => {
   const slogan = fullSlogan.value;
   // Remove "Free" from the beginning and clean up
-  return slogan.replace(/^(Free|Darmowe)\s*/, "").trim();
+  return slogan.split(" ").slice(1).join(" ");
 });
 </script>

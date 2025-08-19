@@ -364,7 +364,7 @@
   "From the {startDate} to the {endDate}": "От {startDate} до {endDate}",
   "From yourself": "От себя",
   "Fully accessible with a wheelchair": "Полностью доступно для инвалидов-колясочников",
-  "mainPageSlogan": "Бесплатные события. Группы.Здесь. В Pragmatic Meet.",
+  "mainPageSlogan": "Бесплатные события. Группы. Здесь. В Pragmatic Meet.",
   "mainPageDescription": "Место для углубления ваших интересов, от чтения книг до конференций по ИИ. В Pragmatic Meet вы найдете события, конференции, встречи, которые проходят каждый день - зарегистрируйтесь, чтобы присоединиться.",
   "No upcoming events at this time.": "В настоящее время нет предстоящих событий.",
   "Your groups": "Ваши группы",
@@ -1288,5 +1288,10 @@
   "Wymagane zgody": "Обязательные соглашения",
   "Utwórz wydarzenie": "Создать событие",
   "Zapisz szkic": "Сохранить черновик",
-  "Anuluj": "Отменить"
+  "Anuluj": "Отменить",
+  "How to register": "Как зарегистрироваться",
+  "I want to manage the registration on Mobilizon": "Я хочу управлять регистрацией в Mobilizon",
+  "I want to manage the registration with an external provider": "Я хочу управлять регистрацией через внешнего провайдера",
+  "Showing participants": "Показать участников",
+  "Hide the number of participants": "Скрыть количество участников"
 }

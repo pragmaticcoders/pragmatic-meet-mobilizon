@@ -1314,5 +1314,17 @@
   "Sign in!": "登入！",
   "Check your email": "檢查您的電子郵件",
   "We sent a verification link to": "我們已發送驗證連結至",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "點擊電子郵件中的連結來驗證您的帳戶。如果您看不到郵件，請檢查垃圾郵件資料夾。"
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "點擊電子郵件中的連結來驗證您的帳戶。如果您看不到郵件，請檢查垃圾郵件資料夾。",
+  "Zgody": "協議",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "我聲明我理解免費使用Pragmatic Meet平台的後果是在我的社群頁面上放置包含指向網站連結的可見標誌",
+  "Pobierz": "下載",
+  "Wymagane zgody": "必需協議",
+  "Utwórz wydarzenie": "建立活動",
+  "Zapisz szkic": "儲存草稿",
+  "Anuluj": "取消",
+  "How to register": "如何註冊",
+  "I want to manage the registration on Mobilizon": "我想在Mobilizon上管理註冊",
+  "I want to manage the registration with an external provider": "我想透過外部提供商管理註冊",
+  "Showing participants": "顯示參與者",
+  "Hide the number of participants": "隱藏參與者數量"
 }

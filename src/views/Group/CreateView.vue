@@ -1,6 +1,8 @@
 <template>
-  <section class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <h1>{{ t("Create a new group") }}</h1>
+  <section
+    class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[20%] lg:pr-[20%]"
+  >
+    <h1 class="text-3xl font-bold mb-8">{{ t("Create a new group") }}</h1>
 
     <o-notification
       variant="danger"
@@ -10,22 +12,31 @@
       {{ value }}
     </o-notification>
 
-    <form @submit.prevent="createGroup">
-      <o-field :label="t('Group display name')" label-for="group-display-name">
+    <form @submit.prevent="createGroup" class="space-y-6">
+      <div class="space-y-2">
+        <label
+          for="group-display-name"
+          class="block text-sm font-medium text-gray-700"
+        >
+          {{ t("Group display name") }}
+        </label>
         <o-input
           aria-required="true"
           required
           expanded
           v-model="group.name"
           id="group-display-name"
+          class="w-full"
         />
-      </o-field>
+      </div>
 
-      <div class="field">
-        <label class="label" for="group-preferred-username">{{
-          t("Federated Group Name")
-        }}</label>
-        <div class="field-body">
+      <div class="space-y-2">
+        <label
+          class="block text-sm font-medium text-gray-700"
+          for="group-preferred-username"
+          >{{ t("Federated Group Name") }}</label
+        >
+        <div class="flex gap-2">
           <o-field
             :message="preferredUsernameErrors[0]"
             :type="preferredUsernameErrors[1]"
@@ -47,48 +58,58 @@
                   : null
               "
             />
-            <p class="control">
-              <span class="button is-static">@{{ host }}</span>
-            </p>
+            <div
+              class="flex items-center px-3 bg-gray-100 text-gray-600 font-medium"
+            >
+              @{{ host }}
+            </div>
           </o-field>
         </div>
-        <i18n-t
-          v-if="currentActor"
-          keypath="This is like your federated username ({username}) for groups. It will allow the group to be found on the federation, and is guaranteed to be unique."
-        >
-          <template #username>
-            <code>
-              {{ usernameWithDomain(currentActor, true) }}
-            </code>
-          </template>
-        </i18n-t>
+        <p class="text-sm text-gray-600 mt-2" v-if="currentActor">
+          <i18n-t
+            keypath="This is like your federated username ({username}) for groups. It will allow the group to be found on the federation, and is guaranteed to be unique."
+          >
+            <template #username>
+              <code class="bg-gray-100 px-1 py-0.5 text-sm">
+                {{ usernameWithDomain(currentActor, true) }}
+              </code>
+            </template>
+          </i18n-t>
+        </p>
       </div>
 
-      <o-field
-        :label="t('Description')"
-        label-for="group-summary"
-        :message="summaryErrors[0]"
-        :type="summaryErrors[1]"
-      >
-        <editor
-          v-if="currentActor"
-          id="group-summary"
-          mode="basic"
-          class="mb-3"
-          v-model="group.summary"
-          :maxSize="500"
-          :aria-label="$t('Group description body')"
-          :current-actor="currentActor"
+      <div class="space-y-2">
+        <label
+          for="group-summary"
+          class="block text-sm font-medium text-gray-700"
+        >
+          {{ t("Description") }}
+        </label>
+        <o-field :message="summaryErrors[0]" :type="summaryErrors[1]">
+          <editor
+            v-if="currentActor"
+            id="group-summary"
+            mode="basic"
+            v-model="group.summary"
+            :maxSize="500"
+            :aria-label="$t('Group description body')"
+            :current-actor="currentActor"
+            class="w-full"
+          />
+        </o-field>
+      </div>
+
+      <div class="space-y-2">
+        <full-address-auto-complete
+          :label="$t('Group address')"
+          v-model="group.physicalAddress"
         />
-      </o-field>
+      </div>
 
-      <full-address-auto-complete
-        :label="$t('Group address')"
-        v-model="group.physicalAddress"
-      />
-
-      <div class="field">
-        <b class="field-label">{{ t("Avatar") }}</b>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          {{ t("Avatar") }}
+        </label>
         <picture-upload
           :textFallback="t('Avatar')"
           v-model="avatarFile"
@@ -96,8 +117,10 @@
         />
       </div>
 
-      <div class="field">
-        <b class="field-label">{{ t("Banner") }}</b>
+      <div class="space-y-2">
+        <label class="block text-sm font-medium text-gray-700">
+          {{ t("Banner") }}
+        </label>
         <picture-upload
           :textFallback="t('Banner')"
           v-model="bannerFile"
@@ -105,38 +128,57 @@
         />
       </div>
 
-      <fieldset>
-        <legend class="field-label !mb-0 mt-2">
+      <fieldset class="space-y-3">
+        <legend class="text-sm font-medium text-gray-700 mb-3">
           {{ t("Group visibility") }}
         </legend>
-        <o-radio
-          v-model="group.visibility"
-          name="groupVisibility"
-          :native-value="GroupVisibility.PUBLIC"
-        >
-          {{ $t("Visible everywhere on the web") }}<br />
-          <small>{{
-            $t(
-              "The group will be publicly listed in search results and may be suggested in the explore section. Only public informations will be shown on it's page."
-            )
-          }}</small>
-        </o-radio>
-        <o-radio
-          v-model="group.visibility"
-          name="groupVisibility"
-          :native-value="GroupVisibility.UNLISTED"
-          >{{ $t("Only accessible through link") }}<br />
-          <small>{{
-            $t(
-              "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
-            )
-          }}</small>
-        </o-radio>
+        <div class="bg-gray-50 p-4 space-y-3">
+          <o-radio
+            v-model="group.visibility"
+            name="groupVisibility"
+            :native-value="GroupVisibility.PUBLIC"
+            class="flex items-start"
+          >
+            <div>
+              <span class="font-medium">{{
+                $t("Visible everywhere on the web")
+              }}</span>
+              <p class="text-sm text-gray-600 mt-1">
+                {{
+                  $t(
+                    "The group will be publicly listed in search results and may be suggested in the explore section. Only public informations will be shown on it's page."
+                  )
+                }}
+              </p>
+            </div>
+          </o-radio>
+          <o-radio
+            v-model="group.visibility"
+            name="groupVisibility"
+            :native-value="GroupVisibility.UNLISTED"
+            class="flex items-start"
+          >
+            <div>
+              <span class="font-medium">{{
+                $t("Only accessible through link")
+              }}</span>
+              <p class="text-sm text-gray-600 mt-1">
+                {{
+                  $t(
+                    "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
+                  )
+                }}
+              </p>
+            </div>
+          </o-radio>
+        </div>
       </fieldset>
-      <fieldset>
-        <legend class="mt-2">
-          <span class="field-label !mb-0">{{ t("New members") }} </span>
-          <span>
+      <fieldset class="space-y-3">
+        <legend>
+          <span class="text-sm font-medium text-gray-700 block mb-1">{{
+            t("New members")
+          }}</span>
+          <span class="text-sm text-gray-600">
             {{
               t(
                 "Members will also access private sections like discussions, resources and restricted posts."
@@ -144,70 +186,94 @@
             }}
           </span>
         </legend>
-        <o-field>
+        <div class="bg-gray-50 p-4 space-y-3">
           <o-radio
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.OPEN"
+            class="flex items-start"
           >
-            {{ $t("Anyone can join freely") }}<br />
-            <small>{{
-              $t(
-                "Anyone wanting to be a member from your group will be able to from your group page."
-              )
-            }}</small>
+            <div>
+              <span class="font-medium">{{
+                $t("Anyone can join freely")
+              }}</span>
+              <p class="text-sm text-gray-600 mt-1">
+                {{
+                  $t(
+                    "Anyone wanting to be a member from your group will be able to from your group page."
+                  )
+                }}
+              </p>
+            </div>
           </o-radio>
-        </o-field>
-        <o-field>
           <o-radio
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.MODERATED"
-            >{{ $t("Moderate new members") }}<br />
-            <small>{{
-              $t(
-                "Anyone can request being a member, but an administrator needs to approve the membership."
-              )
-            }}</small>
+            class="flex items-start"
+          >
+            <div>
+              <span class="font-medium">{{ $t("Moderate new members") }}</span>
+              <p class="text-sm text-gray-600 mt-1">
+                {{
+                  $t(
+                    "Anyone can request being a member, but an administrator needs to approve the membership."
+                  )
+                }}
+              </p>
+            </div>
           </o-radio>
-        </o-field>
-        <o-field>
           <o-radio
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.INVITE_ONLY"
-            >{{ $t("Manually invite new members") }}<br />
-            <small>{{
-              $t(
-                "The only way for your group to get new members is if an admininistrator invites them."
-              )
-            }}</small>
+            class="flex items-start"
+          >
+            <div>
+              <span class="font-medium">{{
+                $t("Manually invite new members")
+              }}</span>
+              <p class="text-sm text-gray-600 mt-1">
+                {{
+                  $t(
+                    "The only way for your group to get new members is if an admininistrator invites them."
+                  )
+                }}
+              </p>
+            </div>
           </o-radio>
-        </o-field>
+        </div>
       </fieldset>
-      <fieldset>
-        <legend class="mt-2">
-          <span class="field-label !mb-0">
+      <fieldset class="space-y-3">
+        <legend>
+          <span class="text-sm font-medium text-gray-700 block mb-1">
             {{ t("Followers") }}
           </span>
-          <span>
+          <span class="text-sm text-gray-600">
             {{ t("Followers will receive new public events and posts.") }}
           </span>
         </legend>
-        <o-checkbox v-model="group.manuallyApprovesFollowers">
-          {{ t("Manually approve new followers") }}
-        </o-checkbox>
+        <div class="bg-gray-50 p-4">
+          <o-checkbox
+            v-model="group.manuallyApprovesFollowers"
+            class="flex items-center"
+          >
+            <span class="ml-2">{{ t("Manually approve new followers") }}</span>
+          </o-checkbox>
+        </div>
       </fieldset>
 
-      <o-button
-        variant="primary"
-        :disabled="loading"
-        :loading="loading"
-        native-type="submit"
-        class="mt-3"
-      >
-        {{ t("Create my group") }}
-      </o-button>
+      <div class="pt-6">
+        <o-button
+          variant="primary"
+          :disabled="loading"
+          :loading="loading"
+          native-type="submit"
+          class="px-6 py-3 bg-primary text-white font-medium hover:bg-primary-600 transition-colors"
+        >
+          {{ t("Create my group") }}
+        </o-button>
+      </div>
     </form>
   </section>
 </template>

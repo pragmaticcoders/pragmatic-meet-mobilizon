@@ -488,7 +488,7 @@
   "From this instance only": "Solo da questa istanza",
   "From yourself": "Da te stesso",
   "Fully accessible with a wheelchair": "Completamente accessibile con una sedia a rotelle",
-  "mainPageSlogan": "Eventi gratuiti. Gruppi.Qui. In Pragmatic Meet.",
+  "mainPageSlogan": "Eventi gratuiti. Gruppi. Qui. In Pragmatic Meet.",
   "mainPageDescription": "Un luogo per approfondire i tuoi interessi, dalla lettura di libri alle conferenze sull'IA. In Pragmatic Meet troverai eventi, conferenze e riunioni che si svolgono ogni giorno - registrati per partecipare.",
   "No upcoming events at this time.": "Nessun evento in programma al momento.",
   "Your groups": "I tuoi gruppi",
@@ -1686,5 +1686,10 @@
   "Wymagane zgody": "Accordi richiesti",
   "Utwórz wydarzenie": "Crea evento",
   "Zapisz szkic": "Salva bozza",
-  "Anuluj": "Annulla"
+  "Anuluj": "Annulla",
+  "How to register": "Come registrarsi",
+  "I want to manage the registration on Mobilizon": "Voglio gestire la registrazione su Mobilizon",
+  "I want to manage the registration with an external provider": "Voglio gestire la registrazione con un fornitore esterno",
+  "Showing participants": "Mostrare i partecipanti",
+  "Hide the number of participants": "Nascondere il numero di partecipanti"
 }

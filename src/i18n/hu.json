@@ -488,7 +488,7 @@
   "From this instance only": "Csak erről a példányról",
   "From yourself": "Öntől származó",
   "Fully accessible with a wheelchair": "Teljesen megközelíthető kerekesszékkel",
-  "mainPageSlogan": "Ingyenes események. Csoportok.Itt. A Pragmatic Meet-ben.",
+  "mainPageSlogan": "Ingyenes események. Csoportok. Itt. A Pragmatic Meet-ben.",
   "mainPageDescription": "Hely az érdeklődési körök elmélyítésére, könyvolvasástól az AI konferenciákig. A Pragmatic Meet-ben minden nap tartott eseményeket, konferenciákat és találkozókat találsz - regisztrálj a csatlakozáshoz.",
   "Gather ⋅ Organize ⋅ Mobilize": "Összejövetel ⋅ Szervezés ⋅ Mozgósítás",
   "General": "Általános",
@@ -1686,5 +1686,10 @@
   "Wymagane zgody": "Kötelező megállapodások",
   "Utwórz wydarzenie": "Esemény létrehozása",
   "Zapisz szkic": "Vázlat mentése",
-  "Anuluj": "Mégsem"
+  "Anuluj": "Mégsem",
+  "How to register": "Hogyan regisztráljon",
+  "I want to manage the registration on Mobilizon": "A regisztrációt a Mobilizonon szeretném kezelni",
+  "I want to manage the registration with an external provider": "A regisztrációt külső szolgáltatóval szeretném kezelni",
+  "Showing participants": "Résztvevők megjelenítése",
+  "Hide the number of participants": "Résztvevők számának elrejtése"
 }

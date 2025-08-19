@@ -370,7 +370,7 @@
   "From the {startDate} to the {endDate}": "Alkaa {startDate} ja päättyy {endDate}",
   "From yourself": "Sinulta",
   "Fully accessible with a wheelchair": "Pääsee täysin pyörätuolilla",
-  "mainPageSlogan": "Ilmaiset tapahtumat. Ryhmät.Täällä. Pragmatic Meet:issa.",
+  "mainPageSlogan": "Ilmaiset tapahtumat. Ryhmät. Täällä. Pragmatic Meet:issa.",
   "mainPageDescription": "Paikka syventää kiinnostuksen kohteita, kirjojen lukemisesta tekoälykonferensseihin. Pragmatic Meet:istä löydät tapahtumia, konferensseja ja kokouksia, joita järjestetään joka päivä - rekisteröidy liittyäksesi.",
   "Gather ⋅ Organize ⋅ Mobilize": "Kokoonnu ⋅ Järjestä ⋅ Mobilisoi",
   "General": "Yleinen",
@@ -1298,5 +1298,10 @@
   "Wymagane zgody": "Pakolliset sopimukset",
   "Utwórz wydarzenie": "Luo tapahtuma",
   "Zapisz szkic": "Tallenna luonnos",
-  "Anuluj": "Peruuta"
+  "Anuluj": "Peruuta",
+  "How to register": "Kuinka rekisteröityä",
+  "I want to manage the registration on Mobilizon": "Haluan hallita rekisteröitymistä Mobilizonissa",
+  "I want to manage the registration with an external provider": "Haluan hallita rekisteröitymistä ulkoisella palveluntarjoajalla",
+  "Showing participants": "Näytä osallistujat",
+  "Hide the number of participants": "Piilota osallistujien määrä"
 }

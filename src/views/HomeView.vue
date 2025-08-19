@@ -7,19 +7,29 @@
 
     <!-- Welcome back -->
     <section
-      class="mx-auto my-6"
+      class="mx-auto px-16 py-8 text-center max-w-[600px]"
       v-if="currentActor?.id && (welcomeBack || newRegisteredUser)"
     >
-      <o-notification variant="info" v-if="welcomeBack">{{
-        t("Welcome back {username}!", {
-          username: displayName(currentActor),
-        })
-      }}</o-notification>
-      <o-notification variant="info" v-if="newRegisteredUser">{{
-        t("Welcome to Pragmatic Meet, {username}!", {
-          username: displayName(currentActor),
-        })
-      }}</o-notification>
+      <div
+        class="font-bold text-4xl leading-[48px] text-gray-900"
+        v-if="welcomeBack"
+      >
+        <span class="text-[#155eef]">{{
+          t("Welcome back {username}!", {
+            username: displayName(currentActor),
+          })
+        }}</span>
+      </div>
+      <div
+        class="font-bold text-4xl leading-[48px] text-gray-900"
+        v-if="newRegisteredUser"
+      >
+        <span class="text-[#155eef]">{{
+          t("Welcome to Pragmatic Meet, {username}!", {
+            username: displayName(currentActor),
+          })
+        }}</span>
+      </div>
     </section>
     <!-- Your upcoming events -->
     <section v-if="canShowMyUpcomingEvents" class="mx-auto mb-8 mt-4">
@@ -66,7 +76,7 @@
             }}
           </span>
         </p>
-        <div>
+        <div class="flex flex-wrap gap-4">
           <event-participation-card
             v-for="participation in thisWeek(row)"
             :key="participation[1].id"
@@ -133,7 +143,7 @@
 
       <!-- Groups content -->
       <div v-if="canShowUserGroups">
-        <multi-group-card :groups="displayedGroups" />
+        <MultiGroupCard :groups="displayedGroups" />
         <div class="text-right mt-6" v-if="currentUser?.id">
           <router-link
             class="text-blue-600 hover:text-blue-700 font-medium"
@@ -212,18 +222,13 @@ import {
 } from "@/graphql/location";
 import { LocationType } from "@/types/user-location.model";
 import UnloggedIntroduction from "@/components/Home/UnloggedIntroduction.vue";
-import SearchFields from "@/components/Home/SearchFields.vue";
 import { useHead } from "@unhead/vue";
 import {
   addressToLocation,
   geoHashToCoords,
   getAddressFromLocal,
-  locationToAddress,
-  storeAddressInLocal,
 } from "@/utils/location";
 import { useServerProvidedLocation } from "@/composition/apollo/config";
-import QuickPublish from "@/components/Home/QuickPublish.vue";
-import ShortSearch from "@/components/Home/ShortSearch.vue";
 import { ABOUT } from "@/graphql/config";
 import { IConfig } from "@/types/config.model";
 import { useI18n } from "vue-i18n";
@@ -303,9 +308,7 @@ const currentUserParticipations = computed(
   () => loggedUser.value?.participations.elements
 );
 
-const increated = ref(0);
 const address = ref<IAddress | null>(null);
-const search = ref<string | null>(null);
 const noAddress = ref(false);
 const current_distance = ref<number | null>(null);
 
@@ -451,7 +454,6 @@ watch(loggedUser, (loggedUserValue) => {
     });
   }
 });
-const isLoggedIn = computed(() => loggedUser.value?.id !== undefined);
 
 /**
  * Geolocation stuff
@@ -552,33 +554,6 @@ const userLocation = computed(() => {
   return userSettingsLocation.value;
 });
 
-const userAddress = computed<IAddress | null>({
-  get(): IAddress | null {
-    if (noAddress.value) {
-      return null;
-    }
-    if (address.value) {
-      return address.value;
-    }
-    const local_address = getAddressFromLocal();
-    if (local_address) {
-      return local_address;
-    }
-    if (
-      !userSettingsLocation.value ||
-      (userSettingsLocation.value?.isIPLocation &&
-        currentUserLocation.value?.name)
-    ) {
-      return locationToAddress(currentUserLocation.value);
-    }
-    return locationToAddress(userSettingsLocation.value as any);
-  },
-  set(newAddress: IAddress | null) {
-    address.value = newAddress;
-    noAddress.value = newAddress == null;
-  },
-});
-
 const distance = computed<number | null>({
   get(): number | null {
     if (noAddress.value || !userLocation.value?.name) {
@@ -651,15 +626,6 @@ const performGeoLocation = () => {
       doingGeoloc.value = false;
     }
   );
-};
-
-const updateAddress = (newAddress: IAddress | null) => {
-  if (address.value?.geom !== newAddress?.geom || newAddress == null) {
-    increated.value += 1;
-    storeAddressInLocal(newAddress);
-  }
-  address.value = newAddress;
-  noAddress.value = newAddress == null;
 };
 
 /**

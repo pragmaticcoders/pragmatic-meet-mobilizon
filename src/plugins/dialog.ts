@@ -49,7 +49,10 @@ export class Dialog {
         hasInput,
       },
       autoFocus: false,
-      contentClass: "!w-11/12",
+      contentClass: "!w-auto !max-w-lg !bg-transparent",
+      overlayClass: "bg-black bg-opacity-50",
+      closable: true,
+      trapFocus: true,
     });
   }
 
@@ -88,7 +91,10 @@ export class Dialog {
         onConfirm,
         onCancel,
       },
-      contentClass: "!w-11/12",
+      contentClass: "!w-auto !max-w-lg !bg-transparent",
+      overlayClass: "bg-black bg-opacity-50",
+      closable: true,
+      trapFocus: true,
     });
   }
 }

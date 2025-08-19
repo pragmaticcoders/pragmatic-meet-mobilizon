@@ -64,7 +64,7 @@
         </span>
       </div>
       <div class="line-clamp-1" v-if="report.content">
-        {{ report.content }}
+        {{ stripHtmlTags(report.content) }}
       </div>
     </div>
   </div>
@@ -75,6 +75,7 @@ import { ActorType } from "@/types/enums";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import { usernameWithDomain } from "@/types/actor";
+import { stripHtmlTags } from "@/utils/html";
 
 defineProps<{
   report: IReport;

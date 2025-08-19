@@ -438,7 +438,7 @@
   "From the {startDate} to the {endDate}": "Vom {startDate} bis zum {endDate}",
   "From yourself": "Von Ihnen selbst",
   "Fully accessible with a wheelchair": "Komplett barrierefrei für Rollstühle",
-  "mainPageSlogan": "Kostenlose Veranstaltungen. Gruppen.Hier. In Pragmatic Meet.",
+  "mainPageSlogan": "Kostenlose Veranstaltungen. Gruppen. Hier. In Pragmatic Meet.",
   "mainPageDescription": "Ein Ort, um Ihre Interessen zu vertiefen, vom Lesen von Büchern bis hin zu KI-Konferenzen. In Pragmatic Meet finden Sie Veranstaltungen, Konferenzen und Meetings, die jeden Tag stattfinden - registrieren Sie sich, um teilzunehmen.",
   "No upcoming events at this time.": "Keine anstehenden Veranstaltungen zu diesem Zeitpunkt.",
   "Check back later for new events": "Schauen Sie später wieder vorbei für neue Veranstaltungen",
@@ -1544,5 +1544,10 @@
   "Wymagane zgody": "Erforderliche Vereinbarungen",
   "Utwórz wydarzenie": "Event erstellen",
   "Zapisz szkic": "Entwurf speichern",
-  "Anuluj": "Abbrechen"
+  "Anuluj": "Abbrechen",
+  "How to register": "Wie man sich anmeldet",
+  "I want to manage the registration on Mobilizon": "Ich möchte die Anmeldung über Mobilizon verwalten",
+  "I want to manage the registration with an external provider": "Ich möchte die Anmeldung über einen externen Anbieter verwalten",
+  "Showing participants": "Teilnehmer anzeigen",
+  "Hide the number of participants": "Anzahl der Teilnehmer verbergen"
 }

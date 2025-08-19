@@ -1689,5 +1689,10 @@
   "Wymagane zgody": "Acordos obrigatórios",
   "Utwórz wydarzenie": "Criar evento",
   "Zapisz szkic": "Salvar rascunho",
-  "Anuluj": "Cancelar"
+  "Anuluj": "Cancelar",
+  "How to register": "Como se registrar",
+  "I want to manage the registration on Mobilizon": "Quero gerenciar o registro no Mobilizon",
+  "I want to manage the registration with an external provider": "Quero gerenciar o registro com um provedor externo",
+  "Showing participants": "Mostrar participantes",
+  "Hide the number of participants": "Ocultar o número de participantes"
 }

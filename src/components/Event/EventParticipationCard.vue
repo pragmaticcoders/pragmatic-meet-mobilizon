@@ -1,6 +1,6 @@
 <template>
   <article
-    class="bg-white dark:bg-zinc-800 shadow-sm border border-gray-200 dark:border-zinc-700 overflow-hidden mb-4"
+    class="bg-white border border-[#cac9cb] overflow-hidden flex flex-col w-[273px]"
   >
     <router-link
       :to="{
@@ -9,7 +9,7 @@
       }"
       class="block"
     >
-      <div class="relative h-48 bg-gray-100 dark:bg-zinc-900">
+      <div class="relative aspect-[273/154] bg-gray-100">
         <lazy-image-wrapper
           v-if="participation.event.picture"
           :picture="participation.event.picture"
@@ -64,8 +64,22 @@
         </div>
       </div>
     </router-link>
-    <div class="p-4">
-      <div class="flex justify-between items-start mb-2">
+    <div class="p-5 flex flex-col gap-4 flex-1">
+      <div class="flex flex-col h-24">
+        <div class="text-[#37363a] text-xs font-medium leading-[18px] mb-1">
+          {{
+            new Date(participation.event.beginsOn).toLocaleDateString(
+              undefined,
+              {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }
+            )
+          }}
+        </div>
         <router-link
           :to="{
             name: RouteName.EVENT,
@@ -74,53 +88,53 @@
           class="flex-1"
         >
           <h3
-            class="text-lg font-semibold text-gray-900 dark:text-white line-clamp-2"
+            class="text-[17px] font-bold text-[#1c1b1f] leading-[26px] line-clamp-2"
           >
             {{ participation.event.title }}
           </h3>
         </router-link>
-        <div
-          class="ml-2 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"
-        >
-          <span class="bg-gray-100 dark:bg-zinc-700 px-2 py-1">
-            {{
-              new Date(participation.event.beginsOn).toLocaleDateString(
-                "pl-PL",
-                { day: "numeric", month: "short" }
-              )
-            }}
-          </span>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2">
+            <figure
+              v-if="actorAvatarURL"
+              class="w-6 h-6 rounded-full overflow-hidden"
+            >
+              <img
+                class="w-full h-full object-cover"
+                :src="actorAvatarURL"
+                alt=""
+              />
+            </figure>
+            <div
+              v-else
+              class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
+            >
+              <AccountCircle class="w-4 h-4 text-gray-500" />
+            </div>
+            <span
+              class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"
+              >{{ organizerDisplayName(participation.event) }}</span
+            >
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 flex items-center justify-center">
+              <MapMarker class="w-5 h-5 text-gray-500" />
+            </div>
+            <span
+              class="text-[15px] font-medium text-[#37363a] leading-[23px] flex-1"
+            >
+              {{
+                participation.event.physicalAddress?.locality ||
+                participation.event.physicalAddress?.region ||
+                t("Online")
+              }}
+            </span>
+          </div>
         </div>
       </div>
-      <div
-        class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3"
-      >
-        <div class="flex items-center gap-1">
-          <figure v-if="actorAvatarURL" class="w-5 h-5">
-            <img
-              class="w-full h-full object-cover"
-              :src="actorAvatarURL"
-              alt=""
-            />
-          </figure>
-          <AccountCircle v-else class="w-5 h-5" />
-          <span>{{ organizerDisplayName(participation.event) }}</span>
-        </div>
-        <span class="text-gray-400">•</span>
-        <div class="flex items-center gap-3">
-          <AccountGroup class="w-4 h-4" />
-          <span
-            >{{ participation.event.participantStats.participant }}
-            {{
-              t(
-                "uczestnik(-czka)",
-                participation.event.participantStats.participant
-              )
-            }}</span
-          >
-        </div>
-      </div>
-      <div class="flex gap-2">
+      <div class="flex gap-2 mt-auto">
         <Tag
           variant="info"
           size="small"
@@ -266,7 +280,7 @@ import Delete from "vue-material-design-icons/Delete.vue";
 import AccountMultiplePlus from "vue-material-design-icons/AccountMultiplePlus.vue";
 import ViewCompact from "vue-material-design-icons/ViewCompact.vue";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
-import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
+import MapMarker from "vue-material-design-icons/MapMarker.vue";
 import { useOruga } from "@oruga-ui/oruga-next";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";

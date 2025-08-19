@@ -1480,5 +1480,10 @@
   "Wymagane zgody": "必需协议",
   "Utwórz wydarzenie": "创建活动",
   "Zapisz szkic": "保存草稿",
-  "Anuluj": "取消"
+  "Anuluj": "取消",
+  "How to register": "如何注册",
+  "I want to manage the registration on Mobilizon": "我想在Mobilizon上管理注册",
+  "I want to manage the registration with an external provider": "我想通过外部提供商管理注册",
+  "Showing participants": "显示参与者",
+  "Hide the number of participants": "隐藏参与者数量"
 }

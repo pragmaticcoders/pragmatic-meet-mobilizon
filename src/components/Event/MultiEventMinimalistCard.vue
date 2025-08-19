@@ -29,6 +29,6 @@ withDefaults(
 .events-wrapper {
   display: grid;
   grid-gap: 20px;
-  grid-template: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 </style>

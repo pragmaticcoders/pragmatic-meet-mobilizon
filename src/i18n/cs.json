@@ -488,7 +488,7 @@
   "From this instance only": "Pouze z této instance",
   "From yourself": "Sám od sebe",
   "Fully accessible with a wheelchair": "Plně přístupný s invalidním vozíkem",
-  "mainPageSlogan": "Bezplatné akce. Skupiny.Zde. V Pragmatic Meet.",
+  "mainPageSlogan": "Bezplatné akce. Skupiny. Zde. V Pragmatic Meet.",
   "mainPageDescription": "Místo pro prohloubení vašich zájmů, od čtení knih po AI konference. V Pragmatic Meet najdete akce, konference a setkání, která se konají každý den - zaregistrujte se a připojte se.",
   "Gather ⋅ Organize ⋅ Mobilize": "Setkej se ⋅ Organizuj ⋅ Mobilizuj",
   "General": "Obecné",
@@ -1686,5 +1686,10 @@
   "Wymagane zgody": "Povinné dohody",
   "Utwórz wydarzenie": "Vytvořit událost",
   "Zapisz szkic": "Uložit návrh",
-  "Anuluj": "Zrušit"
+  "Anuluj": "Zrušit",
+  "How to register": "Jak se registrovat",
+  "I want to manage the registration on Mobilizon": "Chci spravovat registraci na Mobilizon",
+  "I want to manage the registration with an external provider": "Chci spravovat registraci s externím poskytovatelem",
+  "Showing participants": "Zobrazení účastníků",
+  "Hide the number of participants": "Skrýt počet účastníků"
 }

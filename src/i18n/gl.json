@@ -489,7 +489,7 @@
   "From this instance only": "Só nesta instancia",
   "From yourself": "De ti mesma",
   "Fully accessible with a wheelchair": "Totalmente accesible con cadeira de rodas",
-  "mainPageSlogan": "Eventos gratuítos. Grupos.Aquí. En Pragmatic Meet.",
+  "mainPageSlogan": "Eventos gratuítos. Grupos. Aquí. En Pragmatic Meet.",
   "mainPageDescription": "Un lugar para afondar nos teus intereses, desde ler libros ata conferencias de IA. En Pragmatic Meet atoparás eventos, conferencias e reunións que teñen lugar cada día - rexístrate para unirte.",
   "Gather ⋅ Organize ⋅ Mobilize": "Xunta - Organiza - Mobiliza",
   "General": "Xeral",
@@ -1685,5 +1685,17 @@
   "Sign in!": "Iniciar sesión!",
   "Check your email": "Comproba o teu correo electrónico",
   "We sent a verification link to": "Enviamos unha ligazón de verificación a",
-  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Fai clic na ligazón do correo electrónico para verificar a túa conta. Se non a ves, comproba a túa cartafol de spam."
+  "Click the link in the email to verify your account. If you don't see it, check your spam folder.": "Fai clic na ligazón do correo electrónico para verificar a túa conta. Se non a ves, comproba a túa cartafol de spam.",
+  "Zgody": "Acordos",
+  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony": "Declaro que entendo que a consecuencia do uso gratuíto da plataforma Pragmatic Meet é colocar un logo visible na páxina da miña comunidade que conteña unha ligazón ao sitio",
+  "Pobierz": "Descargar",
+  "Wymagane zgody": "Acordos requiridos",
+  "Utwórz wydarzenie": "Crear evento",
+  "Zapisz szkic": "Gardar borrador",
+  "Anuluj": "Cancelar",
+  "How to register": "Como rexistrarse",
+  "I want to manage the registration on Mobilizon": "Quero xestionar o rexistro en Mobilizon",
+  "I want to manage the registration with an external provider": "Quero xestionar o rexistro cun provedor externo",
+  "Showing participants": "Mostrar participantes",
+  "Hide the number of participants": "Ocultar o número de participantes"
 }

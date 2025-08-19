@@ -481,7 +481,7 @@
   "From the {startDate} to the {endDate}": "Från {startDate} till {endDate}",
   "From yourself": "Från dig själv",
   "Fully accessible with a wheelchair": "Fullt tillgänglig med rullstol",
-  "mainPageSlogan": "Gratis evenemang. Grupper.Här. I Pragmatic Meet.",
+  "mainPageSlogan": "Gratis evenemang. Grupper. Här. I Pragmatic Meet.",
   "mainPageDescription": "En plats att fördjupa dina intressen, från att läsa böcker till AI-konferenser. I Pragmatic Meet hittar du evenemang, konferenser och möten som äger rum varje dag - registrera dig för att gå med.",
   "Gather ⋅ Organize ⋅ Mobilize": "Samlas ⋅ Organisera ⋅ Mobilisera",
   "General": "Allmänt",
@@ -1666,5 +1666,10 @@
   "Wymagane zgody": "Obligatoriska avtal",
   "Utwórz wydarzenie": "Skapa evenemang",
   "Zapisz szkic": "Spara utkast",
-  "Anuluj": "Avbryt"
+  "Anuluj": "Avbryt",
+  "How to register": "Hur man registrerar sig",
+  "I want to manage the registration on Mobilizon": "Jag vill hantera registreringen på Mobilizon",
+  "I want to manage the registration with an external provider": "Jag vill hantera registreringen med en extern leverantör",
+  "Showing participants": "Visa deltagare",
+  "Hide the number of participants": "Dölj antalet deltagare"
 }
