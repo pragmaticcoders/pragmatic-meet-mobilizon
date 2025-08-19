@@ -21,70 +21,61 @@
       ]"
     />
     <o-loading :active="groupMembersLoading" />
-    <section
-      class="max-w-screen-xl mx-auto px-4 md:px-16 section"
-      v-if="group && isCurrentActorAGroupAdmin"
-    >
-      <h1>{{ t("Group Members") }} ({{ group.members.total }})</h1>
-      <form @submit.prevent="inviteMember">
-        <o-field
-          :label="t('Invite a new member')"
-          custom-class="add-relay"
-          label-for="new-member-field"
-          horizontal
-        >
-          <o-field
-            grouped
-            expanded
-            size="large"
-            :type="inviteError ? 'is-danger' : null"
-            :message="inviteError"
+    <section class="bg-white p-8" v-if="group && isCurrentActorAGroupAdmin">
+      <h1 class="text-xl font-bold text-[#1c1b1f] mb-4">
+        {{ t("Group Members") }} ({{ group.members.total }})
+      </h1>
+      <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
+        t("Invite a new member")
+      }}</label>
+      <div class="flex flex-col md:flex-row gap-4 my-4 items-start">
+        <form @submit.prevent="inviteMember" class="flex-1 min-w-0">
+          <o-input
+            id="new-member-field"
+            v-model="newMemberUsername"
+            :placeholder="t(`Ex: someone{'@'}mobilizon.org`)"
+          />
+        </form>
+
+        <div class="flex-shrink-0">
+          <o-select
+            v-model="roles"
+            id="group-members-status-filter"
+            class="w-48 border border-[#cac9cb] bg-white p-[18px]"
           >
-            <p class="control">
-              <o-input
-                id="new-member-field"
-                v-model="newMemberUsername"
-                :placeholder="t(`Ex: someone{'@'}mobilizon.org`)"
-              />
-            </p>
-            <p class="control">
-              <o-button variant="primary" native-type="submit">{{
-                t("Invite member")
-              }}</o-button>
-            </p>
-          </o-field>
-        </o-field>
-      </form>
-      <o-field
-        class="my-2"
-        :label="t('Status')"
-        horizontal
-        label-for="group-members-status-filter"
-      >
-        <o-select v-model="roles" id="group-members-status-filter">
-          <option :value="undefined">
-            {{ t("Everything") }}
-          </option>
-          <option :value="MemberRole.ADMINISTRATOR">
-            {{ t("Administrator") }}
-          </option>
-          <option :value="MemberRole.MODERATOR">
-            {{ t("Moderator") }}
-          </option>
-          <option :value="MemberRole.MEMBER">
-            {{ t("Member") }}
-          </option>
-          <option :value="MemberRole.INVITED">
-            {{ t("Invited") }}
-          </option>
-          <option :value="MemberRole.NOT_APPROVED">
-            {{ t("Not approved") }}
-          </option>
-          <option :value="MemberRole.REJECTED">
-            {{ t("Rejected") }}
-          </option>
-        </o-select>
-      </o-field>
+            <option :value="undefined">
+              {{ t("Everything") }}
+            </option>
+            <option :value="MemberRole.ADMINISTRATOR">
+              {{ t("Administrator") }}
+            </option>
+            <option :value="MemberRole.MODERATOR">
+              {{ t("Moderator") }}
+            </option>
+            <option :value="MemberRole.MEMBER">
+              {{ t("Member") }}
+            </option>
+            <option :value="MemberRole.INVITED">
+              {{ t("Invited") }}
+            </option>
+            <option :value="MemberRole.NOT_APPROVED">
+              {{ t("Not approved") }}
+            </option>
+            <option :value="MemberRole.REJECTED">
+              {{ t("Rejected") }}
+            </option>
+          </o-select>
+        </div>
+        <div class="flex-shrink-0">
+          <o-button
+            variant="primary"
+            native-type="submit"
+            class="bg-[#155eef] text-white px-8 py-[18px] font-bold hover:bg-blue-600 whitespace-nowrap"
+            @click="inviteMember"
+            >{{ t("Invite member") }}</o-button
+          >
+        </div>
+      </div>
       <o-table
         v-if="members"
         :data="members.elements"
@@ -105,94 +96,118 @@
         :default-sort="['insertedAt', 'desc']"
         @page-change="loadMoreMembers"
         @sort="(field: string, order: string) => emit('sort', field, order)"
+        class="border border-[#cac9cb]"
       >
         <o-table-column
           field="actor.preferredUsername"
           :label="t('Member')"
           v-slot="props"
+          header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
+          cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
         >
           <article class="flex">
-            <figure v-if="props.row.actor.avatar" class="h-10 w-10">
+            <figure v-if="props.row.actor.avatar" class="h-8 w-8">
               <img
-                class="rounded-full object-cover h-full"
+                class="rounded-full object-cover h-full w-full"
                 :src="props.row.actor.avatar.url"
                 :alt="props.row.actor.avatar.alt || ''"
                 height="48"
                 width="48"
               />
             </figure>
-            <AccountCircle v-else :size="48" />
+            <AccountCircle v-else :size="32" />
 
-            <div class="">
+            <div class="ml-2">
               <div class="text-start">
-                <span v-if="props.row.actor.name">{{
-                  props.row.actor.name
-                }}</span
+                <span
+                  v-if="props.row.actor.name"
+                  class="font-bold text-[17px] text-[#1c1b1f]"
+                  >{{ props.row.actor.name }}</span
                 ><br />
                 <span class="">@{{ usernameWithDomain(props.row.actor) }}</span>
               </div>
             </div>
           </article>
         </o-table-column>
-        <o-table-column field="role" :label="t('Role')" v-slot="props">
-          <tag
-            variant="info"
+        <o-table-column
+          field="role"
+          :label="t('Role')"
+          v-slot="props"
+          header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
+          cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
+        >
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#155eef] text-white"
             v-if="props.row.role === MemberRole.ADMINISTRATOR"
           >
             {{ t("Administrator") }}
-          </tag>
-          <tag
-            variant="info"
+          </span>
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#e8effd] text-[#155eef]"
             v-else-if="props.row.role === MemberRole.MODERATOR"
           >
             {{ t("Moderator") }}
-          </tag>
-          <tag v-else-if="props.row.role === MemberRole.MEMBER">
+          </span>
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#d4ffeb] text-[#007e44]"
+            v-else-if="props.row.role === MemberRole.MEMBER"
+          >
             {{ t("Member") }}
-          </tag>
-          <tag
-            variant="warning"
+          </span>
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#fff2e6] text-[#b05500]"
             v-else-if="props.row.role === MemberRole.NOT_APPROVED"
           >
             {{ t("Not approved") }}
-          </tag>
-          <tag
-            variant="danger"
+          </span>
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#ffe5e5] text-[#cc0000]"
             v-else-if="props.row.role === MemberRole.REJECTED"
           >
             {{ t("Rejected") }}
-          </tag>
-          <tag
-            variant="warning"
+          </span>
+          <span
+            class="inline-block px-2 py-1 text-[15px] font-medium bg-[#dfdfe0] text-[#37363a]"
             v-else-if="props.row.role === MemberRole.INVITED"
           >
             {{ t("Invited") }}
-          </tag>
-        </o-table-column>
-        <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
-          <span class="has-text-centered">
-            {{ formatDateString(props.row.insertedAt) }}<br />{{
-              formatTimeString(props.row.insertedAt)
-            }}
           </span>
         </o-table-column>
-        <o-table-column field="actions" :label="t('Actions')" v-slot="props">
+        <o-table-column
+          field="insertedAt"
+          :label="t('Date')"
+          v-slot="props"
+          header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
+          cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
+        >
+          <span class="text-[15px] text-[#1c1b1f]">
+            {{ formatDateString(props.row.insertedAt) }},
+            {{ formatTimeString(props.row.insertedAt) }}
+          </span>
+        </o-table-column>
+        <o-table-column
+          field="actions"
+          :label="t('Actions')"
+          v-slot="props"
+          header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
+          cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
+        >
           <div
             class="flex flex-wrap gap-2"
             v-if="props.row.actor.id !== currentActor?.id"
           >
             <o-button
-              variant="success"
               v-if="props.row.role === MemberRole.NOT_APPROVED"
               @click="approveMember({ memberId: props.row.id })"
               icon-left="check"
+              class="bg-[#007e44] text-white px-4 py-2 font-medium hover:bg-green-700"
               >{{ t("Approve member") }}</o-button
             >
             <o-button
-              variant="danger"
               v-if="props.row.role === MemberRole.NOT_APPROVED"
               @click="rejectMember(props.row)"
               icon-left="exit-to-app"
+              class="bg-[#cc0000] text-white px-4 py-2 font-medium hover:bg-red-700"
               >{{ t("Reject member") }}</o-button
             >
             <o-button
@@ -203,6 +218,7 @@
               "
               @click="promoteMember(props.row)"
               icon-left="chevron-double-up"
+              class="border border-[#155eef] text-[#155eef] px-4 py-2 font-medium bg-white hover:bg-[#e8effd]"
               >{{ t("Promote") }}</o-button
             >
             <o-button
@@ -213,13 +229,14 @@
               "
               @click="demoteMember(props.row)"
               icon-left="chevron-double-down"
+              class="border border-[#b05500] text-[#b05500] px-4 py-2 font-medium bg-white hover:bg-[#fff2e6]"
               >{{ t("Demote") }}</o-button
             >
             <o-button
               v-if="props.row.role === MemberRole.MEMBER"
               @click="removeMember(props.row)"
-              variant="danger"
               icon-left="exit-to-app"
+              class="bg-[#cc0000] text-white px-4 py-2 font-medium hover:bg-red-700"
               >{{ t("Remove") }}</o-button
             >
           </div>
@@ -266,7 +283,6 @@ import {
 import { formatTimeString, formatDateString } from "@/filters/datetime";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import { Notifier } from "@/plugins/notifier";
-import Tag from "@/components/TagElement.vue";
 
 const { t } = useI18n({ useScope: "global" });
 

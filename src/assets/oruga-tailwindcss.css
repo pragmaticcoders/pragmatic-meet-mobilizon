@@ -14,7 +14,7 @@ body {
   color: var(--color-white);
   font-weight: 700;
   padding: var(--spacing-2) var(--spacing-4);
-  height: 40px;
+  height: 52px;
   outline: none;
   font-family: var(--font-family-primary);
   border: none;
@@ -216,6 +216,21 @@ body {
   font-family: var(--font-family-primary);
   background-color: var(--color-white);
   min-height: 48px;
+  font-size: var(--text-sm);
+}
+
+/* Fix dropdown button icon color */
+.o-button .o-icon,
+.o-button .mdi,
+.o-button svg {
+  color: inherit !important;
+  fill: currentColor !important;
+}
+
+/* Ensure dropdown trigger is clickable */
+.o-dropdown .o-button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 .input:focus {
@@ -229,8 +244,14 @@ body {
   color: var(--color-gray-50);
 }
 
+.input::placeholder {
+  color: var(--color-gray-400);
+  font-size: var(--text-sm);
+}
+
 .input.dark::placeholder {
   color: var(--color-gray-400);
+  font-size: var(--text-sm);
 }
 
 .input-size-small {
@@ -305,7 +326,8 @@ body {
 }
 
 .taginput-item {
-  @apply bg-primary mr-2;
+  background-color: var(--color-primary-500);
+  @apply mr-2;
 }
 
 .taginput-autocomplete {
@@ -373,11 +395,37 @@ body {
 }
 
 .checkbox-check {
-  @apply appearance-none border-primary;
+  appearance: none;
+  border-color: var(--color-gray-300);
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.checkbox-check:checked {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+
+.checkbox-check:checked::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
 }
 
 .checkbox-checked {
-  @apply bg-primary text-primary;
+  background-color: var(--color-primary-500);
+  color: var(--color-primary-500);
 }
 
 .checkbox-label {
@@ -395,12 +443,27 @@ body {
   @apply cursor-pointer inline-flex items-center relative mr-2;
 }
 
+.switch input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+  appearance: none;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 12px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.switch input[type="checkbox"]:checked {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+}
+
 .switch-label {
   @apply pl-2;
 }
 
 .switch-check-checked {
-  @apply bg-primary;
+  background-color: var(--color-primary-500);
 }
 
 /* Select - design system aligned */
@@ -443,7 +506,12 @@ body {
 }
 
 .form-radio {
-  @apply bg-none text-primary border-primary accent-primary;
+  background: none;
+  color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  accent-color: var(--color-primary-500);
+  width: 24px;
+  height: 24px;
 }
 
 .radio-label {
@@ -452,6 +520,68 @@ body {
 
 .o-field--addons .o-radio:not(:only-child) input {
   @apply rounded-full;
+}
+
+/* Radio button sizing */
+.radio input[type="radio"],
+input[type="radio"].form-radio {
+  width: 24px;
+  height: 24px;
+  appearance: none;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 50%;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.radio input[type="radio"]:checked,
+input[type="radio"].form-radio:checked {
+  border-color: var(--color-primary-500);
+  background-color: white;
+}
+
+.radio input[type="radio"]:checked::before,
+input[type="radio"].form-radio:checked::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary-500);
+  transform: translate(-50%, -50%);
+}
+
+/* Ensure all form control inputs are 24x24 */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* Center gray icons properly - more specific selectors */
+svg.text-gray-300,
+svg.text-gray-400,
+svg.text-gray-500 {
+  margin: 0 auto;
+  display: block;
+}
+
+/* Ensure opacity icons are centered - only for icons */
+svg.opacity-50,
+.opacity-50 svg {
+  margin: 0 auto;
+  display: block;
+}
+
+/* Center empty state icons */
+.empty-state-icon {
+  margin: 0 auto;
+  display: block;
+  text-align: center;
 }
 
 /* Editor */
@@ -465,7 +595,7 @@ button.menubar__button {
 }
 
 .notification-primary {
-  @apply bg-primary;
+  background-color: var(--color-primary-500);
 }
 
 .notification-info {
@@ -522,7 +652,9 @@ button.menubar__button {
 }
 
 .pagination-link-current {
-  @apply bg-primary dark:bg-primary cursor-not-allowed pointer-events-none border-primary text-white;
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  @apply cursor-not-allowed pointer-events-none text-white;
 }
 
 .pagination-ellipsis {
@@ -543,7 +675,9 @@ button.menubar__button {
 }
 
 .tabs-nav-item-active-boxed {
-  @apply bg-white border-gray-300 text-primary;
+  background-color: white;
+  border-color: #d1d5db;
+  color: var(--color-primary-500);
 }
 
 /** Tooltip */
@@ -613,4 +747,9 @@ button.menubar__button {
 /** Timepicker */
 .o-tpck__select {
   @apply dark:bg-zinc-700 dark:placeholder:text-zinc-400 dark:text-zinc-50;
+}
+
+#new-member-field.input {
+  min-width: 350px;
+  width: auto;
 }

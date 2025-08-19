@@ -265,7 +265,6 @@ import { useMutation, useLazyQuery, useQuery } from "@vue/apollo-composable";
 import { computed, reactive, ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
-import AuthProviders from "@/components/User/AuthProviders.vue";
 import RouteName from "@/router/name";
 import { LoginError, LoginErrorCode } from "@/types/enums";
 import { useCurrentUserClient } from "@/composition/apollo/user";
@@ -427,13 +426,6 @@ const caseWarningText = computed<string | undefined>(() => {
     return t(
       "Emails usually don't contain capitals, make sure you haven't made a typo."
     ) as string;
-  }
-  return undefined;
-});
-
-const caseWarningType = computed<string | undefined>(() => {
-  if (hasCaseWarning.value) {
-    return "warning";
   }
   return undefined;
 });

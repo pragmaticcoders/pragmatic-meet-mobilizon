@@ -97,11 +97,21 @@
               <!-- Default avatar when no avatar is set -->
               <div
                 v-else
-                class="w-full h-full rounded-full border-4 border-white bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center shadow-lg"
+                class="bg-gray-200 dark:bg-gray-600"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  border-radius: 50%;
+                  border: 4px solid white;
+                  background: radial-gradient(circle, #f3f4f6 0%, #e5e7eb 100%);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
               >
                 <AccountGroup
                   class="text-gray-500 dark:text-gray-400"
-                  :size="56"
+                  :size="48"
                 />
               </div>
             </div>
@@ -322,7 +332,7 @@
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
         <!-- Three-column layout for main sections -->
         <div
-          class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
+          class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4"
           style="grid-template-rows: 1fr"
         >
           <!-- Members Section -->
@@ -330,7 +340,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center mb-4">
+            <div class="flex items-center mb-2">
               <AccountGroup class="text-blue-500 mr-3" :size="24" />
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 {{ t("Members") }}
@@ -342,7 +352,7 @@
               class="flex-grow flex flex-col justify-center items-center min-h-[160px]"
             >
               <div
-                class="flex flex-wrap justify-center mb-4"
+                class="flex flex-wrap justify-center mb-2"
                 v-if="isCurrentActorAGroupMember && !previewPublic && members"
               >
                 <figure
@@ -406,7 +416,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center mb-4">
+            <div class="flex items-center mb-2">
               <Information class="text-green-500 mr-3" :size="24" />
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 {{ t("Information") }}
@@ -425,7 +435,10 @@
                 v-else
                 class="text-center text-gray-500 dark:text-gray-400 py-8"
               >
-                <Information class="mx-auto mb-4 opacity-50" :size="48" />
+                <Information
+                  class="mx-auto mb-2 opacity-50 empty-state-icon"
+                  :size="48"
+                />
                 <p>{{ t("No information available yet") }}</p>
               </div>
             </div>
@@ -453,7 +466,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center mb-4">
+            <div class="flex items-center mb-2">
               <MapMarker class="text-red-500 mr-3" :size="24" />
               <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
                 {{ t("Location") }}
@@ -465,7 +478,7 @@
               class="flex-grow flex flex-col justify-center items-center text-center min-h-[160px]"
             >
               <div v-if="physicalAddress && physicalAddress.url">
-                <div class="mb-4">
+                <div class="mb-2">
                   <component
                     :is="physicalAddress.poiInfos.poiIcon.icon || 'Earth'"
                     class="text-4xl text-red-500"
@@ -498,7 +511,10 @@
                 v-else
                 class="text-center text-gray-500 dark:text-gray-400 py-8"
               >
-                <MapMarker class="mx-auto mb-4 opacity-50" :size="48" />
+                <MapMarker
+                  class="mx-auto mb-2 opacity-50 empty-state-icon"
+                  :size="48"
+                />
                 <p>{{ t("No location defined yet") }}</p>
               </div>
             </div>
@@ -524,7 +540,7 @@
 
         <!-- Bottom sections for Activities, Events, and Announcements -->
         <div
-          class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12"
+          class="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-6"
           style="grid-template-rows: 1fr"
         >
           <!-- Activities Section (Long Events) -->
@@ -533,7 +549,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <CalendarToday class="text-purple-500 mr-3" :size="24" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -614,7 +630,10 @@
                 "
                 class="text-center py-8 text-gray-500 dark:text-gray-400"
               >
-                <CalendarToday class="mx-auto mb-4 opacity-50" :size="48" />
+                <CalendarToday
+                  class="mx-auto mb-2 opacity-50 empty-state-icon"
+                  :size="48"
+                />
                 <p>{{ t("No upcoming activities") }}</p>
               </div>
             </div>
@@ -643,7 +662,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <Calendar class="text-blue-500 mr-3" :size="24" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -718,7 +737,10 @@
                 "
                 class="text-center py-8 text-gray-500 dark:text-gray-400"
               >
-                <Calendar class="mx-auto mb-4 opacity-50" :size="48" />
+                <Calendar
+                  class="mx-auto mb-2 opacity-50 empty-state-icon"
+                  :size="48"
+                />
                 <p>{{ t("No upcoming events") }}</p>
               </div>
             </div>
@@ -747,7 +769,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <Bullhorn class="text-orange-500 mr-3" :size="24" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -828,7 +850,10 @@
                 "
                 class="text-center py-8 text-gray-500 dark:text-gray-400"
               >
-                <Bullhorn class="mx-auto mb-4 opacity-50" :size="48" />
+                <Bullhorn
+                  class="mx-auto mb-2 opacity-50 empty-state-icon"
+                  :size="48"
+                />
                 <p>{{ t("No announcements yet") }}</p>
               </div>
             </div>
@@ -855,7 +880,7 @@
         <!-- Private sections -->
         <div
           v-if="isCurrentActorAGroupMember && !previewPublic"
-          class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2"
+          class="grid grid-cols-1 gap-3 mb-6 md:grid-cols-2"
           style="grid-template-rows: 1fr"
         >
           <!-- Group discussions -->
@@ -863,7 +888,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <Chat class="text-blue-500 mr-3" :size="24" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -936,7 +961,10 @@
                   "
                   class="text-center py-12 text-gray-500 dark:text-gray-400"
                 >
-                  <Chat class="mx-auto mb-4 opacity-50" :size="48" />
+                  <Chat
+                    class="mx-auto mb-2 opacity-50 empty-state-icon"
+                    :size="48"
+                  />
                   <p class="text-lg">{{ t("No discussions yet") }}</p>
                 </div>
               </div>
@@ -964,7 +992,7 @@
             class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
             style="height: 380px"
           >
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-2">
               <div class="flex items-center">
                 <Link class="text-green-500 mr-3" :size="24" />
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -1046,7 +1074,10 @@
                   v-if="!(resourcesGroup || group)?.resources?.elements?.length"
                   class="text-center py-12 text-gray-500 dark:text-gray-400"
                 >
-                  <Link class="mx-auto mb-4 opacity-50" :size="48" />
+                  <Link
+                    class="mx-auto mb-2 opacity-50 empty-state-icon"
+                    :size="48"
+                  />
                   <p class="text-lg">{{ t("No resources yet") }}</p>
                 </div>
               </div>
@@ -1141,7 +1172,7 @@ import { Address } from "@/types/address.model";
 import InvitationsList from "@/components/Group/InvitationsList.vue";
 import { addMinutes } from "date-fns";
 import { JOIN_GROUP } from "@/graphql/member";
-import { MemberRole, Openness } from "@/types/enums";
+import { MemberRole } from "@/types/enums";
 import { IMember } from "@/types/actor/member.model";
 import RouteName from "../../router/name";
 import ReportModal from "@/components/Report/ReportModal.vue";
@@ -1150,11 +1181,7 @@ import {
   PERSON_STATUS_GROUP,
 } from "@/graphql/actor";
 import LazyImageWrapper from "../../components/Image/LazyImageWrapper.vue";
-import {
-  FOLLOW_GROUP,
-  UNFOLLOW_GROUP,
-  UPDATE_GROUP_FOLLOW,
-} from "@/graphql/followers";
+import { FOLLOW_GROUP, UNFOLLOW_GROUP } from "@/graphql/followers";
 import { useAnonymousReportsConfig } from "../../composition/apollo/config";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
@@ -1402,41 +1429,23 @@ const followGroup = async (): Promise<void> => {
   });
 };
 
-const { mutate: unfollowGroupMutation, onError: onUnfollowGroupError } =
-  useMutation(UNFOLLOW_GROUP, () => ({
-    refetchQueries: [
-      {
-        query: PERSON_STATUS_GROUP,
-        variables: {
-          id: currentActor.value?.id,
-          group: usernameWithDomain(group.value),
-        },
+const { onError: onUnfollowGroupError } = useMutation(UNFOLLOW_GROUP, () => ({
+  refetchQueries: [
+    {
+      query: PERSON_STATUS_GROUP,
+      variables: {
+        id: currentActor.value?.id,
+        group: usernameWithDomain(group.value),
       },
-    ],
-  }));
+    },
+  ],
+}));
 
 onUnfollowGroupError((error) => {
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     notifier?.error(error.graphQLErrors[0].message);
   }
 });
-
-const unFollowGroup = async (): Promise<void> => {
-  console.debug("unfollow group");
-
-  unfollowGroupMutation({
-    groupId: group.value?.id,
-  });
-};
-
-const { mutate: updateGroupFollowMutation } = useMutation(UPDATE_GROUP_FOLLOW);
-
-const toggleFollowNotify = () => {
-  updateGroupFollowMutation({
-    followId: currentActorFollow.value?.id,
-    notify: !isCurrentActorFollowingNotify.value,
-  });
-};
 
 const {
   mutate: createReportMutation,
@@ -1576,27 +1585,6 @@ const showJoinButton = computed((): boolean => {
   return !isCurrentActorAGroupMember.value || previewPublic.value;
 });
 
-const isGroupInviteOnly = computed((): boolean => {
-  return (
-    (!isCurrentActorAGroupMember.value || previewPublic) &&
-    group.value?.openness === Openness.INVITE_ONLY
-  );
-});
-
-const areGroupMembershipsModerated = computed((): boolean => {
-  return (
-    (!isCurrentActorAGroupMember.value || previewPublic) &&
-    group.value?.openness === Openness.MODERATED
-  );
-});
-
-const doesGroupManuallyApprovesFollowers = computed((): boolean | undefined => {
-  return (
-    (!isCurrentActorAGroupMember.value || previewPublic) &&
-    group.value?.manuallyApprovesFollowers
-  );
-});
-
 const isCurrentActorAGroupAdmin = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.ADMINISTRATOR);
 });
@@ -1616,10 +1604,6 @@ const isCurrentActorAGroupMember = computed((): boolean => {
   ]);
 });
 
-const isCurrentActorAPendingGroupMember = computed((): boolean => {
-  return hasCurrentActorThisRole([MemberRole.NOT_APPROVED]);
-});
-
 const currentActorFollow = computed((): IFollower | undefined => {
   if (person?.value?.follows?.total && person?.value?.follows?.total > 0) {
     return person?.value?.follows?.elements[0];
@@ -1629,16 +1613,6 @@ const currentActorFollow = computed((): IFollower | undefined => {
 
 const isCurrentActorFollowing = computed((): boolean => {
   return currentActorFollow.value?.approved === true;
-});
-
-const isCurrentActorPendingFollow = computed((): boolean => {
-  return currentActorFollow.value?.approved === false;
-});
-
-const isCurrentActorFollowingNotify = computed((): boolean => {
-  return (
-    isCurrentActorFollowing.value && currentActorFollow.value?.notify === true
-  );
 });
 
 const hasCurrentActorThisRole = (givenRole: string | string[]): boolean => {
@@ -1757,8 +1731,8 @@ address {
 
 // Improve card spacing on larger screens
 @media (min-width: 1024px) {
-  .gap-6 {
-    gap: 2rem;
+  .gap-3 {
+    gap: 0.5 rem;
   }
 }
 

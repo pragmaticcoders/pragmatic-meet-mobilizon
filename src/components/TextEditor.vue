@@ -345,7 +345,7 @@ const editor = useEditor({
       "aria-label": ariaLabel.value ?? "",
       role: "textbox",
       class:
-        "prose dark:prose-invert prose-sm lg:prose-lg xl:prose-xl bg-white dark:bg-zinc-700 !max-w-full",
+        "dark:prose-invert bg-white dark:bg-zinc-700 !max-w-full h-[52px] placeholder:text-md",
     },
     transformPastedHTML: transformPastedHTML,
   },

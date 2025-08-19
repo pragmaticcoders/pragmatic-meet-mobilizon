@@ -4,7 +4,7 @@
     :class="{ 'mt-20 mb-10': inline, 'mt-80': !inline, 'text-center': center }"
     role="note"
   >
-    <o-icon :icon="icon" customSize="36" />
+    <o-icon :icon="icon" customSize="36" class="empty-state-icon" />
     <h4 class="mb-3">
       <!-- @slot Mandatory title -->
       <slot />

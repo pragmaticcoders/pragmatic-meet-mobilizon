@@ -140,7 +140,6 @@ const calendarOptions = computed((): object => {
   color: #374151 !important;
   font-weight: 500 !important;
   padding: 6px 12px !important;
-  border-radius: 6px !important;
   font-size: 14px !important;
 }
 
@@ -187,7 +186,6 @@ const calendarOptions = computed((): object => {
   font-size: 12px !important;
   padding: 2px 6px !important;
   margin: 1px 2px !important;
-  border-radius: 4px !important;
 }
 
 .fc-event-title {
@@ -206,7 +204,6 @@ const calendarOptions = computed((): object => {
 .fc-popover {
   background: #ffffff !important;
   border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
 }
 

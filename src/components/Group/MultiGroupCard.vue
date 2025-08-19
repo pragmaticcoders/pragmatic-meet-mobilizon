@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap gap-4 justify-between">
+  <div class="flex flex-wrap gap-4">
     <group-card-figma v-for="group in groups" :group="group" :key="group.id" />
   </div>
 </template>

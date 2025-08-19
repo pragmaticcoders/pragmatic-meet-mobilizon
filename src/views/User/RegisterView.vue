@@ -243,8 +243,21 @@
           <!-- LinkedIn OAuth button -->
           <a
             v-if="linkedinProvider"
-            :href="`/auth/${linkedinProvider.id}`"
-            class="w-full sm:flex-1 border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-2.5 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 text-sm"
+            :href="
+              acceptTerms && credentials.email && credentials.password
+                ? `/auth/${linkedinProvider.id}`
+                : '#'
+            "
+            :class="[
+              'w-full sm:flex-1 font-medium py-2.5 px-4 transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 text-sm',
+              acceptTerms && credentials.email && credentials.password
+                ? 'border border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                : 'border border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed',
+            ]"
+            @click="
+              !(acceptTerms && credentials.email && credentials.password) &&
+                $event.preventDefault()
+            "
           >
             <!-- LinkedIn Icon -->
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -350,7 +363,6 @@ import { CREATE_USER } from "../../graphql/user";
 import RouteName from "../../router/name";
 import { IConfig } from "../../types/config.model";
 import { CONFIG } from "../../graphql/config";
-import AuthProviders from "../../components/User/AuthProviders.vue";
 import { computed, reactive, ref, watch } from "vue";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
@@ -365,7 +377,6 @@ type credentialsType = { email: string; password: string; locale: string };
 const { t, locale } = useI18n({ useScope: "global" });
 const route = useRoute();
 const validationSent = ref(false);
-const showPassword = ref(false);
 const acceptTerms = ref(false);
 const acceptMarketing = ref(false);
 
@@ -388,10 +399,6 @@ const credentials = reactive<credentialsType>({
 
 const emailErrors = ref<errorMessage[]>([]);
 const passwordErrors = ref<errorMessage[]>([]);
-
-const hasErrors = computed(() => {
-  return emailErrors.value.length > 0 || passwordErrors.value.length > 0;
-});
 
 const sendingForm = ref(false);
 

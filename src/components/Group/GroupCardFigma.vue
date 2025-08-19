@@ -22,7 +22,7 @@
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          class="text-gray-300"
+          class="text-gray-300 empty-state-icon"
         >
           <!-- Group/People icon -->
           <circle
@@ -78,7 +78,7 @@
             v-else
             class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
           >
-            <AccountGroup class="w-4 h-4 text-gray-500" />
+            <AccountGroup class="w-6 h-6 text-gray-500" />
           </div>
           <h3
             class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"

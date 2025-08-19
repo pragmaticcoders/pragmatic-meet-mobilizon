@@ -22,7 +22,7 @@
             viewBox="0 0 48 48"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            class="text-gray-300"
+            class="text-gray-300 empty-state-icon"
           >
             <rect
               x="4"
@@ -134,7 +134,7 @@
           </div>
         </div>
       </div>
-      <div class="flex gap-2 mt-auto">
+      <div class="gap-2">
         <Tag
           variant="info"
           size="small"
@@ -149,112 +149,6 @@
         >
           {{ t("Cancelled") }}
         </Tag>
-        <o-dropdown aria-role="list" class="ml-auto">
-          <template #trigger>
-            <o-button variant="text" icon-right="dots-vertical" size="small" />
-          </template>
-          <o-dropdown-item
-            aria-role="listitem"
-            v-if="
-              ![
-                ParticipantRole.PARTICIPANT,
-                ParticipantRole.NOT_APPROVED,
-              ].includes(participation.role)
-            "
-            @click="
-              gotToWithCheck(participation, {
-                name: RouteName.EDIT_EVENT,
-                params: { eventId: participation.event.uuid },
-              })
-            "
-          >
-            <div class="flex gap-1">
-              <Pencil />
-              {{ t("Edit") }}
-            </div>
-          </o-dropdown-item>
-          <o-dropdown-item
-            aria-role="listitem"
-            v-if="participation.role === ParticipantRole.CREATOR"
-            @click="
-              gotToWithCheck(participation, {
-                name: RouteName.DUPLICATE_EVENT,
-                params: { eventId: participation.event.uuid },
-              })
-            "
-          >
-            <div class="flex gap-1">
-              <ContentDuplicate />
-              {{ t("Duplicate") }}
-            </div>
-          </o-dropdown-item>
-          <o-dropdown-item
-            aria-role="listitem"
-            v-if="
-              ![
-                ParticipantRole.PARTICIPANT,
-                ParticipantRole.NOT_APPROVED,
-              ].includes(participation.role)
-            "
-            @click="openDeleteEventModalWrapper"
-          >
-            <div class="flex gap-1">
-              <Delete />
-              {{ t("Delete") }}
-            </div>
-          </o-dropdown-item>
-          <o-dropdown-item
-            aria-role="listitem"
-            v-if="
-              ![
-                ParticipantRole.PARTICIPANT,
-                ParticipantRole.NOT_APPROVED,
-              ].includes(participation.role)
-            "
-            @click="
-              gotToWithCheck(participation, {
-                name: RouteName.PARTICIPATIONS,
-                params: { eventId: participation.event.uuid },
-              })
-            "
-          >
-            <div class="flex gap-1">
-              <AccountMultiplePlus />
-              {{ t("Manage participations") }}
-            </div>
-          </o-dropdown-item>
-          <o-dropdown-item
-            aria-role="listitem"
-            has-link
-            v-if="
-              ![
-                ParticipantRole.PARTICIPANT,
-                ParticipantRole.NOT_APPROVED,
-              ].includes(participation.role)
-            "
-            @click="
-              router.push({
-                name: RouteName.ANNOUNCEMENTS,
-                params: { eventId: participation.event?.uuid },
-              })
-            "
-          >
-            <Bullhorn />
-            {{ t("Announcements") }}
-          </o-dropdown-item>
-          <o-dropdown-item
-            aria-role="listitem"
-            @click="
-              router.push({
-                name: RouteName.EVENT,
-                params: { eventId: participation.event.uuid },
-              })
-            "
-          >
-            <ViewCompact />
-            {{ t("View event page") }}
-          </o-dropdown-item>
-        </o-dropdown>
       </div>
     </div>
   </article>
