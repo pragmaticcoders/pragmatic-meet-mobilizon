@@ -2,7 +2,7 @@
   <section class="container mx-auto my-8 lg:pl-[20%]">
     <div class="mx-auto">
       <!-- Header with slogan and publish button -->
-      <div class="relative mb-6 lg:pr-[10%] md:pr-[20%]">
+      <div class="relative mb-6 md:pr-[10%]">
         <!-- Publish button positioned at far right on desktop, hidden on mobile -->
         <div class="hidden md:block absolute top-0 right-0 z-10">
           <router-link
@@ -16,7 +16,7 @@
 
         <!-- Slogan with space for button on desktop -->
         <h1
-          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl lg:pr-[40%] leading-[1.4]"
+          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl md:pr-[15%] leading-[1.4]"
         >
           <span class="bg-blue-600 text-white px-3 py-1 rounded-lg">{{
             t("Free")

@@ -94,7 +94,7 @@
     </section>
     <!-- Events from your followed groups -->
     <section class="mx-auto mb-8" v-if="canShowFollowedGroupEvents">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
+      <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ t("Upcoming events from your groups") }}
       </h2>
       <p class="text-gray-600 mb-6">
@@ -136,7 +136,7 @@
     </div>
     <!-- Groups section -->
     <section class="mx-auto mb-8">
-      <h2 class="text-2xl font-bold text-gray-900 mb-2">
+      <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ groupsSectionTitle }}
       </h2>
       <p class="text-gray-600 mb-6">{{ groupsSectionDescription }}</p>
