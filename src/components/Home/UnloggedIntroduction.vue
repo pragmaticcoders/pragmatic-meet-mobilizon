@@ -1,5 +1,5 @@
 <template>
-  <section class="container mx-auto my-8 lg:pl-[20%]">
+  <section class="container mx-auto mt-8 mb-12 lg:pl-[20%]">
     <div class="mx-auto">
       <!-- Header with slogan and publish button -->
       <div class="relative mb-6 md:pr-[10%]">
