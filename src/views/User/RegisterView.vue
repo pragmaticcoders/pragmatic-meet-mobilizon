@@ -211,7 +211,12 @@
           <button
             type="submit"
             @click="submit"
-            :disabled="sendingForm || !acceptTerms"
+            :disabled="
+              sendingForm ||
+              !acceptTerms ||
+              !credentials.email ||
+              !credentials.password
+            "
             class="w-full sm:flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm"
           >
             <span v-if="!sendingForm">{{ t("Create account") }}</span>
