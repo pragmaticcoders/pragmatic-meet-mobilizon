@@ -41,18 +41,21 @@ config :mobilizon, :instance,
 # SMTP configuration (will be overridden by environment variables in Docker)
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,
-  relay: System.get_env("MOBILIZON_SMTP_SERVER"),
-  port: String.to_integer(System.get_env("MOBILIZON_SMTP_PORT")),
-  username: System.get_env("MOBILIZON_SMTP_USERNAME", nil),
-  password: System.get_env("MOBILIZON_SMTP_PASSWORD", nil),
-  tls: System.get_env("MOBILIZON_SMTP_TLS", "if_available"),
-  auth: System.get_env("MOBILIZON_SMTP_AUTH", "if_available"),
+  relay: System.get_env("MOBILIZON_SMTP_SERVER","email-smtp.eu-central-1.amazonaws.com"),
+  port: String.to_integer(System.get_env("MOBILIZON_SMTP_PORT", "587")),
+  username: System.get_env("MOBILIZON_SMTP_USERNAME", "AKIA46HVBEZY4RCVOS6U"),
+  password: System.get_env("MOBILIZON_SMTP_PASSWORD", "BCEimnbehu63e3w19DidT/atT0XaGbFmuRnrJMoGPLJW"),
+  tls: System.get_env("MOBILIZON_SMTP_TLS", "always"),
+  auth: System.get_env("MOBILIZON_SMTP_AUTH", "always"),
   ssl: System.get_env("MOBILIZON_SMTP_SSL", "false"),
-  tls_options: [verify: :verify_none, versions: [:'tlsv1.2'], ciphers: :ssl.cipher_suites(:default, :'tlsv1.2')],
+  tls_options: [
+    verify: :verify_none,
+    versions: [:"tlsv1.2"],
+    ciphers: :ssl.cipher_suites(:default, :"tlsv1.2")
+  ],
   retries: 1,
   no_mx_lookups: false
 
-  
 # Do not print debug messages in production
 config :logger, level: :info
 
