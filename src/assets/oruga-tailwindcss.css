@@ -233,6 +233,24 @@ body {
   cursor: pointer !important;
 }
 
+/* Loading indicator styles for taginput */
+.o-taginput.is-loading .o-input {
+  background-image: url("data:image/svg+xml;charset=utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'><circle class='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' stroke-width='4'></circle><path class='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* Ensure search loading state is visible in dropdown */
+.o-taginput .o-dropdown-content .loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  gap: 8px;
+  color: #6b7280;
+}
+
 .input:focus {
   outline: none;
   border-color: var(--color-primary-500);
@@ -595,19 +613,28 @@ button.menubar__button {
 }
 
 .notification-primary {
-  background-color: var(--color-primary-500);
+  background-color: #155EEF; /* Primary 500 from Figma */
+  color: white;
 }
 
 .notification-info {
-  @apply bg-mbz-info text-black;
+  background-color: #10b981; /* Green 500 from Figma */
+  color: white;
+}
+
+.notification-success {
+  background-color: #10b981; /* Green 500 from Figma */
+  color: white;
 }
 
 .notification-warning {
-  @apply bg-amber-600 text-black;
+  background-color: #f97316; /* Orange 500 from Figma */
+  color: white;
 }
 
 .notification-danger {
-  @apply bg-mbz-danger text-white;
+  background-color: #ef4444; /* Red 500 from Figma */
+  color: white;
 }
 
 /* Table */

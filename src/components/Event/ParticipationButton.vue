@@ -54,22 +54,90 @@
           >{{ t("Cancel my participation request…") }}</o-dropdown-item
         >
       </o-dropdown>
-      <p>{{ t("Participation requested!") }}</p>
-      <p>{{ t("Waiting for organization team approval.") }}</p>
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="text-amber-500"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                fill="currentColor"
+                fill-opacity="0.1"
+              />
+              <path
+                d="M12 6v6l4 2"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-medium text-amber-800 text-sm mb-1">
+              {{ t("Participation requested!") }}
+            </h3>
+            <p class="text-amber-700 text-sm leading-relaxed">
+              {{ t("Waiting for organization team approval.") }}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div
       v-else-if="
         participation && participation.role === ParticipantRole.REJECTED
       "
+      class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4"
     >
-      <span>
-        {{
-          t(
-            "Unfortunately, your participation request was rejected by the organizers."
-          )
-        }}
-      </span>
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="text-red-500"
+          >
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              fill="currentColor"
+              fill-opacity="0.1"
+            />
+            <path
+              d="M15 9l-6 6M9 9l6 6"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="min-w-[200px]">
+          <h3 class="font-medium text-red-800 text-sm mb-1">
+            {{ t("Participation rejected") }}
+          </h3>
+          <p class="text-red-700 text-sm leading-relaxed">
+            {{
+              t(
+                "Unfortunately, your participation request was rejected by the organizers."
+              )
+            }}
+          </p>
+        </div>
+      </div>
     </div>
 
     <o-dropdown v-else-if="!participation && currentActor?.id">

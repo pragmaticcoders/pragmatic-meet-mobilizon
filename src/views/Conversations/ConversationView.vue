@@ -1,18 +1,15 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="conversation">
-    <breadcrumbs-nav
-      :links="[
-        {
-          name: RouteName.CONVERSATION_LIST,
-          text: t('Conversations'),
-        },
-        {
-          name: RouteName.CONVERSATION,
-          params: { id: conversation.id },
-          text: title,
-        },
-      ]"
-    />
+  <div class="conversation-view" v-if="conversation">
+    <div class="conversation-header">
+      <router-link
+        :to="{ name: RouteName.CONVERSATION_LIST }"
+        class="back-link"
+      >
+        <o-icon icon="chevron-left" size="small" />
+        <span>{{ t("Conversations") }}</span>
+      </router-link>
+      <h1 class="conversation-title">{{ title }}</h1>
+    </div>
     <div
       v-if="
         conversation.event &&
@@ -89,52 +86,76 @@
     <o-notification v-if="error" variant="danger">
       {{ error }}
     </o-notification>
-    <section v-if="currentActor">
-      <discussion-comment
-        v-for="comment in conversation.comments.elements"
-        :key="comment.id"
-        :model-value="comment"
-        :current-actor="currentActor"
-        :can-report="true"
-        @update:modelValue="
-          (comment: IComment) =>
-            updateComment({
-              commentId: comment.id as string,
-              text: comment.text,
-            })
-        "
-        @delete-comment="
-          (comment: IComment) =>
-            deleteComment({
-              commentId: comment.id as string,
-            })
-        "
-      />
-      <o-button
-        v-if="
-          conversation.comments.elements.length < conversation.comments.total
-        "
-        @click="loadMoreComments"
-        >{{ t("Fetch more") }}</o-button
-      >
-      <form @submit.prevent="reply" v-if="!error && !conversation.event">
-        <o-field :label="t('Text')">
-          <Editor
-            v-model="newComment"
-            :aria-label="t('Message body')"
-            v-if="currentActor"
-            :currentActor="currentActor"
-            :placeholder="t('Write a new message')"
-          />
-        </o-field>
-        <o-button
-          class="my-2"
-          native-type="submit"
-          :disabled="['<p></p>', ''].includes(newComment)"
-          variant="primary"
-          >{{ t("Reply") }}</o-button
+    <section v-if="currentActor" class="conversation-content">
+      <div class="messages-container">
+        <discussion-comment
+          v-for="comment in conversation.comments.elements"
+          :key="comment.id"
+          :model-value="comment"
+          :current-actor="currentActor"
+          :can-report="true"
+          @update:modelValue="
+            (comment: IComment) =>
+              updateComment({
+                commentId: comment.id as string,
+                text: comment.text,
+              })
+          "
+          @delete-comment="
+            (comment: IComment) =>
+              deleteComment({
+                commentId: comment.id as string,
+              })
+          "
+        />
+        <div
+          v-if="
+            conversation.comments.elements.length < conversation.comments.total
+          "
+          class="text-center py-4"
         >
-      </form>
+          <o-button @click="loadMoreComments" variant="text" size="small">{{
+            t("Fetch more")
+          }}</o-button>
+        </div>
+      </div>
+      <div class="message-input-container" v-if="!error && !conversation.event">
+        <form @submit.prevent="reply" class="message-form">
+          <div class="input-wrapper">
+            <Editor
+              v-model="newComment"
+              :aria-label="t('Message body')"
+              v-if="currentActor"
+              :currentActor="currentActor"
+              :placeholder="t('Write a new message')"
+              class="message-editor"
+            />
+            <div class="input-actions">
+              <div class="left-actions">
+                <o-button
+                  icon-left="emoticon-outline"
+                  variant="text"
+                  size="medium"
+                  :title="t('Add emoji')"
+                />
+                <o-button
+                  icon-left="attachment"
+                  variant="text"
+                  size="medium"
+                  :title="t('Attach file')"
+                />
+              </div>
+              <o-button
+                native-type="submit"
+                :disabled="['<p></p>', ''].includes(newComment)"
+                variant="primary"
+                icon-left="send"
+                >{{ t("Send") }}</o-button
+              >
+            </div>
+          </div>
+        </form>
+      </div>
       <div
         v-else-if="
           conversation.event &&
@@ -164,6 +185,82 @@
     </section>
   </div>
 </template>
+<style lang="scss" scoped>
+.conversation-view {
+  @apply h-screen flex flex-col bg-white dark:bg-gray-900 max-w-screen-xl mx-auto px-4 md:px-16;
+
+  .conversation-header {
+    @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 shadow-sm;
+
+    .back-link {
+      @apply inline-flex items-center text-blue-600 hover:text-blue-700 mb-2 text-sm gap-1;
+      text-decoration: none;
+
+      :deep(.o-icon) {
+        @apply text-blue-600;
+      }
+    }
+
+    .conversation-title {
+      @apply text-xl font-semibold text-gray-900 dark:text-white;
+    }
+  }
+
+  .conversation-content {
+    @apply flex-1 flex flex-col overflow-hidden;
+
+    .messages-container {
+      @apply flex-1 overflow-y-auto px-4 py-6 bg-gray-50 dark:bg-gray-900;
+
+      :deep(.discussion-comment) {
+        @apply mb-4 bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm;
+
+        &:last-child {
+          @apply mb-0;
+        }
+      }
+    }
+
+    .message-input-container {
+      @apply bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4;
+
+      .message-form {
+        .input-wrapper {
+          @apply bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600;
+
+          .message-editor {
+            @apply px-4 pt-3 pb-2;
+
+            :deep(.editor-wrapper) {
+              @apply bg-transparent border-0;
+
+              .ProseMirror {
+                @apply min-h-[60px] max-h-[200px] overflow-y-auto;
+              }
+            }
+          }
+
+          .input-actions {
+            @apply flex items-center justify-between px-3 py-2 border-t border-gray-200 dark:border-gray-600;
+
+            .left-actions {
+              @apply flex items-center gap-1;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .o-notification {
+    @apply mx-4 my-2;
+  }
+
+  .bg-mbz-yellow {
+    @apply bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700;
+  }
+}
+</style>
 <script lang="ts" setup>
 import {
   CONVERSATION_COMMENT_CHANGED,

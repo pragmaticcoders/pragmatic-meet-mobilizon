@@ -15,32 +15,51 @@
         },
       ]"
     />
-    <h1>{{ t("Participants") }}</h1>
-    <div class="">
-      <div class="">
-        <div class="">
-          <o-field :label="t('Status')" horizontal label-for="role-select">
-            <o-select v-model="role" id="role-select">
-              <option value="EVERYTHING">
-                {{ t("Everything") }}
-              </option>
-              <option :value="ParticipantRole.CREATOR">
-                {{ t("Organizer") }}
-              </option>
-              <option :value="ParticipantRole.PARTICIPANT">
-                {{ t("Participant") }}
-              </option>
-              <option :value="ParticipantRole.NOT_APPROVED">
-                {{ t("Not approved") }}
-              </option>
-              <option :value="ParticipantRole.REJECTED">
-                {{ t("Rejected") }}
-              </option>
-            </o-select>
-          </o-field>
+    <h1 class="text-3xl font-bold mb-6">{{ t("Participants") }}</h1>
+    <div class="mb-6">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2">
+          <label for="role-select" class="text-sm font-medium"
+            >{{ t("Status") }}:</label
+          >
+          <o-select v-model="role" id="role-select" class="min-w-[150px]">
+            <option value="EVERYTHING">
+              {{ t("Everything") }}
+            </option>
+            <option :value="ParticipantRole.CREATOR">
+              {{ t("Organizer") }}
+            </option>
+            <option :value="ParticipantRole.PARTICIPANT">
+              {{ t("Participant") }}
+            </option>
+            <option :value="ParticipantRole.NOT_APPROVED">
+              {{ t("Not approved") }}
+            </option>
+            <option :value="ParticipantRole.REJECTED">
+              {{ t("Rejected") }}
+            </option>
+          </o-select>
         </div>
-        <div class="" v-if="exportFormats.length > 0">
-          <o-dropdown aria-role="list">
+        <div class="flex items-center gap-2">
+          <o-button
+            @click="acceptParticipants(checkedRows)"
+            variant="primary"
+            :disabled="!canAcceptParticipants() || bulkActionLoading"
+            :loading="bulkActionLoading"
+            icon-left="check"
+          >
+            {{ t("Approve") }}
+          </o-button>
+          <o-button
+            @click="refuseParticipants(checkedRows)"
+            variant="danger"
+            :disabled="!canRefuseParticipants() || bulkActionLoading"
+            :loading="bulkActionLoading"
+            icon-left="close"
+          >
+            {{ t("Reject") }}
+          </o-button>
+          <o-dropdown aria-role="list" v-if="exportFormats.length > 0">
             <template #trigger="{ active }">
               <o-button
                 :label="t('Export')"
@@ -110,64 +129,72 @@
         :label="t('Participant')"
         v-slot="props"
       >
-        <article class="flex gap-2">
-          <figure v-if="props.row.actor.avatar">
+        <div class="flex items-center gap-3">
+          <figure v-if="props.row.actor.avatar" class="flex-shrink-0">
             <img
-              class="rounded-full w-12 h-12 object-cover"
+              class="rounded-full w-10 h-10 object-cover"
               :src="props.row.actor.avatar.url"
               alt=""
-              height="48"
-              width="48"
+              height="40"
+              width="40"
             />
           </figure>
           <Incognito
             v-else-if="props.row.actor.preferredUsername === 'anonymous'"
-            :size="48"
+            :size="40"
+            class="flex-shrink-0"
           />
-          <AccountCircle v-else :size="48" />
+          <AccountCircle v-else :size="40" class="flex-shrink-0" />
           <div>
-            <div class="prose dark:prose-invert">
-              <p v-if="props.row.actor.preferredUsername !== 'anonymous'">
-                <span v-if="props.row.actor.name">{{
-                  props.row.actor.name
-                }}</span
-                ><br />
-                <span class="text-sm"
-                  >@{{ usernameWithDomain(props.row.actor) }}</span
-                >
-              </p>
-              <span v-else>
-                {{ t("Anonymous participant") }}
-              </span>
+            <div v-if="props.row.actor.preferredUsername !== 'anonymous'">
+              <div class="font-medium text-sm">
+                {{
+                  props.row.actor.name || usernameWithDomain(props.row.actor)
+                }}
+              </div>
+              <div class="text-xs text-gray-500" v-if="props.row.actor.name">
+                @{{ usernameWithDomain(props.row.actor) }}
+              </div>
             </div>
+            <span v-else class="text-sm text-gray-500">
+              {{ t("Anonymous participant") }}
+            </span>
           </div>
-        </article>
+        </div>
       </o-table-column>
       <o-table-column field="role" :label="t('Role')" v-slot="props">
-        <tag
-          variant="primary"
-          v-if="props.row.role === ParticipantRole.CREATOR"
+        <span
+          class="inline-block px-3 py-1 text-xs font-medium rounded-sm"
+          :class="{
+            'bg-blue-500 text-white':
+              props.row.role === ParticipantRole.CREATOR,
+            'bg-green-100 text-green-800':
+              props.row.role === ParticipantRole.PARTICIPANT,
+            'bg-gray-100 text-gray-800':
+              props.row.role === ParticipantRole.NOT_CONFIRMED ||
+              props.row.role === ParticipantRole.NOT_APPROVED,
+            'bg-red-100 text-red-800':
+              props.row.role === ParticipantRole.REJECTED,
+          }"
         >
-          {{ t("Organizer") }}
-        </tag>
-        <tag v-else-if="props.row.role === ParticipantRole.PARTICIPANT">
-          {{ t("Participant") }}
-        </tag>
-        <tag v-else-if="props.row.role === ParticipantRole.NOT_CONFIRMED">
-          {{ t("Not confirmed") }}
-        </tag>
-        <tag
-          variant="warning"
-          v-else-if="props.row.role === ParticipantRole.NOT_APPROVED"
-        >
-          {{ t("Not approved") }}
-        </tag>
-        <tag
-          variant="danger"
-          v-else-if="props.row.role === ParticipantRole.REJECTED"
-        >
-          {{ t("Rejected") }}
-        </tag>
+          <template v-if="props.row.role === ParticipantRole.CREATOR">
+            {{ t("Organizer") }}
+          </template>
+          <template v-else-if="props.row.role === ParticipantRole.PARTICIPANT">
+            {{ t("Participant") }}
+          </template>
+          <template
+            v-else-if="props.row.role === ParticipantRole.NOT_CONFIRMED"
+          >
+            {{ t("Not confirmed") }}
+          </template>
+          <template v-else-if="props.row.role === ParticipantRole.NOT_APPROVED">
+            {{ t("Not approved") }}
+          </template>
+          <template v-else-if="props.row.role === ParticipantRole.REJECTED">
+            {{ t("Rejected") }}
+          </template>
+        </span>
       </o-table-column>
       <o-table-column
         field="metadata.message"
@@ -199,16 +226,47 @@
             }}
           </o-button>
         </div>
-        <p v-else class="has-text-grey-dark">
+        <p v-else class="text-sm text-gray-500">
           {{ t("No message") }}
         </p>
       </o-table-column>
       <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
-        <span class="text-center">
-          {{ formatDateString(props.row.insertedAt) }}<br />{{
-            formatTimeString(props.row.insertedAt)
-          }}
-        </span>
+        <div class="text-sm">
+          <div>{{ formatDateString(props.row.insertedAt) }}</div>
+          <div class="text-gray-500">
+            {{ formatTimeString(props.row.insertedAt) }}
+          </div>
+        </div>
+      </o-table-column>
+      <o-table-column :label="t('Actions')" v-slot="props">
+        <div
+          class="flex gap-1"
+          v-if="props.row.role !== ParticipantRole.CREATOR"
+        >
+          <o-button
+            v-if="
+              props.row.role === ParticipantRole.NOT_APPROVED ||
+              props.row.role === ParticipantRole.REJECTED
+            "
+            @click="
+              updateSingleParticipant(props.row.id, ParticipantRole.PARTICIPANT)
+            "
+            size="small"
+            variant="success"
+            icon-left="check"
+            :title="t('Approve')"
+          />
+          <o-button
+            v-if="props.row.role !== ParticipantRole.REJECTED"
+            @click="
+              updateSingleParticipant(props.row.id, ParticipantRole.REJECTED)
+            "
+            size="small"
+            variant="danger"
+            icon-left="close"
+            :title="t('Reject')"
+          />
+        </div>
       </o-table-column>
       <template #detail="props">
         <p>
@@ -219,38 +277,6 @@
         <EmptyContent icon="account-circle" :inline="true">
           {{ t("No participant matches the filters") }}
         </EmptyContent>
-      </template>
-      <template #bottom-left>
-        <div class="flex gap-2">
-          <o-button
-            @click="acceptParticipants(checkedRows)"
-            variant="success"
-            :disabled="!canAcceptParticipants"
-            outlined
-          >
-            {{
-              t(
-                "No participant to approve|Approve participant|Approve {number} participants",
-                { number: checkedRows.length },
-                checkedRows.length
-              )
-            }}
-          </o-button>
-          <o-button
-            @click="refuseParticipants(checkedRows)"
-            variant="danger"
-            :disabled="!canRefuseParticipants"
-            outlined
-          >
-            {{
-              t(
-                "No participant to reject|Reject participant|Reject {number} participants",
-                { number: checkedRows.length },
-                checkedRows.length
-              )
-            }}
-          </o-button>
-        </div>
       </template>
     </o-table>
   </section>
@@ -283,7 +309,6 @@ import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Incognito from "vue-material-design-icons/Incognito.vue";
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import { Notifier } from "@/plugins/notifier";
-import Tag from "@/components/TagElement.vue";
 import { useHead } from "@/utils/head";
 
 const PARTICIPANTS_PER_PAGE = 10;
@@ -317,10 +342,15 @@ const role = useRouteQuery(
 );
 
 const checkedRows = ref<IParticipant[]>([]);
+const bulkActionLoading = ref(false);
 
 const queueTable = ref();
 
-const { result: participantsResult, loading: participantsLoading } = useQuery<{
+const {
+  result: participantsResult,
+  loading: participantsLoading,
+  refetch: refetchParticipants,
+} = useQuery<{
   event: IEvent;
 }>(
   PARTICIPANTS,
@@ -353,25 +383,128 @@ onUpdateParticipantError((e) => console.error(e));
 const acceptParticipants = async (
   participants: IParticipant[]
 ): Promise<void> => {
-  await asyncForEach(participants, async (participant: IParticipant) => {
-    await updateParticipant({
-      id: participant.id,
-      role: ParticipantRole.PARTICIPANT,
+  if (bulkActionLoading.value) return;
+
+  bulkActionLoading.value = true;
+  let successCount = 0;
+  let errorCount = 0;
+
+  try {
+    await asyncForEach(participants, async (participant: IParticipant) => {
+      try {
+        await updateParticipant({
+          id: participant.id,
+          role: ParticipantRole.PARTICIPANT,
+        });
+        successCount++;
+      } catch (error) {
+        console.error(
+          `Failed to approve participant ${participant.id}:`,
+          error
+        );
+        errorCount++;
+      }
     });
-  });
-  checkedRows.value = [];
+
+    // Refetch data to ensure UI is up to date
+    await refetchParticipants();
+    checkedRows.value = [];
+
+    // Show success/error notifications
+    if (successCount > 0) {
+      notifier?.success(
+        t("Successfully approved {count} participant(s)", {
+          count: successCount,
+        })
+      );
+    }
+    if (errorCount > 0) {
+      notifier?.error(
+        t("Failed to approve {count} participant(s)", { count: errorCount })
+      );
+    }
+  } catch (error) {
+    console.error("Bulk approve operation failed:", error);
+    notifier?.error(t("An error occurred while approving participants"));
+  } finally {
+    bulkActionLoading.value = false;
+  }
 };
 
 const refuseParticipants = async (
   participants: IParticipant[]
 ): Promise<void> => {
-  await asyncForEach(participants, async (participant: IParticipant) => {
-    await updateParticipant({
-      id: participant.id,
-      role: ParticipantRole.REJECTED,
+  if (bulkActionLoading.value) return;
+
+  bulkActionLoading.value = true;
+  let successCount = 0;
+  let errorCount = 0;
+
+  try {
+    await asyncForEach(participants, async (participant: IParticipant) => {
+      try {
+        await updateParticipant({
+          id: participant.id,
+          role: ParticipantRole.REJECTED,
+        });
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to reject participant ${participant.id}:`, error);
+        errorCount++;
+      }
     });
-  });
-  checkedRows.value = [];
+
+    // Refetch data to ensure UI is up to date
+    await refetchParticipants();
+    checkedRows.value = [];
+
+    // Show success/error notifications
+    if (successCount > 0) {
+      notifier?.success(
+        t("Successfully rejected {count} participant(s)", {
+          count: successCount,
+        })
+      );
+    }
+    if (errorCount > 0) {
+      notifier?.error(
+        t("Failed to reject {count} participant(s)", { count: errorCount })
+      );
+    }
+  } catch (error) {
+    console.error("Bulk reject operation failed:", error);
+    notifier?.error(t("An error occurred while rejecting participants"));
+  } finally {
+    bulkActionLoading.value = false;
+  }
+};
+
+const updateSingleParticipant = async (
+  participantId: string,
+  newRole: ParticipantRole
+): Promise<void> => {
+  try {
+    await updateParticipant({
+      id: participantId,
+      role: newRole,
+    });
+
+    // Refetch data to ensure UI is up to date
+    await refetchParticipants();
+
+    const actionName =
+      newRole === ParticipantRole.PARTICIPANT ? t("approved") : t("rejected");
+    notifier?.success(
+      t("Participant {action} successfully", { action: actionName })
+    );
+  } catch (error) {
+    console.error(`Failed to update participant ${participantId}:`, error);
+    const actionName =
+      newRole === ParticipantRole.PARTICIPANT ? t("approve") : t("reject");
+    notifier?.error(
+      t("Failed to {action} participant", { action: actionName })
+    );
+  }
 };
 
 const {
@@ -465,37 +598,22 @@ useHead({
 });
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
-section.container.container {
-  padding: 1rem;
-}
+.ellipsed-message {
+  cursor: pointer;
 
-.table {
-  .column-message {
-    vertical-align: middle;
-  }
-  .ellipsed-message {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    p {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    button {
-      display: inline;
-    }
+  p {
+    margin-bottom: 0.5rem;
   }
 }
 
-nav.breadcrumb {
-  a {
-    text-decoration: none;
+:deep(.o-table) {
+  th {
+    @apply font-medium text-sm text-gray-700 dark:text-gray-300;
+  }
+
+  td {
+    @apply py-3;
   }
 }
 </style>

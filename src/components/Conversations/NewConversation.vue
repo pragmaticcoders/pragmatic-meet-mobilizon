@@ -1,14 +1,29 @@
 <template>
-  <form @submit="sendForm" class="flex flex-col">
-    <ActorAutoComplete v-model="actorMentions" />
-    <Editor
-      v-model="text"
-      mode="basic"
-      :aria-label="t('Message body')"
-      v-if="currentActor"
-      :currentActor="currentActor"
-      :placeholder="t('Write a new message')"
-    />
+  <form @submit="sendForm" class="flex flex-col gap-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t("Recipients") }}
+      </label>
+      <ActorAutoComplete v-model="actorMentions" />
+      <p class="text-xs text-gray-500 mt-1">
+        {{ t("Search for people or groups to send a message to") }}
+      </p>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        {{ t("Message") }}
+      </label>
+      <Editor
+        v-model="text"
+        mode="basic"
+        :aria-label="t('Message body')"
+        v-if="currentActor"
+        :currentActor="currentActor"
+        :placeholder="t('Write a new message')"
+      />
+    </div>
+
     <o-notification
       class="my-2"
       variant="danger"
@@ -18,10 +33,16 @@
     >
       {{ error }}
     </o-notification>
+
     <footer class="flex gap-2 py-3 mx-2 justify-end">
-      <o-button :disabled="!canSend" nativeType="submit">{{
-        t("Send")
-      }}</o-button>
+      <o-button
+        :disabled="!canSend || isLoading"
+        :loading="isLoading"
+        nativeType="submit"
+        variant="primary"
+      >
+        {{ t("Send") }}
+      </o-button>
     </footer>
   </form>
 </template>
@@ -62,6 +83,7 @@ const router = useRouter();
 const emit = defineEmits(["close"]);
 
 const errors = ref<string[]>([]);
+const isLoading = ref(false);
 
 const textPersonMentions = computed(() => props.personMentions);
 const textGroupMentions = computed(() => props.groupMentions);
@@ -160,18 +182,44 @@ onPrivateMessageError((err) => {
 
 const sendForm = async (e: Event) => {
   e.preventDefault();
-  console.debug("Sending new private message");
-  if (!currentActor.value?.id) return;
-  const result = await postPrivateMessageMutate({
-    actorId: currentActor.value.id,
-    text: text.value,
-    mentions: actorMentions.value.map((actor) => usernameWithDomain(actor)),
-  });
-  if (!result?.data?.postPrivateMessage.conversationParticipantId) return;
-  router.push({
-    name: RouteName.CONVERSATION,
-    params: { id: result?.data?.postPrivateMessage.conversationParticipantId },
-  });
-  emit("close");
+
+  if (!currentActor.value?.id) {
+    errors.value.push("User not authenticated");
+    return;
+  }
+
+  if (!canSend.value) {
+    errors.value.push("Please add recipients and write a message");
+    return;
+  }
+
+  isLoading.value = true;
+  errors.value = []; // Clear previous errors
+
+  try {
+    console.debug("Sending new private message");
+    const result = await postPrivateMessageMutate({
+      actorId: currentActor.value.id,
+      text: text.value,
+      mentions: actorMentions.value.map((actor) => usernameWithDomain(actor)),
+    });
+
+    if (!result?.data?.postPrivateMessage.conversationParticipantId) {
+      errors.value.push("Failed to create conversation");
+      return;
+    }
+
+    // Success - navigate to the conversation
+    router.push({
+      name: RouteName.CONVERSATION,
+      params: { id: result.data.postPrivateMessage.conversationParticipantId },
+    });
+    emit("close");
+  } catch (error) {
+    console.error("Failed to send message:", error);
+    errors.value.push("Failed to send message. Please try again.");
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>

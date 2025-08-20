@@ -192,7 +192,16 @@
         v-if="editor && isCommentMode"
         class="bubble-menu"
         :editor="editor"
-        :tippy-options="{ duration: 100 }"
+        :tippy-options="{
+          duration: 100,
+          placement: 'top-start',
+          offset: [20, 15],
+          arrow: false,
+          maxWidth: 'none',
+          boundary: 'viewport',
+          flip: false,
+          shift: true,
+        }"
       >
         <button
           class="menububble__button"
@@ -201,7 +210,7 @@
           type="button"
           :title="t('Bold')"
         >
-          <FormatBold :size="24" />
+          <FormatBold :size="20" />
           <span class="visually-hidden">{{ t("Bold") }}</span>
         </button>
 
@@ -212,7 +221,7 @@
           type="button"
           :title="t('Italic')"
         >
-          <FormatItalic :size="24" />
+          <FormatItalic :size="20" />
           <span class="visually-hidden">{{ t("Italic") }}</span>
         </button>
       </bubble-menu>
@@ -345,7 +354,7 @@ const editor = useEditor({
       "aria-label": ariaLabel.value ?? "",
       role: "textbox",
       class:
-        "dark:prose-invert bg-white dark:bg-zinc-700 !max-w-full h-[52px] placeholder:text-md",
+        "dark:prose-invert bg-white dark:bg-zinc-700 !max-w-full min-h-[52px] placeholder:text-md",
     },
     transformPastedHTML: transformPastedHTML,
   },
@@ -528,6 +537,19 @@ const checkEditorEmpty = () => {
 
 .editor {
   position: relative;
+  overflow: visible;
+
+  .ProseMirror {
+    transition: min-height 0.2s ease-out;
+    resize: none;
+  }
+
+  &.comment_mode {
+    .ProseMirror {
+      position: relative;
+      z-index: 1;
+    }
+  }
 
   p.is-empty:first-child::before {
     content: attr(data-empty-text);
@@ -540,17 +562,23 @@ const checkEditorEmpty = () => {
 
   .editor__content div.ProseMirror {
     min-height: 10rem;
+    max-height: 60vh;
+    overflow-y: auto;
   }
 
   &.short_mode {
     div.ProseMirror {
       min-height: 5rem;
+      max-height: 40vh;
+      overflow-y: auto;
     }
   }
 
   &.comment_mode {
     div.ProseMirror {
       min-height: 2rem;
+      max-height: 30vh;
+      overflow-y: auto;
     }
   }
 
@@ -558,7 +586,9 @@ const checkEditorEmpty = () => {
     div.ProseMirror {
       min-height: 2.5rem;
       border-radius: 4px;
-      padding: 12px 6px;
+      padding: 12px 6px 12px 16px;
+      line-height: 1.5;
+      word-wrap: break-word;
     }
 
     h1 {
@@ -599,30 +629,52 @@ const checkEditorEmpty = () => {
 
     img {
       max-width: 100%;
-      border-radius: 3px;
+      height: auto;
+      border-radius: 6px;
+      margin: 8px 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      display: block;
     }
   }
 }
 
 .bubble-menu {
   display: flex;
-  background-color: #0d0d0d;
-  padding: 0.2rem;
-  border-radius: 0.5rem;
+  background-color: #1f2937;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #374151;
+  gap: 0.25rem;
+  z-index: 1000;
 
-  button {
+  button,
+  .menububble__button {
     border: none;
     background: none;
-    color: #fff;
-    font-size: 0.85rem;
+    color: #f9fafb;
+    font-size: 0.875rem;
     font-weight: 500;
-    padding: 0 0.2rem;
-    opacity: 0.6;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    opacity: 0.8;
     cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
 
-    &:hover,
+    &:hover {
+      opacity: 1;
+      background-color: #374151;
+    }
+
     &.is-active {
       opacity: 1;
+      background-color: #3b82f6;
+      color: #ffffff;
     }
   }
 }
@@ -656,7 +708,49 @@ const checkEditorEmpty = () => {
   padding: 0;
   font-size: 1rem;
   text-align: inherit;
-  border-radius: 5px;
+  border-radius: 12px;
+  background: transparent;
+}
+
+/* Ensure bubble menu is properly positioned within editor bounds */
+.editor.comment_mode .bubble-menu {
+  position: relative;
+  max-width: calc(100% - 3rem);
+  margin-left: 1rem;
+}
+
+/* Bubble menu positioning improvements */
+.tippy-box {
+  max-width: none !important;
+  transform: translateX(20px) !important;
+}
+
+.tippy-content {
+  padding: 0 !important;
+}
+
+/* Better positioning for comment mode */
+.editor.comment_mode {
+  .ProseMirror {
+    padding-left: 24px;
+    padding-right: 16px;
+  }
+}
+
+/* Ensure consistent padding for all editor modes */
+.editor {
+  .ProseMirror {
+    padding-left: 20px !important;
+  }
+}
+
+/* Ensure bubble menu doesn't overlap with borders */
+[data-tippy-root] {
+  z-index: 1000;
+}
+
+.tippy-box[data-placement^="top"] {
+  margin-left: 20px;
 }
 
 .visually-hidden {
