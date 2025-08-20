@@ -46,7 +46,7 @@ config :mobilizon, Mobilizon.Web.Email.Mailer,
   username: System.get_env("MOBILIZON_SMTP_USERNAME", nil),
   password: System.get_env("MOBILIZON_SMTP_PASSWORD", nil),
   tls: System.get_env("MOBILIZON_SMTP_TLS", "if_available"),
-  auth: System.get_env("MOBILIZON_SMTP_AUTH", "if_available")
+  auth: System.get_env("MOBILIZON_SMTP_AUTH", "if_available"),
   ssl: System.get_env("MOBILIZON_SMTP_SSL", "false"),
   tls_options: [verify: :verify_none, versions: [:'tlsv1.2'], ciphers: :ssl.cipher_suites(:default, :'tlsv1.2')],
   retries: 1,
