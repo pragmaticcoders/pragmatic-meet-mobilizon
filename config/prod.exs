@@ -48,8 +48,11 @@ config :mobilizon, Mobilizon.Web.Email.Mailer,
   tls: System.get_env("MOBILIZON_SMTP_TLS", "if_available"),
   auth: System.get_env("MOBILIZON_SMTP_AUTH", "if_available"),
   ssl: System.get_env("MOBILIZON_SMTP_SSL", "false"),
+  tls_options: [verify: :verify_none, versions: [:'tlsv1.2'], ciphers: :ssl.cipher_suites(:default, :'tlsv1.2')],
   retries: 1,
   no_mx_lookups: false
+
+  
 # Do not print debug messages in production
 config :logger, level: :info
 
