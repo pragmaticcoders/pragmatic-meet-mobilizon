@@ -21,6 +21,8 @@ services:
     env_file:
       - ../../.env
     environment:
+      MIX_ENV: "prod"
+      DOCKER: "true"
       POSTGRES_USER: ${MOBILIZON_DATABASE_USERNAME:-mobilizon}
       POSTGRES_PASSWORD: ${MOBILIZON_DATABASE_PASSWORD:-mobilizon}
       POSTGRES_DB: ${MOBILIZON_DATABASE_DBNAME:-mobilizon}
