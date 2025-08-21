@@ -1,6 +1,7 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="group">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" v-if="group">
     <breadcrumbs-nav
+      class="mb-6"
       :links="[
         {
           name: RouteName.GROUP,
@@ -15,38 +16,53 @@
       ]"
     />
     <section>
-      <h1 class="" v-if="group">
-        {{
-          t("{group}'s events", {
-            group: displayName(group),
-          })
-        }}
-      </h1>
-      <p v-if="isCurrentActorMember">
-        {{
-          t(
-            "When a moderator from the group creates an event and attributes it to the group, it will show up here."
-          )
-        }}
-      </p>
-      <o-button
-        tag="router-link"
-        variant="primary"
-        v-if="isCurrentActorAGroupModerator"
-        :to="{
-          name: RouteName.CREATE_EVENT,
-          query: { actorId: group.id },
-        }"
-        >{{ t("+ Create an event") }}</o-button
-      >
+      <div class="mb-8">
+        <h1
+          class="text-3xl font-bold text-gray-900 dark:text-white mb-3"
+          v-if="group"
+        >
+          {{
+            t("{group}'s events", {
+              group: displayName(group),
+            })
+          }}
+        </h1>
+        <p
+          class="text-base text-gray-600 dark:text-gray-400 max-w-3xl"
+          v-if="isCurrentActorMember"
+        >
+          {{
+            t(
+              "When a moderator from the group creates an event and attributes it to the group, it will show up here."
+            )
+          }}
+        </p>
+      </div>
+      <div class="mb-6" v-if="isCurrentActorAGroupModerator">
+        <o-button
+          tag="router-link"
+          variant="primary"
+          class="px-6 py-2.5 font-semibold"
+          :to="{
+            name: RouteName.CREATE_EVENT,
+            query: { actorId: group.id },
+          }"
+          >{{ t("+ Create an event") }}</o-button
+        >
+      </div>
       <o-loading v-model:active="groupLoading"></o-loading>
-      <section v-if="group">
-        <h2 class="text-2xl">
-          {{ showPassedEvents ? t("Past events") : t("Upcoming events") }}
-        </h2>
-        <o-switch class="mb-4" v-model="showPassedEvents">{{
-          t("Past events")
-        }}</o-switch>
+      <section v-if="group" class="mt-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">
+            {{ showPassedEvents ? t("Past events") : t("Upcoming events") }}
+          </h2>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600 dark:text-gray-400">{{
+              t("Past events")
+            }}</span>
+            <o-switch v-model="showPassedEvents" />
+          </div>
+        </div>
         <grouped-multi-event-minimalist-card
           class="mb-6"
           :events="group.organizedEvents.elements"

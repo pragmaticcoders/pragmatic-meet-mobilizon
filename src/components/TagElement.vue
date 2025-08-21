@@ -26,13 +26,15 @@ const typeClasses = computed(() => {
   switch (props.variant) {
     default:
     case "light":
-      return "bg-purple-3 dark:text-violet-3";
+      return "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100";
+    case "primary":
+      return "bg-primary-100 text-primary-700 dark:bg-primary-700 dark:text-primary-100";
     case "info":
-      return "bg-mbz-info dark:text-black";
+      return "bg-primary-100 text-primary-700 dark:bg-primary-700 dark:text-primary-100";
     case "warning":
-      return "bg-yellow-1";
+      return "bg-warning-100 text-warning-700 dark:bg-warning-700 dark:text-warning-100";
     case "danger":
-      return "bg-mbz-danger dark:text-white";
+      return "bg-error-100 text-error-700 dark:bg-error-700 dark:text-error-100";
   }
 });
 </script>

@@ -51,7 +51,7 @@
           <div v-if="orderedCategories">
             <label
               for="categoryField"
-              class="block text-sm font-medium text-gray-700 mb-2"
+              class="block text-sm font-medium text-gray-700 my-2"
               >{{ t("Category") }}</label
             >
             <o-select
@@ -71,9 +71,6 @@
             </o-select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">{{
-              t("Tags")
-            }}</label>
             <tag-input v-model="event.tags" class="w-full" />
           </div>
         </div>
@@ -276,129 +273,6 @@
         </div>-->
       </section>
       <section class="border-t pt-8 mt-8">
-        <h2 class="text-xl font-bold mb-6">
-          {{ t("How to register") }}
-        </h2>
-
-        <div class="space-y-3 mb-4">
-          <div>
-            <o-radio
-              v-model="registerOption"
-              name="registerOption"
-              :native-value="RegisterOption.MOBILIZON"
-              >{{
-                t("I want to manage the registration on Mobilizon")
-              }}</o-radio
-            >
-          </div>
-
-          <div>
-            <o-radio
-              v-model="registerOption"
-              name="registerOption"
-              :native-value="RegisterOption.EXTERNAL"
-              >{{
-                t("I want to manage the registration with an external provider")
-              }}</o-radio
-            >
-          </div>
-        </div>
-
-        <o-field
-          v-if="registerOption === RegisterOption.EXTERNAL"
-          :label="t('URL')"
-        >
-          <o-input
-            icon="link"
-            type="url"
-            v-model="event.externalParticipationUrl"
-            :placeholder="t('External provider URL')"
-            required
-          />
-        </o-field>
-
-        <o-field
-          v-if="
-            anonymousParticipationConfig?.allowed &&
-            registerOption === RegisterOption.MOBILIZON
-          "
-          :label="t('Anonymous participations')"
-        >
-          <o-switch v-model="eventOptions.anonymousParticipation">
-            {{ t("I want to allow people to participate without an account.") }}
-            <small
-              v-if="
-                anonymousParticipationConfig?.validation.email
-                  .confirmationRequired
-              "
-            >
-              <br />
-              {{
-                t(
-                  "Anonymous participants will be asked to confirm their participation through e-mail."
-                )
-              }}
-            </small>
-          </o-switch>
-        </o-field>
-
-        <o-field
-          :label="t('Participation approval')"
-          v-show="registerOption === RegisterOption.MOBILIZON"
-        >
-          <o-switch v-model="needsApproval">{{
-            t("I want to approve every participation request")
-          }}</o-switch>
-        </o-field>
-
-        <o-field
-          :label="t('Showing participants')"
-          v-show="registerOption === RegisterOption.MOBILIZON"
-        >
-          <o-switch v-model="hideParticipants">{{
-            t("Hide the number of participants")
-          }}</o-switch>
-        </o-field>
-
-        <o-field
-          :label="t('Number of places')"
-          v-show="registerOption === RegisterOption.MOBILIZON"
-        >
-          <o-switch v-model="limitedPlaces">{{
-            t("Limited number of places")
-          }}</o-switch>
-        </o-field>
-
-        <div
-          class=""
-          v-if="limitedPlaces && registerOption === RegisterOption.MOBILIZON"
-        >
-          <o-field :label="t('Number of places')" label-for="number-of-places">
-            <o-input
-              type="number"
-              controls-position="compact"
-              :aria-minus-label="t('Decrease')"
-              :aria-plus-label="t('Increase')"
-              min="1"
-              v-model="maximumAttendeeCapacity"
-              id="number-of-places"
-            />
-          </o-field>
-          <!--
-          <o-field>
-            <o-switch v-model="eventOptions.showRemainingAttendeeCapacity">
-              {{ t('Show remaining number of places') }}
-            </o-switch>
-          </o-field>
-
-          <o-field>
-            <o-switch v-model="eventOptions.showParticipationPrice">
-              {{ t('Display participation price') }}
-            </o-switch>
-          </o-field>-->
-        </div>
-      </section>
-      <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-6">
           {{ t("Public comment moderation") }}
         </h2>
@@ -529,9 +403,9 @@
         <o-button
           variant="text"
           class="mt-4 text-blue-600"
-          @click="showMoreInfo"
+          @click="downloadLogo"
         >
-          <o-icon icon="information-outline" />
+          <o-icon icon="download" />
           {{ t("Pobierz") }}
         </o-button>
       </section>
@@ -1293,7 +1167,7 @@ const confirmGoElsewhere = (): Promise<boolean> => {
       message,
       confirmText: t("Abandon editing") as string,
       cancelText: t("Continue editing") as string,
-      variant: "warning",
+      variant: "danger",
       hasIcon: true,
       onConfirm: () => resolve(true),
       onCancel: () => resolve(false),
@@ -1302,10 +1176,15 @@ const confirmGoElsewhere = (): Promise<boolean> => {
 };
 
 /**
- * Show more info about the agreement
+ * Download the Pragmatic Coders logo zip file
  */
-const showMoreInfo = (): void => {
-  window.open("https://www.pragmaticcoders.com/", "_blank");
+const downloadLogo = (): void => {
+  const link = document.createElement("a");
+  link.href = "/Logo-Pragmatic-Coders.zip";
+  link.download = "Logo-Pragmatic-Coders.zip";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 /**

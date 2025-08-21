@@ -1,85 +1,109 @@
 <template>
-  <div class="rounded shadow-lg bg-white dark:bg-mbz-purple dark:text-white">
+  <div
+    class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-200"
+  >
     <div
-      class="bg-mbz-yellow-alt-50 text-black flex items-center gap-1 p-2 rounded-t-lg"
+      class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2 px-4 py-3"
       dir="auto"
     >
-      <figure class="" v-if="member.actor.avatar">
+      <figure class="flex-shrink-0" v-if="member.actor.avatar">
         <img
-          class="rounded-xl"
+          class="rounded-full"
           :src="member.actor.avatar.url"
           alt=""
           width="24"
           height="24"
         />
       </figure>
-      <AccountCircle v-else :size="24" />
-      {{ displayNameAndUsername(member.actor) }}
+      <AccountCircle v-else :size="24" class="text-gray-400" />
+      <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        {{ displayNameAndUsername(member.actor) }}
+      </span>
     </div>
-    <div class="flex items-center gap-2 p-2 pr-4" dir="auto">
-      <div class="flex-1">
-        <div class="p-2 flex gap-2">
-          <div class="">
-            <figure class="h-12 w-12" v-if="member.parent.avatar">
-              <img
-                class="rounded-full w-full h-full object-cover"
-                :src="member.parent.avatar.url"
-                alt=""
-                width="48"
-                height="48"
-              />
-            </figure>
-            <AccountGroup v-else :size="48" />
-          </div>
-          <div class="" dir="auto">
-            <router-link
-              :to="{
-                name: RouteName.GROUP,
-                params: {
-                  preferredUsername: usernameWithDomain(member.parent),
-                },
-              }"
-            >
-              <h2 class="mt-0">{{ member.parent.name }}</h2>
-              <div class="flex flex-col items-start">
-                <span class="text-sm">{{
-                  `@${usernameWithDomain(member.parent)}`
-                }}</span>
-                <tag
-                  variant="info"
-                  v-if="member.role === MemberRole.ADMINISTRATOR"
-                  >{{ t("Administrator") }}</tag
-                >
-                <tag
-                  variant="info"
-                  v-else-if="member.role === MemberRole.MODERATOR"
-                  >{{ t("Moderator") }}</tag
-                >
-              </div>
-            </router-link>
+    <div class="p-4">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0">
+          <figure class="h-14 w-14" v-if="member.parent.avatar">
+            <img
+              class="rounded-full w-full h-full object-cover border-2 border-gray-100 dark:border-gray-700"
+              :src="member.parent.avatar.url"
+              alt=""
+              width="56"
+              height="56"
+            />
+          </figure>
+          <div
+            v-else
+            class="h-14 w-14 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+          >
+            <AccountGroup :size="32" class="text-gray-400 dark:text-gray-500" />
           </div>
         </div>
-        <div
-          class="mt-3 prose dark:prose-invert lg:prose-xl prose-p:m-0 line-clamp-2"
-          v-if="member.parent.summary"
-          v-html="member.parent.summary"
-        />
-      </div>
-      <div>
-        <o-dropdown aria-role="list" position="bottom-left">
-          <template #trigger>
-            <DotsHorizontal class="cursor-pointer" />
-          </template>
-
-          <o-dropdown-item
-            class="inline-flex gap-1"
-            aria-role="listitem"
-            @click="emit('leave')"
+        <div class="flex-1 min-w-0">
+          <router-link
+            :to="{
+              name: RouteName.GROUP,
+              params: {
+                preferredUsername: usernameWithDomain(member.parent),
+              },
+            }"
+            class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           >
-            <ExitToApp />
-            {{ t("Leave") }}
-          </o-dropdown-item>
-        </o-dropdown>
+            <h3
+              class="text-lg font-semibold text-gray-900 dark:text-white truncate"
+            >
+              {{ member.parent.name }}
+            </h3>
+            <div class="flex flex-col gap-1 mt-1">
+              <span class="text-sm text-gray-500 dark:text-gray-400">
+                @{{ usernameWithDomain(member.parent) }}
+              </span>
+              <div class="flex gap-2 mt-1">
+                <span
+                  v-if="member.role === MemberRole.ADMINISTRATOR"
+                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+                >
+                  {{ t("Administrator") }}
+                </span>
+                <span
+                  v-else-if="member.role === MemberRole.MODERATOR"
+                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >
+                  {{ t("Moderator") }}
+                </span>
+              </div>
+            </div>
+          </router-link>
+          <div
+            class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2"
+            v-if="member.parent.summary"
+            v-html="member.parent.summary"
+          />
+        </div>
+        <div class="flex-shrink-0">
+          <o-dropdown aria-role="list" position="bottom-left">
+            <template #trigger>
+              <button
+                class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <DotsHorizontal
+                  class="cursor-pointer text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                />
+              </button>
+            </template>
+
+            <o-dropdown-item
+              class="inline-flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20"
+              aria-role="listitem"
+              @click="emit('leave')"
+            >
+              <ExitToApp class="text-red-600 dark:text-red-400" :size="20" />
+              <span class="text-red-600 dark:text-red-400">{{
+                t("Leave")
+              }}</span>
+            </o-dropdown-item>
+          </o-dropdown>
+        </div>
       </div>
     </div>
   </div>
@@ -94,7 +118,6 @@ import ExitToApp from "vue-material-design-icons/ExitToApp.vue";
 import DotsHorizontal from "vue-material-design-icons/DotsHorizontal.vue";
 import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
-import Tag from "@/components/TagElement.vue";
 import { useI18n } from "vue-i18n";
 
 defineProps<{

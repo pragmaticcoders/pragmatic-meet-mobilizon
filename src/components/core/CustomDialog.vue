@@ -7,8 +7,18 @@
         class="text-gray-400 hover:text-gray-600"
         aria-label="Close"
       >
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>
@@ -36,25 +46,25 @@
       </div>
     </section>
 
-    <footer v-if="canCancel" class="flex gap-3">
+    <footer v-if="canCancel" class="flex justify-between">
       <o-button
         ref="cancelButton"
         @click="cancel('button')"
         class="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
-      >{{
-        cancelText ?? t("Cancel")
-      }}</o-button>
+        >{{ cancelText ?? t("Cancel") }}</o-button
+      >
       <o-button
         :variant="variant"
         ref="confirmButton"
         @click="confirm"
         :class="[
           'px-6 py-2 font-medium text-white',
-          variant === 'danger' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'
+          variant === 'danger'
+            ? 'bg-red-600 hover:bg-red-700'
+            : 'bg-blue-600 hover:bg-blue-700',
         ]"
-      >{{
-        confirmText ?? t("Confirm")
-      }}</o-button>
+        >{{ confirmText ?? t("Confirm") }}</o-button
+      >
     </footer>
   </div>
 </template>
@@ -117,20 +127,7 @@ if (hasInput.value) {
 /**
  * Icon name (MDI) based on the type.
  */
-const iconByType = computed(() => {
-  switch (props.variant) {
-    case "info":
-      return "information";
-    case "success":
-      return "check-circle";
-    case "warning":
-      return "alert";
-    case "danger":
-      return "alert-circle";
-    default:
-      return null;
-  }
-});
+
 /**
  * If it's a prompt Dialog, validate the input.
  * Call the onConfirm prop (function) and close the Dialog.

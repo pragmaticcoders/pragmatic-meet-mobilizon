@@ -1,7 +1,9 @@
 <template>
   <o-field :label-for="id" class="taginput-field">
     <template #label>
-      <p class="inline-flex items-center gap-0.5">
+      <p
+        class="block text-sm font-medium text-gray-700 mb-2 items-center gap-0.5"
+      >
         {{ t("Add some tags") }}
         <o-tooltip
           variant="dark"
