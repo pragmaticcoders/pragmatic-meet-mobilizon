@@ -1,6 +1,9 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <o-loading v-model:active="eventLoading" />
+    <o-loading
+      v-model:active="eventLoading"
+      class="o-loading--enhanced o-loading--page"
+    />
     <div class="flex flex-col mb-3">
       <!-- Event Banner with Floating Elements -->
       <div class="relative mb-4">

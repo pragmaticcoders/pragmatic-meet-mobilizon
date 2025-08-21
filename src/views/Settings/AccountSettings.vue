@@ -5,13 +5,11 @@
       <!-- Email Section -->
       <div class="mb-8">
         <div class="mb-4">
-          <h2
-            class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-2"
-          >
+          <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
             {{ t("Email") }}
           </h2>
           <p
-            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+            class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
             v-html="
               t('Your current email is {email}. You use it to log in.', {
                 email: `<b class='font-bold'>${loggedUser.email}</b>`,
@@ -39,7 +37,7 @@
         <button
           v-if="canChangeEmail"
           @click="openChangeEmailModal"
-          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors  text-[17px] leading-[26px]"
+          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
         >
           {{ t("Zmień") }}
         </button>
@@ -47,7 +45,7 @@
 
       <!-- Password Section -->
       <div class="mb-8">
-        <h2 class=" text-[20px] leading-[30px] mb-4">
+        <h2 class="text-[20px] leading-[30px] mb-4">
           {{ t("Password") }}
         </h2>
 
@@ -70,7 +68,7 @@
         <button
           v-if="canChangePassword"
           @click="openChangePasswordModal"
-          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors  text-[17px] leading-[26px]"
+          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
         >
           {{ t("Change") }}
         </button>
@@ -79,14 +77,10 @@
       <!-- Delete Account Section -->
       <div>
         <div class="mb-4">
-          <h2
-            class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-2"
-          >
+          <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
             {{ t("Delete Account") }}
           </h2>
-          <p
-            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
-          >
+          <p class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]">
             {{
               t(
                 "Usunięcie konta spowoduje usunięcie wszystkich Twoich tożsamości."
@@ -97,7 +91,7 @@
 
         <button
           @click="openDeleteAccountModal"
-          class="px-8 py-[18px] bg-[#cc0000] text-white hover:bg-red-700 transition-colors  text-[17px] leading-[26px]"
+          class="px-8 py-[18px] bg-[#cc0000] text-white hover:bg-red-700 transition-colors text-[17px] leading-[26px]"
         >
           {{ t("Delete Account") }}
         </button>

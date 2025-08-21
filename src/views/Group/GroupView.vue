@@ -628,7 +628,7 @@
                     : group.organizedEvents.elements
                   ).length === 0
                 "
-                class="text-center py-8 text-gray-500 dark:text-gray-400"
+                class="flex flex-col items-center justify-center min-h-64 text-gray-500 dark:text-gray-400"
               >
                 <CalendarToday
                   class="mx-auto mb-2 opacity-50 empty-state-icon"
@@ -735,7 +735,7 @@
                     (event) => !event.longEvent
                   ).length === 0
                 "
-                class="text-center py-8 text-gray-500 dark:text-gray-400"
+                class="flex flex-col items-center justify-center min-h-64 text-gray-500 dark:text-gray-400"
               >
                 <Calendar
                   class="mx-auto mb-2 opacity-50 empty-state-icon"
@@ -848,7 +848,7 @@
                 v-if="
                   !group.posts?.elements || group.posts.elements.length === 0
                 "
-                class="text-center py-8 text-gray-500 dark:text-gray-400"
+                class="flex flex-col items-center justify-center min-h-64 text-gray-500 dark:text-gray-400"
               >
                 <Bullhorn
                   class="mx-auto mb-2 opacity-50 empty-state-icon"

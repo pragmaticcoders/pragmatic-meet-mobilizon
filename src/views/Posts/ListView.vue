@@ -44,7 +44,10 @@
           :isCurrentActorMember="isCurrentActorMember"
         />
       </div>
-      <o-loading v-model:active="loading"></o-loading>
+      <o-loading
+        v-model:active="loading"
+        class="o-loading--enhanced o-loading--page"
+      />
       <o-notification
         v-if="
           group.posts.elements.length === 0 &&

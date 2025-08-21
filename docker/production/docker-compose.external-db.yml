@@ -17,4 +17,4 @@ services:
     environment:
       # Override database host to use external database
       MOBILIZON_DATABASE_HOST: ${MOBILIZON_DATABASE_HOST}
-      MOBILIZON_DATABASE_SSL: ${MOBILIZON_DATABASE_SSL:-true} 
+      MOBILIZON_DATABASE_SSL: ${MOBILIZON_DATABASE_SSL:-true}

@@ -2,9 +2,7 @@
   <div class="bg-white">
     <!-- Language Section -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Language") }}
       </h2>
 
@@ -26,9 +24,7 @@
 
     <!-- Timezone Section -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Timezone") }}
       </h2>
 
@@ -60,7 +56,7 @@
           <o-icon icon="information-outline" size="small" />
           <em
             v-if="Intl.DateTimeFormat().resolvedOptions().timeZone"
-            class=" text-[14px]"
+            class="text-[14px]"
           >
             {{
               t("Timezone detected as {timezone}.", {
@@ -68,7 +64,7 @@
               })
             }}
           </em>
-          <span v-else class=" text-[14px] text-red-600">
+          <span v-else class="text-[14px] text-red-600">
             {{ t("Unable to detect timezone.") }}
           </span>
         </div>
@@ -77,18 +73,14 @@
 
     <!-- Location Section -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("City or region") }}
       </h2>
 
       <div class="space-y-4">
         <div class="flex gap-4">
           <div class="flex-1 max-w-md">
-            <label
-              class="block  font-medium text-[15px] text-[#1c1b1f] mb-2"
-            >
+            <label class="block font-medium text-[15px] text-[#1c1b1f] mb-2">
               {{ t("City") }}
             </label>
             <full-address-auto-complete
@@ -105,9 +97,7 @@
           </div>
 
           <div class="w-32">
-            <label
-              class="block  font-medium text-[15px] text-[#1c1b1f] mb-2"
-            >
+            <label class="block font-medium text-[15px] text-[#1c1b1f] mb-2">
               {{ t("Radius") }}
             </label>
             <o-select
@@ -143,7 +133,7 @@
               class="text-blue-600 mt-0.5"
               size="small"
             />
-            <p class=" text-[14px] text-gray-700">
+            <p class="text-[14px] text-gray-700">
               {{
                 t(
                   "Your city or region and the radius will only be used to suggest you events nearby. The event radius will consider the administrative center of the area."

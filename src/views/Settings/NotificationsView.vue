@@ -2,17 +2,13 @@
   <div v-if="loggedUser" class="bg-white">
     <!-- Powiadomienia przeglądarki -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Browser notifications") }}
       </h2>
 
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <p
-            class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
-          >
+          <p class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]">
             {{ t("Enable browser notifications to receive real-time alerts") }}
           </p>
           <o-switch
@@ -53,15 +49,11 @@
 
     <!-- Ustawienia powiadomień -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Notification settings") }}
       </h2>
 
-      <p
-        class=" font-medium text-[17px] leading-[26px] text-[#1c1b1f] mb-6"
-      >
+      <p class="font-medium text-[17px] leading-[26px] text-[#1c1b1f] mb-6">
         {{
           t(
             "Select the activities for which you wish to receive an email or a push notification."
@@ -77,7 +69,7 @@
           class="border border-[#cac9cb]"
         >
           <div class="bg-gray-50 px-4 py-3 border-b border-[#cac9cb]">
-            <h3 class=" text-[17px] text-[#1c1b1f]">
+            <h3 class="text-[17px] text-[#1c1b1f]">
               {{ notificationType.label }}
             </h3>
           </div>
@@ -86,17 +78,17 @@
             <thead>
               <tr class="border-b border-[#cac9cb]">
                 <th
-                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f] w-20"
+                  class="px-4 py-2 text-left font-medium text-[15px] text-[#1c1b1f] w-20"
                 >
                   {{ t("Email") }}
                 </th>
                 <th
-                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f] w-20"
+                  class="px-4 py-2 text-left font-medium text-[15px] text-[#1c1b1f] w-20"
                 >
                   {{ t("Push") }}
                 </th>
                 <th
-                  class="px-4 py-2 text-left  font-medium text-[15px] text-[#1c1b1f]"
+                  class="px-4 py-2 text-left font-medium text-[15px] text-[#1c1b1f]"
                 >
                   {{ t("Description") }}
                 </th>
@@ -142,9 +134,7 @@
                     :disabled="notificationValues?.[subType.id]?.push?.disabled"
                   />
                 </td>
-                <td
-                  class="px-4 py-3  font-medium text-[15px] text-[#1c1b1f]"
-                >
+                <td class="px-4 py-3 font-medium text-[15px] text-[#1c1b1f]">
                   {{ subType.label }}
                 </td>
               </tr>
@@ -155,12 +145,10 @@
 
       <!-- Grupowanie powiadomień -->
       <div class="mt-6">
-        <label
-          class="block  text-[17px] text-[#1c1b1f] mb-2"
-        >
+        <label class="block text-[17px] text-[#1c1b1f] mb-2">
           {{ t("Send notification e-mails") }}
         </label>
-        <p class=" font-medium text-[15px] text-gray-600 mb-3">
+        <p class="font-medium text-[15px] text-gray-600 mb-3">
           {{
             t(
               "Announcements and mentions notifications are always sent straight away."
@@ -185,13 +173,11 @@
 
     <!-- Powiadomienia o uczestnictwie -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Participation notifications") }}
       </h2>
 
-      <p class=" text-[17px] text-[#1c1b1f] mb-4">
+      <p class="text-[17px] text-[#1c1b1f] mb-4">
         {{
           t(
             "Mobilizon will send you an email when the events you are attending have important changes: date and time, address, confirmation or cancellation, etc."
@@ -199,7 +185,7 @@
         }}
       </p>
 
-      <p class=" font-medium text-[17px] text-[#1c1b1f] mb-4">
+      <p class="font-medium text-[17px] text-[#1c1b1f] mb-4">
         {{ t("Other notification options:") }}
       </p>
 
@@ -211,12 +197,10 @@
             class="mt-1"
           />
           <div class="ml-3">
-            <label
-              class=" text-[17px] text-[#1c1b1f] block mb-1"
-            >
+            <label class="text-[17px] text-[#1c1b1f] block mb-1">
               {{ t("Notification on the day of the event") }}
             </label>
-            <p class=" font-medium text-[15px] text-gray-600">
+            <p class="font-medium text-[15px] text-gray-600">
               {{
                 t(
                   "We use your timezone to make sure you get notifications for an event at the correct time."
@@ -224,7 +208,7 @@
               }}
             </p>
             <div v-if="loggedUser.settings?.timezone" class="mt-2">
-              <em class=" text-[15px] text-gray-600">
+              <em class="text-[15px] text-gray-600">
                 {{
                   t("Your timezone is currently set to {timezone}.", {
                     timezone: loggedUser.settings.timezone,
@@ -248,12 +232,10 @@
             class="mt-1"
           />
           <div class="ml-3">
-            <label
-              class=" text-[17px] text-[#1c1b1f] block mb-1"
-            >
+            <label class="text-[17px] text-[#1c1b1f] block mb-1">
               {{ t("Weekly summary") }}
             </label>
-            <p class=" font-medium text-[15px] text-gray-600">
+            <p class="font-medium text-[15px] text-gray-600">
               {{
                 t(
                   "You'll receive a weekly summary every Monday for upcoming events, if you have any."
@@ -270,12 +252,10 @@
             class="mt-1"
           />
           <div class="ml-3">
-            <label
-              class=" text-[17px] text-[#1c1b1f] block mb-1"
-            >
+            <label class="text-[17px] text-[#1c1b1f] block mb-1">
               {{ t("Notification before the event") }}
             </label>
-            <p class=" font-medium text-[15px] text-gray-600">
+            <p class="font-medium text-[15px] text-gray-600">
               {{
                 t(
                   "We'll send you an email one hour before the event begins, to be sure you won't forget about it."
@@ -289,21 +269,17 @@
 
     <!-- Powiadomienia organizatora -->
     <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
+      <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-4">
         {{ t("Organizer notifications") }}
       </h2>
 
       <div>
-        <label
-          class=" text-[17px] text-[#1c1b1f] block mb-2"
-        >
+        <label class="text-[17px] text-[#1c1b1f] block mb-2">
           {{
             t("Notifications for manually approved participations to an event")
           }}
         </label>
-        <p class=" font-medium text-[15px] text-gray-600 mb-4">
+        <p class="font-medium text-[15px] text-gray-600 mb-4">
           {{
             t(
               "If you have opted for manual validation of participants, Mobilizon will send you an email to inform you of new participations to be processed. You can choose the frequency of these notifications below."
@@ -327,77 +303,6 @@
         </o-select>
       </div>
     </section>
-
-    <!-- Kanały osobiste -->
-    <section class="mb-8">
-      <h2
-        class=" text-[20px] leading-[30px] text-[#1c1b1f] mb-4"
-      >
-        {{ t("Personal feeds") }}
-      </h2>
-
-      <p class=" font-medium text-[17px] text-[#1c1b1f] mb-4">
-        {{
-          t(
-            "These feeds contain event data for the events for which this specific profile is a participant or creator. You should keep these private. You can find feeds for all of your profiles into your notification settings."
-          )
-        }}
-      </p>
-
-      <div v-if="feedTokens && feedTokens.length > 0" class="space-y-3">
-        <div
-          v-for="feedToken in feedTokens"
-          :key="feedToken.token"
-          class="flex gap-3"
-        >
-          <o-button
-            tag="a"
-            icon-left="rss"
-            @click="
-              (e: Event) =>
-                copyURL(e, tokenToURL(feedToken.token, 'atom'), 'atom')
-            "
-            :href="tokenToURL(feedToken.token, 'atom')"
-            target="_blank"
-            class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
-          >
-            {{ t("RSS/Atom Feed") }}
-          </o-button>
-
-          <o-button
-            tag="a"
-            @click="
-              (e: Event) =>
-                copyURL(e, tokenToURL(feedToken.token, 'ics'), 'ics')
-            "
-            icon-left="calendar-sync"
-            :href="tokenToURL(feedToken.token, 'ics')"
-            target="_blank"
-            class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
-          >
-            {{ t("ICS/WebCal Feed") }}
-          </o-button>
-
-          <o-button
-            icon-left="refresh"
-            variant="text"
-            @click="openRegenerateFeedTokensConfirmation"
-            class="text-[#155eef]"
-          >
-            {{ t("Regenerate new links") }}
-          </o-button>
-        </div>
-      </div>
-      <div v-else>
-        <o-button
-          icon-left="refresh"
-          @click="generateFeedTokens"
-          class="px-4 py-2 bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50"
-        >
-          {{ t("Create new links") }}
-        </o-button>
-      </div>
-    </section>
   </div>
 </template>
 
@@ -407,7 +312,6 @@ import {
   SET_USER_SETTINGS,
   USER_NOTIFICATIONS,
   UPDATE_ACTIVITY_SETTING,
-  USER_FRAGMENT_FEED_TOKENS,
 } from "../../graphql/user";
 import {
   IActivitySetting,
@@ -415,8 +319,6 @@ import {
   IUser,
 } from "../../types/current-user.model";
 import RouteName from "../../router/name";
-import { IFeedToken } from "@/types/feedtoken.model";
-import { CREATE_FEED_TOKEN, DELETE_FEED_TOKEN } from "@/graphql/feed_tokens";
 import {
   subscribeUserToPush,
   unsubscribeUserToPush,
@@ -428,19 +330,10 @@ import {
 import merge from "lodash/merge";
 import { WEB_PUSH } from "@/graphql/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import {
-  computed,
-  inject,
-  onBeforeMount,
-  onMounted,
-  reactive,
-  ref,
-  watch,
-} from "vue";
+import { computed, onBeforeMount, onMounted, reactive, ref, watch } from "vue";
 import { IConfig } from "@/types/config.model";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
-import { Dialog } from "@/plugins/dialog";
 
 type NotificationSubType = { label: string; id: string };
 type NotificationType = { label: string; subtypes: NotificationSubType[] };
@@ -449,11 +342,6 @@ const { result: loggedUserResult } = useQuery<{ loggedUser: IUser }>(
   USER_NOTIFICATIONS
 );
 const loggedUser = computed(() => loggedUserResult.value?.loggedUser);
-const feedTokens = computed(() =>
-  loggedUser.value?.feedTokens.filter(
-    (token: IFeedToken) => token.actor === null
-  )
-);
 
 const { result: webPushEnabledResult } = useQuery<{
   config: Pick<IConfig, "webPush">;
@@ -730,76 +618,6 @@ const { mutate: updateSetting } = useMutation<{ setUserSettings: string }>(
   () => ({ refetchQueries: [{ query: USER_NOTIFICATIONS }] })
 );
 
-const tokenToURL = (token: string, format: string): string => {
-  return `${window.location.origin}/events/going/${token}/${format}`;
-};
-
-const copyURL = (e: Event, url: string, format: "ics" | "atom"): void => {
-  if (navigator.clipboard) {
-    e.preventDefault();
-    navigator.clipboard.writeText(url);
-    showCopiedTooltip[format] = true;
-    setTimeout(() => {
-      showCopiedTooltip[format] = false;
-    }, 2000);
-  }
-};
-
-const dialog = inject<Dialog>("dialog");
-
-const openRegenerateFeedTokensConfirmation = () => {
-  dialog?.confirm({
-    variant: "warning",
-    title: t("Regenerate new links") as string,
-    message: t(
-      "You'll need to change the URLs where they were previously entered."
-    ) as string,
-    confirmText: t("Regenerate new links") as string,
-    cancelText: t("Cancel") as string,
-    onConfirm: () => regenerateFeedTokens(),
-  });
-};
-
-const regenerateFeedTokens = async (): Promise<void> => {
-  if (!feedTokens.value || feedTokens.value?.length < 1) return;
-  await deleteFeedToken({ token: feedTokens.value[0].token });
-  await createNewFeedToken(
-    {},
-    {
-      update(cache, { data }) {
-        const userId = data?.createFeedToken.user?.id;
-        const newFeedToken = data?.createFeedToken.token;
-
-        if (!newFeedToken) return;
-
-        let cachedData = cache.readFragment<{
-          id: string | undefined;
-          feedTokens: { token: string }[];
-        }>({
-          id: `User:${userId}`,
-          fragment: USER_FRAGMENT_FEED_TOKENS,
-        });
-        cachedData = {
-          id: cachedData?.id,
-          feedTokens: [
-            ...(cachedData?.feedTokens ?? []).slice(0, -1),
-            { token: newFeedToken },
-          ],
-        };
-        cache.writeFragment({
-          id: `User:${userId}`,
-          fragment: USER_FRAGMENT_FEED_TOKENS,
-          data: cachedData,
-        });
-      },
-    }
-  );
-};
-
-const generateFeedTokens = async (): Promise<void> => {
-  await createNewFeedToken();
-};
-
 const {
   mutate: registerPushMutation,
   onDone: registerPushMutationDone,
@@ -898,32 +716,4 @@ const isSubscribed = async (): Promise<boolean> => {
     return Promise.resolve(false);
   }
 };
-
-const { mutate: deleteFeedToken } = useMutation(DELETE_FEED_TOKEN);
-
-const { mutate: createNewFeedToken } = useMutation(CREATE_FEED_TOKEN, () => ({
-  update(cache, { data }) {
-    const userId = data?.createFeedToken.user?.id;
-    const newFeedToken = data?.createFeedToken.token;
-
-    if (!newFeedToken) return;
-
-    let cachedData = cache.readFragment<{
-      id: string | undefined;
-      feedTokens: { token: string }[];
-    }>({
-      id: `User:${userId}`,
-      fragment: USER_FRAGMENT_FEED_TOKENS,
-    });
-    cachedData = {
-      id: cachedData?.id,
-      feedTokens: [...(cachedData?.feedTokens ?? []), { token: newFeedToken }],
-    };
-    cache.writeFragment({
-      id: `User:${userId}`,
-      fragment: USER_FRAGMENT_FEED_TOKENS,
-      data: cachedData,
-    });
-  },
-}));
 </script>

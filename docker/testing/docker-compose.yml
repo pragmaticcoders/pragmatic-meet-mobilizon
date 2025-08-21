@@ -14,4 +14,4 @@ services:
     command: "mix prepare_test && mix test"
 volumes:
   pgdata:
-  .: 
+  .:

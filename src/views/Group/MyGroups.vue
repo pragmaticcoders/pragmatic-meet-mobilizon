@@ -21,7 +21,10 @@
         >{{ t("Create group") }}</o-button
       >
     </div>
-    <o-loading v-model:active="loading"></o-loading>
+    <o-loading
+      v-model:active="loading"
+      class="o-loading--enhanced o-loading--page"
+    />
     <InvitationsList
       :invitations="invitations"
       @accept-invitation="acceptInvitation"

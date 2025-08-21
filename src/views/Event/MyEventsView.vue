@@ -342,17 +342,20 @@ const pastPage = ref(1);
 const limit = ref(10);
 
 function startOfDay(d: Date): string {
-  const pad = (n: number): string => {
-    return (n > 9 ? "" : "0") + n.toString();
-  };
-  return (
-    d.getFullYear() +
-    "-" +
-    pad(d.getMonth() + 1) +
-    "-" +
-    pad(d.getDate()) +
-    "T00:00:00Z"
+  // Create a new date object at the start of the selected day in local timezone
+  const startOfLocalDay = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    0,
+    0,
+    0,
+    0
   );
+  // Subtract 1 second to ensure we capture events exactly at day boundary
+  startOfLocalDay.setSeconds(startOfLocalDay.getSeconds() - 1);
+  // Return ISO string which automatically handles timezone conversion
+  return startOfLocalDay.toISOString();
 }
 
 const showUpcoming = useRouteQuery("showUpcoming", true, booleanTransformer);

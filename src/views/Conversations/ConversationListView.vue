@@ -76,10 +76,17 @@ const error = ref(false);
 
 const { result: conversationsResult } = useQuery<{
   loggedPerson: Pick<IPerson, "conversations">;
-}>(PROFILE_CONVERSATIONS, () => ({
-  page: page.value,
-  limit: CONVERSATIONS_PER_PAGE,
-}));
+}>(
+  PROFILE_CONVERSATIONS,
+  () => ({
+    page: page.value,
+    limit: CONVERSATIONS_PER_PAGE,
+  }),
+  () => ({
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
+);
 
 const conversations = computed(
   () =>

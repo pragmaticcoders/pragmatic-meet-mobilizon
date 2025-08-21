@@ -20,24 +20,45 @@
         },
       ]"
     />
-    <o-loading :active="groupMembersLoading" />
-    <section class="bg-white p-8" v-if="group && isCurrentActorAGroupAdmin">
-      <h1 class="text-xl font-bold text-[#1c1b1f] mb-4">
-        {{ t("Group Members") }} ({{ group.members.total }})
-      </h1>
+    <o-loading
+      :active="groupMembersLoading"
+      class="o-loading--enhanced o-loading--page"
+    />
+    <section
+      class="bg-white p-2 mt-4"
+      v-if="group && isCurrentActorAGroupAdmin"
+    >
       <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
         t("Invite a new member")
       }}</label>
       <div class="flex flex-col md:flex-row gap-4 my-4 items-start">
         <form @submit.prevent="inviteMember" class="flex-1 min-w-0">
-          <o-input
-            id="new-member-field"
-            v-model="newMemberUsername"
-            :placeholder="t(`Ex: someone{'@'}mobilizon.org`)"
+          <ActorAutoComplete
+            v-model="selectedActors"
+            :placeholder="t(`Search for a user to invite`)"
           />
         </form>
-
         <div class="flex-shrink-0">
+          <o-button
+            variant="primary"
+            native-type="submit"
+            class="bg-[#155eef] text-white px-8 py-[18px] font-bold hover:bg-blue-600 whitespace-nowrap"
+            @click="inviteMember"
+            >{{ t("Invite member") }}</o-button
+          >
+        </div>
+      </div>
+      <!-- Gray separator line -->
+      <hr class="border-t border-gray-200 my-6" />
+      <h1 class="text-xl font-bold text-[#1c1b1f] mb-4">
+        {{ t("Group Members") }} ({{ group.members.total }})
+      </h1>
+      <!-- Filter by status section -->
+      <div class="my-6">
+        <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
+          t("Filter by status")
+        }}</label>
+        <div class="flex items-start">
           <o-select
             v-model="roles"
             id="group-members-status-filter"
@@ -65,15 +86,6 @@
               {{ t("Rejected") }}
             </option>
           </o-select>
-        </div>
-        <div class="flex-shrink-0">
-          <o-button
-            variant="primary"
-            native-type="submit"
-            class="bg-[#155eef] text-white px-8 py-[18px] font-bold hover:bg-blue-600 whitespace-nowrap"
-            @click="inviteMember"
-            >{{ t("Invite member") }}</o-button
-          >
         </div>
       </div>
       <o-table
@@ -265,7 +277,7 @@ import {
   UPDATE_MEMBER,
   APPROVE_MEMBER,
 } from "@/graphql/member";
-import { usernameWithDomain, displayName, IGroup } from "@/types/actor";
+import { usernameWithDomain, displayName, IGroup, IActor } from "@/types/actor";
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
@@ -283,6 +295,7 @@ import {
 import { formatTimeString, formatDateString } from "@/filters/datetime";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import { Notifier } from "@/plugins/notifier";
+import ActorAutoComplete from "@/components/Account/ActorAutoComplete.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -297,7 +310,7 @@ const emit = defineEmits(["sort"]);
 
 const { currentActor } = useCurrentActorClient();
 
-const newMemberUsername = ref("");
+const selectedActors = ref<IActor[]>([]);
 const inviteError = ref("");
 const page = useRouteQuery("page", 1, integerTransformer);
 const roles = useRouteQuery("roles", undefined, enumTransformer(MemberRole));
@@ -346,20 +359,26 @@ onInviteMemberError((error) => {
 });
 
 onInviteMemberDone(() => {
+  const invitedActor = selectedActors.value[0];
   notifier?.success(
     t("{username} was invited to {group}", {
-      username: newMemberUsername.value,
+      username: invitedActor?.name || invitedActor?.preferredUsername || "",
       group: displayName(group.value),
     })
   );
-  newMemberUsername.value = "";
+  selectedActors.value = [];
 });
 
 const inviteMember = async (): Promise<void> => {
   inviteError.value = "";
+  if (!selectedActors.value.length) {
+    inviteError.value = t("Please select a user to invite");
+    return;
+  }
+  const actorToInvite = selectedActors.value[0];
   inviteMemberMutation({
     groupId: group.value?.id,
-    targetActorUsername: newMemberUsername.value,
+    targetActorUsername: actorToInvite.preferredUsername,
   });
 };
 

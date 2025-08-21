@@ -30,6 +30,7 @@
                 :is-full-page="true"
                 v-model="followInstanceLoading"
                 :can-cancel="false"
+                class="o-loading--enhanced o-loading--page"
               />
             </p>
           </o-field>

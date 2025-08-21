@@ -20,94 +20,111 @@
         },
       ]"
     />
-    <o-loading :active="loading" />
-    <section
-      class="max-w-screen-xl mx-auto px-4 md:px-16 section"
-      v-if="group && isCurrentActorAGroupAdmin && followers"
-    >
-      <h1>{{ t("Group Followers") }} ({{ followers.total }})</h1>
-      <o-field :label="t('Status')" horizontal>
-        <o-switch v-model="pending">{{ t("Pending") }}</o-switch>
-      </o-field>
-      <o-table
-        :data="followers.elements"
-        ref="queueTable"
-        :loading="loading"
-        paginated
-        backend-pagination
-        v-model:current-page="page"
-        :pagination-simple="true"
-        :aria-next-label="t('Next page')"
-        :aria-previous-label="t('Previous page')"
-        :aria-page-label="t('Page')"
-        :aria-current-label="t('Current page')"
-        :total="followers.total"
-        :per-page="FOLLOWERS_PER_PAGE"
-        backend-sorting
-        :default-sort-direction="'desc'"
-        :default-sort="['insertedAt', 'desc']"
-        @page-change="loadMoreFollowers"
-        @sort="(field: any, order: any) => $emit('sort', field, order)"
-      >
-        <o-table-column
-          field="actor.preferredUsername"
-          :label="t('Follower')"
-          v-slot="props"
+    <o-loading :active="loading" class="o-loading--enhanced o-loading--page" />
+    <section class="p-2" v-if="group && isCurrentActorAGroupAdmin && followers">
+      <div class="bg-white shadow-sm p-2">
+        <div class="mb-6">
+          <h2 class="text-2xl font-semibold text-gray-900">
+            {{ t("Group Followers") }}
+            <span class="text-gray-500 text-xl ml-2"
+              >({{ followers.total }})</span
+            >
+          </h2>
+        </div>
+        <div class="mb-6 flex items-center gap-4">
+          <label class="text-sm font-medium text-gray-700">{{
+            t("Status")
+          }}</label>
+          <o-switch v-model="pending">{{ t("Pending") }}</o-switch>
+        </div>
+        <o-table
+          :data="followers.elements"
+          ref="queueTable"
+          :loading="loading"
+          paginated
+          backend-pagination
+          v-model:current-page="page"
+          :pagination-simple="true"
+          :aria-next-label="t('Next page')"
+          :aria-previous-label="t('Previous page')"
+          :aria-page-label="t('Page')"
+          :aria-current-label="t('Current page')"
+          :total="followers.total"
+          :per-page="FOLLOWERS_PER_PAGE"
+          backend-sorting
+          :default-sort-direction="'desc'"
+          :default-sort="['insertedAt', 'desc']"
+          @page-change="loadMoreFollowers"
+          @sort="(field: any, order: any) => $emit('sort', field, order)"
+          class="w-full"
         >
-          <article class="flex gap-1">
-            <figure v-if="props.row.actor.avatar">
-              <img
-                class="rounded"
-                :src="props.row.actor.avatar.url"
-                alt=""
-                width="48"
-                height="48"
-              />
-            </figure>
-            <AccountCircle v-else :size="48" />
-            <div class="">
-              <div class="">
-                <span v-if="props.row.actor.name">{{
-                  props.row.actor.name
-                }}</span
-                ><br />
-                <span class="">@{{ usernameWithDomain(props.row.actor) }}</span>
+          <o-table-column
+            field="actor.preferredUsername"
+            :label="t('Follower')"
+            v-slot="props"
+          >
+            <article class="flex items-center gap-3">
+              <figure v-if="props.row.actor.avatar">
+                <img
+                  class="rounded-full"
+                  :src="props.row.actor.avatar.url"
+                  alt=""
+                  width="48"
+                  height="48"
+                />
+              </figure>
+              <AccountCircle v-else :size="48" />
+              <div>
+                <div
+                  class="font-medium text-gray-900"
+                  v-if="props.row.actor.name"
+                >
+                  {{ props.row.actor.name }}
+                </div>
+                <div class="text-sm text-gray-600">
+                  @{{ usernameWithDomain(props.row.actor) }}
+                </div>
+              </div>
+            </article>
+          </o-table-column>
+          <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
+            <div class="text-center">
+              <div class="text-gray-900">
+                {{ formatDateString(props.row.insertedAt) }}
+              </div>
+              <div class="text-sm text-gray-600">
+                {{ formatTimeString(props.row.insertedAt) }}
               </div>
             </div>
-          </article>
-        </o-table-column>
-        <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
-          <span class="has-text-centered">
-            {{ formatDateString(props.row.insertedAt) }}<br />{{
-              formatTimeString(props.row.insertedAt)
-            }}
-          </span>
-        </o-table-column>
-        <o-table-column field="actions" :label="t('Actions')" v-slot="props">
-          <div class="flex gap-2">
-            <o-button
-              v-if="!props.row.approved"
-              @click="updateFollower(props.row, true)"
-              icon-left="check"
-              variant="success"
-              >{{ t("Accept") }}</o-button
-            >
-            <o-button
-              @click="updateFollower(props.row, false)"
-              icon-left="close"
-              variant="danger"
-              >{{ t("Reject") }}</o-button
-            >
-          </div>
-        </o-table-column>
-        <template #empty>
-          <empty-content icon="account" inline>
-            {{ t("No follower matches the filters") }}
-          </empty-content>
-        </template>
-      </o-table>
+          </o-table-column>
+          <o-table-column field="actions" :label="t('Actions')" v-slot="props">
+            <div class="flex gap-2">
+              <o-button
+                v-if="!props.row.approved"
+                @click="updateFollower(props.row, true)"
+                icon-left="check"
+                variant="success"
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                >{{ t("Accept") }}</o-button
+              >
+              <o-button
+                @click="updateFollower(props.row, false)"
+                icon-left="close"
+                variant="danger"
+                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                >{{ t("Reject") }}</o-button
+              >
+            </div>
+          </o-table-column>
+          <template #empty>
+            <empty-content icon="account" inline>
+              {{ t("No follower matches the filters") }}
+            </empty-content>
+          </template>
+        </o-table>
+      </div>
     </section>
-    <o-notification v-else-if="!loading && group">
+    <o-notification v-else-if="!loading && group" class="max-w-4xl mx-auto p-6">
       {{ t("You are not an administrator for this group.") }}
     </o-notification>
   </div>

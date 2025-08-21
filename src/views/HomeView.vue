@@ -1,7 +1,5 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <!-- <o-loading v-model:active="$apollo.loading" /> -->
-
     <!-- Unlogged introduction -->
     <unlogged-introduction :config="config" />
 

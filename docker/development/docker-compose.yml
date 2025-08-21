@@ -14,7 +14,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mobilizon} -d ${POSTGRES_DB:-mobilizon}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-mobilizon} -d ${POSTGRES_DB:-mobilizon}",
+        ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -55,4 +59,4 @@ services:
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
 volumes:
   pgdata:
-  .: 
+  .:

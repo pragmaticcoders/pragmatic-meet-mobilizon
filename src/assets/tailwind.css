@@ -7,76 +7,76 @@
 @layer base {
   :root {
     /* Primary/Brand Colors */
-    --color-primary-50: #E8EFFD;
-    --color-primary-100: #D0DFFC;
-    --color-primary-200: #A1BFF9;
-    --color-primary-300: #739EF5;
-    --color-primary-400: #447EF2;
-    --color-primary-500: #155EEF;
-    --color-primary-600: #0D43B0;
-    --color-primary-700: #0D388F;
+    --color-primary-50: #e8effd;
+    --color-primary-100: #d0dffc;
+    --color-primary-200: #a1bff9;
+    --color-primary-300: #739ef5;
+    --color-primary-400: #447ef2;
+    --color-primary-500: #155eef;
+    --color-primary-600: #0d43b0;
+    --color-primary-700: #0d388f;
     --color-primary-800: #082660;
 
     /* Gray Colors */
-    --color-gray-50: #F5F5F6;
-    --color-gray-100: #DFDFE1;
-    --color-gray-200: #CAC9CB;
-    --color-gray-300: #B4B4B6;
-    --color-gray-400: #9E9EA0;
+    --color-gray-50: #f5f5f6;
+    --color-gray-100: #dfdfe1;
+    --color-gray-200: #cac9cb;
+    --color-gray-300: #b4b4b6;
+    --color-gray-400: #9e9ea0;
     --color-gray-500: #737275;
-    --color-gray-600: #47474A;
-    --color-gray-700: #1C1B1F;
+    --color-gray-600: #47474a;
+    --color-gray-700: #1c1b1f;
     --color-gray-800: #161619;
 
     /* Secondary Colors */
-    --color-secondary-50: #FEECEF;
-    --color-secondary-100: #FDD9DF;
-    --color-secondary-200: #FAB3BF;
-    --color-secondary-300: #F88E9E;
-    --color-secondary-400: #F5687E;
-    --color-secondary-500: #F3425E;
-    --color-secondary-600: #C5354C;
-    --color-secondary-700: #97283A;
-    --color-secondary-800: #681B27;
+    --color-secondary-50: #feecef;
+    --color-secondary-100: #fdd9df;
+    --color-secondary-200: #fab3bf;
+    --color-secondary-300: #f88e9e;
+    --color-secondary-400: #f5687e;
+    --color-secondary-500: #f3425e;
+    --color-secondary-600: #c5354c;
+    --color-secondary-700: #97283a;
+    --color-secondary-800: #681b27;
 
     /* Success/Green Colors */
-    --color-success-50: #D4FFEB;
-    --color-success-100: #AAEECE;
-    --color-success-200: #7FDDB2;
-    --color-success-300: #55CD95;
-    --color-success-400: #00AB5C;
-    --color-success-500: #00894A;
+    --color-success-50: #d4ffeb;
+    --color-success-100: #aaeece;
+    --color-success-200: #7fddb2;
+    --color-success-300: #55cd95;
+    --color-success-400: #00ab5c;
+    --color-success-500: #00894a;
     --color-success-600: #006737;
     --color-success-700: #004425;
     --color-success-800: #002212;
 
     /* Warning/Orange Colors */
-    --color-warning-50: #FFF2E6;
-    --color-warning-100: #FEE5CD;
-    --color-warning-200: #FDCA9B;
-    --color-warning-300: #FDB068;
-    --color-warning-400: #FB7B04;
-    --color-warning-500: #C96203;
-    --color-warning-600: #974A02;
+    --color-warning-50: #fff2e6;
+    --color-warning-100: #fee5cd;
+    --color-warning-200: #fdca9b;
+    --color-warning-300: #fdb068;
+    --color-warning-400: #fb7b04;
+    --color-warning-500: #c96203;
+    --color-warning-600: #974a02;
     --color-warning-700: #643102;
     --color-warning-800: #321901;
 
     /* Error/Red Colors */
-    --color-error-50: #FFE6E6;
-    --color-error-100: #FFCCCC;
-    --color-error-200: #FF9999;
-    --color-error-300: #FF6666;
-    --color-error-400: #FF0000;
-    --color-error-500: #CC0000;
+    --color-error-50: #ffe6e6;
+    --color-error-100: #ffcccc;
+    --color-error-200: #ff9999;
+    --color-error-300: #ff6666;
+    --color-error-400: #ff0000;
+    --color-error-500: #cc0000;
     --color-error-600: #990000;
     --color-error-700: #660000;
     --color-error-800: #330000;
 
     /* White */
-    --color-white: #FFFFFF;
+    --color-white: #ffffff;
 
     /* Typography */
-    --font-family-primary: 'Mulish', system-ui, -apple-system, sans-serif;
+    --font-family-primary: "Mulish", system-ui, -apple-system, sans-serif;
 
     /* Typography Scale */
     --text-xs: 12px;
@@ -116,9 +116,11 @@
     --radius-full: 9999px;
 
     /* Shadows */
-    --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
+    --shadow-sm: 0px 1px 2px 0px rgba(16, 24, 40, 0.06),
+      0px 1px 3px 0px rgba(16, 24, 40, 0.1);
     --shadow-md: 0px 25px 50px 0px rgba(143, 136, 155, 0.25);
-    --shadow-focus: 0px 0px 0px 4px rgba(13, 67, 176, 1), 0px 0px 0px 2px rgba(255, 255, 255, 1);
+    --shadow-focus: 0px 0px 0px 4px rgba(13, 67, 176, 1),
+      0px 0px 0px 2px rgba(255, 255, 255, 1);
   }
 
   body {
@@ -223,7 +225,6 @@
 
 /* Global override: remove rounded corners app-wide, except on avatar images */
 @layer utilities {
-
   /* Core radii */
   :not(img).rounded-none {
     border-radius: 0 !important;
@@ -367,7 +368,6 @@
 }
 
 @layer components {
-
   /* Button Components */
   .btn {
     @apply inline-flex items-center justify-center font-bold transition-all duration-200 focus:outline-none;

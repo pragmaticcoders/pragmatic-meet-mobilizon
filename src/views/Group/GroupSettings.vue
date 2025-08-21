@@ -21,170 +21,254 @@
       ]"
     />
     <o-loading :active="loading" />
-    <section
-      class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6 bg-white"
-      v-if="group && isCurrentActorAGroupAdmin"
-    >
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">
-          {{ t("Group settings") }}
-        </h2>
-      </div>
-      <form
-        @submit.prevent="updateGroup(buildVariables)"
-        v-if="editableGroup"
-        class="space-y-6"
-      >
-        <o-field :label="t('Group name')" label-for="group-settings-name">
-          <o-input
-            v-model="editableGroup.name"
-            id="group-settings-name"
-            expanded
-          />
-        </o-field>
-        <o-field :label="t('Group short description')">
-          <Editor
-            mode="basic"
-            v-model="editableGroup.summary"
-            :maxSize="500"
-            :aria-label="t('Group description body')"
-            v-if="currentActor"
-            :currentActor="currentActor"
-            :placeholder="t('A few lines about your group')"
-        /></o-field>
-        <o-field :label="t('Avatar')">
-          <picture-upload
-            :textFallback="t('Avatar')"
-            v-model="avatarFile"
-            :defaultImage="group.avatar"
-            :maxSize="avatarMaxSize"
-          />
-        </o-field>
-
-        <o-field :label="t('Banner')">
-          <picture-upload
-            :textFallback="t('Banner')"
-            v-model="bannerFile"
-            :defaultImage="group.banner"
-            :maxSize="bannerMaxSize"
-          />
-        </o-field>
-        <p class="label">{{ t("Group visibility") }}</p>
-        <div class="field">
-          <o-radio
-            v-model="editableGroup.visibility"
-            name="groupVisibility"
-            :native-value="GroupVisibility.PUBLIC"
-          >
-            {{ t("Visible everywhere on the web") }}<br />
-            <small>{{
-              t(
-                "The group will be publicly listed in search results and may be suggested in the explore section. Only public informations will be shown on it's page."
-              )
-            }}</small>
-          </o-radio>
+    <section class="" v-if="group && isCurrentActorAGroupAdmin">
+      <div class="bg-white shadow-sm p-2">
+        <div class="mb-8">
+          <h2 class="text-2xl font-semibold text-gray-900">
+            {{ t("Group settings") }}
+          </h2>
         </div>
-        <div class="field">
-          <o-radio
-            v-model="editableGroup.visibility"
-            name="groupVisibility"
-            :native-value="GroupVisibility.UNLISTED"
-            >{{ t("Only accessible through link") }}<br />
-            <small>{{
-              t(
-                "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
-              )
-            }}</small>
-          </o-radio>
-          <p class="pl-6 flex items-center gap-2">
-            <code>{{ group.url }}</code>
-            <o-tooltip
-              v-if="canShowCopyButton"
-              :label="t('URL copied to clipboard')"
-              :active="showCopiedTooltip"
-              variant="success"
-              position="left"
-            />
-            <o-button
-              variant="primary"
-              icon-right="content-paste"
-              native-type="button"
-              @click="copyURL"
-              @keyup.enter="copyURL"
-            />
-          </p>
-        </div>
-
-        <p class="label">{{ t("New members") }}</p>
-        <div class="field">
-          <o-radio
-            v-model="editableGroup.openness"
-            name="groupOpenness"
-            :native-value="Openness.OPEN"
-          >
-            {{ t("Anyone can join freely") }}<br />
-            <small>{{
-              t(
-                "Anyone wanting to be a member from your group will be able to from your group page."
-              )
-            }}</small>
-          </o-radio>
-        </div>
-        <div class="field">
-          <o-radio
-            v-model="editableGroup.openness"
-            name="groupOpenness"
-            :native-value="Openness.MODERATED"
-            >{{ t("Moderate new members") }}<br />
-            <small>{{
-              t(
-                "Anyone can request being a member, but an administrator needs to approve the membership."
-              )
-            }}</small>
-          </o-radio>
-        </div>
-        <div class="field">
-          <o-radio
-            v-model="editableGroup.openness"
-            name="groupOpenness"
-            :native-value="Openness.INVITE_ONLY"
-            >{{ t("Manually invite new members") }}<br />
-            <small>{{
-              t(
-                "The only way for your group to get new members is if an admininistrator invites them."
-              )
-            }}</small>
-          </o-radio>
-        </div>
-
-        <o-field
-          :label="t('Followers')"
-          :message="t('Followers will receive new public events and posts.')"
+        <form
+          @submit.prevent="updateGroup(buildVariables)"
+          v-if="editableGroup"
+          class="space-y-8"
         >
-          <o-checkbox v-model="editableGroup.manuallyApprovesFollowers">
-            {{ t("Manually approve new followers") }}
-          </o-checkbox>
-        </o-field>
+          <div class="space-y-2">
+            <label
+              for="group-settings-name"
+              class="block text-sm font-medium text-gray-700"
+            >
+              {{ t("Group name") }}
+            </label>
+            <o-input
+              v-model="editableGroup.name"
+              id="group-settings-name"
+              expanded
+              class="w-full"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Group short description") }}
+            </label>
+            <Editor
+              mode="basic"
+              v-model="editableGroup.summary"
+              :maxSize="500"
+              :aria-label="t('Group description body')"
+              v-if="currentActor"
+              :currentActor="currentActor"
+              :placeholder="t('A few lines about your group')"
+              class="w-full"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Avatar") }}
+            </label>
+            <picture-upload
+              :textFallback="t('Avatar')"
+              v-model="avatarFile"
+              :defaultImage="group.avatar"
+              :maxSize="avatarMaxSize"
+            />
+          </div>
 
-        <full-address-auto-complete
-          :label="t('Group address')"
-          v-model="currentAddress"
-          :allowManualDetails="true"
-          :hideMap="true"
-        />
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Banner") }}
+            </label>
+            <picture-upload
+              :textFallback="t('Banner')"
+              v-model="bannerFile"
+              :defaultImage="group.banner"
+              :maxSize="bannerMaxSize"
+            />
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ t("Group visibility") }}
+            </h3>
+            <div class="space-y-3">
+              <label class="flex items-start">
+                <o-radio
+                  v-model="editableGroup.visibility"
+                  name="groupVisibility"
+                  :native-value="GroupVisibility.PUBLIC"
+                  class="mt-1"
+                />
+                <div class="ml-3">
+                  <span class="text-gray-900">{{
+                    t("Visible everywhere on the web")
+                  }}</span>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{
+                      t(
+                        "The group will be publicly listed in search results and may be suggested in the explore section. Only public informations will be shown on it's page."
+                      )
+                    }}
+                  </p>
+                </div>
+              </label>
+            </div>
+            <div class="space-y-3">
+              <label class="flex items-start">
+                <o-radio
+                  v-model="editableGroup.visibility"
+                  name="groupVisibility"
+                  :native-value="GroupVisibility.UNLISTED"
+                  class="mt-1"
+                />
+                <div class="ml-3">
+                  <span class="text-gray-900">{{
+                    t("Only accessible through link")
+                  }}</span>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{
+                      t(
+                        "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
+                      )
+                    }}
+                  </p>
+                </div>
+              </label>
+              <div class="ml-9 flex items-center gap-2 mt-2">
+                <code class="text-sm bg-gray-100 px-2 py-1 rounded">{{
+                  group.url
+                }}</code>
+                <o-tooltip
+                  v-if="canShowCopyButton"
+                  :label="t('URL copied to clipboard')"
+                  :active="showCopiedTooltip"
+                  variant="success"
+                  position="left"
+                />
+                <o-button
+                  variant="primary"
+                  icon-right="content-paste"
+                  native-type="button"
+                  @click="copyURL"
+                  @keyup.enter="copyURL"
+                />
+              </div>
+            </div>
+          </div>
 
-        <div class="flex flex-wrap gap-2 my-2">
-          <o-button
-            :loading="loadingUpdateGroup"
-            native-type="submit"
-            variant="primary"
-            >{{ t("Update group") }}</o-button
-          >
-          <o-button @click="confirmDeleteGroup" variant="danger">{{
-            t("Delete group")
-          }}</o-button>
-        </div>
-      </form>
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ t("New members") }}
+            </h3>
+            <div class="space-y-3">
+              <label class="flex items-start">
+                <o-radio
+                  v-model="editableGroup.openness"
+                  name="groupOpenness"
+                  :native-value="Openness.OPEN"
+                  class="mt-1"
+                />
+                <div class="ml-3">
+                  <span class="text-gray-900">{{
+                    t("Anyone can join freely")
+                  }}</span>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{
+                      t(
+                        "Anyone wanting to be a member from your group will be able to from your group page."
+                      )
+                    }}
+                  </p>
+                </div>
+              </label>
+            </div>
+            <div class="space-y-3">
+              <label class="flex items-start">
+                <o-radio
+                  v-model="editableGroup.openness"
+                  name="groupOpenness"
+                  :native-value="Openness.MODERATED"
+                  class="mt-1"
+                />
+                <div class="ml-3">
+                  <span class="text-gray-900">{{
+                    t("Moderate new members")
+                  }}</span>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{
+                      t(
+                        "Anyone can request being a member, but an administrator needs to approve the membership."
+                      )
+                    }}
+                  </p>
+                </div>
+              </label>
+            </div>
+            <div class="space-y-3">
+              <label class="flex items-start">
+                <o-radio
+                  v-model="editableGroup.openness"
+                  name="groupOpenness"
+                  :native-value="Openness.INVITE_ONLY"
+                  class="mt-1"
+                />
+                <div class="ml-3">
+                  <span class="text-gray-900">{{
+                    t("Manually invite new members")
+                  }}</span>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{
+                      t(
+                        "The only way for your group to get new members is if an admininistrator invites them."
+                      )
+                    }}
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-gray-900">
+              {{ t("Followers") }}
+            </h3>
+            <p class="text-sm text-gray-600">
+              {{ t("Followers will receive new public events and posts.") }}
+            </p>
+            <label class="flex items-center">
+              <o-checkbox v-model="editableGroup.manuallyApprovesFollowers" />
+              <span class="ml-3 text-gray-900">{{
+                t("Manually approve new followers")
+              }}</span>
+            </label>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Group address") }}
+            </label>
+            <full-address-auto-complete
+              v-model="currentAddress"
+              :allowManualDetails="true"
+              :hideMap="true"
+            />
+          </div>
+
+          <div class="flex gap-3 pt-6 border-t border-gray-200">
+            <o-button
+              :loading="loadingUpdateGroup"
+              native-type="submit"
+              variant="primary"
+              class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >{{ t("Update group") }}</o-button
+            >
+            <o-button
+              @click="confirmDeleteGroup"
+              variant="danger"
+              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+              >{{ t("Delete group") }}</o-button
+            >
+          </div>
+        </form>
+      </div>
       <o-notification
         variant="danger"
         v-for="(value, index) in errors"

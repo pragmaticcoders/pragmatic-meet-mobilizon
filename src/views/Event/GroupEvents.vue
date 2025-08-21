@@ -50,7 +50,10 @@
           >{{ t("+ Create an event") }}</o-button
         >
       </div>
-      <o-loading v-model:active="groupLoading"></o-loading>
+      <o-loading
+        v-model:active="groupLoading"
+        class="o-loading--enhanced o-loading--page"
+      />
       <section v-if="group" class="mt-8">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">

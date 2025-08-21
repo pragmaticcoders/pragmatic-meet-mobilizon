@@ -203,7 +203,7 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Actors do
              :person_no_follow | :already_following | :followed_suspended | Ecto.Changeset.t()}
   def follow(%Actor{} = follower_actor, %Actor{type: type} = followed, _local, additional)
       when type != :Person do
-    case Mobilizon.Actors.follow(followed, follower_actor, additional["activity_id"], false) do
+    case Mobilizon.Actors.follow(followed, follower_actor, nil, false) do
       {:ok, %Follower{actor: %Actor{type: actor_type}} = follower} ->
         # We refresh the instance materialized view to make sure the instance page will be available
         # when the admin clicks on the email link and access it
