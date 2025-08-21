@@ -141,30 +141,46 @@ const {
 // Handle successful search results for persons and groups
 onSearchPersonsAndGroupsResult((result) => {
   searchLoading.value = false;
+  console.log("SEARCH_PERSON_AND_GROUPS result:", result);
   if (result.data) {
+    const persons = result.data.searchPersons?.elements || [];
+    const groups = result.data.searchGroups?.elements || [];
+
+    console.log(`Found ${persons.length} persons and ${groups.length} groups`);
+
     const actors: IActor[] = [
-      ...result.data.searchPersons.elements.map((person) => ({
+      ...persons.map((person) => ({
         ...person,
         displayName: displayName(person),
       })),
-      ...result.data.searchGroups.elements.map((group) => ({
+      ...groups.map((group) => ({
         ...group,
         displayName: displayName(group),
       })),
     ];
     availableActors.value = actors;
+  } else {
+    console.log("No data in SEARCH_PERSON_AND_GROUPS result");
+    availableActors.value = [];
   }
 });
 
 // Handle successful search results for groups only
 onSearchGroupsResult((result) => {
   searchLoading.value = false;
+  console.log("SEARCH_GROUPS result:", result);
   if (result.data) {
-    const actors: IActor[] = result.data.searchGroups.elements.map((group) => ({
+    const groups = result.data.searchGroups?.elements || [];
+    console.log(`Found ${groups.length} groups`);
+
+    const actors: IActor[] = groups.map((group) => ({
       ...group,
       displayName: displayName(group),
     }));
     availableActors.value = actors;
+  } else {
+    console.log("No data in SEARCH_GROUPS result");
+    availableActors.value = [];
   }
 });
 
@@ -178,10 +194,12 @@ onSearchPersonsAndGroupsError((error) => {
 
   // Retry with groups only if we have a current search term
   const lastSearchTerm = currentSearchTerm.value;
-  if (lastSearchTerm) {
+  if (lastSearchTerm && lastSearchTerm.trim() !== "") {
+    console.log("Retrying search with groups only for term:", lastSearchTerm);
     searchGroupsOnly(lastSearchTerm);
   } else {
     searchLoading.value = false;
+    availableActors.value = [];
   }
 });
 
@@ -195,6 +213,7 @@ onSearchGroupsError((error) => {
 const currentSearchTerm = ref("");
 
 const searchGroupsOnly = (text: string) => {
+  console.log("Searching groups only with term:", text);
   loadSearchGroupsQuery(SEARCH_GROUPS, {
     term: text,
   });
@@ -212,11 +231,13 @@ const performSearch = (text: string) => {
 
   // First try to search both persons and groups if we think we have permission
   if (canSearchPersons.value) {
+    console.log("Searching persons and groups with term:", text);
     loadSearchPersonsAndGroupsQuery(SEARCH_PERSON_AND_GROUPS, {
       searchText: text,
     });
   } else {
     // Fallback: search only groups
+    console.log("canSearchPersons is false, searching groups only");
     searchGroupsOnly(text);
   }
 };

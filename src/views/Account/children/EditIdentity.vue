@@ -23,7 +23,7 @@
         >
           {{ t("Avatar") }}
         </label>
-        <div class="flex justify-center">
+        <div class="max-w-xs">
           <picture-upload
             v-model="avatarFile"
             :defaultImage="identity.avatar"
@@ -149,78 +149,6 @@
           {{ t("Delete this identity") }}
         </button>
       </div>
-
-      <!-- Profile Feeds Section -->
-      <section v-if="isUpdate" class="border-t border-gray-200 pt-8">
-        <h2 class="font-bold text-[20px] leading-[28px] text-[#1c1b1f] mb-4">
-          {{ t("Profile feeds") }}
-        </h2>
-        <p class="text-[14px] leading-[20px] text-gray-600 mb-6">
-          {{
-            t(
-              "These feeds contain event data for the events for which this specific profile is a participant or creator." +
-                "You should keep these private." +
-                " You can find feeds for all of your profiles into your notification settings."
-            )
-          }}
-        </p>
-        <div v-if="identity.feedTokens && identity.feedTokens.length > 0">
-          <div
-            class="flex flex-wrap gap-3"
-            v-for="feedToken in identity.feedTokens"
-            :key="feedToken.token"
-          >
-            <o-tooltip
-              :label="t('URL copied to clipboard')"
-              :active="showCopiedTooltip.atom"
-              variant="success"
-              position="left"
-            />
-            <button
-              @click="
-                (e: Event) =>
-                  copyURL(e, tokenToURL(feedToken.token, 'atom'), 'atom')
-              "
-              class="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#155eef] border border-[#155eef] font-medium text-[14px] hover:bg-blue-50 transition-colors"
-            >
-              <o-icon icon="rss" size="small" />
-              {{ t("RSS/Atom Feed") }}
-            </button>
-            <o-tooltip
-              :label="t('URL copied to clipboard')"
-              :active="showCopiedTooltip.ics"
-              variant="success"
-              position="left"
-            />
-            <button
-              @click="
-                (e: Event) =>
-                  copyURL(e, tokenToURL(feedToken.token, 'ics'), 'ics')
-              "
-              class="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#155eef] border border-[#155eef] font-medium text-[14px] hover:bg-blue-50 transition-colors"
-            >
-              <o-icon icon="calendar-sync" size="small" />
-              {{ t("ICS/WebCal Feed") }}
-            </button>
-            <button
-              @click="openRegenerateFeedTokensConfirmation"
-              class="inline-flex items-center gap-2 px-4 py-2 text-[#155eef] font-medium text-[14px] hover:bg-gray-50 transition-colors"
-            >
-              <o-icon icon="refresh" size="small" />
-              {{ t("Regenerate new links") }}
-            </button>
-          </div>
-        </div>
-        <div v-else>
-          <button
-            @click="generateFeedTokens"
-            class="inline-flex items-center gap-2 px-4 py-2 text-[#155eef] font-medium text-[14px] hover:bg-gray-50 transition-colors"
-          >
-            <o-icon icon="refresh" size="small" />
-            {{ t("Create new links") }}
-          </button>
-        </div>
-      </section>
     </div>
   </div>
 </template>
@@ -266,7 +194,7 @@ import { ServerParseError } from "@apollo/client/link/http";
 import { ApolloCache, FetchResult, InMemoryCache } from "@apollo/client/core";
 import pick from "lodash/pick";
 import { ActorType } from "@/types/enums";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import {
   useCurrentActorClient,
   useCurrentUserIdentities,
@@ -284,6 +212,7 @@ import { useHead } from "@/utils/head";
 
 const { t } = useI18n({ useScope: "global" });
 const router = useRouter();
+const route = useRoute();
 
 const props = defineProps<{ isUpdate: boolean; identityName?: string }>();
 
@@ -308,7 +237,11 @@ const {
 );
 
 onPersonResult(async ({ data }) => {
-  avatarFile.value = await buildFileFromIMedia(data?.fetchPerson?.avatar);
+  if (data?.fetchPerson) {
+    avatarFile.value = await buildFileFromIMedia(data.fetchPerson.avatar);
+    // Ensure identity is updated with the fresh data
+    identity.value = { ...data.fetchPerson };
+  }
 });
 
 onPersonError((err) => handleErrors(err as unknown as AbsintheGraphQLErrors));
@@ -330,12 +263,16 @@ const baseIdentity: IPerson = {
 
 const identity = ref<IPerson>(baseIdentity);
 
-watch(person, () => {
-  console.debug("person changed", person.value);
-  if (person.value) {
-    identity.value = { ...person.value };
-  }
-});
+watch(
+  person,
+  () => {
+    console.debug("person changed", person.value);
+    if (person.value) {
+      identity.value = { ...person.value };
+    }
+  },
+  { immediate: true }
+);
 
 const avatarMaxSize = useAvatarMaxSize();
 
@@ -357,23 +294,49 @@ watch(isUpdate, () => {
   resetFields();
 });
 
-watch(identityName, async () => {
-  // Only used when we update the identity
-  if (!isUpdate.value) {
-    identity.value = baseIdentity;
-    return;
-  }
+watch(
+  identityName,
+  async () => {
+    // Only used when we update the identity
+    if (!isUpdate.value) {
+      identity.value = baseIdentity;
+      return;
+    }
 
-  await redirectIfNoIdentitySelected(identityName.value);
+    await redirectIfNoIdentitySelected(identityName.value);
 
-  if (!identityName.value) {
-    router.push({ name: "CreateIdentity" });
-  }
+    if (!identityName.value) {
+      router.push({ name: "CreateIdentity" });
+      return;
+    }
 
-  if (identityName.value && identity.value) {
-    avatarFile.value = null;
-  }
-});
+    // Reset avatar file when switching identities
+    if (identityName.value) {
+      avatarFile.value = null;
+      // Reset identity to base state while loading
+      identity.value = { ...baseIdentity };
+    }
+  },
+  { immediate: true }
+);
+
+// Watch for route parameter changes to handle navigation from settings menu
+watch(
+  () => route.params.identityName,
+  (newIdentityName) => {
+    if (
+      newIdentityName &&
+      typeof newIdentityName === "string" &&
+      isUpdate.value
+    ) {
+      // Reset the form state when switching between identities
+      errors.value = [];
+      avatarFile.value = null;
+      identity.value = { ...baseIdentity };
+    }
+  },
+  { immediate: true }
+);
 
 const submit = (): Promise<void> => {
   if (props.isUpdate) return updateIdentity();
