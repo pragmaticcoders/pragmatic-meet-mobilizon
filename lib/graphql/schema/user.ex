@@ -312,7 +312,7 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
     @desc "Get an user"
     field :user, :user do
       arg(:id, non_null(:id))
-      middleware(Rajska.QueryAuthorization, permit: [:administrator, :moderator], scope: false)
+      middleware(Rajska.QueryAuthorization, permit: :all, scope: false)
       resolve(&User.find_user/3)
     end
 
@@ -335,7 +335,7 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
 
       arg(:sort, :sortable_user_field, default_value: :id, description: "Sort column")
       arg(:direction, :sort_direction, default_value: :desc, description: "Sort direction")
-      middleware(Rajska.QueryAuthorization, permit: [:administrator, :moderator], scope: false)
+      middleware(Rajska.QueryAuthorization, permit: :all, scope: false)
       resolve(&User.list_users/3)
     end
   end

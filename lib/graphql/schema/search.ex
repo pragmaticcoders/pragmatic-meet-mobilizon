@@ -123,7 +123,7 @@ defmodule Mobilizon.GraphQL.Schema.SearchType do
 
   @desc "Search persons result"
   object :persons do
-    meta(:authorize, [:administrator, :moderator])
+    meta(:authorize, :all)
     field(:total, non_null(:integer), description: "Total elements")
     field(:elements, non_null(list_of(:person)), description: "Person elements")
   end
@@ -203,7 +203,7 @@ defmodule Mobilizon.GraphQL.Schema.SearchType do
       arg(:term, :string, default_value: "", description: "Search term")
       arg(:page, :integer, default_value: 1, description: "Result page")
       arg(:limit, :integer, default_value: 10, description: "Results limit per page")
-      middleware(Rajska.QueryAuthorization, permit: [:administrator, :moderator], scope: false)
+      middleware(Rajska.QueryAuthorization, permit: :all)
       resolve(&Search.search_persons/3)
     end
 

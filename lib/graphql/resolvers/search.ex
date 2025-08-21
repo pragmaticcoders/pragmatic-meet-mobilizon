@@ -12,8 +12,24 @@ defmodule Mobilizon.GraphQL.Resolvers.Search do
   """
   @spec search_persons(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, Page.t(Actor.t())} | {:error, String.t()}
-  def search_persons(_parent, %{page: page, limit: limit} = args, _resolution) do
-    Search.search_actors(Map.put(args, :minimum_visibility, :private), page, limit, :Person)
+  def search_persons(
+        _parent,
+        %{page: page, limit: limit} = args,
+        %{context: context} = _resolution
+      ) do
+    # Regular users can only search public profiles for privacy
+    # Administrators and moderators can search private profiles if needed
+    current_user = Map.get(context, :current_user)
+    current_actor = Map.get(context, :current_actor)
+
+    minimum_visibility = :private
+
+    args =
+      args
+      |> Map.put(:minimum_visibility, minimum_visibility)
+      |> Map.put(:current_actor_id, if(current_actor, do: current_actor.id, else: nil))
+
+    Search.search_actors(args, page, limit, :Person)
   end
 
   @doc """

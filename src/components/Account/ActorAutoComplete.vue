@@ -48,7 +48,7 @@
           "
           class="p-3 text-center text-gray-500"
         >
-          {{ t("No recipients found") }}
+          {{ t("No users or groups found") }}
         </div>
       </template>
     </o-taginput>
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { SEARCH_PERSON_AND_GROUPS, SEARCH_GROUPS } from "@/graphql/search";
+import { SEARCH_PERSON_AND_GROUPS } from "@/graphql/search";
 import { IActor, IGroup, IPerson, displayName } from "@/types/actor";
 import { Paginate } from "@/types/paginate";
 import { useLazyQuery } from "@vue/apollo-composable";
@@ -117,9 +117,8 @@ const { t } = useI18n({ useScope: "global" });
 
 const availableActors = ref<IActor[]>([]);
 const searchLoading = ref(false);
-const canSearchPersons = ref(true); // Initially assume we can search persons
 
-// Try to search both persons and groups (requires admin/moderator for persons)
+// Search both persons and groups (now available to all users)
 const {
   load: loadSearchPersonsAndGroupsQuery,
   onResult: onSearchPersonsAndGroupsResult,
@@ -129,24 +128,12 @@ const {
   { searchText: string }
 >(SEARCH_PERSON_AND_GROUPS);
 
-// Fallback to search only groups (available to all users)
-const {
-  load: loadSearchGroupsQuery,
-  onResult: onSearchGroupsResult,
-  onError: onSearchGroupsError,
-} = useLazyQuery<{ searchGroups: Paginate<IGroup> }, { term: string }>(
-  SEARCH_GROUPS
-);
-
 // Handle successful search results for persons and groups
 onSearchPersonsAndGroupsResult((result) => {
   searchLoading.value = false;
-  console.log("SEARCH_PERSON_AND_GROUPS result:", result);
   if (result.data) {
     const persons = result.data.searchPersons?.elements || [];
     const groups = result.data.searchGroups?.elements || [];
-
-    console.log(`Found ${persons.length} persons and ${groups.length} groups`);
 
     const actors: IActor[] = [
       ...persons.map((person) => ({
@@ -160,86 +147,34 @@ onSearchPersonsAndGroupsResult((result) => {
     ];
     availableActors.value = actors;
   } else {
-    console.log("No data in SEARCH_PERSON_AND_GROUPS result");
     availableActors.value = [];
   }
 });
 
-// Handle successful search results for groups only
-onSearchGroupsResult((result) => {
-  searchLoading.value = false;
-  console.log("SEARCH_GROUPS result:", result);
-  if (result.data) {
-    const groups = result.data.searchGroups?.elements || [];
-    console.log(`Found ${groups.length} groups`);
-
-    const actors: IActor[] = groups.map((group) => ({
-      ...group,
-      displayName: displayName(group),
-    }));
-    availableActors.value = actors;
-  } else {
-    console.log("No data in SEARCH_GROUPS result");
-    availableActors.value = [];
-  }
-});
-
-// Handle permission error for persons search
+// Handle search errors
 onSearchPersonsAndGroupsError((error) => {
-  console.warn(
-    "Cannot search persons (likely requires admin/moderator permissions), falling back to groups only:",
-    error
-  );
-  canSearchPersons.value = false;
-
-  // Retry with groups only if we have a current search term
-  const lastSearchTerm = currentSearchTerm.value;
-  if (lastSearchTerm && lastSearchTerm.trim() !== "") {
-    console.log("Retrying search with groups only for term:", lastSearchTerm);
-    searchGroupsOnly(lastSearchTerm);
-  } else {
-    searchLoading.value = false;
-    availableActors.value = [];
-  }
-});
-
-// Handle error for groups search
-onSearchGroupsError((error) => {
-  console.error("Failed to search groups:", error);
+  console.error("Failed to search persons and groups:", error);
   searchLoading.value = false;
   availableActors.value = [];
 });
 
 const currentSearchTerm = ref("");
 
-const searchGroupsOnly = (text: string) => {
-  console.log("Searching groups only with term:", text);
-  loadSearchGroupsQuery(SEARCH_GROUPS, {
-    term: text,
-  });
-};
-
 const performSearch = (text: string) => {
   if (text.trim() === "") {
     availableActors.value = [];
     searchLoading.value = false;
+    currentSearchTerm.value = "";
     return;
   }
 
   currentSearchTerm.value = text;
   searchLoading.value = true;
 
-  // First try to search both persons and groups if we think we have permission
-  if (canSearchPersons.value) {
-    console.log("Searching persons and groups with term:", text);
-    loadSearchPersonsAndGroupsQuery(SEARCH_PERSON_AND_GROUPS, {
-      searchText: text,
-    });
-  } else {
-    // Fallback: search only groups
-    console.log("canSearchPersons is false, searching groups only");
-    searchGroupsOnly(text);
-  }
+  // Search both persons and groups (available to all users now)
+  loadSearchPersonsAndGroupsQuery(SEARCH_PERSON_AND_GROUPS, {
+    searchText: text,
+  });
 };
 
 // Debounce the search to avoid too many requests

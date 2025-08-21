@@ -1431,17 +1431,61 @@ defmodule Mobilizon.Actors do
   defp actor_by_username_or_name_query(query, ""), do: query
 
   defp actor_by_username_or_name_query(query, username) do
+    # Use multiple search strategies for better partial matching
+    # 1. ILIKE for simple partial matching (case-insensitive)
+    # 2. Trigram similarity for fuzzy matching
+    # 3. Full-text search with accent removal
     query
     |> where(
       [a],
-      fragment(
-        "f_unaccent(?) %> f_unaccent(?) or f_unaccent(coalesce(?, '')) %> f_unaccent(?)",
-        a.preferred_username,
-        ^username,
-        a.name,
-        ^username
-      )
+      # Fuzzy matching with trigram similarity (more lenient than word_similarity)
+      # Exact prefix matching for performance
+      ilike(a.preferred_username, ^"%#{username}%") or
+        ilike(a.name, ^"%#{username}%") or
+        fragment(
+          "f_unaccent(?) % f_unaccent(?) or f_unaccent(coalesce(?, '')) % f_unaccent(?)",
+          a.preferred_username,
+          ^username,
+          a.name,
+          ^username
+        ) or
+        fragment(
+          "f_unaccent(?) ILIKE f_unaccent(?) or f_unaccent(coalesce(?, '')) ILIKE f_unaccent(?)",
+          a.preferred_username,
+          ^"#{username}%",
+          a.name,
+          ^"#{username}%"
+        )
     )
+    # Order by relevance: exact match, prefix match, then similarity
+    |> order_by([a], [
+      # Exact matches first
+      fragment("CASE
+        WHEN lower(?) = lower(?) THEN 1
+        WHEN lower(coalesce(?, '')) = lower(?) THEN 1
+        ELSE 2
+      END", a.preferred_username, ^username, a.name, ^username),
+      # Prefix matches second
+      fragment("CASE
+        WHEN lower(?) LIKE lower(?) THEN 1
+        WHEN lower(coalesce(?, '')) LIKE lower(?) THEN 1
+        ELSE 2
+      END", a.preferred_username, ^"#{username}%", a.name, ^"#{username}%"),
+      # Then by similarity score (higher is better)
+      desc:
+        fragment(
+          "greatest(
+          similarity(f_unaccent(?), f_unaccent(?)),
+          similarity(f_unaccent(coalesce(?, '')), f_unaccent(?))
+        )",
+          a.preferred_username,
+          ^username,
+          a.name,
+          ^username
+        ),
+      # Finally by ID for consistent ordering
+      desc: a.id
+    ])
   end
 
   @spec maybe_join_address(
