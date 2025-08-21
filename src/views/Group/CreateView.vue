@@ -2,7 +2,9 @@
   <section
     class="max-w-screen-xl mx-auto pl-4 md:pl-16 pr-4 md:pr-[20%] lg:pr-[20%]"
   >
-    <h1 class="text-3xl font-bold mb-8">{{ t("Create a new group") }}</h1>
+    <h1 class="text-[36px] font-bold leading-[48px] mb-4">
+      {{ t("Create a new group") }}
+    </h1>
 
     <o-notification
       variant="danger"
@@ -12,11 +14,11 @@
       {{ value }}
     </o-notification>
 
-    <form @submit.prevent="createGroup" class="space-y-6">
-      <div class="space-y-2">
+    <form @submit.prevent="createGroup" class="space-y-8 max-w-[592px]">
+      <div class="space-y-1.5">
         <label
           for="group-display-name"
-          class="block text-sm font-medium text-gray-700"
+          class="block text-xs font-bold text-[#1c1b1f]"
         >
           {{ t("Group display name") }}
         </label>
@@ -26,62 +28,67 @@
           expanded
           v-model="group.name"
           id="group-display-name"
-          class="w-full"
+          class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
         />
       </div>
 
       <div class="space-y-2">
-        <label
-          class="block text-sm font-medium text-gray-700"
-          for="group-preferred-username"
-          >{{ t("Federated Group Name") }}</label
-        >
-        <div class="flex gap-2">
-          <o-field
-            :message="preferredUsernameErrors[0]"
-            :type="preferredUsernameErrors[1]"
+        <div class="space-y-1.5">
+          <label
+            class="block text-xs font-bold text-[#1c1b1f]"
+            for="group-preferred-username"
+            >{{ t("Federated Group Name") }}</label
           >
-            <o-input
-              ref="preferredUsernameInput"
-              aria-required="true"
-              required
-              expanded
-              v-model="group.preferredUsername"
-              pattern="[a-z0-9_]+"
-              id="group-preferred-username"
-              :useHtml5Validation="true"
-              :validation-message="
-                group.preferredUsername
-                  ? t(
-                      'Only alphanumeric lowercased characters and underscores are supported.'
-                    )
-                  : null
-              "
-            />
-            <div
-              class="flex items-center px-3 bg-gray-100 text-gray-600 font-medium"
+          <div class="flex">
+            <o-field
+              :message="preferredUsernameErrors[0]"
+              :type="preferredUsernameErrors[1]"
             >
-              @{{ host }}
-            </div>
-          </o-field>
+              <o-input
+                ref="preferredUsernameInput"
+                aria-required="true"
+                required
+                expanded
+                v-model="group.preferredUsername"
+                pattern="[a-z0-9_]+"
+                id="group-preferred-username"
+                :useHtml5Validation="true"
+                :validation-message="
+                  group.preferredUsername
+                    ? t(
+                        'Only alphanumeric lowercased characters and underscores are supported.'
+                      )
+                    : null
+                "
+              />
+              <div
+                class="flex items-center px-[18px] py-[18px] bg-white border border-l-0 border-[#cac9cb] text-[#37363a] text-[17px]"
+              >
+                @{{ host }}
+              </div>
+            </o-field>
+          </div>
         </div>
-        <p class="text-sm text-gray-600 mt-2" v-if="currentActor">
+        <p
+          class="text-[15px] text-[#37363a] leading-[23px]"
+          v-if="currentActor"
+        >
           <i18n-t
             keypath="This is like your federated username ({username}) for groups. It will allow the group to be found on the federation, and is guaranteed to be unique."
           >
             <template #username>
-              <code class="bg-gray-100 px-1 py-0.5 text-sm">
+              <span>
                 {{ usernameWithDomain(currentActor, true) }}
-              </code>
+              </span>
             </template>
           </i18n-t>
         </p>
       </div>
 
-      <div class="space-y-2">
+      <div class="space-y-1.5">
         <label
           for="group-summary"
-          class="block text-sm font-medium text-gray-700"
+          class="block text-xs font-bold text-[#1c1b1f]"
         >
           {{ t("Description") }}
         </label>
@@ -94,56 +101,61 @@
             :maxSize="500"
             :aria-label="$t('Group description body')"
             :current-actor="currentActor"
-            class="w-full"
+            class="w-full [&_.editor-wrapper]:min-h-[128px] [&_.editor-wrapper]:border-[#cac9cb] [&_.editor-wrapper]:p-[18px]"
           />
         </o-field>
       </div>
 
-      <div class="space-y-2">
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1c1b1f]">
+          {{ t("Group address") }}
+        </label>
         <full-address-auto-complete
-          :label="$t('Group address')"
           v-model="group.physicalAddress"
+          class="[&_input]:p-[18px] [&_.o-input__wrapper]:border-[#cac9cb]"
         />
       </div>
 
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1c1b1f]">
           {{ t("Avatar") }}
         </label>
         <picture-upload
           :textFallback="t('Avatar')"
           v-model="avatarFile"
           :maxSize="avatarMaxSize"
+          class="[&_.media-upload]:border-[#cac9cb] [&_.media-upload]:p-5"
         />
       </div>
 
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1c1b1f]">
           {{ t("Banner") }}
         </label>
         <picture-upload
           :textFallback="t('Banner')"
           v-model="bannerFile"
           :maxSize="bannerMaxSize"
+          class="[&_.media-upload]:border-[#cac9cb] [&_.media-upload]:p-5"
         />
       </div>
 
-      <fieldset class="space-y-3">
-        <legend class="text-sm font-medium text-gray-700 mb-3">
+      <fieldset class="space-y-4">
+        <legend class="text-xl font-bold text-[#1c1b1f] leading-[30px]">
           {{ t("Group visibility") }}
         </legend>
-        <div class="bg-gray-50 p-4 space-y-3">
+        <div class="space-y-2">
           <o-radio
             v-model="group.visibility"
             name="groupVisibility"
             :native-value="GroupVisibility.PUBLIC"
-            class="flex items-start"
+            class="flex items-start gap-3 [&_.o-radio__check]:rounded-full [&_.o-radio__check]:border-[#cac9cb]"
           >
             <div>
-              <span class="font-medium">{{
+              <span class="font-bold text-[17px] leading-[26px]">{{
                 $t("Visible everywhere on the web")
               }}</span>
-              <p class="text-sm text-gray-600 mt-1">
+              <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
                     "The group will be publicly listed in search results and may be suggested in the explore section. Only public informations will be shown on it's page."
@@ -156,13 +168,13 @@
             v-model="group.visibility"
             name="groupVisibility"
             :native-value="GroupVisibility.UNLISTED"
-            class="flex items-start"
+            class="flex items-start gap-3 [&_.o-radio__check]:rounded-full [&_.o-radio__check]:border-[#cac9cb]"
           >
             <div>
-              <span class="font-medium">{{
+              <span class="font-bold text-[17px] leading-[26px]">{{
                 $t("Only accessible through link")
               }}</span>
-              <p class="text-sm text-gray-600 mt-1">
+              <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
                     "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
@@ -173,12 +185,13 @@
           </o-radio>
         </div>
       </fieldset>
-      <fieldset class="space-y-3">
+      <div class="h-8 border-t border-[#e0e0e0]"></div>
+      <fieldset class="space-y-4">
         <legend>
-          <span class="text-sm font-medium text-gray-700 block mb-1">{{
+          <span class="text-xl font-bold text-[#1c1b1f] block">{{
             t("New members")
           }}</span>
-          <span class="text-sm text-gray-600">
+          <span class="text-[17px] text-[#1c1b1f] leading-[26px] block mt-2">
             {{
               t(
                 "Members will also access private sections like discussions, resources and restricted posts."
@@ -186,18 +199,18 @@
             }}
           </span>
         </legend>
-        <div class="bg-gray-50 p-4 space-y-3">
+        <div class="space-y-2">
           <o-radio
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.OPEN"
-            class="flex items-start"
+            class="flex items-start gap-3 [&_.o-radio__check]:rounded-full [&_.o-radio__check]:border-[#cac9cb]"
           >
             <div>
-              <span class="font-medium">{{
+              <span class="font-bold text-[17px] leading-[26px]">{{
                 $t("Anyone can join freely")
               }}</span>
-              <p class="text-sm text-gray-600 mt-1">
+              <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
                     "Anyone wanting to be a member from your group will be able to from your group page."
@@ -210,11 +223,13 @@
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.MODERATED"
-            class="flex items-start"
+            class="flex items-start gap-3 [&_.o-radio__check]:rounded-full [&_.o-radio__check]:border-[#cac9cb]"
           >
             <div>
-              <span class="font-medium">{{ $t("Moderate new members") }}</span>
-              <p class="text-sm text-gray-600 mt-1">
+              <span class="font-bold text-[17px] leading-[26px]">{{
+                $t("Moderate new members")
+              }}</span>
+              <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
                     "Anyone can request being a member, but an administrator needs to approve the membership."
@@ -227,13 +242,13 @@
             v-model="group.openness"
             name="groupOpenness"
             :native-value="Openness.INVITE_ONLY"
-            class="flex items-start"
+            class="flex items-start gap-3 [&_.o-radio__check]:rounded-full [&_.o-radio__check]:border-[#cac9cb]"
           >
             <div>
-              <span class="font-medium">{{
+              <span class="font-bold text-[17px] leading-[26px]">{{
                 $t("Manually invite new members")
               }}</span>
-              <p class="text-sm text-gray-600 mt-1">
+              <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
                     "The only way for your group to get new members is if an admininistrator invites them."
@@ -244,32 +259,35 @@
           </o-radio>
         </div>
       </fieldset>
-      <fieldset class="space-y-3">
+      <div class="h-8 border-t border-[#e0e0e0]"></div>
+      <fieldset class="space-y-4">
         <legend>
-          <span class="text-sm font-medium text-gray-700 block mb-1">
+          <span class="text-xl font-bold text-[#1c1b1f] block">
             {{ t("Followers") }}
           </span>
-          <span class="text-sm text-gray-600">
+          <span class="text-[17px] text-[#1c1b1f] leading-[26px] block mt-2">
             {{ t("Followers will receive new public events and posts.") }}
           </span>
         </legend>
-        <div class="bg-gray-50 p-4">
+        <div>
           <o-checkbox
             v-model="group.manuallyApprovesFollowers"
-            class="flex items-center"
+            class="flex items-center gap-3 [&_.o-checkbox__check]:border-[#cac9cb]"
           >
-            <span class="ml-2">{{ t("Manually approve new followers") }}</span>
+            <span class="text-[17px] leading-[26px]">{{
+              t("Manually approve new followers")
+            }}</span>
           </o-checkbox>
         </div>
       </fieldset>
 
-      <div class="pt-6">
+      <div class="pt-4">
         <o-button
           variant="primary"
           :disabled="loading"
           :loading="loading"
           native-type="submit"
-          class="px-6 py-3 bg-primary text-white font-medium hover:bg-primary-600 transition-colors"
+          class="px-8 py-[18px] bg-[#155eef] text-white font-bold text-[17px] hover:bg-[#0d4fd7] transition-colors"
         >
           {{ t("Create my group") }}
         </o-button>

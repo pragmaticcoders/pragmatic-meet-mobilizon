@@ -39,7 +39,7 @@
           <li>
             <router-link
               class="hover:underline"
-              :to="{ name: RouteName.ABOUT }"
+              :to="{ name: RouteName.TERMS }"
             >
               O Pragmatic Meet
             </router-link>

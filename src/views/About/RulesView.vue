@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="config">
+  <div class="max-w-screen-xl" v-if="config">
     <h1>{{ t("Rules") }}</h1>
     <div
       class="prose dark:prose-invert"

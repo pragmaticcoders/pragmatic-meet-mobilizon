@@ -130,8 +130,8 @@
         {{ t("Timezone parameters") }}
       </o-button>
 
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+      <div class="mb-6 gap-2">
+        <label class="block text-sm font-medium text-gray-700 mb-4">{{
           t("Location")
         }}</label>
         <full-address-auto-complete
@@ -140,7 +140,7 @@
           :disabled="event.options.isOnline"
           :allowManualDetails="true"
           :hideSelected="true"
-          class="w-full"
+          class="w-full mt-2"
         />
         <div class="mt-3">
           <o-switch v-model="isOnline">{{
@@ -405,7 +405,7 @@
           class="mt-4 text-blue-600"
           @click="downloadLogo"
         >
-          <o-icon icon="download" />
+          <o-icon icon="inbox-arrow-down" />
           {{ t("Pobierz") }}
         </o-button>
       </section>

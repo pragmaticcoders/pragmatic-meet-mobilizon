@@ -14,9 +14,7 @@
           >
             {{ t("Short version") }}
           </h2>
-          <ul
-            class="list-disc ml-6 space-y-1 text-[17px] leading-[26px] font-medium"
-          >
+          <ul class="list-disc ml-6 space-y-1 text-[17px] leading-[26px]">
             <li>{{ t("Your content belongs to you") }}</li>
             <li>
               <span class="font-bold">Pragmatic Meet</span>
@@ -42,7 +40,7 @@
               }}
             </li>
           </ul>
-          <p class="text-[17px] leading-[26px] font-medium">
+          <p class="text-[17px] leading-[26px]">
             {{
               t(
                 "Some terms, technical or otherwise, used in the text below may cover concepts that are difficult to understand."
@@ -57,7 +55,7 @@
             </router-link>
             {{ t("to help you understand them better.") }}
           </p>
-          <p class="text-[17px] leading-[26px] font-medium">
+          <p class="text-[17px] leading-[26px]">
             {{
               t(
                 "Here is important information about accessing and using the Pragmatic Meet website and service"
@@ -75,7 +73,7 @@
               )
             }}
           </p>
-          <p class="text-[17px] leading-[26px] font-medium">
+          <p class="text-[17px] leading-[26px]">
             {{
               t(
                 "When we say 'we', 'our' or 'us' in this document, we mean the owners, operators and administrators of this Mobilizon instance. The Mobilizon software is provided by the Mobilizon team of contributors, supported by"
@@ -102,7 +100,7 @@
           >
             {{ t("Acceptance of these terms") }}
           </h2>
-          <p class="text-[17px] leading-[26px] font-medium">
+          <p class="text-[17px] leading-[26px]">
             {{
               t(
                 "Accessing or using the Service means agreeing to abide by all the terms below. If these terms are unclear in any way, please let us know by contacting"
@@ -123,21 +121,21 @@
         >
           {{ t("Changes to these terms") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "We reserve the right to change these Terms at any time. For example, we may be required to change these Terms if we introduce a new feature."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "If we make significant changes, we will notify our users in a clear and visible manner. Minor changes may only be highlighted in the footer of our website. It is the user's responsibility to regularly check the website for changes to these Terms."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Continued use of the Service after the amended Terms come into effect means acceptance of the amended Terms."
@@ -152,7 +150,7 @@
         >
           {{ t("Privacy Policy") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "For information on how we collect and use information about users of the Service, please refer to our"
@@ -173,51 +171,49 @@
         >
           {{ t("Your content and behavior") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Our Service allows you and other users to publish, link and share content in other ways. You are responsible for the content you share on the Service, including its legality, reliability and appropriateness."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "By publishing, linking or otherwise sharing content on the Service, you grant us the right and license to display and distribute your content on or through the Service (including through applications). We may format your content for display within the Service, but we will not edit or change the substance of the content itself. The display and distribution of your content is done solely in accordance with the visibility rules you have set for that content. We will not modify the visibility of content you have set."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "We are not responsible if a programming or administrative error causes your content to be visible to a larger audience than intended. Beyond our limited right to your content, you retain all your rights to content you publish, link and otherwise share on or through the Service."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "You may delete content you have published by deleting it. Once content is deleted, it will not appear on the Service, but copies of deleted content may remain in our system or backups for some time. Web server access logs may also be stored in the system for some time."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Since Mobilizon is a distributed network, it is possible, depending on the visibility rules set for the content, that the content has been distributed to other Mobilizon instances. When you delete your content, we will ask these other instances to delete it as well. Our responsibility for deleting content from these other instances ends there. If for some reason another instance does not delete the content, we are not responsible for it."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "To make Pragmatic Meet a friendly place for all of us, please do not publish, link, or share any of the following on the platform:"
             )
           }}
         </p>
-        <ul
-          class="list-disc ml-6 space-y-1 text-[17px] leading-[26px] font-medium"
-        >
+        <ul class="list-disc ml-6 space-y-1 text-[17px] leading-[26px]">
           <li>
             {{
               t(
@@ -247,16 +243,14 @@
             }}
           </li>
         </ul>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "You also agree that you will not take any of the following actions in connection with the Service or other users:"
             )
           }}
         </p>
-        <ul
-          class="list-disc ml-6 space-y-1 text-[17px] leading-[26px] font-medium"
-        >
+        <ul class="list-disc ml-6 space-y-1 text-[17px] leading-[26px]">
           <li>
             {{
               t(
@@ -286,7 +280,7 @@
             }}
           </li>
         </ul>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Finally, use of the Service is also subject to acceptance of the instance's own"
@@ -312,14 +306,14 @@
         >
           {{ t("Our responsibility") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Instance administration (and community moderators with appropriate access) are responsible for monitoring and responding to flagged content and other user reports and have the right and are responsible for removing or editing content that does not comply with this set of instance rules, or for suspending, blocking or banning (temporarily or permanently) any account, community or instance for violating these terms or for other behavior they deem inappropriate, threatening, offensive or harmful."
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Instance administration should ensure that each community served by the instance is properly moderated according to defined rules."
@@ -334,7 +328,7 @@
         >
           {{ t("Source code") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "This service runs on a Mobilizon instance. Its source code is licensed under"
@@ -351,7 +345,7 @@
             )
           }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{ t("To see more information about Mobilizon software,") }}
           <a
             href="https://joinmobilizon.org/"
@@ -367,7 +361,7 @@
         >
           {{ t("Hyperlinks and third party content") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           <span class="font-bold">Pragmatic Meet</span>
           {{
             t(
@@ -377,7 +371,7 @@
           <span class="font-bold"> Pragmatic Meet</span>
           {{ t("of the site. You use such site at your own risk.") }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Much of the content on the Service comes from you and others, and we do not review, verify or authenticate it, and it may contain inaccuracies or false information. We make no representations, warranties or guarantees regarding the quality, suitability, truth, accuracy or completeness of any content contained in the Service. You are solely responsible for any risk arising from using or relying on any content."
@@ -392,7 +386,7 @@
         >
           {{ t("Termination") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "If you violate any of these Terms, we have the right to suspend or prevent your access to or use of the Service."
@@ -407,7 +401,7 @@
         >
           {{ t("Entire Agreement") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{ t("These Terms constitute the entire agreement between you and") }}
           <span class="font-bold"> Pragmatic Meet </span>
           {{
@@ -426,7 +420,7 @@
         >
           {{ t("Feedback") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "We love feedback. Let us know what you think about the service, these Terms and in general,"
@@ -442,7 +436,7 @@
         >
           {{ t("Questions and contact information") }}
         </h2>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{
             t(
               "Questions and feedback about our platform can be directed to us at"
@@ -454,7 +448,7 @@
             >contact@pragmaticcoders.com</a
           >.
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{ t("This document was published under the") }}
           <a
             href="https://creativecommons.org/licenses/by-sa/4.0/"
@@ -463,7 +457,7 @@
           >
           {{ t("license. It was last updated on June 22, 2020.") }}
         </p>
-        <p class="text-[17px] leading-[26px] font-medium">
+        <p class="text-[17px] leading-[26px]">
           {{ t("Originally based on the privacy policy texts of") }}
           <a
             href="https://joindiaspora.com/terms"

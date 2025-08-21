@@ -206,7 +206,7 @@
       tag="router-link"
       rel="nofollow"
       :to="{
-        name: RouteName.EVENT_PARTICIPATE_WITH_ACCOUNT,
+        name: RouteName.LOGIN,
         params: { uuid: event.uuid },
       }"
       v-else-if="!currentActor?.id"

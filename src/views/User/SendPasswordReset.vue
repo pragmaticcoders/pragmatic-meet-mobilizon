@@ -1,59 +1,86 @@
 <template>
-  <section class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <h1>
-      {{ t("Forgot your password?") }}
-    </h1>
-    <p>
-      {{
-        t(
-          "Enter your email address below, and we'll email you instructions on how to change your password."
-        )
-      }}
-    </p>
-    <o-notification
-      title="Error"
-      variant="danger"
-      v-for="error in errors"
-      :key="error"
-      @close="removeError(error)"
+  <section class="flex flex-col items-center justify-start w-full">
+    <div
+      class="bg-white flex flex-col gap-4 items-center justify-start pb-4 pt-8 px-16 w-full text-center"
     >
-      {{ error }}
-    </o-notification>
-    <form @submit="sendResetPasswordTokenAction" v-if="!validationSent">
-      <o-field :label="t('Email address')">
-        <o-input
-          aria-required="true"
-          required
-          type="email"
-          v-model="emailValue"
-          expanded
-        />
-      </o-field>
-      <p class="my-4 flex gap-2">
-        <o-button variant="primary" native-type="submit">
-          {{ t("Submit") }}
-        </o-button>
-        <o-button
-          tag="router-link"
-          :to="{ name: RouteName.LOGIN }"
-          variant="text"
-          >{{ t("Cancel") }}</o-button
-        >
+      <h1
+        class="text-[36px] font-bold leading-[48px] text-[#1c1b1f] max-w-[720px]"
+      >
+        {{ t("Forgot your password?") }}
+      </h1>
+      <p
+        class="text-[17px] font-medium leading-[26px] text-[#1c1b1f] max-w-[592px]"
+      >
+        {{
+          t(
+            "Enter your email address below, and we'll email you instructions on how to change your password."
+          )
+        }}
       </p>
-    </form>
-    <div v-else>
-      <o-notification variant="success" :closable="false" title="Success">
-        {{
-          t("We just sent an email to {email}", {
-            email: emailValue,
-          })
-        }}
+    </div>
+    <div
+      class="bg-white flex flex-col gap-8 items-center justify-start pb-16 pt-4 px-16 w-full"
+    >
+      <o-notification
+        title="Error"
+        variant="danger"
+        v-for="error in errors"
+        :key="error"
+        @close="removeError(error)"
+        class="max-w-[592px] w-full"
+      >
+        {{ error }}
       </o-notification>
-      <o-notification variant="info">
-        {{
-          t("Please check your spam folder if you didn't receive the email.")
-        }}
-      </o-notification>
+      <form
+        @submit="sendResetPasswordTokenAction"
+        v-if="!validationSent"
+        class="flex flex-col gap-8 w-full max-w-[592px]"
+      >
+        <div class="flex flex-col gap-1.5 w-full">
+          <label class="block text-xs font-bold text-[#1c1b1f]">
+            {{ t("Email address") }}
+          </label>
+          <o-input
+            aria-required="true"
+            required
+            type="email"
+            v-model="emailValue"
+            expanded
+            class="[&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
+          />
+        </div>
+        <div class="flex gap-4">
+          <o-button
+            variant="primary"
+            native-type="submit"
+            class="px-8 py-[18px] bg-[#155eef] text-white font-bold text-[17px] hover:bg-[#0d4fd7] transition-colors"
+          >
+            {{ t("Submit") }}
+          </o-button>
+          <o-button
+            tag="router-link"
+            :to="{ name: RouteName.LOGIN }"
+            class="px-8 py-[18px] !bg-white !text-[#155eef] !font-bold !text-[17px] hover:!bg-gray-50 transition-colors"
+            style="border: 1px solid #155eef; box-shadow: none"
+          >
+            {{ t("Cancel") }}
+          </o-button>
+        </div>
+      </form>
+      <div v-else class="flex flex-col gap-4 w-full max-w-[592px]">
+        <o-notification variant="success" :closable="false" title="Success">
+          {{
+            t("We just sent an email to {email}", {
+              email: emailValue,
+            })
+          }}
+        </o-notification>
+        <o-notification variant="info">
+          {{
+            t("Please check your spam folder if you didn't receive the email.")
+          }}
+        </o-notification>
+      </div>
     </div>
   </section>
 </template>

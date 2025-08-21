@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bg-white flex flex-col gap-8 items-start justify-start p-0 relative w-full max-w-[592px] mx-auto px-4 py-8"
+    class="bg-white flex flex-col gap-8 items-start justify-start p-0 relative w-full max-w-[592px] py-8"
   >
     <h1 class="font-bold leading-[40px] text-[#1c1b1f] text-[30px] w-full">
       Polityka prywatności

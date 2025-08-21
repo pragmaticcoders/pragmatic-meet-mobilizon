@@ -8,9 +8,6 @@
       class="!-mt-2"
       :labelClass="labelClass"
     >
-      <template #label>
-        {{ actualLabel }}
-      </template>
       <o-button
         v-if="canShowLocateMeButton"
         class="!h-auto"

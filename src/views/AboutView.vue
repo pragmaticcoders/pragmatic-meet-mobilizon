@@ -66,66 +66,6 @@
         </div>
       </div>
     </section>
-    <div class="bg-gray-100 dark:bg-gray-800 p-12 mt-16">
-      <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-        <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-          Powered by Open Source
-        </h2>
-        <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
-          Pragmatic Meet is built on Mobilizon - a user-friendly, emancipatory
-          and ethical tool for gathering, organizing, and mobilizing.
-        </p>
-        <o-button
-          tag="a"
-          icon-left="open-in-new"
-          class="bg-primary-600 text-white hover:bg-primary-700"
-          href="https://joinmobilizon.org"
-          >Learn more about Mobilizon</o-button
-        >
-      </div>
-    </div>
-    <div
-      v-if="!currentUser || !currentUser.id"
-      class="bg-primary-50 dark:bg-gray-900 py-16"
-    >
-      <div class="max-w-screen-xl mx-auto px-4 md:px-16 text-center">
-        <div class="grid md:grid-cols-2 gap-12">
-          <div v-if="config && config.registrationsOpen">
-            <h2
-              class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4"
-            >
-              Join Pragmatic Meet
-            </h2>
-            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
-              Create an account to start organizing and discovering events in
-              your community.
-            </p>
-            <o-button
-              tag="router-link"
-              class="bg-primary-600 text-white hover:bg-primary-700 text-lg px-6 py-3"
-              :to="{ name: RouteName.REGISTER }"
-              >Create an account</o-button
-            >
-          </div>
-          <div>
-            <h2
-              class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4"
-            >
-              Explore Other Instances
-            </h2>
-            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
-              Find a Mobilizon instance that fits your community's needs.
-            </p>
-            <o-button
-              tag="a"
-              class="bg-secondary-600 text-white hover:bg-secondary-700 text-lg px-6 py-3"
-              href="https://mobilizon.org"
-              >Browse instances</o-button
-            >
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
