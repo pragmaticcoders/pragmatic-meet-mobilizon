@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" v-if="group">
+  <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-6" v-if="group">
     <breadcrumbs-nav
       class="mb-6"
       :links="[

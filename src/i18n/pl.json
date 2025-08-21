@@ -1724,6 +1724,9 @@
   "Edit Information": "Edytuj informacje",
   "Edit Location": "Edytuj lokalizację",
   "Activities are disabled on this instance.|An event with a duration of more than one day will be categorized as an activity.|An event with a duration of more than {number} days will be categorized as an activity.": "Aktywności są wyłączone w tej instancji.|Wydarzenie trwające dłużej niż jeden dzień będzie kategoryzowane jako aktywność.|Wydarzenie trwające dłużej niż {number} dni będzie kategoryzowane jako aktywność.",
-  "Timezone parameters": "Parametry strefy czasowej"
+  "Timezone parameters": "Parametry strefy czasowej",
+  "Last event activity": "Ostatnia aktywność wydarzenia",
+  "Decreasing number of members": "Malejąca liczba członków",
+  "Decreasing creation date": "Malejąca data utworzenia"
 
 }

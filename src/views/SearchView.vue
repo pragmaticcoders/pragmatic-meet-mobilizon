@@ -17,11 +17,11 @@
 
     <!-- Content Type Tabs -->
     <div class="flex justify-center mt-6 mb-8">
-      <div class="flex border border-gray-300 rounded-lg overflow-hidden">
+      <div class="flex overflow-hidden gap-4">
         <button
           @click="contentType = ContentType.EVENTS"
           :class="[
-            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border-r border-gray-300',
+            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border border-gray-300',
             contentType === ContentType.EVENTS
               ? 'bg-blue-600 text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50',
@@ -45,7 +45,7 @@
         <button
           @click="contentType = ContentType.GROUPS"
           :class="[
-            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors',
+            'flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors border border-gray-300',
             contentType === ContentType.GROUPS
               ? 'bg-blue-600 text-white'
               : 'bg-white text-gray-700 hover:bg-gray-50',
@@ -736,9 +736,7 @@ const searchEvents = computed(() => searchElementsResult.value?.searchEvents);
 const searchShortEvents = computed(
   () => searchShortElementsResult.value?.searchEvents
 );
-const searchLongEvents = computed(
-  () => searchLongElementsResult.value?.searchEvents
-);
+
 const searchGroups = computed(() => searchElementsResult.value?.searchGroups);
 
 const numberOfSearch = computed(() => {
@@ -975,10 +973,6 @@ watch(searchConfig, (newSearchConfig) =>
   handleSearchConfigChanged(newSearchConfig)
 );
 
-const globalSearchEnabled = computed(
-  () => searchConfig.value?.global?.isEnabled
-);
-
 const setBounds = ({
   bounds,
   zoom: boundsZoom,
@@ -1096,27 +1090,6 @@ const { result: searchShortElementsResult } = useQuery<{
   beginsOn: start.value,
   endsOn: end.value,
   longEvents: false,
-  radius: geoHashLocation.value ? radius.value : undefined,
-  limit: 0,
-  type: isOnline.value ? "ONLINE" : undefined,
-  categoryOneOf: categoryOneOf.value,
-  statusOneOf: statusOneOf.value,
-  languageOneOf: languageOneOf.value,
-  searchTarget: searchTarget.value,
-  bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
-  zoom: zoom.value,
-  boostLanguages: boostLanguagesQuery.value,
-}));
-
-const { result: searchLongElementsResult } = useQuery<{
-  searchEvents: Paginate<TypeNamed<IEvent>>;
-}>(SEARCH_EVENTS, () => ({
-  term: searchDebounced.value,
-  tags: tag.value,
-  location: geoHashLocation.value,
-  beginsOn: start.value,
-  endsOn: end.value,
-  longEvents: true,
   radius: geoHashLocation.value ? radius.value : undefined,
   limit: 0,
   type: isOnline.value ? "ONLINE" : undefined,

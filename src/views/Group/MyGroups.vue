@@ -1,5 +1,5 @@
 <template>
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <section class="max-w-screen-xl mx-auto px-4 md:px-16 py-6">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
         {{ t("My groups") }}

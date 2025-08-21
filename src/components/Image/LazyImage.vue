@@ -13,7 +13,7 @@
       <!-- Show the real image on the top and fade in after loading -->
       <img
         ref="image"
-        class="transition-opacity duration-500 rounded-lg object-cover mx-auto h-full"
+        class="transition-opacity duration-500 object-cover h-full w-full"
         :class="imageOpacity"
         alt=""
         src=""

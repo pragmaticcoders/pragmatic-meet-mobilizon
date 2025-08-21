@@ -1,41 +1,54 @@
 <template>
   <form
     id="search-anchor"
-    class="container mx-auto flex flex-col flex-wrap items-stretch gap-2 justify-center dark:text-slate-100"
+    class="container mx-auto flex flex-col items-stretch gap-3 justify-center dark:text-slate-100 px-4 py-3 min-h-[60px]"
     role="search"
     @submit.prevent="submit"
   >
-    <div class="flex flex-col flex-wrap sm:flex-row gap-2 justify-center">
+    <div
+      class="flex flex-col gap-3 sm:flex-row sm:gap-2 justify-center items-stretch sm:items-center"
+    >
       <label class="sr-only" for="search_field_input">{{
         t("Keyword, event title, group name, etc.")
       }}</label>
-      <o-input
-        class="min-w-48"
-        v-if="search != null"
-        v-model="search"
-        :placeholder="t('Keyword, event title, group name, etc.')"
-        id="search_field_input"
-        autofocus
-        autocapitalize="off"
-        autocomplete="off"
-        autocorrect="off"
-        maxlength="1024"
-        expanded
-      />
-      <full-address-auto-complete
-        :resultType="AddressSearchType.ADMINISTRATIVE"
-        v-model="address"
-        :hide-map="true"
-        :hide-selected="true"
-        :default-text="addressDefaultText"
-        labelClass="sr-only"
-        :placeholder="t('e.g. Nantes, Berlin, Cork, …')"
-        v-on:update:modelValue="modelValueUpdate"
-      >
-        <o-dropdown v-model="distance" position="bottom-right" v-if="distance">
+      <div class="flex-1 min-w-0">
+        <o-input
+          class="w-full h-11 sm:h-10"
+          v-if="search != null"
+          v-model="search"
+          :placeholder="t('Keyword, event title, group name, etc.')"
+          id="search_field_input"
+          autofocus
+          autocapitalize="off"
+          autocomplete="off"
+          autocorrect="off"
+          maxlength="1024"
+          expanded
+        />
+      </div>
+      <div class="flex flex-col sm:flex-row gap-2 sm:gap-1 flex-shrink-0">
+        <div class="flex-1 sm:flex-initial min-w-0">
+          <full-address-auto-complete
+            :resultType="AddressSearchType.ADMINISTRATIVE"
+            v-model="address"
+            :hide-map="true"
+            :hide-selected="true"
+            :default-text="addressDefaultText"
+            labelClass="sr-only"
+            :placeholder="t('e.g. Nantes, Berlin, Cork, …')"
+            v-on:update:modelValue="modelValueUpdate"
+            class="w-full"
+          />
+        </div>
+        <o-dropdown
+          v-model="distance"
+          position="bottom-right"
+          v-if="distance"
+          class="flex-shrink-0"
+        >
           <template #trigger="{ active }">
             <o-button
-              class="!h-full"
+              class="h-11 sm:h-10 w-full sm:w-auto px-3 text-sm"
               :title="t('Select distance')"
               :icon-right="active ? 'menu-up' : 'menu-down'"
             >
@@ -49,7 +62,7 @@
             :key="distance_item.distance"
           />
         </o-dropdown>
-      </full-address-auto-complete>
+      </div>
     </div>
   </form>
 </template>

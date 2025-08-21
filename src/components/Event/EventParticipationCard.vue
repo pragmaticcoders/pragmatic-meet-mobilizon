@@ -111,7 +111,7 @@
               v-else
               class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
             >
-              <AccountCircle class="w-4 h-4 text-gray-500" />
+              <AccountCircle class="w-6 h-6 text-gray-500" />
             </div>
             <span
               class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"

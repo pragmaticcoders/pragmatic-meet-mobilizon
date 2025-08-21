@@ -22,7 +22,7 @@
     />
     <o-loading :active="loading" />
     <section
-      class="max-w-4xl mx-auto px-4 mb-6 bg-white"
+      class="max-w-screen-xl mx-auto px-4 md:px-16 mb-6 bg-white"
       v-if="group && isCurrentActorAGroupAdmin"
     >
       <div class="mb-6">
