@@ -19,6 +19,8 @@ export function useFetchEvent(uuidValue?: string | Ref<string>) {
     }),
     () => ({
       enabled: uuid !== undefined,
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     })
   );
 
@@ -35,9 +37,16 @@ export function useFetchEventBasic(uuidValue?: string | Ref<string>) {
     error,
     onResult,
     onError,
-  } = useQuery<{ event: IEvent }>(FETCH_EVENT_BASIC, {
-    uuid,
-  });
+  } = useQuery<{ event: IEvent }>(
+    FETCH_EVENT_BASIC,
+    () => ({
+      uuid,
+    }),
+    () => ({
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
+    })
+  );
 
   const event = computed(() => fetchEventResult.value?.event);
 

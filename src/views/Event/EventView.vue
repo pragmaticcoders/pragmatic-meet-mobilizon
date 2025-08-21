@@ -592,7 +592,6 @@ import StartTimeIcon from "@/components/Event/StartTimeIcon.vue";
 import SkeletonDateCalendarIcon from "@/components/Event/SkeletonDateCalendarIcon.vue";
 import Earth from "vue-material-design-icons/Earth.vue";
 import Link from "vue-material-design-icons/Link.vue";
-import AccountMultiple from "vue-material-design-icons/AccountMultiple.vue";
 import MultiCard from "@/components/Event/MultiCard.vue";
 import RouteName from "@/router/name";
 import CommentTree from "@/components/Comment/CommentTree.vue";
@@ -686,6 +685,8 @@ const {
       currentActorId.value !== undefined &&
       currentActorId.value !== null &&
       eventId.value !== undefined,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   })
 );
 

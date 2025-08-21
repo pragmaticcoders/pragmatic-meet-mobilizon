@@ -390,11 +390,18 @@ const {
   loading,
 } = useQuery<{
   loggedUser: IUser;
-}>(LOGGED_USER_UPCOMING_EVENTS, () => ({
-  page: 1,
-  limit: 10,
-  afterDateTime: dateFilter.value,
-}));
+}>(
+  LOGGED_USER_UPCOMING_EVENTS,
+  () => ({
+    page: 1,
+    limit: 10,
+    afterDateTime: dateFilter.value,
+  }),
+  () => ({
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
+);
 
 const futureParticipations = computed(
   () =>
@@ -422,7 +429,14 @@ const drafts = computed(() => draftsResult.value?.loggedUser.drafts);
 const { result: participationsResult, fetchMore: fetchMoreParticipations } =
   useQuery<{
     loggedUser: Pick<IUser, "participations">;
-  }>(LOGGED_USER_PARTICIPATIONS, () => ({ page: 1, limit: 10 }));
+  }>(
+    LOGGED_USER_PARTICIPATIONS,
+    () => ({ page: 1, limit: 10 }),
+    () => ({
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
+    })
+  );
 const pastParticipations = computed(
   () =>
     participationsResult.value?.loggedUser.participations ?? {

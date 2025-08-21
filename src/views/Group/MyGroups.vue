@@ -123,10 +123,17 @@ const limit = 10;
 
 const { result: membershipsResult, loading } = useQuery<{
   loggedUser: Pick<IUser, "memberships">;
-}>(LOGGED_USER_MEMBERSHIPS, () => ({
-  page: page.value,
-  limit,
-}));
+}>(
+  LOGGED_USER_MEMBERSHIPS,
+  () => ({
+    page: page.value,
+    limit,
+  }),
+  () => ({
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
+);
 
 const membershipsPages = computed(
   () =>
