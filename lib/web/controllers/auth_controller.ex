@@ -33,6 +33,9 @@ defmodule Mobilizon.Web.AuthController do
         %{assigns: %{ueberauth_failure: fails}} = conn,
         %{"provider" => provider} = _params
       ) do
+    Logger.error("=== OAUTH FAILURE CALLBACK TRIGGERED ===")
+    Logger.error("Provider: #{provider}")
+    Logger.error("Environment: #{Mix.env()}")
     Logger.error("OAuth callback failure for #{provider}: #{inspect(fails, pretty: true)}")
 
     # Log specific failure reasons for debugging
@@ -130,13 +133,39 @@ defmodule Mobilizon.Web.AuthController do
 
   # This should only be called for unhandled cases (fallback)
   def callback(conn, params) do
+    Logger.warning("=== FALLBACK CALLBACK TRIGGERED ===")
+    Logger.warning("Environment: #{Mix.env()}")
+    Logger.warning("Request URL: #{conn.request_path}?#{conn.query_string}")
     Logger.warning("Unhandled OAuth callback: #{inspect(params, pretty: true)}")
     Logger.warning("Connection assigns: #{inspect(conn.assigns, pretty: true)}")
 
     case params do
       %{"provider" => provider_name} ->
-        Logger.error("OAuth callback was not handled by specific handlers for #{provider_name}")
-        redirect_to_error(conn, :unknown_error, provider_name)
+        # Check if this might be an OAuth failure that wasn't caught by Ueberauth
+        # Look for error indicators in the URL params
+        has_oauth_error =
+          params["error"] ||
+            params["error_description"] ||
+            (params["code"] && is_binary(params["code"]) &&
+               String.contains?(params["code"], "Error"))
+
+        if has_oauth_error do
+          Logger.warning(
+            "Detected OAuth error in fallback callback for #{provider_name}, showing retry screen"
+          )
+
+          Logger.warning("Error details: #{inspect(params, pretty: true)}")
+
+          # Simulate a failure and show retry screen
+          error_message =
+            params["error_description"] || params["error"] || params["code"] ||
+              "OAuth callback failed"
+
+          show_retry_screen(conn, provider_name, 1, error_message)
+        else
+          Logger.error("OAuth callback was not handled by specific handlers for #{provider_name}")
+          redirect_to_error(conn, :unknown_error, provider_name)
+        end
 
       _ ->
         Logger.error("OAuth callback missing provider parameter")
@@ -236,6 +265,11 @@ defmodule Mobilizon.Web.AuthController do
 
   # Handle retry requests from the loading screen
   def retry_oauth(conn, %{"provider" => provider_name, "token" => token}) do
+    Logger.info("=== RETRY OAUTH REQUEST ===")
+    Logger.info("Environment: #{Mix.env()}")
+    Logger.info("Provider: #{provider_name}")
+    Logger.info("Token received: #{String.slice(token, 0, 20)}...")
+
     case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "oauth_retry", token, max_age: 300) do
       {:ok, %{"provider" => ^provider_name, "attempt" => attempt}} ->
         Logger.info(
@@ -244,7 +278,11 @@ defmodule Mobilizon.Web.AuthController do
 
         if attempt <= @max_oauth_retries do
           # Start a completely fresh OAuth request instead of re-processing failed callback
-          Logger.info("Redirecting to fresh OAuth request for #{provider_name}")
+          Logger.info(
+            "Redirecting to fresh OAuth request for #{provider_name} (attempt #{attempt}/#{@max_oauth_retries})"
+          )
+
+          Logger.info("Redirect URL: /auth/#{provider_name}")
           redirect(conn, to: "/auth/#{provider_name}")
         else
           Logger.error("Max retry attempts (#{@max_oauth_retries}) exceeded for #{provider_name}")

@@ -1,5 +1,13 @@
 import Config
 
+# Load environment variables from .env file in development
+try do
+  Dotenv.load!()
+rescue
+  # Don't fail if .env doesn't exist
+  _ -> :ok
+end
+
 config :mobilizon, Mobilizon.Web.Endpoint,
   http: [
     port: String.to_integer(System.get_env("MOBILIZON_INSTANCE_HOST_PORT", "4000"))
@@ -141,8 +149,8 @@ config :mobilizon, :auth,
   ]
 
 config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
-  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
-  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
+  client_id: System.get_env("LINKEDIN_CLIENT_ID", "77es95oq72tify"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET", "WPL_AP1.okqW0Aw0MhW01D28.KX0ypw=="),
   redirect_uri:
     System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
   # OAuth2 client options for better reliability

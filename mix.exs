@@ -144,6 +144,7 @@ defmodule Mobilizon.Mixfile do
       {:phoenix_pubsub, "~> 2.0"},
       {:phoenix_ecto, "~> 4.0"},
       {:postgrex, ">= 0.17.1"},
+      {:dotenv, "~> 3.0.0", only: :dev},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_view, "~> 0.20.0"},
       {:phoenix_view, "~> 2.0"},
