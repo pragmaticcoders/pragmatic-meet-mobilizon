@@ -140,11 +140,11 @@ config :unplug, :init_mode, :runtime
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.LinkedIn, [
-           default_scope: "openid profile email",
-           send_redirect_uri: true,
-           uid_field: :sub
-         ]}
+         linkedin:
+           {Ueberauth.Strategy.LinkedIn,
+            [
+              default_scope: "r_liteprofile r_emailaddress"
+            ]}
        ]
 
 config :mobilizon, :auth,
@@ -153,8 +153,8 @@ config :mobilizon, :auth,
   ]
 
 config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
-  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
-  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
+  client_id: System.get_env("LINKEDIN_CLIENT_ID", "77cwtcpe5dqgt7"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET", "WPL_AP1.IeUxFYMtYlTPcUFY./ZXtWw=="),
   redirect_uri:
     System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
   # OIDC endpoints for LinkedIn
@@ -164,7 +164,10 @@ config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   userinfo_url: "https://api.linkedin.com/v2/userinfo",
   # OIDC specific options
   response_type: "code",
-  token_method: :post
+  token_method: :post,
+  scope: "r_liteprofile r_emailaddress",
+  recv_timeout: 15_000,
+  timeout: 15_000
 
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison

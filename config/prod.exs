@@ -95,11 +95,11 @@ config :mobilizon, :exports,
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.LinkedIn, [
-           default_scope: "openid profile email",
-           send_redirect_uri: true,
-           uid_field: :sub
-         ]}
+         linkedin:
+           {Ueberauth.Strategy.LinkedIn,
+            [
+              default_scope: "r_liteprofile r_emailaddress"
+            ]}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
@@ -140,7 +140,10 @@ config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   userinfo_url: "https://api.linkedin.com/v2/userinfo",
   # OIDC specific options
   response_type: "code",
-  token_method: :post
+  token_method: :post,
+  scope: "r_liteprofile r_emailaddress",
+  recv_timeout: 15_000,
+  timeout: 15_000
 
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison
