@@ -38,12 +38,16 @@ config :mobilizon, Mobilizon.Web.Endpoint,
   url: [
     host: System.get_env("MOBILIZON_INSTANCE_HOST", "mobilizon.lan"),
     scheme: System.get_env("MOBILIZON_INSTANCE_SCHEME", "https"),
-    port: 
-      case {System.get_env("MOBILIZON_INSTANCE_SCHEME", "https"), System.get_env("MOBILIZON_INSTANCE_EXTERNAL_PORT")} do
-        {"https", nil} -> 443  # Default HTTPS port
-        {"http", nil} -> 80    # Default HTTP port  
+    port:
+      case {System.get_env("MOBILIZON_INSTANCE_SCHEME", "https"),
+            System.get_env("MOBILIZON_INSTANCE_EXTERNAL_PORT")} do
+        # Default HTTPS port
+        {"https", nil} -> 443
+        # Default HTTP port
+        {"http", nil} -> 80
         {_, port_str} when is_binary(port_str) -> String.to_integer(port_str)
-        _ -> 443 # Fallback to HTTPS default
+        # Fallback to HTTPS default
+        _ -> 443
       end
   ],
   http: [
@@ -271,7 +275,13 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.LinkedIn, []}
+         linkedin:
+           {Ueberauth.Strategy.LinkedIn,
+            [
+              default_scope: "openid profile email",
+              send_redirect_uri: true,
+              uid_field: :id
+            ]}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
@@ -300,7 +310,33 @@ config :mobilizon, :auth,
 config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   client_id: System.get_env("LINKEDIN_CLIENT_ID"),
   client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
-  redirect_uri: System.get_env("LINKEDIN_REDIRECT_URI")
+  redirect_uri:
+    System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
+  # OAuth2 client options for better reliability
+  site: "https://www.linkedin.com",
+  authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
+  token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+
+# HTTP client configuration for OAuth requests
+config :oauth2, :http_client, HTTPoison
+
+# HTTPoison configuration with better timeout handling
+config :httpoison,
+  timeout: 30_000,
+  recv_timeout: 30_000,
+  hackney: [
+    timeout: 30_000,
+    recv_timeout: 30_000,
+    pool_timeout: 10_000,
+    max_connections: 50,
+    # Additional reliability options
+    retry: 3,
+    retry_delay: 1000,
+    follow_redirect: true,
+    max_redirect: 3,
+    # Connection pool options
+    pool: :oauth_pool
+  ]
 
 # Example configurations for other providers:
 # config :ueberauth, Ueberauth.Strategy.Google.OAuth,
@@ -331,10 +367,10 @@ media_port = System.get_env("MOBILIZON_INSTANCE_PORT", "4000")
 media_scheme = System.get_env("MOBILIZON_INSTANCE_SCHEME", "https")
 
 # Build media URL for CSP
-media_url = 
-  if media_port in ["80", "443"] or 
-     (media_scheme == "http" and media_port == "80") or 
-     (media_scheme == "https" and media_port == "443") do
+media_url =
+  if media_port in ["80", "443"] or
+       (media_scheme == "http" and media_port == "80") or
+       (media_scheme == "https" and media_port == "443") do
     media_host
   else
     "#{media_host}:#{media_port}"

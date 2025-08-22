@@ -130,7 +130,9 @@ defmodule Mobilizon.Mixfile do
         end
       end)
 
-    for s <- oauth_strategy_packages, s != "ueberauth_linkedin", do: {String.to_atom(s), ">= 0.0.0"}
+    for s <- oauth_strategy_packages,
+        s != "ueberauth_linkedin",
+        do: {String.to_atom(s), ">= 0.0.0"}
   end
 
   # Specifies your project dependencies.
@@ -209,7 +211,7 @@ defmodule Mobilizon.Mixfile do
       {:web_push_encryption, github: "danhper/elixir-web-push-encryption"},
       {:eblurhash, "~> 1.2.0"},
       {:struct_access, "~> 1.1.2"},
-      {:paasaa, "~> 0.6.0"},
+      # {:paasaa, "~> 0.6.0"},  # Temporarily disabled due to Elixir 1.18.4 compatibility
       {:nimble_csv, "~> 1.1"},
       {:export, "~> 0.1.0"},
       {:erlport, "~> 0.11.0"},

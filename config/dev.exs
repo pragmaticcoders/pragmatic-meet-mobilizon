@@ -75,7 +75,11 @@ if System.get_env("MOBILIZON_SMTP_SERVER") do
     tls: System.get_env("MOBILIZON_SMTP_TLS", "if_available"),
     auth: System.get_env("MOBILIZON_SMTP_AUTH", "if_available"),
     ssl: System.get_env("MOBILIZON_SMTP_SSL", "false"),
-    tls_options: [verify: :verify_none, versions: [:'tlsv1.2'], ciphers: :ssl.cipher_suites(:default, :'tlsv1.2')],
+    tls_options: [
+      verify: :verify_none,
+      versions: [:"tlsv1.2"],
+      ciphers: :ssl.cipher_suites(:default, :"tlsv1.2")
+    ],
     retries: 1,
     no_mx_lookups: false
 else
@@ -128,7 +132,13 @@ config :unplug, :init_mode, :runtime
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.LinkedIn, []}
+         linkedin:
+           {Ueberauth.Strategy.LinkedIn,
+            [
+              default_scope: "openid profile email",
+              send_redirect_uri: true,
+              uid_field: :id
+            ]}
          # Add other providers here as needed for development
        ]
 
@@ -140,4 +150,30 @@ config :mobilizon, :auth,
 config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   client_id: System.get_env("LINKEDIN_CLIENT_ID"),
   client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
-  redirect_uri: System.get_env("LINKEDIN_REDIRECT_URI")
+  redirect_uri:
+    System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
+  # OAuth2 client options for better reliability
+  site: "https://www.linkedin.com",
+  authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
+  token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+
+# HTTP client configuration for OAuth requests
+config :oauth2, :http_client, HTTPoison
+
+# HTTPoison configuration with better timeout handling
+config :httpoison,
+  timeout: 30_000,
+  recv_timeout: 30_000,
+  hackney: [
+    timeout: 30_000,
+    recv_timeout: 30_000,
+    pool_timeout: 10_000,
+    max_connections: 50,
+    # Additional reliability options
+    retry: 3,
+    retry_delay: 1000,
+    follow_redirect: true,
+    max_redirect: 3,
+    # Connection pool options
+    pool: :oauth_pool
+  ]

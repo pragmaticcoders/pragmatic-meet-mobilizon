@@ -22,14 +22,44 @@
         </div>
         <div
           v-else-if="errorCode === LoginError.LOGIN_PROVIDER_ERROR"
-          class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
+          class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 text-sm"
         >
-          {{
-            t(
-              "Error while login with {provider}. Retry or login another way.",
-              { provider: currentProvider }
-            )
-          }}
+          <div v-if="isRetrying">
+            <div class="flex items-center">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-800 mr-2"></div>
+              {{
+                t(
+                  "OAuth failed. Automatically retrying in {seconds}s... (Attempt {attempt}/{maxAttempts})",
+                  { seconds: retryCountdown, attempt: retryAttempt, maxAttempts: maxRetryAttempts, provider: currentProvider }
+                )
+              }}
+            </div>
+          </div>
+          <div v-else>
+            <div class="mb-3">
+              {{
+                t(
+                  "Error while login with {provider}. Retry or login another way.",
+                  { provider: currentProvider }
+                )
+              }}
+            </div>
+            <div class="flex space-x-2">
+              <button
+                @click="manualRetryOAuth"
+                class="text-sm bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 transition-colors duration-200 disabled:opacity-50"
+                :disabled="isRetrying"
+              >
+                {{ t("Retry {provider}", { provider: currentProvider }) }}
+              </button>
+              <button
+                @click="clearRetryAndReload"
+                class="text-sm bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 transition-colors duration-200"
+              >
+                {{ t("Cancel") }}
+              </button>
+            </div>
+          </div>
         </div>
         <div
           v-else-if="errorCode === LoginError.LOGIN_PROVIDER_NOT_FOUND"
@@ -438,6 +468,74 @@ const currentProvider = computed(() => {
   return "unknown provider";
 });
 
+// OAuth retry mechanism
+const isRetrying = ref(false);
+const retryAttempt = ref(0);
+const maxRetryAttempts = 3;
+const retryCountdown = ref(0);
+const retryDelayMs = 3000; // 3 seconds between retries
+
+const getStoredRetryCount = (provider: string): number => {
+  const stored = sessionStorage.getItem(`oauth-retry-${provider}`);
+  return stored ? parseInt(stored, 10) : 0;
+};
+
+const setStoredRetryCount = (provider: string, count: number) => {
+  if (count > 0) {
+    sessionStorage.setItem(`oauth-retry-${provider}`, count.toString());
+  } else {
+    sessionStorage.removeItem(`oauth-retry-${provider}`);
+  }
+};
+
+const retryOAuth = async (provider: string) => {
+  console.log(`Starting OAuth retry for ${provider}`);
+  isRetrying.value = true;
+  retryCountdown.value = Math.ceil(retryDelayMs / 1000);
+  
+  // Countdown timer
+  const countdownInterval = setInterval(() => {
+    retryCountdown.value--;
+    if (retryCountdown.value <= 0) {
+      clearInterval(countdownInterval);
+    }
+  }, 1000);
+  
+  // Wait for delay then redirect to OAuth
+  setTimeout(() => {
+    isRetrying.value = false;
+    console.log(`Redirecting to OAuth provider: ${provider}`);
+    window.location.href = `/auth/${provider}`;
+  }, retryDelayMs);
+};
+
+const manualRetryOAuth = () => {
+  const queryProvider = route?.query.provider as string | undefined;
+  if (!queryProvider) return;
+  
+  console.log(`Manual retry requested for ${queryProvider}`);
+  
+  // Increment retry count
+  const currentRetryCount = getStoredRetryCount(queryProvider);
+  const newRetryCount = currentRetryCount + 1;
+  setStoredRetryCount(queryProvider, newRetryCount);
+  retryAttempt.value = newRetryCount;
+  
+  // Start immediate retry
+  retryOAuth(queryProvider);
+};
+
+const clearRetryAndReload = () => {
+  const queryProvider = route?.query.provider as string | undefined;
+  if (queryProvider) {
+    console.log(`Clearing retry count for ${queryProvider}`);
+    setStoredRetryCount(queryProvider, 0);
+  }
+  
+  // Navigate to clean login page (remove error parameters)
+  router.replace({ name: RouteName.LOGIN });
+};
+
 const linkedinProvider = computed(() => {
   return config.value?.auth?.oauthProviders?.find(
     (provider) => provider.id === "linkedin"
@@ -452,6 +550,37 @@ onMounted(() => {
       currentUser.value
     );
     router.push("/");
+    return;
+  }
+
+  // Check if we need to automatically retry OAuth
+  const queryProvider = route?.query.provider as string | undefined;
+  const queryCode = route?.query.code as string | undefined;
+  
+  if (queryProvider && queryCode && queryCode.includes("Error")) {
+    console.log(`OAuth error detected for ${queryProvider}: ${queryCode}`);
+    
+    // Get current retry count for this provider
+    const currentRetryCount = getStoredRetryCount(queryProvider);
+    console.log(`Current retry count for ${queryProvider}: ${currentRetryCount}`);
+    
+    if (currentRetryCount < maxRetryAttempts) {
+      // Increment retry count
+      const newRetryCount = currentRetryCount + 1;
+      setStoredRetryCount(queryProvider, newRetryCount);
+      retryAttempt.value = newRetryCount;
+      
+      console.log(`Auto-retrying OAuth for ${queryProvider} (attempt ${newRetryCount}/${maxRetryAttempts})`);
+      
+      // Start retry after a short delay to let user see the error message
+      setTimeout(() => {
+        retryOAuth(queryProvider);
+      }, 1000);
+    } else {
+      console.log(`Max retry attempts reached for ${queryProvider}, stopping auto-retry`);
+      // Clear stored retry count
+      setStoredRetryCount(queryProvider, 0);
+    }
   }
 });
 

@@ -33,7 +33,29 @@ defmodule Mobilizon.Web.AuthController do
         %{assigns: %{ueberauth_failure: fails}} = conn,
         %{"provider" => provider} = _params
       ) do
-    Logger.warning("Unable to login user with #{provider} #{inspect(fails)}")
+    Logger.error("OAuth callback failure for #{provider}: #{inspect(fails, pretty: true)}")
+
+    # Log specific failure reasons for debugging
+    failure_reasons =
+      fails.errors
+      |> Enum.map(fn error ->
+        case error do
+          %{message_key: "OAuth2", message: message} ->
+            # Try to extract more details from OAuth2 errors
+            Logger.error("OAuth2 detailed error: #{inspect(error, pretty: true)}")
+            "OAuth2: #{message}"
+
+          _ ->
+            "#{error.message_key}: #{error.message}"
+        end
+      end)
+      |> Enum.join(", ")
+
+    Logger.error("OAuth failure reasons: #{failure_reasons}")
+
+    # Log additional debugging information
+    Logger.error("Request params: #{inspect(conn.params, pretty: true)}")
+    Logger.error("Query string: #{conn.query_string}")
 
     redirect_to_error(conn, :unknown_error, provider)
   end
@@ -47,26 +69,33 @@ defmodule Mobilizon.Web.AuthController do
     [_, _, _, strategy] = strategy |> to_string() |> String.split(".")
     strategy = String.downcase(strategy)
 
+    Logger.info("OAuth callback received for #{strategy} with email: #{email}")
+    Logger.debug("OAuth auth data: #{inspect(auth, pretty: true)}")
+
     user =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
            {:error, :user_not_found} <- Users.get_user_by_email(email),
            {:ok, %User{} = user} <- Users.create_external(email, strategy, %{locale: locale}) do
+        Logger.info("Created new external user for #{email} via #{strategy}")
         user
       else
         {:ok, %User{} = user} ->
+          Logger.info("Found existing user for #{email}")
           user
 
         {:error, error} ->
+          Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
           {:error, error}
 
         error ->
+          Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
           {:error, error}
       end
 
     with %User{} = user <- user,
          {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
            Authenticator.generate_tokens(user) do
-      Logger.info("Logged-in user \"#{email}\" through #{strategy}")
+      Logger.info("Successfully generated tokens for user \"#{email}\" through #{strategy}")
 
       render(conn, "callback.html", %{
         access_token: access_token,
@@ -77,20 +106,86 @@ defmodule Mobilizon.Web.AuthController do
       })
     else
       err ->
-        Logger.warning("Unable to login user \"#{email}\" #{inspect(err)}")
+        Logger.error("Failed to login user \"#{email}\" - Error: #{inspect(err, pretty: true)}")
         redirect_to_error(conn, :unknown_error, strategy)
     end
   end
 
   def callback(conn, %{"provider" => provider_name} = params) do
+    Logger.info("Processing OAuth callback for provider: #{provider_name}")
+    Logger.debug("Callback params: #{inspect(params, pretty: true)}")
+
     case provider_config(provider_name) do
       {:ok, provider_config} ->
-        conn
-        |> Ueberauth.run_callback(provider_name, provider_config)
-        |> callback(params)
+        Logger.debug("Provider config found for #{provider_name}")
+        run_callback_with_retry(conn, provider_name, provider_config, params, 1)
 
       {:error, error} ->
+        Logger.error("Provider config error for #{provider_name}: #{inspect(error)}")
         redirect_to_error(conn, error, provider_name)
+    end
+  end
+
+  @max_oauth_retries 3
+  @retry_delay_ms 1500
+
+  defp run_callback_with_retry(conn, provider_name, provider_config, params, attempt) do
+    Logger.info("OAuth attempt #{attempt}/#{@max_oauth_retries} for #{provider_name}")
+
+    result_conn =
+      conn
+      |> Ueberauth.run_callback(provider_name, provider_config)
+
+    case result_conn.assigns do
+      %{ueberauth_failure: fails} when attempt < @max_oauth_retries ->
+        # Check if this is a retryable error (any error containing "Error" or common failure patterns)
+        has_retryable_error =
+          Enum.any?(fails.errors, fn error ->
+            String.contains?(error.message, "Error") or
+              String.contains?(error.message, "error") or
+              String.contains?(error.message, "timeout") or
+              String.contains?(error.message, "failed") or
+              String.contains?(error.message, "Unknown") or
+              error.message_key == "OAuth2"
+          end)
+
+        if has_retryable_error do
+          error_messages =
+            Enum.map(fails.errors, &"#{&1.message_key}: #{&1.message}") |> Enum.join(", ")
+
+          Logger.warning(
+            "OAuth error on attempt #{attempt} (#{error_messages}), retrying in #{@retry_delay_ms}ms..."
+          )
+
+          # Add delay before retry
+          Process.sleep(@retry_delay_ms)
+          # Retry with exponential backoff
+          next_delay = @retry_delay_ms * (attempt + 1)
+          run_callback_with_retry(conn, provider_name, provider_config, params, attempt + 1)
+        else
+          # If we can't identify the error type, try retrying anyway since user requested retry on all "Error"
+          Logger.warning(
+            "Unidentified OAuth error on attempt #{attempt}, retrying anyway in #{@retry_delay_ms}ms..."
+          )
+
+          Logger.error("Full error details: #{inspect(fails, pretty: true)}")
+          Process.sleep(@retry_delay_ms)
+          run_callback_with_retry(conn, provider_name, provider_config, params, attempt + 1)
+        end
+
+      %{ueberauth_failure: fails} ->
+        error_messages =
+          Enum.map(fails.errors, &"#{&1.message_key}: #{&1.message}") |> Enum.join(", ")
+
+        Logger.error(
+          "OAuth failed after #{attempt} attempts, giving up. Final errors: #{error_messages}"
+        )
+
+        callback(result_conn, params)
+
+      _success ->
+        Logger.info("OAuth succeeded on attempt #{attempt}")
+        callback(result_conn, params)
     end
   end
 

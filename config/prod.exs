@@ -41,7 +41,7 @@ config :mobilizon, :instance,
 # SMTP configuration (will be overridden by environment variables in Docker)
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,
-  relay: System.get_env("MOBILIZON_SMTP_SERVER","email-smtp.eu-central-1.amazonaws.com"),
+  relay: System.get_env("MOBILIZON_SMTP_SERVER", "email-smtp.eu-central-1.amazonaws.com"),
   port: String.to_integer(System.get_env("MOBILIZON_SMTP_PORT", "587")),
   username: System.get_env("MOBILIZON_SMTP_USERNAME"),
   password: System.get_env("MOBILIZON_SMTP_PASSWORD"),
@@ -87,4 +87,72 @@ config :mobilizon, :exports,
     Mobilizon.Service.Export.Participants.CSV,
     Mobilizon.Service.Export.Participants.PDF,
     Mobilizon.Service.Export.Participants.ODS
+  ]
+
+# OAuth Configuration (following official Mobilizon documentation)
+# Configure providers using the official Ueberauth format
+
+config :ueberauth,
+       Ueberauth,
+       providers: [
+         linkedin:
+           {Ueberauth.Strategy.LinkedIn,
+            [
+              default_scope: "openid profile email",
+              send_redirect_uri: true,
+              uid_field: :id
+            ]}
+         # Add other providers here as needed:
+         # google: {Ueberauth.Strategy.Google, []},
+         # github: {Ueberauth.Strategy.Github, []},
+         # facebook: {Ueberauth.Strategy.Facebook, []},
+         # discord: {Ueberauth.Strategy.Discord, []},
+         # gitlab: {Ueberauth.Strategy.Gitlab, [default_scope: "read_user"]},
+         # twitter: {Ueberauth.Strategy.Twitter, []},
+         # keycloak: {UeberauthKeycloakStrategy.Strategy, [default_scope: "openid email"]}
+       ]
+
+# List providers for display in UI (can include custom labels)
+config :mobilizon, :auth,
+  oauth_consumer_strategies: [
+    :linkedin
+    # {:linkedin, "LinkedIn"}  # Use this format for custom labels
+    # :google,
+    # :github,
+    # :facebook,
+    # :discord,
+    # :gitlab,
+    # :twitter,
+    # {:keycloak, "My corporate account"}
+  ]
+
+# Provider-specific configuration
+config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
+  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
+  redirect_uri: System.get_env("LINKEDIN_REDIRECT_URI"),
+  # OAuth2 client options for better reliability
+  site: "https://www.linkedin.com",
+  authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
+  token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+
+# HTTP client configuration for OAuth requests
+config :oauth2, :http_client, HTTPoison
+
+# HTTPoison configuration with better timeout handling
+config :httpoison,
+  timeout: 30_000,
+  recv_timeout: 30_000,
+  hackney: [
+    timeout: 30_000,
+    recv_timeout: 30_000,
+    pool_timeout: 10_000,
+    max_connections: 50,
+    # Additional reliability options
+    retry: 3,
+    retry_delay: 1000,
+    follow_redirect: true,
+    max_redirect: 3,
+    # Connection pool options
+    pool: :oauth_pool
   ]

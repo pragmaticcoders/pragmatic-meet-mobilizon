@@ -53,6 +53,11 @@ onUpdateCurrentUserClientDone(async () => {
 
 onMounted(async () => {
   try {
+    console.log("OAuth callback: Starting authentication data retrieval");
+    
+    // Wait a bit for the page to fully load
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
     // Use enhanced meta tag reading with retry logic to handle OAuth callback timing
     const [accessToken, refreshToken, userId, userEmail, userRole] =
       await Promise.all([
@@ -63,22 +68,71 @@ onMounted(async () => {
         getValueFromMetaWithRetry("auth-user-role"),
       ]);
 
+    console.log("OAuth callback: Meta tag retrieval completed", {
+      hasUserId: !!userId,
+      hasUserEmail: !!userEmail,
+      hasUserRole: !!userRole,
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken,
+    });
+
     if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
       console.error("OAuth callback: Missing required authentication data", {
-        hasUserId: !!userId,
-        hasUserEmail: !!userEmail,
-        hasUserRole: !!userRole,
+        userId: userId || "MISSING",
+        userEmail: userEmail || "MISSING", 
+        userRole: userRole || "MISSING",
         hasAccessToken: !!accessToken,
         hasRefreshToken: !!refreshToken,
+        currentUrl: window.location.href,
+        documentTitle: document.title,
       });
-      await router.push({
-        name: RouteName.LOGIN,
-        query: { code: "oauth_callback_failed" },
-      });
+      
+      // Check if this is actually an OAuth error redirect
+      const urlParams = new URLSearchParams(window.location.search);
+      const errorCode = urlParams.get('code');
+      const provider = urlParams.get('provider');
+      
+      if (errorCode && provider) {
+        console.error(`OAuth error detected: ${errorCode} for provider ${provider}`);
+        await router.push({
+          name: RouteName.LOGIN,
+          query: { 
+            code: errorCode,
+            provider: provider,
+            error: "oauth_callback_failed" 
+          },
+        });
+      } else {
+        await router.push({
+          name: RouteName.LOGIN,
+          query: { code: "oauth_callback_failed" },
+        });
+      }
       return;
     }
 
-    console.debug("OAuth callback: Successfully retrieved authentication data");
+    console.log("OAuth callback: Successfully retrieved authentication data");
+
+    // Clear any stored retry counts on successful OAuth  
+    // Try to detect provider from URL path (e.g., /auth/linkedin/callback)
+    const pathSegments = window.location.pathname.split('/');
+    const providerIndex = pathSegments.indexOf('auth');
+    const provider = providerIndex !== -1 && pathSegments[providerIndex + 1] 
+      ? pathSegments[providerIndex + 1] 
+      : null;
+    
+    if (provider) {
+      console.log(`Clearing retry count for successful ${provider} OAuth`);
+      sessionStorage.removeItem(`oauth-retry-${provider}`);
+    } else {
+      // Fallback: clear all oauth retry counts on successful auth
+      console.log("Clearing all OAuth retry counts on successful authentication");
+      Object.keys(sessionStorage).forEach(key => {
+        if (key.startsWith('oauth-retry-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    }
 
     const login = {
       user: {
@@ -103,6 +157,12 @@ onMounted(async () => {
       isLoggedIn: true,
       role: userRole as ICurrentUserRole,
     });
+    
+    console.log("OAuth callback: Authentication completed successfully");
+    
+    // Redirect to home or intended page
+    await router.push({ name: RouteName.HOME });
+    
   } catch (error) {
     console.error("OAuth callback: Error processing authentication", error);
     await router.push({
