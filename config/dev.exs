@@ -132,14 +132,7 @@ config :unplug, :init_mode, :runtime
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin:
-           {Ueberauth.Strategy.LinkedIn,
-            [
-              default_scope: "openid profile email",
-              send_redirect_uri: true,
-              uid_field: :id
-            ]}
-         # Add other providers here as needed for development
+         linkedin: {Ueberauth.Strategy.LinkedIn, []}
        ]
 
 config :mobilizon, :auth,

@@ -57,7 +57,24 @@ defmodule Mobilizon.Web.AuthController do
     Logger.error("Request params: #{inspect(conn.params, pretty: true)}")
     Logger.error("Query string: #{conn.query_string}")
 
-    redirect_to_error(conn, :unknown_error, provider)
+    # Check if this is a retryable error and show retry screen
+    has_retryable_error =
+      Enum.any?(fails.errors, fn error ->
+        String.contains?(error.message, "Error") or
+          String.contains?(error.message, "error") or
+          String.contains?(error.message, "timeout") or
+          String.contains?(error.message, "failed") or
+          String.contains?(error.message, "Unknown") or
+          error.message_key == "OAuth2"
+      end)
+
+    if has_retryable_error do
+      Logger.info("OAuth failure is retryable, showing retry screen for #{provider}")
+      show_retry_screen(conn, provider, 1, failure_reasons)
+    else
+      Logger.error("OAuth failure is not retryable, redirecting to error for #{provider}")
+      redirect_to_error(conn, :unknown_error, provider)
+    end
   end
 
   def callback(
@@ -126,7 +143,7 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  @max_oauth_retries 3
+  @max_oauth_retries 20
   @retry_delay_ms 1500
 
   defp run_callback_with_retry(conn, provider_name, provider_config, params, attempt) do
@@ -154,23 +171,19 @@ defmodule Mobilizon.Web.AuthController do
             Enum.map(fails.errors, &"#{&1.message_key}: #{&1.message}") |> Enum.join(", ")
 
           Logger.warning(
-            "OAuth error on attempt #{attempt} (#{error_messages}), retrying in #{@retry_delay_ms}ms..."
+            "OAuth error on attempt #{attempt} (#{error_messages}), showing retry screen..."
           )
 
-          # Add delay before retry
-          Process.sleep(@retry_delay_ms)
-          # Retry with exponential backoff
-          next_delay = @retry_delay_ms * (attempt + 1)
-          run_callback_with_retry(conn, provider_name, provider_config, params, attempt + 1)
+          # Show retry loading screen instead of blocking
+          show_retry_screen(conn, provider_name, attempt, error_messages)
         else
           # If we can't identify the error type, try retrying anyway since user requested retry on all "Error"
           Logger.warning(
-            "Unidentified OAuth error on attempt #{attempt}, retrying anyway in #{@retry_delay_ms}ms..."
+            "Unidentified OAuth error on attempt #{attempt}, showing retry screen anyway..."
           )
 
           Logger.error("Full error details: #{inspect(fails, pretty: true)}")
-          Process.sleep(@retry_delay_ms)
-          run_callback_with_retry(conn, provider_name, provider_config, params, attempt + 1)
+          show_retry_screen(conn, provider_name, attempt, "Connection issue detected")
         end
 
       %{ueberauth_failure: fails} ->
@@ -248,6 +261,136 @@ defmodule Mobilizon.Web.AuthController do
 
   defp redirect_to_error(conn, :unknown_error, provider_name) do
     redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :invalid_token, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  # Show retry loading screen with countdown
+  defp show_retry_screen(conn, provider_name, attempt, error_message) do
+    retry_delay_seconds = div(@retry_delay_ms, 1000)
+
+    # Generate signed retry URL to prevent direct access
+    retry_token =
+      Phoenix.Token.sign(Mobilizon.Web.Endpoint, "oauth_retry", %{
+        "provider" => provider_name,
+        "attempt" => attempt + 1,
+        "timestamp" => System.system_time(:second)
+      })
+
+    retry_url = "/auth/retry/#{provider_name}?token=#{retry_token}"
+
+    conn
+    |> put_resp_content_type("text/html")
+    |> send_resp(
+      200,
+      render_retry_html(provider_name, attempt, retry_delay_seconds, error_message, retry_url)
+    )
+  end
+
+  # Handle retry requests from the loading screen
+  def retry_oauth(conn, %{"provider" => provider_name, "token" => token}) do
+    case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "oauth_retry", token, max_age: 300) do
+      {:ok, %{"provider" => ^provider_name, "attempt" => attempt}} ->
+        Logger.info("Processing OAuth retry #{attempt} for #{provider_name}")
+
+        case provider_config(provider_name) do
+          {:ok, provider_config} ->
+            # Simulate delay to show loading screen
+            Process.sleep(@retry_delay_ms)
+            run_callback_with_retry(conn, provider_name, provider_config, conn.params, attempt)
+
+          {:error, error} ->
+            Logger.error("Provider config error for #{provider_name}: #{inspect(error)}")
+            redirect_to_error(conn, error, provider_name)
+        end
+
+      {:error, reason} ->
+        Logger.error("Invalid retry token for #{provider_name}: #{inspect(reason)}")
+        redirect_to_error(conn, :invalid_token, provider_name)
+    end
+  end
+
+  # Render retry HTML directly to avoid template issues
+  defp render_retry_html(provider_name, _attempt, retry_delay_seconds, _error_message, retry_url) do
+    """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Authenticating...</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            .spinner { animation: spin 1s linear infinite; }
+        </style>
+    </head>
+    <body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
+        <div class="w-full max-w-md">
+            <!-- Loading card with LoginView.vue styling -->
+            <div class="bg-white shadow-sm border border-gray-200 px-6 py-8 text-center">
+                <!-- LinkedIn icon -->
+                <div class="mb-6">
+                    <div class="w-12 h-12 mx-auto bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">
+                    Authenticating with #{String.capitalize(provider_name)}
+                </h1>
+
+                <!-- Loading message with spinner (matches LoginView.vue) -->
+                <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 text-sm mb-6">
+                    <div class="flex items-center justify-center">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-800 mr-2 spinner"></div>
+                        <span>Connecting to #{String.capitalize(provider_name)}...</span>
+                    </div>
+                </div>
+
+                <!-- Progress indicator -->
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                    <div class="bg-blue-600 h-2 rounded-full progress-bar" id="progress" style="width: 0%"></div>
+                </div>
+
+                <!-- Cancel button (matches LoginView.vue button styling) -->
+                <a href="/login" class="text-sm bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 transition-colors duration-200 inline-block">
+                    Cancel and return to login
+                </a>
+            </div>
+        </div>
+
+        <script>
+            let countdown = #{retry_delay_seconds};
+            let totalTime = #{retry_delay_seconds};
+
+            const progressEl = document.getElementById('progress');
+
+            const timer = setInterval(() => {
+                countdown--;
+                const progress = ((totalTime - countdown) / totalTime) * 100;
+                progressEl.style.width = progress + '%';
+
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    progressEl.style.width = '100%';
+                    setTimeout(() => { window.location.href = '#{retry_url}'; }, 500);
+                }
+            }, 1000);
+
+            // Clean up timer if page becomes hidden
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) clearInterval(timer);
+            });
+        </script>
+    </body>
+    </html>
+    """
   end
 
   def secret_key_base do

@@ -275,13 +275,7 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin:
-           {Ueberauth.Strategy.LinkedIn,
-            [
-              default_scope: "openid profile email",
-              send_redirect_uri: true,
-              uid_field: :id
-            ]}
+         linkedin: {Ueberauth.Strategy.LinkedIn, []}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
