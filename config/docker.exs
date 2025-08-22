@@ -305,7 +305,10 @@ config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
   client_id: System.get_env("LINKEDIN_CLIENT_ID"),
   client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
   redirect_uri:
-    System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
+    System.get_env(
+      "LINKEDIN_REDIRECT_URI",
+      "https://meetup.pragmaticcoders.com/auth/linkedin/callback"
+    ),
   # OAuth2 client options for better reliability
   site: "https://www.linkedin.com",
   authorize_url: "https://www.linkedin.com/oauth/v2/authorization",

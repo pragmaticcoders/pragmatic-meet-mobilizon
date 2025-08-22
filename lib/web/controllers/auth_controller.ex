@@ -266,54 +266,88 @@ defmodule Mobilizon.Web.AuthController do
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Authenticating...</title>
-        <script src="https://cdn.tailwindcss.com"></script>
         <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                background-color: #f9fafb; min-height: 100vh;
+                display: flex; align-items: center; justify-content: center; padding: 16px;
+            }
+            .container { width: 100%; max-width: 448px; }
+            .card {
+                background: white; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e5e7eb; padding: 48px 24px; text-align: center;
+            }
+            .icon-container { margin-bottom: 24px; }
+            .icon {
+                width: 48px; height: 48px; margin: 0 auto; background-color: #2563eb;
+                border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            }
+            .icon svg { width: 24px; height: 24px; fill: white; }
+            .title {
+                font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 24px;
+            }
+            .message-box {
+                background-color: #fef3c7; border: 1px solid #fbbf24;
+                color: #92400e; padding: 12px 16px; font-size: 14px; margin-bottom: 24px;
+                display: flex; align-items: center; justify-content: center;
+            }
+            .spinner {
+                width: 16px; height: 16px; border: 2px solid #92400e;
+                border-top: 2px solid transparent; border-radius: 50%;
+                animation: spin 1s linear infinite; margin-right: 8px;
+            }
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-            .spinner { animation: spin 1s linear infinite; }
+            .progress-container {
+                width: 100%; height: 8px; background-color: #e5e7eb;
+                border-radius: 4px; margin-bottom: 24px; overflow: hidden;
+            }
+            .progress-bar {
+                height: 100%; background-color: #2563eb; border-radius: 4px;
+                transition: width 0.3s ease; width: 0%;
+            }
+            .cancel-button {
+                font-size: 14px; background-color: #4b5563; color: white;
+                padding: 4px 12px; text-decoration: none; display: inline-block;
+                transition: background-color 0.2s; border-radius: 4px;
+            }
+            .cancel-button:hover { background-color: #374151; }
         </style>
     </head>
-    <body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-md">
-            <!-- Loading card with LoginView.vue styling -->
-            <div class="bg-white shadow-sm border border-gray-200 px-6 py-8 text-center">
+    <body>
+        <div class="container">
+            <div class="card">
                 <!-- LinkedIn icon -->
-                <div class="mb-6">
-                    <div class="w-12 h-12 mx-auto bg-blue-600 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+                <div class="icon-container">
+                    <div class="icon">
+                        <svg viewBox="0 0 24 24">
                             <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                         </svg>
                     </div>
                 </div>
 
                 <!-- Title -->
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">
-                    Authenticating with #{String.capitalize(provider_name)}
-                </h1>
+                <h1 class="title">Authenticating with #{String.capitalize(provider_name)}</h1>
 
-                <!-- Loading message with spinner (matches LoginView.vue) -->
-                <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 text-sm mb-6">
-                    <div class="flex items-center justify-center">
-                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-800 mr-2 spinner"></div>
-                        <span>Connecting to #{String.capitalize(provider_name)}...</span>
-                    </div>
+                <!-- Loading message with spinner -->
+                <div class="message-box">
+                    <div class="spinner"></div>
+                    <span>Connecting to #{String.capitalize(provider_name)}...</span>
                 </div>
 
                 <!-- Progress indicator -->
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
-                    <div class="bg-blue-600 h-2 rounded-full progress-bar" id="progress" style="width: 0%"></div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress"></div>
                 </div>
 
-                <!-- Cancel button (matches LoginView.vue button styling) -->
-                <a href="/login" class="text-sm bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 transition-colors duration-200 inline-block">
-                    Cancel and return to login
-                </a>
+                <!-- Cancel button -->
+                <a href="/login" class="cancel-button">Cancel and return to login</a>
             </div>
         </div>
 
         <script>
             let countdown = #{retry_delay_seconds};
             let totalTime = #{retry_delay_seconds};
-
             const progressEl = document.getElementById('progress');
 
             const timer = setInterval(() => {
@@ -328,7 +362,6 @@ defmodule Mobilizon.Web.AuthController do
                 }
             }, 1000);
 
-            // Clean up timer if page becomes hidden
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden) clearInterval(timer);
             });
