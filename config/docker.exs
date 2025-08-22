@@ -275,7 +275,11 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin: {Ueberauth.Strategy.LinkedIn, []}
+         linkedin: {Ueberauth.Strategy.LinkedIn, [
+           default_scope: "openid profile email",
+           send_redirect_uri: true,
+           uid_field: :sub
+         ]}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
@@ -309,10 +313,14 @@ config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
       "LINKEDIN_REDIRECT_URI",
       "https://meetup.pragmaticcoders.com/auth/linkedin/callback"
     ),
-  # OAuth2 client options for better reliability
+  # OIDC endpoints for LinkedIn
   site: "https://www.linkedin.com",
   authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
-  token_url: "https://www.linkedin.com/oauth/v2/accessToken"
+  token_url: "https://www.linkedin.com/oauth/v2/accessToken",
+  userinfo_url: "https://api.linkedin.com/v2/userinfo",
+  # OIDC specific options
+  response_type: "code",
+  token_method: :post
 
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison

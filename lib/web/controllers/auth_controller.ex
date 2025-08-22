@@ -89,8 +89,13 @@ defmodule Mobilizon.Web.AuthController do
     [_, _, _, strategy] = strategy |> to_string() |> String.split(".")
     strategy = String.downcase(strategy)
 
-    Logger.info("OAuth callback received for #{strategy} with email: #{email}")
-    Logger.debug("OAuth auth data: #{inspect(auth, pretty: true)}")
+    Logger.info("OAuth OIDC callback received for #{strategy} with email: #{email}")
+    Logger.debug("OAuth OIDC auth data: #{inspect(auth, pretty: true)}")
+
+    # Log OIDC specific data
+    if auth.extra && auth.extra.raw_info do
+      Logger.debug("OIDC ID Token data: #{inspect(auth.extra.raw_info, pretty: true)}")
+    end
 
     user =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
@@ -176,9 +181,19 @@ defmodule Mobilizon.Web.AuthController do
   @max_oauth_retries 20
   @retry_delay_ms 1500
 
+  # Extract email from OIDC or traditional OAuth responses
+  @spec email_from_ueberauth(Ueberauth.Auth.t()) :: String.t() | nil
+
+  # LinkedIn OIDC: email comes in the ID token user data
+  defp email_from_ueberauth(%Ueberauth.Auth{
+         strategy: Ueberauth.Strategy.LinkedIn,
+         extra: %Ueberauth.Auth.Extra{raw_info: %{user: %{"email" => email}}}
+       })
+       when is_valid_string(email),
+       do: email
+
   # Github only give public emails as part of the user profile,
   # so we explicitely request all user emails and filter on the primary one
-  @spec email_from_ueberauth(Ueberauth.Auth.t()) :: String.t() | nil
   defp email_from_ueberauth(%Ueberauth.Auth{
          strategy: Ueberauth.Strategy.Github,
          extra: %Ueberauth.Auth.Extra{raw_info: %{user: %{"emails" => emails}}}
@@ -186,6 +201,7 @@ defmodule Mobilizon.Web.AuthController do
        when length(emails) > 0,
        do: emails |> Enum.find(& &1["primary"]) |> (& &1["email"]).()
 
+  # Generic fallback for other providers or OIDC info field
   defp email_from_ueberauth(%Ueberauth.Auth{
          extra: %Ueberauth.Auth.Extra{raw_info: %{user: %{"email" => email}}}
        })
@@ -198,11 +214,27 @@ defmodule Mobilizon.Web.AuthController do
 
   defp email_from_ueberauth(_), do: nil
 
+  # Extract username - for LinkedIn OIDC this might be the 'sub' field
+  defp username_from_ueberauth(%Ueberauth.Auth{
+         strategy: Ueberauth.Strategy.LinkedIn,
+         extra: %Ueberauth.Auth.Extra{raw_info: %{user: %{"sub" => sub}}}
+       })
+       when is_valid_string(sub),
+       do: sub
+
   defp username_from_ueberauth(%Ueberauth.Auth{info: %Ueberauth.Auth.Info{nickname: nickname}})
        when is_valid_string(nickname),
        do: nickname
 
   defp username_from_ueberauth(_), do: nil
+
+  # Extract display name - OIDC provides 'name', 'given_name', 'family_name'
+  defp display_name_from_ueberauth(%Ueberauth.Auth{
+         strategy: Ueberauth.Strategy.LinkedIn,
+         extra: %Ueberauth.Auth.Extra{raw_info: %{user: %{"name" => name}}}
+       })
+       when is_valid_string(name),
+       do: name
 
   defp display_name_from_ueberauth(%Ueberauth.Auth{info: %Ueberauth.Auth.Info{name: name}})
        when is_valid_string(name),
@@ -303,11 +335,11 @@ defmodule Mobilizon.Web.AuthController do
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Authenticating...</title>
         <!-- Disable Cloudflare optimizations that can break countdown timer -->
         <script data-cfasync="false"></script>
         <!-- Prevent external script interference -->
-        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">'
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+        <title>Authenticating...</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
@@ -387,51 +419,26 @@ defmodule Mobilizon.Web.AuthController do
             </div>
         </div>
 
-        <script data-cfasync="false" type="text/javascript">
-            // Ensure script runs immediately without Cloudflare interference
-            (function() {
-                let countdown = #{retry_delay_seconds};
-                let totalTime = #{retry_delay_seconds};
-                const progressEl = document.getElementById('progress');
-                
-                if (!progressEl) {
-                    console.error('Progress element not found, redirecting immediately');
-                    window.location.href = '#{retry_url}';
-                    return;
+        <script>
+            let countdown = #{retry_delay_seconds};
+            let totalTime = #{retry_delay_seconds};
+            const progressEl = document.getElementById('progress');
+
+            const timer = setInterval(() => {
+                countdown--;
+                const progress = ((totalTime - countdown) / totalTime) * 100;
+                progressEl.style.width = progress + '%';
+
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    progressEl.style.width = '100%';
+                    setTimeout(() => { window.location.href = '#{retry_url}'; }, 500);
                 }
-                
-                console.log('OAuth retry countdown started:', countdown, 'seconds');
+            }, 1000);
 
-                const timer = setInterval(() => {
-                    countdown--;
-                    const progress = ((totalTime - countdown) / totalTime) * 100;
-                    progressEl.style.width = progress + '%';
-                    
-                    console.log('Countdown:', countdown, 'Progress:', progress + '%');
-
-                    if (countdown <= 0) {
-                        clearInterval(timer);
-                        progressEl.style.width = '100%';
-                        console.log('Redirecting to:', '#{retry_url}');
-                        setTimeout(() => { 
-                            window.location.href = '#{retry_url}'; 
-                        }, 500);
-                    }
-                }, 1000);
-
-                document.addEventListener('visibilitychange', () => {
-                    if (document.hidden) {
-                        console.log('Page hidden, clearing timer');
-                        clearInterval(timer);
-                    }
-                });
-                
-                // Fallback redirect in case timer fails
-                setTimeout(() => {
-                    console.log('Fallback redirect triggered');
-                    window.location.href = '#{retry_url}';
-                }, (#{retry_delay_seconds} + 2) * 1000);
-            })();
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) clearInterval(timer);
+            });
         </script>
     </body>
     </html>
