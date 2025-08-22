@@ -304,6 +304,10 @@ defmodule Mobilizon.Web.AuthController do
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Authenticating...</title>
+        <!-- Disable Cloudflare optimizations that can break countdown timer -->
+        <script data-cfasync="false"></script>
+        <!-- Prevent external script interference -->
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">'
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
@@ -383,26 +387,51 @@ defmodule Mobilizon.Web.AuthController do
             </div>
         </div>
 
-        <script>
-            let countdown = #{retry_delay_seconds};
-            let totalTime = #{retry_delay_seconds};
-            const progressEl = document.getElementById('progress');
-
-            const timer = setInterval(() => {
-                countdown--;
-                const progress = ((totalTime - countdown) / totalTime) * 100;
-                progressEl.style.width = progress + '%';
-
-                if (countdown <= 0) {
-                    clearInterval(timer);
-                    progressEl.style.width = '100%';
-                    setTimeout(() => { window.location.href = '#{retry_url}'; }, 500);
+        <script data-cfasync="false" type="text/javascript">
+            // Ensure script runs immediately without Cloudflare interference
+            (function() {
+                let countdown = #{retry_delay_seconds};
+                let totalTime = #{retry_delay_seconds};
+                const progressEl = document.getElementById('progress');
+                
+                if (!progressEl) {
+                    console.error('Progress element not found, redirecting immediately');
+                    window.location.href = '#{retry_url}';
+                    return;
                 }
-            }, 1000);
+                
+                console.log('OAuth retry countdown started:', countdown, 'seconds');
 
-            document.addEventListener('visibilitychange', () => {
-                if (document.hidden) clearInterval(timer);
-            });
+                const timer = setInterval(() => {
+                    countdown--;
+                    const progress = ((totalTime - countdown) / totalTime) * 100;
+                    progressEl.style.width = progress + '%';
+                    
+                    console.log('Countdown:', countdown, 'Progress:', progress + '%');
+
+                    if (countdown <= 0) {
+                        clearInterval(timer);
+                        progressEl.style.width = '100%';
+                        console.log('Redirecting to:', '#{retry_url}');
+                        setTimeout(() => { 
+                            window.location.href = '#{retry_url}'; 
+                        }, 500);
+                    }
+                }, 1000);
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        console.log('Page hidden, clearing timer');
+                        clearInterval(timer);
+                    }
+                });
+                
+                // Fallback redirect in case timer fails
+                setTimeout(() => {
+                    console.log('Fallback redirect triggered');
+                    window.location.href = '#{retry_url}';
+                }, (#{retry_delay_seconds} + 2) * 1000);
+            })();
         </script>
     </body>
     </html>
