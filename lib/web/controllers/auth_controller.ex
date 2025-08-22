@@ -128,79 +128,24 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  def callback(conn, %{"provider" => provider_name} = params) do
-    Logger.info("Processing OAuth callback for provider: #{provider_name}")
-    Logger.debug("Callback params: #{inspect(params, pretty: true)}")
+  # This should only be called for unhandled cases (fallback)
+  def callback(conn, params) do
+    Logger.warning("Unhandled OAuth callback: #{inspect(params, pretty: true)}")
+    Logger.warning("Connection assigns: #{inspect(conn.assigns, pretty: true)}")
 
-    case provider_config(provider_name) do
-      {:ok, provider_config} ->
-        Logger.debug("Provider config found for #{provider_name}")
-        run_callback_with_retry(conn, provider_name, provider_config, params, 1)
+    case params do
+      %{"provider" => provider_name} ->
+        Logger.error("OAuth callback was not handled by specific handlers for #{provider_name}")
+        redirect_to_error(conn, :unknown_error, provider_name)
 
-      {:error, error} ->
-        Logger.error("Provider config error for #{provider_name}: #{inspect(error)}")
-        redirect_to_error(conn, error, provider_name)
+      _ ->
+        Logger.error("OAuth callback missing provider parameter")
+        redirect(conn, to: "/login?code=Error with Login Provider")
     end
   end
 
   @max_oauth_retries 20
   @retry_delay_ms 1500
-
-  defp run_callback_with_retry(conn, provider_name, provider_config, params, attempt) do
-    Logger.info("OAuth attempt #{attempt}/#{@max_oauth_retries} for #{provider_name}")
-
-    result_conn =
-      conn
-      |> Ueberauth.run_callback(provider_name, provider_config)
-
-    case result_conn.assigns do
-      %{ueberauth_failure: fails} when attempt < @max_oauth_retries ->
-        # Check if this is a retryable error (any error containing "Error" or common failure patterns)
-        has_retryable_error =
-          Enum.any?(fails.errors, fn error ->
-            String.contains?(error.message, "Error") or
-              String.contains?(error.message, "error") or
-              String.contains?(error.message, "timeout") or
-              String.contains?(error.message, "failed") or
-              String.contains?(error.message, "Unknown") or
-              error.message_key == "OAuth2"
-          end)
-
-        if has_retryable_error do
-          error_messages =
-            Enum.map(fails.errors, &"#{&1.message_key}: #{&1.message}") |> Enum.join(", ")
-
-          Logger.warning(
-            "OAuth error on attempt #{attempt} (#{error_messages}), showing retry screen..."
-          )
-
-          # Show retry loading screen instead of blocking
-          show_retry_screen(conn, provider_name, attempt, error_messages)
-        else
-          # If we can't identify the error type, try retrying anyway since user requested retry on all "Error"
-          Logger.warning(
-            "Unidentified OAuth error on attempt #{attempt}, showing retry screen anyway..."
-          )
-
-          Logger.error("Full error details: #{inspect(fails, pretty: true)}")
-          show_retry_screen(conn, provider_name, attempt, "Connection issue detected")
-        end
-
-      %{ueberauth_failure: fails} ->
-        error_messages =
-          Enum.map(fails.errors, &"#{&1.message_key}: #{&1.message}") |> Enum.join(", ")
-
-        Logger.error(
-          "OAuth failed after #{attempt} attempts, giving up. Final errors: #{error_messages}"
-        )
-
-        callback(result_conn, params)
-
-      _success ->
-        Logger.info("OAuth succeeded on attempt #{attempt}")
-        callback(result_conn, params)
-    end
-  end
 
   # Github only give public emails as part of the user profile,
   # so we explicitely request all user emails and filter on the primary one
@@ -293,17 +238,17 @@ defmodule Mobilizon.Web.AuthController do
   def retry_oauth(conn, %{"provider" => provider_name, "token" => token}) do
     case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "oauth_retry", token, max_age: 300) do
       {:ok, %{"provider" => ^provider_name, "attempt" => attempt}} ->
-        Logger.info("Processing OAuth retry #{attempt} for #{provider_name}")
+        Logger.info(
+          "Processing OAuth retry #{attempt} for #{provider_name} - starting fresh OAuth flow"
+        )
 
-        case provider_config(provider_name) do
-          {:ok, provider_config} ->
-            # Simulate delay to show loading screen
-            Process.sleep(@retry_delay_ms)
-            run_callback_with_retry(conn, provider_name, provider_config, conn.params, attempt)
-
-          {:error, error} ->
-            Logger.error("Provider config error for #{provider_name}: #{inspect(error)}")
-            redirect_to_error(conn, error, provider_name)
+        if attempt <= @max_oauth_retries do
+          # Start a completely fresh OAuth request instead of re-processing failed callback
+          Logger.info("Redirecting to fresh OAuth request for #{provider_name}")
+          redirect(conn, to: "/auth/#{provider_name}")
+        else
+          Logger.error("Max retry attempts (#{@max_oauth_retries}) exceeded for #{provider_name}")
+          redirect_to_error(conn, :unknown_error, provider_name)
         end
 
       {:error, reason} ->
