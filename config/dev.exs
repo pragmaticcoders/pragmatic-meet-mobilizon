@@ -141,8 +141,8 @@ config :mobilizon, :auth,
   ]
 
 config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
-  client_id: System.get_env("LINKEDIN_CLIENT_ID", "77es95oq72tify"),
-  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET", "WPL_AP1.okqW0Aw0MhW01D28.KX0ypw=="),
+  client_id: System.get_env("LINKEDIN_CLIENT_ID"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
   redirect_uri:
     System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
   # OAuth2 client options for better reliability
