@@ -144,6 +144,19 @@ export const routes = [
     },
   },
   {
+    path: "/auth/retry",
+    name: "linkedin-retry-handle",
+    component: (): Promise<any> =>
+      import("@/components/User/LinkedinRetryHandle.vue"),
+    props: true,
+    meta: {
+      requiredAuth: false,
+      announcer: {
+        message: (): string => t("Retrying LinkedIn authentication...") as string,
+      },
+    },
+  },
+  {
     path: "/welcome/:step?",
     name: RouteName.WELCOME_SCREEN,
     component: (): Promise<any> =>
