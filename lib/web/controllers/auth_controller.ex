@@ -35,7 +35,6 @@ defmodule Mobilizon.Web.AuthController do
       ) do
     Logger.error("=== OAUTH FAILURE CALLBACK TRIGGERED ===")
     Logger.error("Provider: #{provider}")
-    Logger.error("Environment: #{Mix.env()}")
     Logger.error("OAuth callback failure for #{provider}: #{inspect(fails, pretty: true)}")
 
     # Log specific failure reasons for debugging
@@ -139,7 +138,6 @@ defmodule Mobilizon.Web.AuthController do
   # This should only be called for unhandled cases (fallback)
   def callback(conn, params) do
     Logger.warning("=== FALLBACK CALLBACK TRIGGERED ===")
-    Logger.warning("Environment: #{Mix.env()}")
     Logger.warning("Request URL: #{conn.request_path}?#{conn.query_string}")
     Logger.warning("Unhandled OAuth callback: #{inspect(params, pretty: true)}")
     Logger.warning("Connection assigns: #{inspect(conn.assigns, pretty: true)}")
@@ -298,7 +296,6 @@ defmodule Mobilizon.Web.AuthController do
   # Handle retry requests from the loading screen
   def retry_oauth(conn, %{"provider" => provider_name, "token" => token}) do
     Logger.info("=== RETRY OAUTH REQUEST ===")
-    Logger.info("Environment: #{Mix.env()}")
     Logger.info("Provider: #{provider_name}")
     Logger.info("Token received: #{String.slice(token, 0, 20)}...")
 
