@@ -13,7 +13,7 @@ defmodule Mobilizon.Web.AuthController do
 
   @spec request(Plug.Conn.t(), map()) :: Plug.Conn.t()
   def request(conn, %{"provider" => "linkedin"} = _params) do
-    Logger.info("Handling LinkedIn OAuth request with direct implementation")
+    Logger.info("Starting LinkedIn OAuth request")
 
     # Generate state for CSRF protection using signed token (no session needed)
     state = generate_csrf_state()
@@ -21,7 +21,6 @@ defmodule Mobilizon.Web.AuthController do
     # Get authorization URL from our custom LinkedIn implementation
     case LinkedInOAuth.authorize_url(state) do
       url when is_binary(url) ->
-        Logger.info("Redirecting to LinkedIn OAuth: #{url}")
         redirect(conn, external: url)
 
       {:error, reason} ->
@@ -46,20 +45,15 @@ defmodule Mobilizon.Web.AuthController do
         %{assigns: %{ueberauth_failure: fails}} = conn,
         %{"provider" => provider} = _params
       ) do
-    Logger.error("=== OAUTH FAILURE CALLBACK TRIGGERED ===")
-    Logger.error("Provider: #{provider}")
-    Logger.error("OAuth callback failure for #{provider}: #{inspect(fails, pretty: true)}")
+    Logger.error("OAuth failure callback for #{provider}")
 
-    # Log specific failure reasons for debugging
+    # Extract failure reasons
     failure_reasons =
       fails.errors
       |> Enum.map(fn error ->
         case error do
           %{message_key: "OAuth2", message: message} ->
-            # Try to extract more details from OAuth2 errors
-            Logger.error("OAuth2 detailed error: #{inspect(error, pretty: true)}")
             "OAuth2: #{message}"
-
           _ ->
             "#{error.message_key}: #{error.message}"
         end
@@ -67,10 +61,6 @@ defmodule Mobilizon.Web.AuthController do
       |> Enum.join(", ")
 
     Logger.error("OAuth failure reasons: #{failure_reasons}")
-
-    # Log additional debugging information
-    Logger.error("Request params: #{inspect(conn.params, pretty: true)}")
-    Logger.error("Query string: #{conn.query_string}")
 
     # Check if this is a retryable error and show retry screen
     has_retryable_error =
@@ -84,17 +74,16 @@ defmodule Mobilizon.Web.AuthController do
       end)
 
     if has_retryable_error do
-      Logger.info("OAuth failure is retryable, showing retry screen for #{provider}")
+      Logger.info("Showing retry screen for #{provider}")
       show_retry_screen(conn, provider, 1, failure_reasons)
     else
-      Logger.error("OAuth failure is not retryable, redirecting to error for #{provider}")
+      Logger.error("Non-retryable OAuth failure for #{provider}")
       redirect_to_error(conn, :unknown_error, provider)
     end
   end
 
   def callback(conn, %{"provider" => "linkedin"} = params) do
-    Logger.info("Processing LinkedIn OAuth callback with direct implementation")
-    Logger.debug("LinkedIn callback params: #{inspect(params, pretty: true)}")
+    Logger.info("Processing LinkedIn OAuth callback")
 
     case params do
       %{"code" => code, "state" => state} ->
@@ -119,13 +108,7 @@ defmodule Mobilizon.Web.AuthController do
     [_, _, _, strategy] = strategy |> to_string() |> String.split(".")
     strategy = String.downcase(strategy)
 
-    Logger.info("OAuth OIDC callback received for #{strategy} with email: #{email}")
-    Logger.debug("OAuth OIDC auth data: #{inspect(auth, pretty: true)}")
-
-    # Log OIDC specific data
-    if auth.extra && auth.extra.raw_info do
-      Logger.debug("OIDC ID Token data: #{inspect(auth.extra.raw_info, pretty: true)}")
-    end
+    Logger.info("OAuth callback received for #{strategy} with email: #{email}")
 
     user =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
@@ -150,7 +133,7 @@ defmodule Mobilizon.Web.AuthController do
     with %User{} = user <- user,
          {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
            Authenticator.generate_tokens(user) do
-      Logger.info("Successfully generated tokens for user \"#{email}\" through #{strategy}")
+      Logger.info("Successfully logged in user \"#{email}\" through #{strategy}")
 
       render(conn, "callback.html", %{
         access_token: access_token,
@@ -161,17 +144,14 @@ defmodule Mobilizon.Web.AuthController do
       })
     else
       err ->
-        Logger.error("Failed to login user \"#{email}\" - Error: #{inspect(err, pretty: true)}")
+        Logger.error("Failed to login user \"#{email}\" - Error: #{inspect(err)}")
         redirect_to_error(conn, :unknown_error, strategy)
     end
   end
 
   # This should only be called for unhandled cases (fallback)
   def callback(conn, params) do
-    Logger.warning("=== FALLBACK CALLBACK TRIGGERED ===")
-    Logger.warning("Request URL: #{conn.request_path}?#{conn.query_string}")
-    Logger.warning("Unhandled OAuth callback: #{inspect(params, pretty: true)}")
-    Logger.warning("Connection assigns: #{inspect(conn.assigns, pretty: true)}")
+    Logger.warning("Fallback OAuth callback triggered for: #{conn.request_path}")
 
     case params do
       %{"provider" => provider_name} ->
@@ -184,11 +164,7 @@ defmodule Mobilizon.Web.AuthController do
                String.contains?(params["code"], "Error"))
 
         if has_oauth_error do
-          Logger.warning(
-            "Detected OAuth error in fallback callback for #{provider_name}, showing retry screen"
-          )
-
-          Logger.warning("Error details: #{inspect(params, pretty: true)}")
+          Logger.warning("OAuth error detected for #{provider_name}, showing retry screen")
 
           # Simulate a failure and show retry screen
           error_message =
@@ -212,33 +188,16 @@ defmodule Mobilizon.Web.AuthController do
 
   # Custom LinkedIn OAuth handler
   defp handle_linkedin_callback(conn, code, state) do
-    Logger.info("LinkedIn OAuth: Received callback with code and state")
-
-    Logger.debug(
-      "LinkedIn OAuth: Authorization code (first 20 chars): #{String.slice(code, 0, 20)}..."
-    )
-
-    Logger.debug("LinkedIn OAuth: State parameter: #{state}")
-    Logger.debug("LinkedIn OAuth: Full callback params: #{inspect(conn.params, pretty: true)}")
-
-    Logger.debug(
-      "LinkedIn OAuth: Request headers: #{inspect(Enum.into(conn.req_headers, %{}), pretty: true)}"
-    )
+    Logger.info("LinkedIn OAuth: Processing callback")
 
     # Verify state for CSRF protection using signed token
     case verify_csrf_state(state) do
       :ok ->
-        Logger.info("LinkedIn OAuth state verified successfully")
+        Logger.info("LinkedIn OAuth: State verified")
 
         case LinkedInOAuth.authenticate(code, state) do
           {:ok, %{user_info: user_info, token: token}} ->
-            Logger.info("LinkedIn OAuth authentication successful for #{user_info["email"]}")
-
-            Logger.debug(
-              "LinkedIn OAuth: Complete user info received: #{inspect(user_info, pretty: true)}"
-            )
-
-            Logger.debug("LinkedIn OAuth: Token info: #{inspect(token, pretty: true)}")
+            Logger.info("LinkedIn OAuth: Authentication successful for #{user_info["email"]}")
             process_linkedin_user(conn, user_info, token)
 
           {:error, {:revoked_token, message}} ->
@@ -253,12 +212,12 @@ defmodule Mobilizon.Web.AuthController do
             |> redirect(to: "/login?code=LinkedIn Access Revoked&provider=linkedin")
 
           {:error, reason} ->
-            Logger.error("LinkedIn OAuth authentication failed: #{inspect(reason, pretty: true)}")
+            Logger.error("LinkedIn OAuth: Authentication failed - #{inspect(reason)}")
             redirect_to_error(conn, :authentication_failed, "linkedin")
         end
 
       :error ->
-        Logger.error("LinkedIn OAuth state verification failed: invalid state #{state}")
+        Logger.error("LinkedIn OAuth: State verification failed")
         redirect_to_error(conn, :invalid_state, "linkedin")
     end
   end
@@ -269,9 +228,6 @@ defmodule Mobilizon.Web.AuthController do
     username = user_info["sub"] || email
 
     Logger.info("Processing LinkedIn user: #{email}")
-    Logger.debug("LinkedIn OAuth: Extracted email: #{email}")
-    Logger.debug("LinkedIn OAuth: Extracted name: #{name}")
-    Logger.debug("LinkedIn OAuth: Extracted username: #{username}")
 
     user =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
