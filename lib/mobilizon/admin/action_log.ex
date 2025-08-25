@@ -8,7 +8,6 @@ defmodule Mobilizon.Admin.ActionLog do
   import Ecto.Changeset
 
   alias Mobilizon.Actors.Actor
-  alias Mobilizon.Admin.ActionLogAction
 
   @type t :: %__MODULE__{
           action: String.t(),
@@ -24,7 +23,7 @@ defmodule Mobilizon.Admin.ActionLog do
   @timestamps_opts [type: :utc_datetime]
 
   schema "admin_action_logs" do
-    field(:action, ActionLogAction)
+    field(:action, :string)
     field(:target_type, :string)
     field(:target_id, :integer)
     field(:changes, :map)

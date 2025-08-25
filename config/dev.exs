@@ -135,39 +135,28 @@ config :mobilizon, :anonymous,
 
 config :unplug, :init_mode, :runtime
 
-# OAuth Configuration for development (following official Mobilizon documentation)
+# OAuth Configuration for development
 
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin:
-           {Ueberauth.Strategy.LinkedIn,
-            [
-              default_scope: "r_liteprofile r_emailaddress"
-            ]}
+         # LinkedIn now uses direct OAuth2 implementation for better reliability
+         # linkedin: {Ueberauth.Strategy.LinkedIn, []}
+         # Add other providers here as needed for development
        ]
 
 config :mobilizon, :auth,
   oauth_consumer_strategies: [
+    # Still supported via direct OAuth2 implementation
     :linkedin
   ]
 
-config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
-  client_id: System.get_env("LINKEDIN_CLIENT_ID", "77cwtcpe5dqgt7"),
-  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET", "WPL_AP1.IeUxFYMtYlTPcUFY./ZXtWw=="),
+# Direct LinkedIn OAuth2 configuration (replaces Ueberauth LinkedIn)
+config :mobilizon, :linkedin,
+  client_id: System.get_env("LINKEDIN_CLIENT_ID", "77es95oq72tify"),
+  client_secret: System.get_env("LINKEDIN_CLIENT_SECRET", "WPL_AP1.okqW0Aw0MhW01D28.KX0ypw=="),
   redirect_uri:
-    System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback"),
-  # OIDC endpoints for LinkedIn
-  site: "https://www.linkedin.com",
-  authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
-  token_url: "https://www.linkedin.com/oauth/v2/accessToken",
-  userinfo_url: "https://api.linkedin.com/v2/userinfo",
-  # OIDC specific options
-  response_type: "code",
-  token_method: :post,
-  scope: "r_liteprofile r_emailaddress",
-  recv_timeout: 15_000,
-  timeout: 15_000
+    System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback")
 
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison

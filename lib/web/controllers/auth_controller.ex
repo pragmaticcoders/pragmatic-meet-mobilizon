@@ -4,19 +4,32 @@ defmodule Mobilizon.Web.AuthController do
   alias Mobilizon.Service.Auth.Authenticator
   alias Mobilizon.Users
   alias Mobilizon.Users.User
+  alias Mobilizon.Web.OAuth.LinkedInOAuth
   import Mobilizon.Service.Guards, only: [is_valid_string: 1]
   require Logger
   plug(:put_layout, false)
 
-  plug(Plug.Session,
-    store: :cookie,
-    key: "_auth_callback",
-    signing_salt: {Mobilizon.Web.AuthController, :secret_key_base, []}
-  )
-
   plug(Ueberauth)
 
   @spec request(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def request(conn, %{"provider" => "linkedin"} = _params) do
+    Logger.info("Handling LinkedIn OAuth request with direct implementation")
+
+    # Generate state for CSRF protection using signed token (no session needed)
+    state = generate_csrf_state()
+
+    # Get authorization URL from our custom LinkedIn implementation
+    case LinkedInOAuth.authorize_url(state) do
+      url when is_binary(url) ->
+        Logger.info("Redirecting to LinkedIn OAuth: #{url}")
+        redirect(conn, external: url)
+
+      {:error, reason} ->
+        Logger.error("Failed to generate LinkedIn OAuth URL: #{inspect(reason)}")
+        redirect_to_error(conn, :unknown_error, "linkedin")
+    end
+  end
+
   def request(conn, %{"provider" => provider_name} = _params) do
     case provider_config(provider_name) do
       {:ok, provider_config} ->
@@ -76,6 +89,24 @@ defmodule Mobilizon.Web.AuthController do
     else
       Logger.error("OAuth failure is not retryable, redirecting to error for #{provider}")
       redirect_to_error(conn, :unknown_error, provider)
+    end
+  end
+
+  def callback(conn, %{"provider" => "linkedin"} = params) do
+    Logger.info("Processing LinkedIn OAuth callback with direct implementation")
+    Logger.debug("LinkedIn callback params: #{inspect(params, pretty: true)}")
+
+    case params do
+      %{"code" => code, "state" => state} ->
+        handle_linkedin_callback(conn, code, state)
+
+      %{"error" => error, "error_description" => description} ->
+        Logger.error("LinkedIn OAuth error: #{error} - #{description}")
+        redirect_to_error(conn, :oauth_error, "linkedin")
+
+      _ ->
+        Logger.error("LinkedIn OAuth callback missing required parameters")
+        redirect_to_error(conn, :invalid_callback, "linkedin")
     end
   end
 
@@ -179,6 +210,121 @@ defmodule Mobilizon.Web.AuthController do
   @max_oauth_retries 20
   @retry_delay_ms 1500
 
+  # Custom LinkedIn OAuth handler
+  defp handle_linkedin_callback(conn, code, state) do
+    Logger.info("LinkedIn OAuth: Received callback with code and state")
+
+    Logger.debug(
+      "LinkedIn OAuth: Authorization code (first 20 chars): #{String.slice(code, 0, 20)}..."
+    )
+
+    Logger.debug("LinkedIn OAuth: State parameter: #{state}")
+    Logger.debug("LinkedIn OAuth: Full callback params: #{inspect(conn.params, pretty: true)}")
+
+    Logger.debug(
+      "LinkedIn OAuth: Request headers: #{inspect(Enum.into(conn.req_headers, %{}), pretty: true)}"
+    )
+
+    # Verify state for CSRF protection using signed token
+    case verify_csrf_state(state) do
+      :ok ->
+        Logger.info("LinkedIn OAuth state verified successfully")
+
+        case LinkedInOAuth.authenticate(code, state) do
+          {:ok, %{user_info: user_info, token: token}} ->
+            Logger.info("LinkedIn OAuth authentication successful for #{user_info["email"]}")
+
+            Logger.debug(
+              "LinkedIn OAuth: Complete user info received: #{inspect(user_info, pretty: true)}"
+            )
+
+            Logger.debug("LinkedIn OAuth: Token info: #{inspect(token, pretty: true)}")
+            process_linkedin_user(conn, user_info, token)
+
+          {:error, reason} ->
+            Logger.error("LinkedIn OAuth authentication failed: #{inspect(reason, pretty: true)}")
+            redirect_to_error(conn, :authentication_failed, "linkedin")
+        end
+
+      :error ->
+        Logger.error("LinkedIn OAuth state verification failed: invalid state #{state}")
+        redirect_to_error(conn, :invalid_state, "linkedin")
+    end
+  end
+
+  defp process_linkedin_user(conn, user_info, _token) do
+    email = user_info["email"]
+    name = user_info["name"] || user_info["given_name"] || email
+    username = user_info["sub"] || email
+
+    Logger.info("Processing LinkedIn user: #{email}")
+    Logger.debug("LinkedIn OAuth: Extracted email: #{email}")
+    Logger.debug("LinkedIn OAuth: Extracted name: #{name}")
+    Logger.debug("LinkedIn OAuth: Extracted username: #{username}")
+
+    user =
+      with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
+           {:error, :user_not_found} <- Users.get_user_by_email(email),
+           {:ok, %User{} = user} <-
+             Users.create_external(email, "linkedin", %{locale: :en}) do
+        Logger.info("Created new external user for #{email} via linkedin")
+        user
+      else
+        {:ok, %User{} = user} ->
+          Logger.info("Found existing user for #{email}")
+          user
+
+        {:error, error} ->
+          Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
+          {:error, error}
+
+        error ->
+          Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
+          {:error, error}
+      end
+
+    with %User{} = user <- user,
+         {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
+           Authenticator.generate_tokens(user) do
+      Logger.info("Successfully generated tokens for user \"#{email}\" through linkedin")
+
+      render(conn, "callback.html", %{
+        access_token: access_token,
+        refresh_token: refresh_token,
+        user: user,
+        username: username,
+        name: name
+      })
+    else
+      {:error, error} ->
+        Logger.error("Failed to generate tokens for LinkedIn user: #{inspect(error)}")
+        redirect_to_error(conn, :token_generation_failed, "linkedin")
+
+      error ->
+        Logger.error("Unexpected error processing LinkedIn user: #{inspect(error)}")
+        redirect_to_error(conn, :processing_failed, "linkedin")
+    end
+  end
+
+  # CSRF state management using signed tokens (no session required)
+  defp generate_csrf_state do
+    timestamp = System.system_time(:second)
+
+    data = %{
+      "nonce" => :crypto.strong_rand_bytes(16) |> Base.url_encode64(padding: false),
+      "timestamp" => timestamp
+    }
+
+    Phoenix.Token.sign(Mobilizon.Web.Endpoint, "linkedin_oauth_state", data)
+  end
+
+  defp verify_csrf_state(state) do
+    case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "linkedin_oauth_state", state, max_age: 600) do
+      {:ok, _data} -> :ok
+      {:error, _reason} -> :error
+    end
+  end
+
   # Extract email from OIDC or traditional OAuth responses
   @spec email_from_ueberauth(Ueberauth.Auth.t()) :: String.t() | nil
 
@@ -268,6 +414,30 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   defp redirect_to_error(conn, :invalid_token, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :oauth_error, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :invalid_callback, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :authentication_failed, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :invalid_state, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :token_generation_failed, provider_name) do
+    redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :processing_failed, provider_name) do
     redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
   end
 

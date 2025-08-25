@@ -89,17 +89,13 @@ config :mobilizon, :exports,
     Mobilizon.Service.Export.Participants.ODS
   ]
 
-# OAuth Configuration (following official Mobilizon documentation)
-# Configure providers using the official Ueberauth format
+# OAuth Configuration
 
 config :ueberauth,
        Ueberauth,
        providers: [
-         linkedin:
-           {Ueberauth.Strategy.LinkedIn,
-            [
-              default_scope: "r_liteprofile r_emailaddress"
-            ]}
+         # LinkedIn now uses direct OAuth2 implementation for better reliability
+         # linkedin: {Ueberauth.Strategy.LinkedIn, []}
          # Add other providers here as needed:
          # google: {Ueberauth.Strategy.Google, []},
          # github: {Ueberauth.Strategy.Github, []},
@@ -110,9 +106,9 @@ config :ueberauth,
          # keycloak: {UeberauthKeycloakStrategy.Strategy, [default_scope: "openid email"]}
        ]
 
-# List providers for display in UI (can include custom labels)
 config :mobilizon, :auth,
   oauth_consumer_strategies: [
+    # Still supported via direct OAuth2 implementation
     :linkedin
     # {:linkedin, "LinkedIn"}  # Use this format for custom labels
     # :google,
@@ -124,26 +120,15 @@ config :mobilizon, :auth,
     # {:keycloak, "My corporate account"}
   ]
 
-# Provider-specific configuration
-config :ueberauth, Ueberauth.Strategy.LinkedIn.OAuth,
+# Direct LinkedIn OAuth2 configuration (replaces Ueberauth LinkedIn)
+config :mobilizon, :linkedin,
   client_id: System.get_env("LINKEDIN_CLIENT_ID"),
   client_secret: System.get_env("LINKEDIN_CLIENT_SECRET"),
   redirect_uri:
     System.get_env(
       "LINKEDIN_REDIRECT_URI",
       "https://meetup.pragmaticcoders.com/auth/linkedin/callback"
-    ),
-  # OIDC endpoints for LinkedIn
-  site: "https://www.linkedin.com",
-  authorize_url: "https://www.linkedin.com/oauth/v2/authorization",
-  token_url: "https://www.linkedin.com/oauth/v2/accessToken",
-  userinfo_url: "https://api.linkedin.com/v2/userinfo",
-  # OIDC specific options
-  response_type: "code",
-  token_method: :post,
-  scope: "r_liteprofile r_emailaddress",
-  recv_timeout: 15_000,
-  timeout: 15_000
+    )
 
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison

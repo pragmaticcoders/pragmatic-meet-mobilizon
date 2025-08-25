@@ -7,8 +7,6 @@ defmodule Mobilizon.Events.EventOptions do
 
   import Ecto.Changeset
 
-  alias Mobilizon.Discussions.CommentModeration
-
   alias Mobilizon.Events.{
     EventOffer,
     EventParticipationCondition
@@ -59,7 +57,7 @@ defmodule Mobilizon.Events.EventOptions do
     field(:anonymous_participation, :boolean)
     field(:attendees, {:array, :string})
     field(:program, :string)
-    field(:comment_moderation, CommentModeration)
+    field(:comment_moderation, :string)
     field(:show_participation_price, :boolean)
     field(:hide_number_of_participants, :boolean, default: false)
     field(:show_start_time, :boolean, default: true)

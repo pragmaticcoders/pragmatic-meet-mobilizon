@@ -198,7 +198,7 @@ defmodule Mobilizon.Mixfile do
       {:ueberauth_keycloak_strategy, "~> 0.4.0"},
       {:ueberauth_gitlab_strategy, "~> 0.4.0"},
       {:ueberauth_cas, "~> 2.0"},
-      {:ueberauth_linkedin, "~> 0.10.8", hex: :ueberauth_linkedin_modern},
+      # {:ueberauth_linkedin, "~> 0.10.8", hex: :ueberauth_linkedin_modern},  # Replaced with direct OAuth2 implementation
       {:ecto_shortuuid, "~> 0.1"},
       {:tesla, "~> 1.8.0"},
       {:sitemapper, "~> 0.6"},
