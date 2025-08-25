@@ -241,6 +241,17 @@ defmodule Mobilizon.Web.AuthController do
             Logger.debug("LinkedIn OAuth: Token info: #{inspect(token, pretty: true)}")
             process_linkedin_user(conn, user_info, token)
 
+          {:error, {:revoked_token, message}} ->
+            Logger.error("LinkedIn OAuth: User revoked token - #{message}")
+
+            # Show a specific error message for revoked tokens
+            conn
+            |> put_flash(
+              :error,
+              "LinkedIn access was revoked. Please try again and grant permissions to your LinkedIn account."
+            )
+            |> redirect(to: "/login?code=LinkedIn Access Revoked&provider=linkedin")
+
           {:error, reason} ->
             Logger.error("LinkedIn OAuth authentication failed: #{inspect(reason, pretty: true)}")
             redirect_to_error(conn, :authentication_failed, "linkedin")

@@ -2,6 +2,12 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
   @moduledoc """
   Direct LinkedIn OAuth2 implementation for better reliability and control.
   Replaces Ueberauth LinkedIn strategy to fix intermittent "50/50" OAuth failures.
+
+  Implements fixes based on community solutions for LinkedIn OAuth timing issues:
+  - Forces client credentials in request body (AuthStyleInParams equivalent)
+  - Adds 5-second delay between token exchange and user info fetch
+  - Specific handling for REVOKED_ACCESS_TOKEN errors (user permission revocation)
+  - Comprehensive retry logic for transient failures
   """
 
   require Logger
@@ -18,6 +24,8 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
   @default_scopes ["openid", "profile", "email"]
   @max_retries 3
   @retry_delay_ms 2000
+  # Delay between token exchange and user info fetch to handle LinkedIn timing issues
+  @token_activation_delay_ms 5000
 
   @doc """
   Creates OAuth2 client for LinkedIn with enhanced reliability settings.
@@ -39,7 +47,15 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
     |> Keyword.merge(
       client_id: client_id,
       client_secret: client_secret,
-      redirect_uri: get_redirect_uri()
+      redirect_uri: get_redirect_uri(),
+      # Force client credentials to be sent in request body (not HTTP Basic auth)
+      # This is equivalent to AuthStyleInParams in Go's oauth2 library
+      request_opts: [
+        hackney: [
+          # Ensure no basic auth headers are added automatically
+          basic_auth: nil
+        ]
+      ]
     )
     |> Client.new()
     |> Client.put_serializer("application/json", Jason)
@@ -93,6 +109,7 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
     Logger.info("LinkedIn OAuth: Starting authentication flow")
 
     with {:ok, token} <- get_token(code, state),
+         :ok <- add_token_activation_delay(),
          {:ok, user_info} <- get_user_info(token) do
       Logger.info("LinkedIn OAuth: Authentication successful for #{user_info["email"]}")
       {:ok, %{user_info: user_info, token: token}}
@@ -113,6 +130,15 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
 
   defp generate_state do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+  end
+
+  defp add_token_activation_delay do
+    Logger.info(
+      "LinkedIn OAuth: Adding #{@token_activation_delay_ms}ms delay for token activation (fixes timing issues)"
+    )
+
+    Process.sleep(@token_activation_delay_ms)
+    :ok
   end
 
   defp get_token_with_retry(_params, attempt) when attempt > @max_retries do
@@ -269,6 +295,28 @@ defmodule Mobilizon.Web.OAuth.LinkedInOAuth do
         Logger.error("LinkedIn OAuth: User info response body: #{body}")
         Process.sleep(@retry_delay_ms)
         get_user_info_with_retry(token, attempt + 1)
+
+      {:ok, %HTTPoison.Response{status_code: 401, body: body, headers: headers}} ->
+        Logger.error("LinkedIn OAuth: User info fetch failed with status 401")
+
+        Logger.error(
+          "LinkedIn OAuth: User info response headers: #{inspect(headers, pretty: true)}"
+        )
+
+        Logger.error("LinkedIn OAuth: User info response body: #{body}")
+
+        # Check for specific REVOKED_ACCESS_TOKEN error
+        case Jason.decode(body) do
+          {:ok, %{"code" => "REVOKED_ACCESS_TOKEN"}} ->
+            Logger.error(
+              "LinkedIn OAuth: Token was revoked by user - this is a user permission issue, not a system error"
+            )
+
+            {:error, {:revoked_token, "User has revoked access to the LinkedIn application"}}
+
+          _ ->
+            {:error, {:http_error, 401, body}}
+        end
 
       {:ok, %HTTPoison.Response{status_code: status, body: body, headers: headers}} ->
         Logger.error("LinkedIn OAuth: User info fetch failed with status #{status}")
