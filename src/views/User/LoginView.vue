@@ -26,11 +26,18 @@
         >
           <div v-if="isRetrying">
             <div class="flex items-center">
-              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-800 mr-2"></div>
+              <div
+                class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-800 mr-2"
+              ></div>
               {{
                 t(
                   "OAuth failed. Automatically retrying in {seconds}s... (Attempt {attempt}/{maxAttempts})",
-                  { seconds: retryCountdown, attempt: retryAttempt, maxAttempts: maxRetryAttempts, provider: currentProvider }
+                  {
+                    seconds: retryCountdown,
+                    attempt: retryAttempt,
+                    maxAttempts: maxRetryAttempts,
+                    provider: currentProvider,
+                  }
                 )
               }}
             </div>
@@ -492,7 +499,7 @@ const retryOAuth = async (provider: string) => {
   console.log(`Starting OAuth retry for ${provider}`);
   isRetrying.value = true;
   retryCountdown.value = Math.ceil(retryDelayMs / 1000);
-  
+
   // Countdown timer
   const countdownInterval = setInterval(() => {
     retryCountdown.value--;
@@ -500,7 +507,7 @@ const retryOAuth = async (provider: string) => {
       clearInterval(countdownInterval);
     }
   }, 1000);
-  
+
   // Wait for delay then redirect to OAuth
   setTimeout(() => {
     isRetrying.value = false;
@@ -512,15 +519,15 @@ const retryOAuth = async (provider: string) => {
 const manualRetryOAuth = () => {
   const queryProvider = route?.query.provider as string | undefined;
   if (!queryProvider) return;
-  
+
   console.log(`Manual retry requested for ${queryProvider}`);
-  
+
   // Increment retry count
   const currentRetryCount = getStoredRetryCount(queryProvider);
   const newRetryCount = currentRetryCount + 1;
   setStoredRetryCount(queryProvider, newRetryCount);
   retryAttempt.value = newRetryCount;
-  
+
   // Start immediate retry
   retryOAuth(queryProvider);
 };
@@ -531,7 +538,7 @@ const clearRetryAndReload = () => {
     console.log(`Clearing retry count for ${queryProvider}`);
     setStoredRetryCount(queryProvider, 0);
   }
-  
+
   // Navigate to clean login page (remove error parameters)
   router.replace({ name: RouteName.LOGIN });
 };
@@ -556,28 +563,34 @@ onMounted(() => {
   // Check if we need to automatically retry OAuth
   const queryProvider = route?.query.provider as string | undefined;
   const queryCode = route?.query.code as string | undefined;
-  
+
   if (queryProvider && queryCode && queryCode.includes("Error")) {
     console.log(`OAuth error detected for ${queryProvider}: ${queryCode}`);
-    
+
     // Get current retry count for this provider
     const currentRetryCount = getStoredRetryCount(queryProvider);
-    console.log(`Current retry count for ${queryProvider}: ${currentRetryCount}`);
-    
+    console.log(
+      `Current retry count for ${queryProvider}: ${currentRetryCount}`
+    );
+
     if (currentRetryCount < maxRetryAttempts) {
       // Increment retry count
       const newRetryCount = currentRetryCount + 1;
       setStoredRetryCount(queryProvider, newRetryCount);
       retryAttempt.value = newRetryCount;
-      
-      console.log(`Auto-retrying OAuth for ${queryProvider} (attempt ${newRetryCount}/${maxRetryAttempts})`);
-      
+
+      console.log(
+        `Auto-retrying OAuth for ${queryProvider} (attempt ${newRetryCount}/${maxRetryAttempts})`
+      );
+
       // Start retry after a short delay to let user see the error message
       setTimeout(() => {
         retryOAuth(queryProvider);
       }, 1000);
     } else {
-      console.log(`Max retry attempts reached for ${queryProvider}, stopping auto-retry`);
+      console.log(
+        `Max retry attempts reached for ${queryProvider}, stopping auto-retry`
+      );
       // Clear stored retry count
       setStoredRetryCount(queryProvider, 0);
     }
