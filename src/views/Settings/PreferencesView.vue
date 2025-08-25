@@ -80,7 +80,7 @@
       <div class="space-y-4">
         <div class="flex gap-4">
           <div class="flex-1 max-w-md">
-            <label class="block font-medium text-[15px] text-[#1c1b1f] mb-2">
+            <label class="block font-medium text-[15px] text-[#1c1b1f] pb-4">
               {{ t("City") }}
             </label>
             <full-address-auto-complete

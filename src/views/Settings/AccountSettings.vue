@@ -11,9 +11,17 @@
           <p
             class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
             v-html="
-              t('Your current email is {email}. You use it to log in.', {
-                email: `<b class='font-bold'>${loggedUser.email}</b>`,
-              })
+              loggedUser.provider
+                ? t(
+                    'Your email address from your {provider} account is {email}.',
+                    {
+                      email: `<b class='font-bold'>${loggedUser.email}</b>`,
+                      provider: providerName(loggedUser.provider),
+                    }
+                  )
+                : t('Your current email is {email}. You use it to log in.', {
+                    email: `<b class='font-bold'>${loggedUser.email}</b>`,
+                  })
             "
           ></p>
         </div>
@@ -81,11 +89,7 @@
             {{ t("Delete Account") }}
           </h2>
           <p class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]">
-            {{
-              t(
-                "Usunięcie konta spowoduje usunięcie wszystkich Twoich tożsamości."
-              )
-            }}
+            {{ t("Deleting my account will delete all of my identities.") }}
           </p>
         </div>
 

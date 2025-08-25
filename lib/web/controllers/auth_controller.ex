@@ -120,24 +120,27 @@ defmodule Mobilizon.Web.AuthController do
 
     Logger.info("OAuth callback received for #{strategy} with email: #{email}")
 
-    user =
+    # Determine if this is a login (existing user) or registration (new user)
+    {user, is_login} =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
            {:error, :user_not_found} <- Users.get_user_by_email(email),
            {:ok, %User{} = user} <- Users.create_external(email, strategy, %{locale: locale}) do
         Logger.info("Created new external user for #{email} via #{strategy}")
-        user
+        # new user = registration
+        {user, false}
       else
         {:ok, %User{} = user} ->
           Logger.info("Found existing user for #{email}")
-          user
+          # existing user = login
+          {user, true}
 
         {:error, error} ->
           Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
-          {:error, error}
+          {{:error, error}, false}
 
         error ->
           Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
-          {:error, error}
+          {{:error, error}, false}
       end
 
     with %User{} = user <- user,
@@ -145,12 +148,16 @@ defmodule Mobilizon.Web.AuthController do
            Authenticator.generate_tokens(user) do
       Logger.info("Successfully logged in user \"#{email}\" through #{strategy}")
 
+      # Determine redirect URL based on whether this is login or registration
+      redirect_url = if is_login, do: "/", else: nil
+
       render(conn, "callback.html", %{
         access_token: access_token,
         refresh_token: refresh_token,
         user: user,
         username: username_from_ueberauth(auth),
-        name: display_name_from_ueberauth(auth)
+        name: display_name_from_ueberauth(auth),
+        redirect_url: redirect_url
       })
     else
       err ->
@@ -251,7 +258,7 @@ defmodule Mobilizon.Web.AuthController do
         # User exists - update profile if needed and proceed with login
         Logger.info("Found existing user for #{email}")
         update_user_profile_from_linkedin(user, user_info)
-        complete_linkedin_authentication(conn, user, username, name)
+        complete_linkedin_authentication(conn, user, username, name, intent)
 
       {:error, :user_not_found} ->
         # User doesn't exist - handle based on intent
@@ -273,7 +280,7 @@ defmodule Mobilizon.Web.AuthController do
             case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
-                complete_linkedin_authentication(conn, user, username, name)
+                complete_linkedin_authentication(conn, user, username, name, intent)
 
               {:error, error} ->
                 Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
@@ -287,7 +294,7 @@ defmodule Mobilizon.Web.AuthController do
             case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
-                complete_linkedin_authentication(conn, user, username, name)
+                complete_linkedin_authentication(conn, user, username, name, "register")
 
               {:error, error} ->
                 Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
@@ -298,31 +305,39 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # Helper function to complete LinkedIn authentication with tokens
-  defp complete_linkedin_authentication(conn, user, username, name) do
+  defp complete_linkedin_authentication(conn, user, username, name, intent \\ "register") do
     case Authenticator.generate_tokens(user) do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
         Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
 
-        # Build redirect URL with proper identity name
+        # Determine redirect URL based on intent
         redirect_url =
-          case user.default_actor_id do
-            nil ->
-              # No default actor, redirect to create identity
-              "/identity/create?source=linkedin"
+          case intent do
+            "login" ->
+              # For login, redirect to home screen
+              "/"
 
-            _actor_id ->
-              # Has default actor, get username and redirect to edit
-              case Actors.get_actor(user.default_actor_id) do
-                %Actor{} = actor ->
-                  "/identity/update/#{actor.preferred_username}?source=linkedin"
-
+            _ ->
+              # For registration, use existing behavior (redirect to identity pages)
+              case user.default_actor_id do
                 nil ->
-                  # Fallback if actor lookup fails - redirect to create
+                  # No default actor, redirect to create identity
                   "/identity/create?source=linkedin"
+
+                _actor_id ->
+                  # Has default actor, get username and redirect to edit
+                  case Actors.get_actor(user.default_actor_id) do
+                    %Actor{} = actor ->
+                      "/identity/update/#{actor.preferred_username}?source=linkedin"
+
+                    nil ->
+                      # Fallback if actor lookup fails - redirect to create
+                      "/identity/create?source=linkedin"
+                  end
               end
           end
 
-        # Store tokens and redirect to profile for LinkedIn data review
+        # Store tokens and redirect based on intent
         render(conn, "callback_redirect.html", %{
           access_token: access_token,
           refresh_token: refresh_token,
