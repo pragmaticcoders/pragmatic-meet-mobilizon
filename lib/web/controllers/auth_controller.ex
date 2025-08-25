@@ -12,11 +12,15 @@ defmodule Mobilizon.Web.AuthController do
   plug(Ueberauth)
 
   @spec request(Plug.Conn.t(), map()) :: Plug.Conn.t()
-  def request(conn, %{"provider" => "linkedin"} = _params) do
+  def request(conn, %{"provider" => "linkedin"} = params) do
     Logger.info("Starting LinkedIn OAuth request")
 
+    # Capture intent parameter (login vs register)
+    intent = Map.get(params, "intent", "register")  # default to register for backward compatibility
+
     # Generate state for CSRF protection using signed token (no session needed)
-    state = generate_csrf_state()
+    # Include intent in the state for callback processing
+    state = generate_csrf_state(intent)
 
     # Get authorization URL from our custom LinkedIn implementation
     case LinkedInOAuth.authorize_url(state) do
@@ -192,13 +196,14 @@ defmodule Mobilizon.Web.AuthController do
 
     # Verify state for CSRF protection using signed token
     case verify_csrf_state(state) do
-      :ok ->
+      {:ok, state_data} ->
         Logger.info("LinkedIn OAuth: State verified")
+        intent = Map.get(state_data, "intent", "register")
 
         case LinkedInOAuth.authenticate(code, state) do
           {:ok, %{user_info: user_info, token: token}} ->
             Logger.info("LinkedIn OAuth: Authentication successful for #{user_info["email"]}")
-            process_linkedin_user(conn, user_info, token)
+            process_linkedin_user(conn, user_info, token, intent)
 
           {:error, {:revoked_token, message}} ->
             Logger.error("LinkedIn OAuth: User revoked token - #{message}")
@@ -216,70 +221,91 @@ defmodule Mobilizon.Web.AuthController do
             redirect_to_error(conn, :authentication_failed, "linkedin")
         end
 
-      :error ->
+      {:error, _reason} ->
         Logger.error("LinkedIn OAuth: State verification failed")
         redirect_to_error(conn, :invalid_state, "linkedin")
     end
   end
 
-  defp process_linkedin_user(conn, user_info, _token) do
+  defp process_linkedin_user(conn, user_info, _token, intent \\ "register") do
     email = user_info["email"]
     name = user_info["name"] || user_info["given_name"] || email
     username = user_info["sub"] || email
 
-    Logger.info("Processing LinkedIn user: #{email}")
+    Logger.info("Processing LinkedIn user: #{email} with intent: #{intent}")
 
-    user =
-      with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
-           {:error, :user_not_found} <- Users.get_user_by_email(email),
-           {:ok, %User{} = user} <-
-             Users.create_external(email, "linkedin", %{locale: :en}) do
-        Logger.info("Created new external user for #{email} via linkedin")
-        user
-      else
-        {:ok, %User{} = user} ->
-          Logger.info("Found existing user for #{email}")
-          user
+    # First, check if user exists
+    case Users.get_user_by_email(email) do
+      {:ok, %User{} = user} ->
+        # User exists - proceed with login regardless of intent
+        Logger.info("Found existing user for #{email}")
+        complete_linkedin_authentication(conn, user, username, name)
 
-        {:error, error} ->
-          Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
-          {:error, error}
+      {:error, :user_not_found} ->
+        # User doesn't exist - handle based on intent
+        case intent do
+          "login" ->
+            # Login attempt but user doesn't exist - redirect to register
+            Logger.info("Login attempt for non-existing user #{email} - redirecting to register")
+            redirect(conn, to: "/register/user?message=no_account&provider=linkedin&email=#{URI.encode(email)}")
 
-        error ->
-          Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
-          {:error, error}
-      end
+          "register" ->
+            # Registration attempt - create new user
+            Logger.info("Registration attempt for #{email} - creating new user")
+            case Users.create_external(email, "linkedin", %{locale: "en"}) do
+              {:ok, %User{} = user} ->
+                Logger.info("Created new external user for #{email} via linkedin")
+                complete_linkedin_authentication(conn, user, username, name)
 
-    with %User{} = user <- user,
-         {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
-           Authenticator.generate_tokens(user) do
-      Logger.info("Successfully generated tokens for user \"#{email}\" through linkedin")
+              {:error, error} ->
+                Logger.error("Failed to create user for #{email}: #{inspect(error)}")
+                redirect_to_error(conn, :user_creation_failed, "linkedin")
+            end
 
-      render(conn, "callback.html", %{
-        access_token: access_token,
-        refresh_token: refresh_token,
-        user: user,
-        username: username,
-        name: name
-      })
-    else
+          _ ->
+            # Unknown intent - default to registration for backward compatibility
+            Logger.warn("Unknown intent #{intent} for #{email} - defaulting to registration")
+            case Users.create_external(email, "linkedin", %{locale: "en"}) do
+              {:ok, %User{} = user} ->
+                Logger.info("Created new external user for #{email} via linkedin")
+                complete_linkedin_authentication(conn, user, username, name)
+
+              {:error, error} ->
+                Logger.error("Failed to create user for #{email}: #{inspect(error)}")
+                redirect_to_error(conn, :user_creation_failed, "linkedin")
+            end
+        end
+    end
+  end
+
+  # Helper function to complete LinkedIn authentication with tokens
+  defp complete_linkedin_authentication(conn, user, username, name) do
+    case Authenticator.generate_tokens(user) do
+      {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
+        Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
+
+        render(conn, "callback.html", %{
+          access_token: access_token,
+          refresh_token: refresh_token,
+          user: user,
+          username: username,
+          name: name
+        })
+
       {:error, error} ->
         Logger.error("Failed to generate tokens for LinkedIn user: #{inspect(error)}")
         redirect_to_error(conn, :token_generation_failed, "linkedin")
-
-      error ->
-        Logger.error("Unexpected error processing LinkedIn user: #{inspect(error)}")
-        redirect_to_error(conn, :processing_failed, "linkedin")
     end
   end
 
   # CSRF state management using signed tokens (no session required)
-  defp generate_csrf_state do
+  defp generate_csrf_state(intent \\ "register") do
     timestamp = System.system_time(:second)
 
     data = %{
       "nonce" => :crypto.strong_rand_bytes(16) |> Base.url_encode64(padding: false),
-      "timestamp" => timestamp
+      "timestamp" => timestamp,
+      "intent" => intent
     }
 
     Phoenix.Token.sign(Mobilizon.Web.Endpoint, "linkedin_oauth_state", data)
@@ -287,8 +313,8 @@ defmodule Mobilizon.Web.AuthController do
 
   defp verify_csrf_state(state) do
     case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "linkedin_oauth_state", state, max_age: 600) do
-      {:ok, _data} -> :ok
-      {:error, _reason} -> :error
+      {:ok, data} -> {:ok, data}
+      {:error, reason} -> {:error, reason}
     end
   end
 

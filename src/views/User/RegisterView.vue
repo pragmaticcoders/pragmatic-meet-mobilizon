@@ -103,6 +103,14 @@
       class="w-full lg:flex-1 bg-white px-4 md:px-8 py-6 md:py-8 lg:max-w-md border border-gray-200 shadow-sm"
     >
       <div class="space-y-4">
+        <!-- LinkedIn redirect message -->
+        <div
+          v-if="generalMessage"
+          class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm"
+        >
+          {{ generalMessage }}
+        </div>
+
         <!-- Email field -->
         <div>
           <label
@@ -248,21 +256,14 @@
           <!-- LinkedIn OAuth button -->
           <a
             v-if="linkedinProvider"
-            :href="
-              acceptTerms
-                ? `/auth/${linkedinProvider.id}`
-                : '#'
-            "
+            :href="acceptTerms ? `/auth/${linkedinProvider.id}` : '#'"
             :class="[
               'w-full sm:flex-1 font-medium py-2.5 px-4 transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 text-sm',
               acceptTerms
                 ? 'border border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                 : 'border border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed',
             ]"
-            @click="
-              !acceptTerms &&
-                $event.preventDefault()
-            "
+            @click="!acceptTerms && $event.preventDefault()"
           >
             <!-- LinkedIn Icon -->
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -368,7 +369,7 @@ import { CREATE_USER } from "../../graphql/user";
 import RouteName from "../../router/name";
 import { IConfig } from "../../types/config.model";
 import { CONFIG } from "../../graphql/config";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, reactive, ref, watch, onMounted } from "vue";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
@@ -404,6 +405,7 @@ const credentials = reactive<credentialsType>({
 
 const emailErrors = ref<errorMessage[]>([]);
 const passwordErrors = ref<errorMessage[]>([]);
+const generalMessage = ref<string | null>(null);
 
 const sendingForm = ref(false);
 
@@ -471,6 +473,24 @@ watch(credentials, () => {
     emailErrors.value = emailErrors.value.filter(
       (error) => error.type !== "warning"
     );
+  }
+});
+
+// Handle LinkedIn login redirect with message
+onMounted(() => {
+  const message = route.query.message as string | undefined;
+  const provider = route.query.provider as string | undefined;
+  const email = route.query.email as string | undefined;
+
+  if (message === "no_account" && provider === "linkedin") {
+    generalMessage.value = t(
+      "No account found with this LinkedIn email. Please create an account below to continue."
+    );
+
+    // Pre-fill email if provided
+    if (email) {
+      credentials.email = decodeURIComponent(email);
+    }
   }
 });
 </script>

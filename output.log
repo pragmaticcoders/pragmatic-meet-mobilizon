@@ -1,0 +1,764 @@
+  Parameters: %{"path" => []}
+  Pipelines: [:browser]
+request_id=GF8G-yobuolvY8IAAA2D [debug] Locale detected is en
+request_id=GF8G-yobuolvY8IAAA2D [info] Sent 200 in 4ms
+request_id=GF8G_YfP5y3IX5kAAE7B [info] GET /
+request_id=GF8G_YfP5y3IX5kAAE7B [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"path" => []}
+  Pipelines: [:browser]
+request_id=GF8G_YfP5y3IX5kAAE7B [debug] Locale detected is en
+request_id=GF8G_YfP5y3IX5kAAE7B [info] Sent 200 in 2ms
+[debug] Live reload: lib/web/views/auth_view.ex
+[debug] Live reload: lib/web/views/auth_view.ex
+[debug] Live reload: lib/web/views/auth_view.ex
+[debug] Live reload: lib/web/views/auth_view.ex
+[debug] Live reload: lib/web/views/auth_view.ex
+Compiling 1 file (.ex)
+request_id=GF8G_t5Pw57vbnoAAALk [info] GET /login
+request_id=GF8G_t5Pw57vbnoAAALk [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"code" => "Error with Login Provider", "path" => ["login"], "provider" => "linkedin"}
+  Pipelines: [:browser]
+request_id=GF8G_t5Pw57vbnoAAALk [debug] Locale detected is en
+request_id=GF8G_t5Pw57vbnoAAALk [info] Sent 200 in 12ms
+request_id=GF8G_0zH8GVO06MAAE7h [info] GET /manifest.webmanifest
+request_id=GF8G_0zH8GVO06MAAE7h [debug] Processing with Mobilizon.Web.ManifestController.manifest/2
+  Parameters: %{}
+  Pipelines: []
+request_id=GF8G_0zH8GVO06MAAE7h [info] Sent 200 in 1ms
+request_id=GF8G_15J348wrn0AAE8B [info] POST /api
+request_id=GF8G_15VLcPvbnoAAC5i [info] POST /api
+request_id=GF8G_15J348wrn0AAE8B [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "Registrations", "query" => "query Registrations {\n  config {\n    registrationsOpen\n    registrationsAllowlist\n    auth {\n      databaseLogin\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8G_15VLcPvbnoAAC5i [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "FullConfig", "query" => "query FullConfig {\n  config {\n    name\n    description\n    slogan\n    version\n    registrationsOpen\n    registrationsAllowlist\n    demoMode\n    longEvents\n    durationOfLongEvent\n    countryCode\n    languages\n    primaryColor\n    secondaryColor\n    instanceLogo {\n      url\n      __typename\n    }\n    defaultPicture {\n      uuid\n      url\n      name\n      metadata {\n        width\n        height\n        blurhash\n        __typename\n      }\n      __typename\n    }\n    eventCategories {\n      id\n      label\n      __typename\n    }\n    anonymous {\n      participation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      eventCreation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      reports {\n        allowed\n        __typename\n      }\n      actorId\n      __typename\n    }\n    location {\n      latitude\n      longitude\n      __typename\n    }\n    maps {\n      tiles {\n        endpoint\n        attribution\n        __typename\n      }\n      routing {\n        type\n        __typename\n      }\n      __typename\n    }\n    geocoding {\n      provider\n      autocomplete\n      __typename\n    }\n    resourceProviders {\n      type\n      endpoint\n      software\n      __typename\n    }\n    features {\n      groups\n      eventCreation\n      eventExternal\n      antispam\n      __typename\n    }\n    restrictions {\n      onlyAdminCanCreateGroups\n      onlyGroupsCanCreateEvents\n      __typename\n    }\n    auth {\n      ldap\n      databaseLogin\n      oauthProviders {\n        id\n        label\n        __typename\n      }\n      __typename\n    }\n    uploadLimits {\n      default\n      avatar\n      banner\n      __typename\n    }\n    instanceFeeds {\n      enabled\n      __typename\n    }\n    webPush {\n      enabled\n      publicKey\n      __typename\n    }\n    analytics {\n      id\n      enabled\n      configuration {\n        key\n        value\n        type\n        __typename\n      }\n      __typename\n    }\n    search {\n      global {\n        isEnabled\n        isDefault\n        __typename\n      }\n      __typename\n    }\n    exportFormats {\n      eventParticipants\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8G_15J348wrn0AAE8B [debug] Locale detected is en
+request_id=GF8G_15VLcPvbnoAAC5i [debug] Locale detected is en
+request_id=GF8G_15VLcPvbnoAAC5i [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query FullConfig {
+  config {
+    name
+    description
+    slogan
+    version
+    registrationsOpen
+    registrationsAllowlist
+    demoMode
+    longEvents
+    durationOfLongEvent
+    countryCode
+    languages
+    primaryColor
+    secondaryColor
+    instanceLogo {
+      url
+      __typename
+    }
+    defaultPicture {
+      uuid
+      url
+      name
+      metadata {
+        width
+        height
+        blurhash
+        __typename
+      }
+      __typename
+    }
+    eventCategories {
+      id
+      label
+      __typename
+    }
+    anonymous {
+      participation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      eventCreation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      reports {
+        allowed
+        __typename
+      }
+      actorId
+      __typename
+    }
+    location {
+      latitude
+      longitude
+      __typename
+    }
+    maps {
+      tiles {
+        endpoint
+        attribution
+        __typename
+      }
+      routing {
+        type
+        __typename
+      }
+      __typename
+    }
+    geocoding {
+      provider
+      autocomplete
+      __typename
+    }
+    resourceProviders {
+      type
+      endpoint
+      software
+      __typename
+    }
+    features {
+      groups
+      eventCreation
+      eventExternal
+      antispam
+      __typename
+    }
+    restrictions {
+      onlyAdminCanCreateGroups
+      onlyGroupsCanCreateEvents
+      __typename
+    }
+    auth {
+      ldap
+      databaseLogin
+      oauthProviders {
+        id
+        label
+        __typename
+      }
+      __typename
+    }
+    uploadLimits {
+      default
+      avatar
+      banner
+      __typename
+    }
+    instanceFeeds {
+      enabled
+      __typename
+    }
+    webPush {
+      enabled
+      publicKey
+      __typename
+    }
+    analytics {
+      id
+      enabled
+      configuration {
+        key
+        value
+        type
+        __typename
+      }
+      __typename
+    }
+    search {
+      global {
+        isEnabled
+        isDefault
+        __typename
+      }
+      __typename
+    }
+    exportFormats {
+      eventParticipants
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8G_15J348wrn0AAE8B [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query Registrations {
+  config {
+    registrationsOpen
+    registrationsAllowlist
+    auth {
+      databaseLogin
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8G_15J348wrn0AAE8B graphql_operation_name=Registrations [info] Sent 200 in 173ms
+request_id=GF8G_15VLcPvbnoAAC5i graphql_operation_name=FullConfig [info] Sent 200 in 176ms
+request_id=GF8G_4H7KjWcslQAAE_B [info] GET /.well-known/appspecific/com.chrome.devtools.json
+request_id=GF8G_4H7KjWcslQAAE_B [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"path" => [".well-known", "appspecific", "com.chrome.devtools.json"]}
+  Pipelines: [:browser]
+request_id=GF8G_4H7KjWcslQAAE_B [debug] Locale detected is en
+request_id=GF8G_4H7KjWcslQAAE_B [info] Sent 200 in 2ms
+request_id=GF8G_5B2cVysFMoAAC7C [info] POST /api
+request_id=GF8G_5B2m4PfusgAAE_h [info] POST /api
+request_id=GF8G_5B2cVysFMoAAC7C [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "LoginConfig", "query" => "query LoginConfig {\n  config {\n    auth {\n      databaseLogin\n      oauthProviders {\n        id\n        label\n        __typename\n      }\n      __typename\n    }\n    registrationsOpen\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8G_5B2m4PfusgAAE_h [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "About", "query" => "query About {\n  config {\n    name\n    description\n    longDescription\n    slogan\n    contact\n    languages\n    registrationsOpen\n    registrationsAllowlist\n    anonymous {\n      participation {\n        allowed\n        __typename\n      }\n      __typename\n    }\n    version\n    federating\n    instanceFeeds {\n      enabled\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8G_5B2cVysFMoAAC7C [debug] Locale detected is en
+request_id=GF8G_5B2m4PfusgAAE_h [debug] Locale detected is en
+request_id=GF8G_5B2cVysFMoAAC7C [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query LoginConfig {
+  config {
+    auth {
+      databaseLogin
+      oauthProviders {
+        id
+        label
+        __typename
+      }
+      __typename
+    }
+    registrationsOpen
+    __typename
+  }
+}
+---
+request_id=GF8G_5B2m4PfusgAAE_h [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query About {
+  config {
+    name
+    description
+    longDescription
+    slogan
+    contact
+    languages
+    registrationsOpen
+    registrationsAllowlist
+    anonymous {
+      participation {
+        allowed
+        __typename
+      }
+      __typename
+    }
+    version
+    federating
+    instanceFeeds {
+      enabled
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8G_5B2cVysFMoAAC7C graphql_operation_name=LoginConfig [info] Sent 200 in 1ms
+request_id=GF8G_5B2m4PfusgAAE_h graphql_operation_name=About [info] Sent 200 in 1ms
+request_id=GF8G_8hnCFPfusgAAC8C [info] POST /api
+request_id=GF8G_8hnCFPfusgAAC8C [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "FullConfig", "query" => "query FullConfig {\n  config {\n    name\n    description\n    slogan\n    version\n    registrationsOpen\n    registrationsAllowlist\n    demoMode\n    longEvents\n    durationOfLongEvent\n    countryCode\n    languages\n    primaryColor\n    secondaryColor\n    instanceLogo {\n      url\n      __typename\n    }\n    defaultPicture {\n      uuid\n      url\n      name\n      metadata {\n        width\n        height\n        blurhash\n        __typename\n      }\n      __typename\n    }\n    eventCategories {\n      id\n      label\n      __typename\n    }\n    anonymous {\n      participation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      eventCreation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      reports {\n        allowed\n        __typename\n      }\n      actorId\n      __typename\n    }\n    location {\n      latitude\n      longitude\n      __typename\n    }\n    maps {\n      tiles {\n        endpoint\n        attribution\n        __typename\n      }\n      routing {\n        type\n        __typename\n      }\n      __typename\n    }\n    geocoding {\n      provider\n      autocomplete\n      __typename\n    }\n    resourceProviders {\n      type\n      endpoint\n      software\n      __typename\n    }\n    features {\n      groups\n      eventCreation\n      eventExternal\n      antispam\n      __typename\n    }\n    restrictions {\n      onlyAdminCanCreateGroups\n      onlyGroupsCanCreateEvents\n      __typename\n    }\n    auth {\n      ldap\n      databaseLogin\n      oauthProviders {\n        id\n        label\n        __typename\n      }\n      __typename\n    }\n    uploadLimits {\n      default\n      avatar\n      banner\n      __typename\n    }\n    instanceFeeds {\n      enabled\n      __typename\n    }\n    webPush {\n      enabled\n      publicKey\n      __typename\n    }\n    analytics {\n      id\n      enabled\n      configuration {\n        key\n        value\n        type\n        __typename\n      }\n      __typename\n    }\n    search {\n      global {\n        isEnabled\n        isDefault\n        __typename\n      }\n      __typename\n    }\n    exportFormats {\n      eventParticipants\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8G_8hnCFPfusgAAC8C [debug] Locale detected is en
+request_id=GF8G_8hnCFPfusgAAC8C [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query FullConfig {
+  config {
+    name
+    description
+    slogan
+    version
+    registrationsOpen
+    registrationsAllowlist
+    demoMode
+    longEvents
+    durationOfLongEvent
+    countryCode
+    languages
+    primaryColor
+    secondaryColor
+    instanceLogo {
+      url
+      __typename
+    }
+    defaultPicture {
+      uuid
+      url
+      name
+      metadata {
+        width
+        height
+        blurhash
+        __typename
+      }
+      __typename
+    }
+    eventCategories {
+      id
+      label
+      __typename
+    }
+    anonymous {
+      participation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      eventCreation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      reports {
+        allowed
+        __typename
+      }
+      actorId
+      __typename
+    }
+    location {
+      latitude
+      longitude
+      __typename
+    }
+    maps {
+      tiles {
+        endpoint
+        attribution
+        __typename
+      }
+      routing {
+        type
+        __typename
+      }
+      __typename
+    }
+    geocoding {
+      provider
+      autocomplete
+      __typename
+    }
+    resourceProviders {
+      type
+      endpoint
+      software
+      __typename
+    }
+    features {
+      groups
+      eventCreation
+      eventExternal
+      antispam
+      __typename
+    }
+    restrictions {
+      onlyAdminCanCreateGroups
+      onlyGroupsCanCreateEvents
+      __typename
+    }
+    auth {
+      ldap
+      databaseLogin
+      oauthProviders {
+        id
+        label
+        __typename
+      }
+      __typename
+    }
+    uploadLimits {
+      default
+      avatar
+      banner
+      __typename
+    }
+    instanceFeeds {
+      enabled
+      __typename
+    }
+    webPush {
+      enabled
+      publicKey
+      __typename
+    }
+    analytics {
+      id
+      enabled
+      configuration {
+        key
+        value
+        type
+        __typename
+      }
+      __typename
+    }
+    search {
+      global {
+        isEnabled
+        isDefault
+        __typename
+      }
+      __typename
+    }
+    exportFormats {
+      eventParticipants
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8G_8hnCFPfusgAAC8C graphql_operation_name=FullConfig [info] Sent 200 in 53ms
+request_id=GF8G_-b2Ocq1U8oAAFBB [info] GET /
+request_id=GF8G_-b2Ocq1U8oAAFBB [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"path" => []}
+  Pipelines: [:browser]
+request_id=GF8G_-b2Ocq1U8oAAFBB [debug] Locale detected is en
+request_id=GF8G_-b2Ocq1U8oAAFBB [info] Sent 200 in 1ms
+request_id=GF8HAEHJOQDfusgAAFBh [info] GET /auth/linkedin
+request_id=GF8HAEHJOQDfusgAAFBh [debug] Processing with Mobilizon.Web.AuthController.request/2
+  Parameters: %{"provider" => "linkedin"}
+  Pipelines: [:browser]
+request_id=GF8HAEHJOQDfusgAAFBh [debug] Locale detected is en
+request_id=GF8HAEHJOQDfusgAAFBh [info] Starting LinkedIn OAuth request
+request_id=GF8HAEHJOQDfusgAAFBh [info] LinkedIn OAuth: Generating authorization URL
+request_id=GF8HAEHJOQDfusgAAFBh [info] Sent 302 in 7ms
+request_id=GF8HAFTn6tTfusgAAFCB [info] GET /auth/linkedin
+request_id=GF8HAFTn6tTfusgAAFCB [debug] Processing with Mobilizon.Web.AuthController.request/2
+  Parameters: %{"provider" => "linkedin"}
+  Pipelines: [:browser]
+request_id=GF8HAFTn6tTfusgAAFCB [debug] Locale detected is en
+request_id=GF8HAFTn6tTfusgAAFCB [info] Starting LinkedIn OAuth request
+request_id=GF8HAFTn6tTfusgAAFCB [info] LinkedIn OAuth: Generating authorization URL
+request_id=GF8HAFTn6tTfusgAAFCB [info] Sent 302 in 791µs
+request_id=GF8HAHjDBWotnV4AAC_C [info] GET /auth/linkedin/callback
+request_id=GF8HAHjDBWotnV4AAC_C [debug] Processing with Mobilizon.Web.AuthController.callback/2
+  Parameters: %{"code" => "AQQGPfqh3kjQp0l4vWL0hkjvEfkmTRhZLPdixxdTRQGY33xXe8faxGjdGmj8-QrPRn_7RlRduPl-PvWOmGLVENjrN5RrYyttBeDNw-9Xk7smvglAFXPqzE3uNtyP4uf_YCZaBDyjIXfjmKEfJAuUpeIGqG14u1gsNmtifzR0wiswJeAwXP7If6hFu5rb55XSYRtOaoPorcRxGiBhWPU", "provider" => "linkedin", "state" => "SFMyNTY.g2gDdAAAAAJtAAAABW5vbmNlbQAAABZQeU9lU3VwZDlKOU8yeEpuTWpSU1pnbQAAAAl0aW1lc3RhbXBiaKxrHW4GAAhsguGYAWIAAVGA.GY6nrvOA2B9cIeAwqT2tfx6b0ahqnVRvSVt56avI_dI"}
+  Pipelines: [:browser]
+request_id=GF8HAHjDBWotnV4AAC_C [debug] Locale detected is en
+request_id=GF8HAHjDBWotnV4AAC_C [info] Processing LinkedIn OAuth callback
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Processing callback
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: State verified
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Starting authentication flow
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Token exchange attempt 1/3
+request_id=GF8HAHjDBWotnV4AAC_C [notice] Invalid option {hackney,[{basic_auth,nil}]} ignored 
+
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Token exchange successful on attempt 1
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Adding 5000ms timing delay
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: User info fetch attempt 1/3
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: User info fetch successful on attempt 1
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Authentication successful for pawel.mizwa@gmail.com
+request_id=GF8HAHjDBWotnV4AAC_C [info] LinkedIn OAuth: Authentication successful for pawel.mizwa@gmail.com
+request_id=GF8HAHjDBWotnV4AAC_C [info] Processing LinkedIn user: pawel.mizwa@gmail.com
+request_id=GF8HAHjDBWotnV4AAC_C [debug] QUERY OK source="users" db=2.9ms
+SELECT u0."id", u0."email", u0."password_hash", u0."role", u0."confirmed_at", u0."confirmation_sent_at", u0."confirmation_token", u0."reset_password_sent_at", u0."reset_password_token", u0."unconfirmed_email", u0."locale", u0."disabled", u0."provider", u0."last_sign_in_at", u0."last_sign_in_ip", u0."current_sign_in_ip", u0."current_sign_in_at", u0."default_actor_id", u0."inserted_at", u0."updated_at" FROM "users" AS u0 WHERE ((u0."email" = 'pawel.mizwa@gmail.com')) OR (u0."unconfirmed_email" = 'pawel.mizwa@gmail.com')
+request_id=GF8HAHjDBWotnV4AAC_C [error] Failed to create/find user for pawel.mizwa@gmail.com: #Ecto.Changeset<action: :insert, changes: %{email: "pawel.mizwa@gmail.com", provider: "linkedin", confirmed_at: ~U[2025-08-25 13:54:44Z]}, errors: [locale: {"is invalid", [type: :string, validation: :cast]}], data: #Mobilizon.Users.User<>, valid?: false>
+request_id=GF8HAHjDBWotnV4AAC_C [error] Failed to generate tokens for LinkedIn user: #Ecto.Changeset<action: :insert, changes: %{email: "pawel.mizwa@gmail.com", provider: "linkedin", confirmed_at: ~U[2025-08-25 13:54:44Z]}, errors: [locale: {"is invalid", [type: :string, validation: :cast]}], data: #Mobilizon.Users.User<>, valid?: false>
+request_id=GF8HAHjDBWotnV4AAC_C [info] Sent 302 in 5978ms
+request_id=GF8HAeax3uktnV4AAC_i [info] GET /login
+request_id=GF8HAeax3uktnV4AAC_i [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"code" => "Error with Login Provider", "path" => ["login"], "provider" => "linkedin"}
+  Pipelines: [:browser]
+request_id=GF8HAeax3uktnV4AAC_i [debug] Locale detected is en
+request_id=GF8HAeax3uktnV4AAC_i [info] Sent 200 in 2ms
+request_id=GF8HAlTjb9ctnV4AADAC [info] GET /.well-known/appspecific/com.chrome.devtools.json
+request_id=GF8HAlTkAvm92RMAAFCh [info] GET /
+request_id=GF8HAlTkAvm92RMAAFCh [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"path" => []}
+  Pipelines: [:browser]
+request_id=GF8HAlTjb9ctnV4AADAC [debug] Processing with Mobilizon.Web.PageController.index/2
+  Parameters: %{"path" => [".well-known", "appspecific", "com.chrome.devtools.json"]}
+  Pipelines: [:browser]
+request_id=GF8HAlTkAvm92RMAAFCh [debug] Locale detected is en
+request_id=GF8HAlTjb9ctnV4AADAC [debug] Locale detected is en
+request_id=GF8HAlUPwGdwjykAADAi [info] GET /manifest.webmanifest
+request_id=GF8HAlUPwGdwjykAADAi [debug] Processing with Mobilizon.Web.ManifestController.manifest/2
+  Parameters: %{}
+  Pipelines: []
+request_id=GF8HAlUPwGdwjykAADAi [info] Sent 200 in 292µs
+request_id=GF8HAlTkAvm92RMAAFCh [info] Sent 200 in 2ms
+request_id=GF8HAlTjb9ctnV4AADAC [info] Sent 200 in 4ms
+request_id=GF8HAl37uF6WSbQAAFDB [info] POST /api
+request_id=GF8HAl38L9Xcb-wAADBi [info] POST /api
+request_id=GF8HAl38L9Xcb-wAADBi [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "Registrations", "query" => "query Registrations {\n  config {\n    registrationsOpen\n    registrationsAllowlist\n    auth {\n      databaseLogin\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8HAl38L9Xcb-wAADBi [debug] Locale detected is en
+request_id=GF8HAl37uF6WSbQAAFDB [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "FullConfig", "query" => "query FullConfig {\n  config {\n    name\n    description\n    slogan\n    version\n    registrationsOpen\n    registrationsAllowlist\n    demoMode\n    longEvents\n    durationOfLongEvent\n    countryCode\n    languages\n    primaryColor\n    secondaryColor\n    instanceLogo {\n      url\n      __typename\n    }\n    defaultPicture {\n      uuid\n      url\n      name\n      metadata {\n        width\n        height\n        blurhash\n        __typename\n      }\n      __typename\n    }\n    eventCategories {\n      id\n      label\n      __typename\n    }\n    anonymous {\n      participation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      eventCreation {\n        allowed\n        validation {\n          email {\n            enabled\n            confirmationRequired\n            __typename\n          }\n          captcha {\n            enabled\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      reports {\n        allowed\n        __typename\n      }\n      actorId\n      __typename\n    }\n    location {\n      latitude\n      longitude\n      __typename\n    }\n    maps {\n      tiles {\n        endpoint\n        attribution\n        __typename\n      }\n      routing {\n        type\n        __typename\n      }\n      __typename\n    }\n    geocoding {\n      provider\n      autocomplete\n      __typename\n    }\n    resourceProviders {\n      type\n      endpoint\n      software\n      __typename\n    }\n    features {\n      groups\n      eventCreation\n      eventExternal\n      antispam\n      __typename\n    }\n    restrictions {\n      onlyAdminCanCreateGroups\n      onlyGroupsCanCreateEvents\n      __typename\n    }\n    auth {\n      ldap\n      databaseLogin\n      oauthProviders {\n        id\n        label\n        __typename\n      }\n      __typename\n    }\n    uploadLimits {\n      default\n      avatar\n      banner\n      __typename\n    }\n    instanceFeeds {\n      enabled\n      __typename\n    }\n    webPush {\n      enabled\n      publicKey\n      __typename\n    }\n    analytics {\n      id\n      enabled\n      configuration {\n        key\n        value\n        type\n        __typename\n      }\n      __typename\n    }\n    search {\n      global {\n        isEnabled\n        isDefault\n        __typename\n      }\n      __typename\n    }\n    exportFormats {\n      eventParticipants\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8HAl37uF6WSbQAAFDB [debug] Locale detected is en
+request_id=GF8HAl37uF6WSbQAAFDB [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query FullConfig {
+  config {
+    name
+    description
+    slogan
+    version
+    registrationsOpen
+    registrationsAllowlist
+    demoMode
+    longEvents
+    durationOfLongEvent
+    countryCode
+    languages
+    primaryColor
+    secondaryColor
+    instanceLogo {
+      url
+      __typename
+    }
+    defaultPicture {
+      uuid
+      url
+      name
+      metadata {
+        width
+        height
+        blurhash
+        __typename
+      }
+      __typename
+    }
+    eventCategories {
+      id
+      label
+      __typename
+    }
+    anonymous {
+      participation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      eventCreation {
+        allowed
+        validation {
+          email {
+            enabled
+            confirmationRequired
+            __typename
+          }
+          captcha {
+            enabled
+            __typename
+          }
+          __typename
+        }
+        __typename
+      }
+      reports {
+        allowed
+        __typename
+      }
+      actorId
+      __typename
+    }
+    location {
+      latitude
+      longitude
+      __typename
+    }
+    maps {
+      tiles {
+        endpoint
+        attribution
+        __typename
+      }
+      routing {
+        type
+        __typename
+      }
+      __typename
+    }
+    geocoding {
+      provider
+      autocomplete
+      __typename
+    }
+    resourceProviders {
+      type
+      endpoint
+      software
+      __typename
+    }
+    features {
+      groups
+      eventCreation
+      eventExternal
+      antispam
+      __typename
+    }
+    restrictions {
+      onlyAdminCanCreateGroups
+      onlyGroupsCanCreateEvents
+      __typename
+    }
+    auth {
+      ldap
+      databaseLogin
+      oauthProviders {
+        id
+        label
+        __typename
+      }
+      __typename
+    }
+    uploadLimits {
+      default
+      avatar
+      banner
+      __typename
+    }
+    instanceFeeds {
+      enabled
+      __typename
+    }
+    webPush {
+      enabled
+      publicKey
+      __typename
+    }
+    analytics {
+      id
+      enabled
+      configuration {
+        key
+        value
+        type
+        __typename
+      }
+      __typename
+    }
+    search {
+      global {
+        isEnabled
+        isDefault
+        __typename
+      }
+      __typename
+    }
+    exportFormats {
+      eventParticipants
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8HAl38L9Xcb-wAADBi [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query Registrations {
+  config {
+    registrationsOpen
+    registrationsAllowlist
+    auth {
+      databaseLogin
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8HAl38L9Xcb-wAADBi graphql_operation_name=Registrations [info] Sent 200 in 3ms
+request_id=GF8HAl37uF6WSbQAAFDB graphql_operation_name=FullConfig [info] Sent 200 in 5ms
+request_id=GF8HAnIJO-Tcb-wAAA4j [info] POST /api
+request_id=GF8HAnIJO-Tcb-wAAA4j [debug] Processing with Absinthe.Plug
+  Parameters: %{"operationName" => "About", "query" => "query About {\n  config {\n    name\n    description\n    longDescription\n    slogan\n    contact\n    languages\n    registrationsOpen\n    registrationsAllowlist\n    anonymous {\n      participation {\n        allowed\n        __typename\n      }\n      __typename\n    }\n    version\n    federating\n    instanceFeeds {\n      enabled\n      __typename\n    }\n    __typename\n  }\n}", "variables" => %{}}
+  Pipelines: [:graphql]
+request_id=GF8HAnIJO-Tcb-wAAA4j [debug] Locale detected is en
+request_id=GF8HAnIJO-Tcb-wAAA4j [debug] ABSINTHE schema=Mobilizon.GraphQL.Schema variables=%{}
+---
+query About {
+  config {
+    name
+    description
+    longDescription
+    slogan
+    contact
+    languages
+    registrationsOpen
+    registrationsAllowlist
+    anonymous {
+      participation {
+        allowed
+        __typename
+      }
+      __typename
+    }
+    version
+    federating
+    instanceFeeds {
+      enabled
+      __typename
+    }
+    __typename
+  }
+}
+---
+request_id=GF8HAnIJO-Tcb-wAAA4j graphql_operation_name=About [info] Sent 200 in 1ms

@@ -224,7 +224,7 @@
             <!-- LinkedIn button (wider, with icon and custom text) -->
             <a
               v-if="linkedinProvider"
-              :href="`/auth/${linkedinProvider.id}`"
+              :href="`/auth/${linkedinProvider.id}?intent=login`"
               class="flex-1 border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-3 px-6 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2"
             >
               <!-- LinkedIn Icon -->
