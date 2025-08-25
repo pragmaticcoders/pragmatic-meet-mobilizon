@@ -11,7 +11,7 @@ env:
   IMAGE_NAME: mobilizon-app
 
 jobs:
-  test:
+  prepare:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -64,7 +64,7 @@ jobs:
         run: npm run build
 
   build-and-deploy:
-    needs: test
+    needs: prepare
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
 
@@ -105,62 +105,24 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          agent_forwarding: true
-          script: |
-            set -e  # Exit on any error
-
-            echo "🚀 Starting fast deployment to ${{ steps.env.outputs.environment }} environment"
-            echo "📂 Navigating to application directory"
+        run: |
+          # Set up SSH key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          # Add SSH key to agent
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_rsa
+          
+          # Add server to known hosts to avoid host key verification
+          ssh-keyscan -H 161.35.26.157 >> ~/.ssh/known_hosts
+          
+          # Connect and run deployment commands
+          ssh root@161.35.26.157 -A << 'EOF'
             cd /root/mobilizon
-
-            echo "📥 Pulling latest configuration from git"
-            git pull origin main
-
-            echo "🔑 Login to Docker Hub"
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-            echo "📥 Pulling pre-built image from registry"
-            docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.env.outputs.tag }}
-
-            echo "🛑 Stopping existing containers"
-            docker compose -f docker/production/docker-compose.yml down || true
-
-            echo "🚀 Starting new containers with pulled image"
-            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} IMAGE_TAG=${{ steps.env.outputs.tag }} docker compose -f docker/production/docker-compose.yml up -d
-
-            echo "⏳ Waiting for containers to be ready"
-            sleep 20
-
-            echo "🗃️ Running database migrations"
-            docker compose -f docker/production/docker-compose.yml exec -T mobilizon /bin/mobilizon_ctl migrate || echo "Migration completed or already up to date"
-
-            echo "🔍 Checking container health"
-            docker compose -f docker/production/docker-compose.yml ps
-
-            echo "✅ Fast deployment completed successfully!"
-            echo "🌐 Application should be available at your domain"
-
-            echo "🗑️ Cleaning up old images"
-            docker image prune -f
-
-      - name: Notify deployment success
-        if: success()
-        run: |
-          echo "🚀 Deployment to ${{ steps.env.outputs.environment }} completed successfully!"
-          echo "📦 Branch: ${{ steps.env.outputs.branch }}"
-          echo "🔗 Commit: ${{ github.sha }}"
-          echo "🌐 Server: ${{ secrets.DEPLOY_HOST }}"
-
-      - name: Notify deployment failure
-        if: failure()
-        run: |
-          echo "❌ Deployment to ${{ steps.env.outputs.environment }} failed!"
-          echo "📦 Branch: ${{ steps.env.outputs.branch }}"
-          echo "🔗 Commit: ${{ github.sha }}"
-          echo "💡 Check the SSH action logs above for details"
+            git pull
+            cd /root/mobilizon/docker/production
+            docker compose down
+            docker compose up -d
+          EOF
