@@ -249,18 +249,18 @@
           <a
             v-if="linkedinProvider"
             :href="
-              acceptTerms && credentials.email && credentials.password
+              acceptTerms
                 ? `/auth/${linkedinProvider.id}`
                 : '#'
             "
             :class="[
               'w-full sm:flex-1 font-medium py-2.5 px-4 transition-colors duration-200 focus:outline-none flex items-center justify-center gap-2 text-sm',
-              acceptTerms && credentials.email && credentials.password
+              acceptTerms
                 ? 'border border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                 : 'border border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed',
             ]"
             @click="
-              !(acceptTerms && credentials.email && credentials.password) &&
+              !acceptTerms &&
                 $event.preventDefault()
             "
           >
