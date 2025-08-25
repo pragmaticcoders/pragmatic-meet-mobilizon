@@ -16,6 +16,26 @@
         {{ t("Now, create your first profile:") }}
       </div>
 
+      <!-- LinkedIn prefill notification -->
+      <div
+        v-if="isFromLinkedIn"
+        class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm mb-6 rounded-md"
+      >
+        <div class="flex items-start">
+          <o-icon
+            icon="linkedin"
+            size="small"
+            class="mr-2 mt-0.5"
+          />
+          <div>
+            <p class="font-medium">{{ t("Profile data from LinkedIn") }}</p>
+            <p class="text-blue-600 text-xs mt-1">
+              {{ t("Your profile has been prefilled with information from your LinkedIn account. Please review and modify as needed.") }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Avatar Section -->
       <div class="mb-8">
         <label
@@ -213,6 +233,9 @@ import { useHead } from "@/utils/head";
 const { t } = useI18n({ useScope: "global" });
 const router = useRouter();
 const route = useRoute();
+
+// Detect if user came from LinkedIn registration
+const isFromLinkedIn = computed(() => route.query.source === "linkedin");
 
 const props = defineProps<{ isUpdate: boolean; identityName?: string }>();
 

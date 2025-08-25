@@ -4,7 +4,11 @@ defmodule Mobilizon.Web.AuthController do
   alias Mobilizon.Service.Auth.Authenticator
   alias Mobilizon.Users
   alias Mobilizon.Users.User
+  alias Mobilizon.Actors
+  alias Mobilizon.Actors.Actor
+  alias Mobilizon.Storage.Repo
   alias Mobilizon.Web.OAuth.LinkedInOAuth
+  alias Mobilizon.Web.Upload
   import Mobilizon.Service.Guards, only: [is_valid_string: 1]
   require Logger
   plug(:put_layout, false)
@@ -16,7 +20,8 @@ defmodule Mobilizon.Web.AuthController do
     Logger.info("Starting LinkedIn OAuth request")
 
     # Capture intent parameter (login vs register)
-    intent = Map.get(params, "intent", "register")  # default to register for backward compatibility
+    # default to register for backward compatibility
+    intent = Map.get(params, "intent", "register")
 
     # Generate state for CSRF protection using signed token (no session needed)
     # Include intent in the state for callback processing
@@ -58,6 +63,7 @@ defmodule Mobilizon.Web.AuthController do
         case error do
           %{message_key: "OAuth2", message: message} ->
             "OAuth2: #{message}"
+
           _ ->
             "#{error.message_key}: #{error.message}"
         end
@@ -230,15 +236,21 @@ defmodule Mobilizon.Web.AuthController do
   defp process_linkedin_user(conn, user_info, _token, intent \\ "register") do
     email = user_info["email"]
     name = user_info["name"] || user_info["given_name"] || email
-    username = user_info["sub"] || email
+    username = generate_username_from_linkedin(user_info, email)
+    avatar_url = user_info["picture"]
 
     Logger.info("Processing LinkedIn user: #{email} with intent: #{intent}")
+
+    Logger.debug(
+      "LinkedIn profile data: name=#{name}, username=#{username}, avatar_url=#{avatar_url}"
+    )
 
     # First, check if user exists
     case Users.get_user_by_email(email) do
       {:ok, %User{} = user} ->
-        # User exists - proceed with login regardless of intent
+        # User exists - update profile if needed and proceed with login
         Logger.info("Found existing user for #{email}")
+        update_user_profile_from_linkedin(user, user_info)
         complete_linkedin_authentication(conn, user, username, name)
 
       {:error, :user_not_found} ->
@@ -247,31 +259,38 @@ defmodule Mobilizon.Web.AuthController do
           "login" ->
             # Login attempt but user doesn't exist - redirect to register
             Logger.info("Login attempt for non-existing user #{email} - redirecting to register")
-            redirect(conn, to: "/register/user?message=no_account&provider=linkedin&email=#{URI.encode(email)}")
+
+            redirect(conn,
+              to: "/register/user?message=no_account&provider=linkedin&email=#{URI.encode(email)}"
+            )
 
           "register" ->
-            # Registration attempt - create new user
-            Logger.info("Registration attempt for #{email} - creating new user")
-            case Users.create_external(email, "linkedin", %{locale: "en"}) do
+            # Registration attempt - create new user with profile
+            Logger.info(
+              "Registration attempt for #{email} - creating new user with LinkedIn profile"
+            )
+
+            case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
-                Logger.info("Created new external user for #{email} via linkedin")
+                Logger.info("Created new external user for #{email} via linkedin with profile")
                 complete_linkedin_authentication(conn, user, username, name)
 
               {:error, error} ->
-                Logger.error("Failed to create user for #{email}: #{inspect(error)}")
+                Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
                 redirect_to_error(conn, :user_creation_failed, "linkedin")
             end
 
           _ ->
             # Unknown intent - default to registration for backward compatibility
             Logger.warn("Unknown intent #{intent} for #{email} - defaulting to registration")
-            case Users.create_external(email, "linkedin", %{locale: "en"}) do
+
+            case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
-                Logger.info("Created new external user for #{email} via linkedin")
+                Logger.info("Created new external user for #{email} via linkedin with profile")
                 complete_linkedin_authentication(conn, user, username, name)
 
               {:error, error} ->
-                Logger.error("Failed to create user for #{email}: #{inspect(error)}")
+                Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
                 redirect_to_error(conn, :user_creation_failed, "linkedin")
             end
         end
@@ -284,17 +303,231 @@ defmodule Mobilizon.Web.AuthController do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
         Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
 
-        render(conn, "callback.html", %{
+        # Build redirect URL with proper identity name
+        redirect_url =
+          case user.default_actor_id do
+            nil ->
+              # No default actor, redirect to create identity
+              "/identity/create?source=linkedin"
+
+            _actor_id ->
+              # Has default actor, get username and redirect to edit
+              case Actors.get_actor(user.default_actor_id) do
+                %Actor{} = actor ->
+                  "/identity/update/#{actor.preferred_username}?source=linkedin"
+
+                nil ->
+                  # Fallback if actor lookup fails - redirect to create
+                  "/identity/create?source=linkedin"
+              end
+          end
+
+        # Store tokens and redirect to profile for LinkedIn data review
+        render(conn, "callback_redirect.html", %{
           access_token: access_token,
           refresh_token: refresh_token,
           user: user,
           username: username,
-          name: name
+          name: name,
+          redirect_url: redirect_url
         })
 
       {:error, error} ->
         Logger.error("Failed to generate tokens for LinkedIn user: #{inspect(error)}")
         redirect_to_error(conn, :token_generation_failed, "linkedin")
+    end
+  end
+
+  # Helper function to generate a username from LinkedIn data
+  defp generate_username_from_linkedin(user_info, fallback_email) do
+    # Try to extract username from LinkedIn sub or given_name, fallback to email prefix
+    cond do
+      is_valid_string(user_info["sub"]) ->
+        sanitize_username(user_info["sub"])
+
+      is_valid_string(user_info["given_name"]) ->
+        sanitize_username(user_info["given_name"])
+
+      true ->
+        fallback_email
+        |> String.split("@")
+        |> List.first()
+        |> sanitize_username()
+    end
+  end
+
+  # Sanitize username to match platform requirements
+  defp sanitize_username(username) when is_binary(username) do
+    username
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9_]/, "")
+    # Keep reasonable length
+    |> String.slice(0, 20)
+  end
+
+  defp sanitize_username(_), do: "linkedin_user"
+
+  # Create user with LinkedIn profile data
+  defp create_user_with_linkedin_profile(email, user_info) do
+    with {:ok, %User{} = user} <- Users.create_external(email, "linkedin", %{locale: "en"}),
+         {:ok, actor} <- create_actor_from_linkedin(user, user_info),
+         # Set the newly created actor as the user's default actor
+         {:ok, updated_user} <-
+           user |> User.changeset(%{default_actor_id: actor.id}) |> Repo.update() do
+      {:ok, updated_user}
+    else
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  # Update existing user's profile with LinkedIn data if missing
+  defp update_user_profile_from_linkedin(%User{} = user, user_info) do
+    case user.default_actor_id do
+      nil ->
+        # User has no default actor, create one from LinkedIn data
+        Logger.info("Creating actor profile for existing user #{user.email} from LinkedIn")
+
+        case create_actor_from_linkedin(user, user_info) do
+          {:ok, actor} ->
+            # Update user's default_actor_id
+            user
+            |> User.changeset(%{default_actor_id: actor.id})
+            |> Repo.update()
+
+          {:error, error} ->
+            Logger.error("Failed to create actor for user #{user.email}: #{inspect(error)}")
+            :ok
+        end
+
+      _actor_id ->
+        # User has an actor, optionally update missing fields
+        update_actor_from_linkedin_if_needed(user, user_info)
+    end
+  end
+
+  # Update actor from LinkedIn if missing avatar or name
+  defp update_actor_from_linkedin_if_needed(%User{default_actor_id: actor_id} = _user, user_info)
+       when not is_nil(actor_id) do
+    case Actors.get_actor(actor_id) do
+      %Actor{avatar: nil} = actor ->
+        Logger.info("Updating actor #{actor_id} avatar from LinkedIn")
+        linkedin_avatar = download_linkedin_avatar(user_info["picture"])
+        attrs = %{}
+        attrs = if linkedin_avatar, do: Map.put(attrs, :avatar, linkedin_avatar), else: attrs
+
+        case Actors.update_actor(actor, attrs) do
+          {:ok, _updated_actor} ->
+            Logger.info("Successfully updated actor #{actor_id} with LinkedIn data")
+
+          {:error, error} ->
+            Logger.error("Failed to update actor #{actor_id}: #{inspect(error)}")
+        end
+
+      %Actor{} ->
+        # Actor already has avatar, no update needed
+        :ok
+
+      nil ->
+        Logger.error("Actor #{actor_id} not found")
+        :ok
+    end
+  end
+
+  defp update_actor_from_linkedin_if_needed(_user, _user_info), do: :ok
+
+  # Create actor from LinkedIn profile data
+  defp create_actor_from_linkedin(%User{} = user, user_info) do
+    name = user_info["name"] || user_info["given_name"] || user.email
+    username = generate_username_from_linkedin(user_info, user.email)
+    avatar = download_linkedin_avatar(user_info["picture"])
+
+    actor_attrs = %{
+      user_id: user.id,
+      name: name,
+      preferred_username: ensure_unique_username(username),
+      summary: "LinkedIn user"
+    }
+
+    # Add avatar if successfully downloaded
+    actor_attrs = if avatar, do: Map.put(actor_attrs, :avatar, avatar), else: actor_attrs
+
+    # true = set as default actor
+    case Actors.new_person(actor_attrs, true) do
+      {:ok, actor} ->
+        Logger.info("Created actor #{actor.id} for user #{user.email} with LinkedIn profile")
+        {:ok, actor}
+
+      {:error, error} ->
+        Logger.error("Failed to create actor for user #{user.email}: #{inspect(error)}")
+        {:error, error}
+    end
+  end
+
+  # Download LinkedIn avatar and convert to File struct
+  defp download_linkedin_avatar(nil), do: nil
+  defp download_linkedin_avatar(""), do: nil
+
+  defp download_linkedin_avatar(avatar_url) when is_binary(avatar_url) do
+    Logger.info("Downloading LinkedIn avatar from: #{avatar_url}")
+
+    case HTTPoison.get(avatar_url, [], timeout: 10_000, recv_timeout: 10_000) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body, headers: headers}} ->
+        content_type = get_content_type(headers)
+        filename = "linkedin_avatar.#{get_extension_from_content_type(content_type)}"
+
+        case Upload.store(%{body: body, name: filename}, type: :avatar) do
+          {:ok, %{name: name, url: url, content_type: content_type, size: size}} ->
+            %{
+              name: name,
+              url: url,
+              content_type: content_type,
+              size: size
+            }
+
+          {:error, error} ->
+            Logger.error("Failed to store LinkedIn avatar: #{inspect(error)}")
+            nil
+        end
+
+      {:ok, %HTTPoison.Response{status_code: status}} ->
+        Logger.error("Failed to download LinkedIn avatar, status: #{status}")
+        nil
+
+      {:error, error} ->
+        Logger.error("Failed to download LinkedIn avatar: #{inspect(error)}")
+        nil
+    end
+  end
+
+  # Helper to get content type from headers
+  defp get_content_type(headers) do
+    headers
+    |> Enum.find(fn {key, _value} -> String.downcase(key) == "content-type" end)
+    |> case do
+      {_key, value} -> value |> String.split(";") |> List.first() |> String.trim()
+      # default fallback
+      nil -> "image/jpeg"
+    end
+  end
+
+  # Helper to get file extension from content type
+  defp get_extension_from_content_type("image/jpeg"), do: "jpg"
+  defp get_extension_from_content_type("image/jpg"), do: "jpg"
+  defp get_extension_from_content_type("image/png"), do: "png"
+  defp get_extension_from_content_type("image/gif"), do: "gif"
+  defp get_extension_from_content_type("image/webp"), do: "webp"
+  # default fallback
+  defp get_extension_from_content_type(_), do: "jpg"
+
+  # Ensure username is unique by adding numbers if needed
+  defp ensure_unique_username(base_username, suffix \\ 0) do
+    username = if suffix == 0, do: base_username, else: "#{base_username}#{suffix}"
+
+    case Actors.get_local_actor_by_name(username) do
+      # Username is available
+      nil -> username
+      # Try next number
+      %Actor{} -> ensure_unique_username(base_username, suffix + 1)
     end
   end
 

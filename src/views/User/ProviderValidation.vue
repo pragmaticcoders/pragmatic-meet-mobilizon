@@ -59,13 +59,14 @@ onMounted(async () => {
     await new Promise(resolve => setTimeout(resolve, 200));
     
     // Use enhanced meta tag reading with retry logic to handle OAuth callback timing
-    const [accessToken, refreshToken, userId, userEmail, userRole] =
+    const [accessToken, refreshToken, userId, userEmail, userRole, redirectUrl] =
       await Promise.all([
         getValueFromMetaWithRetry("auth-access-token"),
         getValueFromMetaWithRetry("auth-refresh-token"),
         getValueFromMetaWithRetry("auth-user-id"),
         getValueFromMetaWithRetry("auth-user-email"),
         getValueFromMetaWithRetry("auth-user-role"),
+        getValueFromMetaWithRetry("auth-redirect-url"),
       ]);
 
     console.log("OAuth callback: Meta tag retrieval completed", {
@@ -74,6 +75,7 @@ onMounted(async () => {
       hasUserRole: !!userRole,
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
+      redirectUrl: redirectUrl || "none",
     });
 
     if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
@@ -160,8 +162,14 @@ onMounted(async () => {
     
     console.log("OAuth callback: Authentication completed successfully");
     
-    // Redirect to home or intended page
-    await router.push({ name: RouteName.HOME });
+    // Redirect to profile settings if coming from LinkedIn, otherwise go to home
+    if (redirectUrl) {
+      console.log("OAuth callback: Redirecting to profile settings for LinkedIn data review");
+      await router.push(redirectUrl);
+    } else {
+      console.log("OAuth callback: Redirecting to home page");
+      await router.push({ name: RouteName.HOME });
+    }
     
   } catch (error) {
     console.error("OAuth callback: Error processing authentication", error);
