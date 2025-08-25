@@ -11,62 +11,12 @@ env:
   IMAGE_NAME: mobilizon-app
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USER: postgres
-          POSTGRES_DB: mobilizon_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: "1.15"
-          otp-version: "26"
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: "npm"
-
-      - name: Install Elixir dependencies
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-
-      - name: Install Node.js dependencies
-        run: npm ci
-
-      - name: Build frontend
-        env:
-          TERM: xterm
-        run: npm run build
-
-  build-and-deploy:
-    needs: prepare
+  build:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      tag: ${{ steps.env.outputs.tag }}
 
     steps:
       - name: Checkout code
@@ -104,6 +54,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+
+    steps:
       - name: Deploy to server
         run: |
           # Set up SSH key
@@ -116,10 +72,10 @@ jobs:
           ssh-add ~/.ssh/id_rsa
           
           # Add server to known hosts to avoid host key verification
-          ssh-keyscan -H 161.35.26.157 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
           
           # Connect and run deployment commands
-          ssh root@161.35.26.157 -A << 'EOF'
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << 'EOF'
             cd /root/mobilizon
             git pull
             cd /root/mobilizon/docker/production
