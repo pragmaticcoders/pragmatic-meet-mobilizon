@@ -26,6 +26,7 @@ defmodule Mobilizon.Posts.Post do
   alias Mobilizon.Events.Tag
   alias Mobilizon.Medias.Media
   alias Mobilizon.Posts.Post.TitleSlug
+  alias Mobilizon.Posts.PostVisibility
   use Mobilizon.Web, :verified_routes
   import Mobilizon.Web.Gettext
 
@@ -57,7 +58,7 @@ defmodule Mobilizon.Posts.Post do
     field(:title, :string)
     field(:url, :string)
     field(:publish_at, :utc_datetime)
-    field(:visibility, :string, default: "public")
+    field(:visibility, PostVisibility, default: :public)
     field(:language, :string, default: "und")
     belongs_to(:author, Actor)
     belongs_to(:attributed_to, Actor)
