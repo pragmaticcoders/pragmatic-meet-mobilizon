@@ -274,6 +274,8 @@ const icons: Record<string, () => Promise<any>> = {
     import(`../../../node_modules/vue-material-design-icons/Apps.vue`),
   Server: () =>
     import(`../../../node_modules/vue-material-design-icons/Server.vue`),
+  Plus: () =>
+    import(`../../../node_modules/vue-material-design-icons/Plus.vue`),
 };
 
 const props = withDefaults(

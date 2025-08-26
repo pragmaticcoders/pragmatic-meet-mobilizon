@@ -1,36 +1,6 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="resource">
     <breadcrumbs-nav :links="breadcrumbLinks">
-      <li>
-        <o-dropdown aria-role="list">
-          <template #trigger>
-            <o-button variant="primary">+</o-button>
-          </template>
-
-          <o-dropdown-item aria-role="listitem" @click="createFolderModal">
-            <Folder />
-            {{ t("New folder") }}
-          </o-dropdown-item>
-          <o-dropdown-item aria-role="listitem" @click="createLinkModal">
-            <Link />
-            {{ t("New link") }}
-          </o-dropdown-item>
-          <hr
-            role="presentation"
-            class="dropdown-divider"
-            v-if="resourceProviders?.length"
-          />
-          <o-dropdown-item
-            aria-role="listitem"
-            v-for="resourceProvider in resourceProviders"
-            :key="resourceProvider.software"
-            @click="createResourceFromProvider(resourceProvider)"
-          >
-            <o-icon :icon="mapServiceTypeToIcon[resourceProvider.software]" />
-            {{ createSentenceForType(resourceProvider.software) }}
-          </o-dropdown-item>
-        </o-dropdown>
-      </li>
     </breadcrumbs-nav>
     <DraggableList
       v-if="resource.actor"
@@ -47,6 +17,44 @@
       @rename="handleRename"
       @move="handleMove"
     />
+    
+    <!-- Add new resource button -->
+    <div class="my-6 ml-2" v-if="resource.actor">
+      <o-dropdown aria-role="list">
+        <template #trigger>
+          <o-button variant="primary" class="px-4">
+            <div class="flex items-center gap-2">
+              <Plus :size="20" />
+              {{ t("Add Resource") }}
+            </div>
+          </o-button>
+        </template>
+
+        <o-dropdown-item aria-role="listitem" @click="createFolderModal">
+          <Folder />
+          {{ t("New folder") }}
+        </o-dropdown-item>
+        <o-dropdown-item aria-role="listitem" @click="createLinkModal">
+          <Link />
+          {{ t("New link") }}
+        </o-dropdown-item>
+        <hr
+          role="presentation"
+          class="dropdown-divider"
+          v-if="resourceProviders?.length"
+        />
+        <o-dropdown-item
+          aria-role="listitem"
+          v-for="resourceProvider in resourceProviders"
+          :key="resourceProvider.software"
+          @click="createResourceFromProvider(resourceProvider)"
+        >
+          <o-icon :icon="mapServiceTypeToIcon[resourceProvider.software]" />
+          {{ createSentenceForType(resourceProvider.software) }}
+        </o-dropdown-item>
+      </o-dropdown>
+    </div>
+    
     <o-pagination
       v-if="resource.children.total > RESOURCES_PER_PAGE"
       :total="resource.children.total"
@@ -61,10 +69,12 @@
     <o-modal
       v-model:active="renameModal"
       has-modal-card
+      aria-modal
       :close-button-aria-label="t('Close')"
+      :width="640"
     >
       <div class="w-full md:w-[640px]">
-        <section>
+        <section class="p-10">
           <form @submit.prevent="renameResource">
             <o-field :label="t('Title')">
               <o-input
@@ -75,7 +85,7 @@
               />
             </o-field>
 
-            <o-button native-type="submit">{{ t("Rename resource") }}</o-button>
+            <o-button native-type="submit" class="mt-2">{{ t("Rename resource") }}</o-button>
           </form>
         </section>
       </div>
@@ -83,10 +93,12 @@
     <o-modal
       v-model:active="moveModal"
       has-modal-card
+      aria-modal
       :close-button-aria-label="t('Close')"
+      :width="640"
     >
-      <div class="w-full">
-        <section>
+      <div class="w-full md:w-[640px]">
+        <section class="p-10">
           <resource-selector
             :initialResource="updatedResource"
             :username="usernameWithDomain(resource.actor)"
@@ -99,50 +111,54 @@
     <o-modal
       v-model:active="createResourceModal"
       has-modal-card
+      aria-modal
       :close-button-aria-label="t('Close')"
       :autoFocus="false"
+      :width="640"
     >
-      <section class="w-full md:w-[640px]">
-        <o-notification variant="danger" v-if="modalError">
-          {{ modalError }}
-        </o-notification>
-        <form @submit.prevent="createResource">
-          <p v-if="newResource.type === 'pad'">
-            {{
-              t("The pad will be created on {service}", {
-                service: newResourceHost,
-              })
-            }}
-          </p>
-          <p v-else-if="newResource.type === 'calc'">
-            {{
-              t("The calc will be created on {service}", {
-                service: newResourceHost,
-              })
-            }}
-          </p>
-          <p v-else-if="newResource.type === 'visio'">
-            {{
-              t("The videoconference will be created on {service}", {
-                service: newResourceHost,
-              })
-            }}
-          </p>
-          <o-field :label="t('Title')" label-for="new-resource-title">
-            <o-input
-              ref="modalNewResourceInput"
-              aria-required="true"
-              v-model="newResource.title"
-              id="new-resource-title"
-              expanded
-            />
-          </o-field>
+      <div class="w-full md:w-[640px]">
+        <section class="p-10">
+          <o-notification variant="danger" v-if="modalError">
+            {{ modalError }}
+          </o-notification>
+          <form @submit.prevent="createResource">
+            <p v-if="newResource.type === 'pad'">
+              {{
+                t("The pad will be created on {service}", {
+                  service: newResourceHost,
+                })
+              }}
+            </p>
+            <p v-else-if="newResource.type === 'calc'">
+              {{
+                t("The calc will be created on {service}", {
+                  service: newResourceHost,
+                })
+              }}
+            </p>
+            <p v-else-if="newResource.type === 'visio'">
+              {{
+                t("The videoconference will be created on {service}", {
+                  service: newResourceHost,
+                })
+              }}
+            </p>
+            <o-field :label="t('Title')" label-for="new-resource-title">
+              <o-input
+                ref="modalNewResourceInput"
+                aria-required="true"
+                v-model="newResource.title"
+                id="new-resource-title"
+                expanded
+              />
+            </o-field>
 
-          <o-button class="mt-2" native-type="submit">{{
-            createResourceButtonLabel
-          }}</o-button>
-        </form>
-      </section>
+            <o-button class="mt-2" native-type="submit">{{
+              createResourceButtonLabel
+            }}</o-button>
+          </form>
+        </section>
+      </div>
     </o-modal>
     <o-modal
       v-model:active="createLinkResourceModal"
@@ -172,6 +188,7 @@
                 expanded
                 v-model="newResource.resourceUrl"
                 @blur="previewResource"
+                @input="clearUrlError"
                 ref="modalNewResourceLinkInput"
               />
             </o-field>
@@ -190,6 +207,7 @@
                 aria-required="true"
                 v-model="newResource.title"
                 id="new-resource-link-title"
+                @input="clearTitleError"
                 expanded
               />
             </o-field>
@@ -204,6 +222,7 @@
                 type="textarea"
                 v-model="newResource.summary"
                 id="new-resource-summary"
+                @input="clearSummaryError"
                 expanded
               />
             </o-field>
@@ -218,6 +237,9 @@
   </div>
 </template>
 <script lang="ts" setup>
+
+
+import Plus from "vue-material-design-icons/Plus.vue";
 import ResourceItem from "@/components/Resource/ResourceItem.vue";
 import { displayName, usernameWithDomain } from "@/types/actor";
 import RouteName from "@/router/name";
@@ -278,6 +300,8 @@ const {
     username: props.preferredUsername,
     page: page.value,
     limit: RESOURCES_PER_PAGE,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   };
 });
 
@@ -359,6 +383,11 @@ createResourceDone(() => {
   newResource.title = "";
   newResource.summary = "";
   newResource.resourceUrl = "";
+  // Clear all errors when resource is created successfully
+  modalError.value = "";
+  Object.keys(modalFieldErrors).forEach(key => {
+    delete modalFieldErrors[key];
+  });
 });
 
 createResourceError((err) => {
@@ -376,6 +405,10 @@ createResourceError((err) => {
 const createResource = () => {
   if (!resource.value?.actor) return;
   modalError.value = "";
+  // Clear all field errors when submitting
+  Object.keys(modalFieldErrors).forEach(key => {
+    delete modalFieldErrors[key];
+  });
   createResourceMutation({
     title: newResource.title,
     summary: newResource.summary,
@@ -398,6 +431,12 @@ const {
 
 previewDone(({ data }) => {
   if (!data?.previewResourceLink) return;
+  // Clear any existing errors on successful preview
+  modalError.value = "";
+  Object.keys(modalFieldErrors).forEach(key => {
+    delete modalFieldErrors[key];
+  });
+  
   newResource.title = data?.previewResourceLink.title ?? "";
   newResource.summary = data?.previewResourceLink?.description?.substring(
     0,
@@ -425,6 +464,31 @@ const previewResource = async (): Promise<void> => {
   });
 };
 
+const clearFieldError = (fieldName: string): void => {
+  if (modalFieldErrors[fieldName]) {
+    delete modalFieldErrors[fieldName];
+  }
+};
+
+const clearUrlError = (): void => {
+  clearFieldError('resource_url');
+};
+
+const clearTitleError = (): void => {
+  clearFieldError('title');
+};
+
+const clearSummaryError = (): void => {
+  clearFieldError('summary');
+};
+
+const resetFormErrors = (): void => {
+  modalError.value = "";
+  Object.keys(modalFieldErrors).forEach(key => {
+    delete modalFieldErrors[key];
+  });
+};
+
 const createSentenceForType = (type: string): string => {
   switch (type) {
     case "folder":
@@ -441,12 +505,14 @@ const createSentenceForType = (type: string): string => {
 };
 
 const createLinkModal = async (): Promise<void> => {
+  resetFormErrors();
   createLinkResourceModal.value = true;
   await nextTick();
   modalNewResourceLinkInput.value?.$refs.inputRef?.focus();
 };
 
 const createFolderModal = async (): Promise<void> => {
+  resetFormErrors();
   newResource.type = "folder";
   createResourceModal.value = true;
   await nextTick();
@@ -456,6 +522,7 @@ const createFolderModal = async (): Promise<void> => {
 const createResourceFromProvider = async (
   provider: IProvider
 ): Promise<void> => {
+  resetFormErrors();
   newResource.resourceUrl = generateFullResourceUrl(provider);
   newResource.type = provider.software;
   createResourceModal.value = true;

@@ -70,9 +70,6 @@
     </draggable>
     <EmptyContent icon="link" :inline="true" v-if="resources.length === 0">
       {{ t("No resources in this folder") }}
-      <template #desc>
-        {{ t("You can add resources by using the button above.") }}
-      </template>
     </EmptyContent>
   </section>
 </template>
@@ -134,13 +131,29 @@ watch(checkedResources, (newCheckedResources) => {
   validCheckedResources.value = newValidCheckedResources;
 });
 
-// const deleteResource = (resourceID: string) => {
-//   validCheckedResources.value = validCheckedResources.value.filter(
-//     (id) => id !== resourceID
-//   );
-//   delete checkedResources.value[resourceID];
-//   emit("delete", resourceID);
-// };
+// Watch for changes in resources to clean up selection state
+watch(() => props.resources, (newResources) => {
+  const existingResourceIds = new Set(newResources.map(r => r.id).filter(Boolean));
+  
+  // Clean up checkedResources - remove any checked resources that no longer exist
+  Object.keys(checkedResources).forEach(resourceId => {
+    if (!existingResourceIds.has(resourceId)) {
+      delete checkedResources[resourceId];
+    }
+  });
+  
+  // Update validCheckedResources to only include existing resources
+  validCheckedResources.value = validCheckedResources.value.filter(id => 
+    existingResourceIds.has(id)
+  );
+  
+  // Update checkedAll state
+  const totalResources = newResources.length;
+  const checkedCount = validCheckedResources.value.length;
+  checkedAll.value = totalResources > 0 && checkedCount === totalResources;
+}, { deep: true });
+
+
 </script>
 <style lang="scss" scoped>
 @use "@/styles/_mixins" as *;

@@ -11,7 +11,36 @@ defmodule Mobilizon.Service.HTTP.Utils do
         System.get_env("MOBILIZON_CA_CERT_PATH")
       end
 
-    [cacertfile: cacertfile]
+    # Check if SSL verification should be disabled (for development/testing only)
+    disable_ssl_verification =
+      System.get_env("MOBILIZON_DISABLE_SSL_VERIFICATION", "false") == "true"
+
+    if disable_ssl_verification do
+      [
+        cacertfile: cacertfile,
+        verify: :verify_none,
+        verify_fun: {fn _, _, _ -> {:valid, :ok} end, []}
+      ]
+    else
+      # Enhanced SSL configuration with TLS v1.2 support and better compatibility
+      [
+        cacertfile: cacertfile,
+        verify: :verify_peer,
+        depth: 99,
+        # Support both TLS v1.2 and v1.3 for maximum compatibility
+        versions: [:"tlsv1.2", :"tlsv1.3"],
+        # Use secure cipher suites for TLS v1.2
+        ciphers:
+          :ssl.cipher_suites(:default, :"tlsv1.2") ++ :ssl.cipher_suites(:default, :"tlsv1.3"),
+        # Additional options for better SSL compatibility
+        secure_renegotiate: true,
+        reuse_sessions: true,
+        # Handle hostname verification more gracefully
+        customize_hostname_check: [
+          match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+        ]
+      ]
+    end
   end
 
   @spec get_header(Enum.t(), String.t()) :: String.t() | nil
