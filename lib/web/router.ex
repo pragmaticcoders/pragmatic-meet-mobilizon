@@ -116,7 +116,7 @@ defmodule Mobilizon.Web.Router do
   scope "/", Mobilizon.Web do
     get("/manifest.webmanifest", ManifestController, :manifest)
     get("/manifest.json", ManifestController, :manifest)
-    get("/favicon.ico", ManifestController, :favicon)
+    get("/favicon.svg", ManifestController, :favicon)
   end
 
   # Health check endpoints

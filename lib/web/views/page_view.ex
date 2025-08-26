@@ -81,7 +81,7 @@ defmodule Mobilizon.Web.PageView do
   end
 
   def theme_color do
-    "#ffd599"
+    "#2563eb"
   end
 
   def language_direction(assigns) do
@@ -107,7 +107,7 @@ defmodule Mobilizon.Web.PageView do
 
       _ ->
         %{
-          src: "/img/icons/apple-touch-icon-152x152.png",
+          src: "/img/icons/favicon.svg",
           sizes: "152x152"
         }
     end

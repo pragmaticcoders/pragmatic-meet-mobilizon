@@ -13,8 +13,8 @@ config :mobilizon,
 config :mobilizon, Mobilizon.Storage.Repo, types: Mobilizon.Storage.PostgresTypes
 
 config :mobilizon, :instance,
-  name: "My Mobilizon Instance",
-  description: "Change this to a proper description of your instance",
+  name: "Pragmatic",
+  description: "Pragmatic is a social network for the pragmatic people.",
   hostname: "localhost",
   registrations_open: false,
   registration_email_allowlist: [],

@@ -84,7 +84,7 @@ defmodule Mobilizon.Service.RichMedia.Favicon do
   @spec find_favicon_in_root(String.t(), Enum.t()) :: {:ok, String.t()} | {:error, any()}
   defp find_favicon_in_root(url, headers) do
     uri = URI.parse(url)
-    favicon_url = "#{uri.scheme}://#{uri.host}/favicon.ico"
+    favicon_url = "#{uri.scheme}://#{uri.host}/favicon.svg"
 
     case Tesla.head(favicon_url, headers: headers, opts: @options) do
       {:ok, %{status: code}} when code in 200..299 ->

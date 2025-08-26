@@ -107,8 +107,8 @@ self.addEventListener("push", async (event: PushEvent) => {
   console.debug("received push", payload);
   const options = {
     body: payload.body,
-    icon: "/img/icons/android-chrome-512x512.png",
-    badge: "/img/icons/badge-128x128.png",
+    icon: "/img/icons/Logo-on-light.png",
+    badge: "/img/icons/Logo-on-light.png",
     timestamp: new Date(payload.timestamp).getTime(),
     lang: payload.locale,
     data: {

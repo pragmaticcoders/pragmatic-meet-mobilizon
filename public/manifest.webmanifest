@@ -1,0 +1,35 @@
+{
+    "name": "Pragmatic",
+    "short_name": "Pragmatic",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "lang": "en",
+    "scope": "/",
+    "orientation": "portrait-primary",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "./img/icons/Logo-on-light.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "./img/icons/Logo-on-light.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "./img/icons/Logo-on-light.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "./img/icons/Logo-on-light.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

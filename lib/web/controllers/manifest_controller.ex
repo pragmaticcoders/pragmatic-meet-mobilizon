@@ -24,14 +24,14 @@ defmodule Mobilizon.Web.ManifestController do
         _ ->
           [
             %{
-              src: "./img/icons/android-chrome-512x512.png",
+              src: "./img/icons/favicon.svg",
               sizes: "512x512",
-              type: "image/png"
+              type: "image/svg+xml"
             },
             %{
-              src: "./img/icons/android-chrome-192x192.png",
+              src: "./img/icons/favicon.svg",
               sizes: "192x192",
-              type: "image/png"
+              type: "image/svg+xml"
             }
           ]
       end
@@ -42,7 +42,7 @@ defmodule Mobilizon.Web.ManifestController do
       scope: "/",
       display: "standalone",
       background_color: "#ffffff",
-      theme_color: "#ffd599",
+      theme_color: "#2563eb",
       orientation: "portrait-primary",
       icons: favicons
     })
@@ -52,7 +52,7 @@ defmodule Mobilizon.Web.ManifestController do
   def favicon(conn, _params) do
     case Config.instance_favicon() do
       %Media{file: %{url: url}} -> redirect(conn, external: url)
-      _ -> redirect(conn, to: "/img/icons/favicon.ico")
+      _ -> redirect(conn, to: "/img/icons/favicon.svg")
     end
   end
 end
