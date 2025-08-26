@@ -97,9 +97,8 @@
       <div
         v-if="group.summary"
         class="text-[15px] font-medium text-black leading-[23px] line-clamp-3"
-      >
-        {{ group.summary }}
-      </div>
+        v-html="group.summary"
+      ></div>
 
       <!-- Group info -->
       <div class="flex flex-col gap-1">
