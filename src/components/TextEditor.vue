@@ -479,13 +479,17 @@ uploadMediaError((error) => {
  */
 const replyToComment = (actor: IActor): void => {
   if (!editor.value) return;
+  const username = usernameWithDomain(actor);
+  const displayName = actor?.name || username;
+  
   editor.value
     .chain()
     .focus()
     .insertContent({
       type: "mention",
       attrs: {
-        id: usernameWithDomain(actor),
+        id: username,
+        label: displayName,
       },
     })
     .insertContent(" ")

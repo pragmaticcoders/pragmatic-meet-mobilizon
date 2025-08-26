@@ -70,7 +70,10 @@ const selectItem = (index: number): void => {
   const item = props.items[index];
 
   if (item) {
-    props.command({ id: usernameWithDomain(item) });
+    props.command({ 
+      id: usernameWithDomain(item),
+      label: item.name || usernameWithDomain(item)
+    });
   }
 };
 
