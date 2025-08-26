@@ -9,6 +9,7 @@ defmodule Mobilizon.Web.AuthController do
   alias Mobilizon.Storage.Repo
   alias Mobilizon.Web.OAuth.LinkedInOAuth
   alias Mobilizon.Web.Upload
+  alias Mix.Tasks.Mobilizon.Actors.Utils
   import Mobilizon.Service.Guards, only: [is_valid_string: 1]
   require Logger
   plug(:put_layout, false)
@@ -243,7 +244,7 @@ defmodule Mobilizon.Web.AuthController do
   defp process_linkedin_user(conn, user_info, _token, intent \\ "register") do
     email = user_info["email"]
     name = user_info["name"] || user_info["given_name"] || email
-    username = generate_username_from_linkedin(user_info, email)
+    username = generate_username_from_linkedin(name, user_info, email)
     avatar_url = user_info["picture"]
 
     Logger.info("Processing LinkedIn user: #{email} with intent: #{intent}")
@@ -354,11 +355,11 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # Helper function to generate a username from LinkedIn data
-  defp generate_username_from_linkedin(user_info, fallback_email) do
-    # Try to extract username from LinkedIn sub or given_name, fallback to email prefix
+  defp generate_username_from_linkedin(display_name, user_info, fallback_email) do
+    # Try to generate username from display name first (like email registration), then fallbacks
     cond do
-      is_valid_string(user_info["sub"]) ->
-        sanitize_username(user_info["sub"])
+      is_valid_string(display_name) ->
+        Utils.generate_username(display_name)
 
       is_valid_string(user_info["given_name"]) ->
         sanitize_username(user_info["given_name"])
@@ -453,7 +454,7 @@ defmodule Mobilizon.Web.AuthController do
   # Create actor from LinkedIn profile data
   defp create_actor_from_linkedin(%User{} = user, user_info) do
     name = user_info["name"] || user_info["given_name"] || user.email
-    username = generate_username_from_linkedin(user_info, user.email)
+    username = generate_username_from_linkedin(name, user_info, user.email)
     avatar = download_linkedin_avatar(user_info["picture"])
 
     actor_attrs = %{
