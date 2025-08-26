@@ -122,15 +122,22 @@
             <div class="w-6 h-6 flex items-center justify-center">
               <MapMarker class="w-5 h-5 text-gray-500" />
             </div>
-            <span
-              class="text-[15px] font-medium text-[#37363a] leading-[23px] flex-1"
+            <div
+              class="text-[15px] font-medium text-[#37363a] leading-[23px] flex-1 flex items-center gap-1"
             >
-              {{
-                participation.event.physicalAddress?.locality ||
-                participation.event.physicalAddress?.region ||
-                t("Online")
-              }}
-            </span>
+              <template v-if="participation.event.physicalAddress">
+                <span>{{
+                  participation.event.physicalAddress?.locality ||
+                  participation.event.physicalAddress?.region ||
+                  participation.event.physicalAddress?.description ||
+                  participation.event.physicalAddress?.street
+                }}</span>
+              </template>
+              <template v-else-if="participation.event.options && participation.event.options.isOnline">
+                <Video class="w-4 h-4" />
+                <span>{{ t("Online") }}</span>
+              </template>
+            </div>
           </div>
         </div>
       </div>
@@ -175,6 +182,7 @@ import AccountMultiplePlus from "vue-material-design-icons/AccountMultiplePlus.v
 import ViewCompact from "vue-material-design-icons/ViewCompact.vue";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import MapMarker from "vue-material-design-icons/MapMarker.vue";
+import Video from "vue-material-design-icons/Video.vue";
 import { useOruga } from "@oruga-ui/oruga-next";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";

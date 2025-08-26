@@ -39,7 +39,8 @@ const mentionOptions: MentionOptions = {
     dir: "ltr",
   },
   renderLabel({ options, node }) {
-    return `${options.suggestion.char}${node.attrs.label ?? node.attrs.id}`;
+    const label = node.attrs.label || node.attrs.id || "";
+    return `${options.suggestion.char}${label}`;
   },
   suggestion: {
     items: async ({
