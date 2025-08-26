@@ -312,7 +312,9 @@
         </h2>
         <p class="text-sm text-gray-600 mb-4">
           {{
-            t("Does the event needs to be confirmed later or is it cancelled?")
+            props.isUpdate === true 
+              ? t("Does the event needs to be confirmed later or is it cancelled?")
+              : t("Does the event needs to be confirmed later?")
           }}
         </p>
         <div class="space-y-3">
@@ -340,7 +342,7 @@
               <span>{{ t("Confirmed: Will happen") }}</span>
             </div>
           </label>
-          <label class="flex items-start gap-3">
+          <label v-if="props.isUpdate === true" class="flex items-start gap-3">
             <o-radio
               v-model="event.status"
               name="status"
