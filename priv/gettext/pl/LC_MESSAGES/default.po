@@ -69,7 +69,7 @@ msgstr ""
 #: lib/web/email/user.ex:26
 #, elixir-autogen, elixir-format
 msgid "Instructions to confirm your Mobilizon account on %{instance}"
-msgstr "Instrukcje potwierdzania konta Mobilizon na %{instance}"
+msgstr "Instrukcje potwierdzania konta na Pragmatic Meet"
 
 #: lib/web/email/admin.ex:22
 #, elixir-autogen, elixir-format

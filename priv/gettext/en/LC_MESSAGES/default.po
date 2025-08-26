@@ -12,7 +12,7 @@ msgstr ""
 "POT-Creation-Date: \n"
 "PO-Revision-Date: 2020-10-06 11:01+0000\n"
 "Last-Translator: Thomas Citharel <thomas.citharel@framasoft.org>\n"
-"Language-Team: English <https://weblate.framasoft.org/projects/mobilizon/"
+"Language-Team: English <https://weblate.framasoft.org/projects/Pragmatic Meet/"
 "backend/en/>\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
@@ -69,13 +69,13 @@ msgstr "Resetting your password is easy. Just press the button below and follow 
 
 #: lib/web/email/user.ex:26
 #, elixir-autogen, elixir-format
-msgid "Instructions to confirm your Mobilizon account on %{instance}"
-msgstr "Instructions to confirm your Mobilizon account on %{instance}"
+msgid "Instructions to confirm your Pragmatic Meet account on %{instance}"
+msgstr "Instructions to confirm your Pragmatic Meet account on %{instance}"
 
 #: lib/web/email/admin.ex:22
 #, elixir-autogen, elixir-format
-msgid "New report on Mobilizon instance %{instance}"
-msgstr "New report on Mobilizon instance %{instance}"
+msgid "New report on Pragmatic Meet instance %{instance}"
+msgstr "New report on Pragmatic Meet instance %{instance}"
 
 #: lib/web/templates/email/before_event_notification.html.heex:65
 #: lib/web/templates/email/before_event_notification.text.eex:4
@@ -172,8 +172,8 @@ msgstr "Basic account information"
 #: lib/web/templates/api/privacy.html.heex:32
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "Do not share any dangerous information over Mobilizon."
-msgstr "Do not share any dangerous information over Mobilizon."
+msgid "Do not share any dangerous information over Pragmatic Meet."
+msgstr "Do not share any dangerous information over Pragmatic Meet."
 
 #: lib/web/templates/api/privacy.html.heex:123
 #, elixir-autogen, elixir-format
@@ -329,9 +329,9 @@ msgstr ""
 #: lib/web/templates/api/privacy.html.heex:54
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "To provide the core functionality of Mobilizon. Depending on this instance's policy you may only be able to\n    interact with other people's content and post your own content if you are logged in."
+msgid "To provide the core functionality of Pragmatic Meet. Depending on this instance's policy you may only be able to\n    interact with other people's content and post your own content if you are logged in."
 msgstr ""
-"To provide the core functionality of Mobilizon. Depending on this instance's "
+"To provide the core functionality of Pragmatic Meet. Depending on this instance's "
 "policy you may only be able to\n"
 "    interact with other people's content and post your own content if you "
 "are logged in."
@@ -344,12 +344,12 @@ msgstr "What information do we collect?"
 
 #: lib/web/email/user.ex:188
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: confirm your email address"
+msgid "Pragmatic Meet on %{instance}: confirm your email address"
 msgstr ""
 
 #: lib/web/email/user.ex:165
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: email changed"
+msgid "Pragmatic Meet on %{instance}: email changed"
 msgstr ""
 
 #: lib/web/email/notification.ex:52
@@ -584,7 +584,7 @@ msgstr ""
 #: lib/web/templates/api/terms.html.heex:254
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "For full details about the Mobilizon software <a href=\"https://joinmobilizon.org\">see here</a>."
+msgid "For full details about the Pragmatic Meet software <a href=\"https://joinPragmatic Meet.org\">see here</a>."
 msgstr ""
 
 #: lib/web/templates/api/terms.html.heex:47
@@ -614,7 +614,7 @@ msgstr ""
 #: lib/web/templates/api/terms.html.heex:152
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "Since Mobilizon is a distributed network, it is possible, depending on the visibility rules set to your content, that your content has been distributed to other Mobilizon instances. When you delete your content, we will request those other instances to also delete the content. Our responsibility on the content being deleted from those other instances ends here. If for some reason, some other instance does not delete the content, we cannot be held responsible."
+msgid "Since Pragmatic Meet is a distributed network, it is possible, depending on the visibility rules set to your content, that your content has been distributed to other Pragmatic Meet instances. When you delete your content, we will request those other instances to also delete the content. Our responsibility on the content being deleted from those other instances ends here. If for some reason, some other instance does not delete the content, we cannot be held responsible."
 msgstr ""
 
 #: lib/web/templates/api/terms.html.heex:286
@@ -626,7 +626,7 @@ msgstr ""
 #: lib/web/templates/api/terms.html.heex:247
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "This Service runs on a Mobilizon instance. This source code is licensed under an <a href=\"https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)\">AGPLv3 license</a> which means you are allowed to and even encouraged to take the source code, modify it and use it."
+msgid "This Service runs on a Pragmatic Meet instance. This source code is licensed under an <a href=\"https://tldrlegal.com/license/gnu-affero-general-public-license-v3-(agpl-3.0)\">AGPLv3 license</a> which means you are allowed to and even encouraged to take the source code, modify it and use it."
 msgstr ""
 
 #: lib/web/templates/api/terms.html.heex:185
@@ -674,7 +674,7 @@ msgstr ""
 #: lib/web/templates/api/terms.html.heex:113
 #, elixir-autogen, elixir-format
 msgctxt "terms"
-msgid "If you discover or suspect any Service security breaches, please let us know as soon as possible. For security holes in the Mobilizon software itself, please contact <a href=\"https://framagit.org/framasoft/mobilizon/\">its contributors</a> directly."
+msgid "If you discover or suspect any Service security breaches, please let us know as soon as possible. For security holes in the Pragmatic Meet software itself, please contact <a href=\"https://framagit.org/framasoft/Pragmatic Meet/\">its contributors</a> directly."
 msgstr ""
 
 #: lib/web/templates/api/terms.html.heex:240
@@ -800,13 +800,13 @@ msgstr[1] "If you need to cancel your participation, just access the event page 
 
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "%{instance} is powered by Mobilizon."
-msgstr "%{instance} is a Mobilizon server."
+msgid "%{instance} is powered by Pragmatic Meet."
+msgstr "%{instance} is a Pragmatic Meet server."
 
 #: lib/web/templates/email/email.html.heex:187
 #, elixir-autogen, elixir-format
-msgid "<b>%{instance}</b> is powered by Mobilizon."
-msgstr "%{instance} is a Mobilizon server."
+msgid "<b>%{instance}</b> is powered by Pragmatic Meet."
+msgstr "%{instance} is a Pragmatic Meet server."
 
 #: lib/web/templates/email/pending_participation_notification.html.heex:18
 #: lib/web/templates/email/pending_participation_notification.text.eex:1
@@ -886,8 +886,8 @@ msgstr "If you need to cancel your participation, just access the event page thr
 #: lib/web/templates/email/email.html.heex:193
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "Learn more about Mobilizon here!"
-msgstr "Learn more about Mobilizon."
+msgid "Learn more about Pragmatic Meet here!"
+msgstr "Learn more about Pragmatic Meet."
 
 #: lib/web/templates/email/event_updated.html.heex:123
 #: lib/web/templates/export/event_participants.html.heex:129
@@ -1242,12 +1242,12 @@ msgstr ""
 msgid "You have now confirmed your participation. Update your calendar, because you're on the guest list now!"
 msgstr ""
 
-#: lib/mobilizon/posts/post.ex:98
+#: lib/Pragmatic Meet/posts/post.ex:98
 #, elixir-autogen, elixir-format
 msgid "A text is required for the post"
 msgstr ""
 
-#: lib/mobilizon/posts/post.ex:97
+#: lib/Pragmatic Meet/posts/post.ex:97
 #, elixir-autogen, elixir-format
 msgid "A title is required for the post"
 msgstr ""
@@ -1313,8 +1313,8 @@ msgstr ""
 #: lib/web/templates/email/email.html.heex:109
 #: lib/web/templates/email/email.text.eex:4
 #, elixir-autogen, elixir-format
-msgid "This is a demonstration site to test Mobilizon."
-msgstr "This is a demonstration site to test the beta version of Mobilizon."
+msgid "This is a demonstration site to test Pragmatic Meet."
+msgstr "This is a demonstration site to test the beta version of Pragmatic Meet."
 
 #: lib/service/metadata/actor.ex:86
 #: lib/service/metadata/actor.ex:93
@@ -1356,7 +1356,7 @@ msgstr ""
 
 #: lib/web/templates/error/500_page.html.heex:52
 #, elixir-autogen, elixir-format
-msgid "The Mobilizon server %{instance} seems to be temporarily down."
+msgid "The Pragmatic Meet server %{instance} seems to be temporarily down."
 msgstr ""
 
 #: lib/service/export/feed.ex:72
@@ -1824,152 +1824,152 @@ msgstr ""
 msgid "View the details"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:32
+#: lib/Pragmatic Meet/events/categories.ex:32
 #, elixir-autogen, elixir-format
 msgid "Arts"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:68
+#: lib/Pragmatic Meet/events/categories.ex:68
 #, elixir-autogen, elixir-format
 msgid "Auto, boat and air"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:36
+#: lib/Pragmatic Meet/events/categories.ex:36
 #, elixir-autogen, elixir-format
 msgid "Book clubs"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:40
+#: lib/Pragmatic Meet/events/categories.ex:40
 #, elixir-autogen, elixir-format
 msgid "Business"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:44
+#: lib/Pragmatic Meet/events/categories.ex:44
 #, elixir-autogen, elixir-format
 msgid "Causes"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:48
+#: lib/Pragmatic Meet/events/categories.ex:48
 #, elixir-autogen, elixir-format
 msgid "Comedy"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:72
+#: lib/Pragmatic Meet/events/categories.ex:72
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Community"
 msgstr "Comments"
 
-#: lib/mobilizon/events/categories.ex:52
+#: lib/Pragmatic Meet/events/categories.ex:52
 #, elixir-autogen, elixir-format
 msgid "Crafts"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:76
+#: lib/Pragmatic Meet/events/categories.ex:76
 #, elixir-autogen, elixir-format
 msgid "Family & Education"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:80
+#: lib/Pragmatic Meet/events/categories.ex:80
 #, elixir-autogen, elixir-format
 msgid "Fashion & Beauty"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:84
+#: lib/Pragmatic Meet/events/categories.ex:84
 #, elixir-autogen, elixir-format
 msgid "Film & Media"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:56
+#: lib/Pragmatic Meet/events/categories.ex:56
 #, elixir-autogen, elixir-format
 msgid "Food & Drink"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:88
+#: lib/Pragmatic Meet/events/categories.ex:88
 #, elixir-autogen, elixir-format
 msgid "Games"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:60
+#: lib/Pragmatic Meet/events/categories.ex:60
 #, elixir-autogen, elixir-format
 msgid "Health"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:100
+#: lib/Pragmatic Meet/events/categories.ex:100
 #, elixir-autogen, elixir-format
 msgid "LGBTQ"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:92
+#: lib/Pragmatic Meet/events/categories.ex:92
 #, elixir-autogen, elixir-format
 msgid "Language & Culture"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:96
+#: lib/Pragmatic Meet/events/categories.ex:96
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Learning"
 msgstr "Warning"
 
-#: lib/mobilizon/events/categories.ex:149
+#: lib/Pragmatic Meet/events/categories.ex:149
 #, elixir-autogen, elixir-format
 msgid "Meeting"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:104
+#: lib/Pragmatic Meet/events/categories.ex:104
 #, elixir-autogen, elixir-format
 msgid "Movements and politics"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:64
+#: lib/Pragmatic Meet/events/categories.ex:64
 #, elixir-autogen, elixir-format
 msgid "Music"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:108
+#: lib/Pragmatic Meet/events/categories.ex:108
 #, elixir-autogen, elixir-format
 msgid "Networking"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:128
+#: lib/Pragmatic Meet/events/categories.ex:128
 #, elixir-autogen, elixir-format
 msgid "Outdoors & Adventure"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:112
+#: lib/Pragmatic Meet/events/categories.ex:112
 #, elixir-autogen, elixir-format
 msgid "Party"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:116
+#: lib/Pragmatic Meet/events/categories.ex:116
 #, elixir-autogen, elixir-format
 msgid "Performing & Visual Arts"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:120
+#: lib/Pragmatic Meet/events/categories.ex:120
 #, elixir-autogen, elixir-format
 msgid "Pets"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:124
+#: lib/Pragmatic Meet/events/categories.ex:124
 #, elixir-autogen, elixir-format
 msgid "Photography"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:136
+#: lib/Pragmatic Meet/events/categories.ex:136
 #, elixir-autogen, elixir-format
 msgid "Science & Tech"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:132
+#: lib/Pragmatic Meet/events/categories.ex:132
 #, elixir-autogen, elixir-format
 msgid "Spirituality, Religion & Beliefs"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:140
+#: lib/Pragmatic Meet/events/categories.ex:140
 #, elixir-autogen, elixir-format
 msgid "Sports"
 msgstr ""
 
-#: lib/mobilizon/events/categories.ex:144
+#: lib/Pragmatic Meet/events/categories.ex:144
 #, elixir-autogen, elixir-format
 msgid "Theatre"
 msgstr ""
@@ -2054,5 +2054,5 @@ msgstr ""
 #: lib/web/templates/api/terms.html.heex:55
 #, elixir-autogen, elixir-format, fuzzy
 msgctxt "terms"
-msgid "When we say “we”, “our”, or “us” in this document, we are referring to the owners, operators and administrators of this Mobilizon instance. The Mobilizon software is provided by the team of Mobilizon contributors. Unless explicitly stated, this Mobilizon instance is an independent service using Mobilizon's source code. You may find more information about this instance on the <a href=\"/about/instance\">\"About this instance\"</a> page."
+msgid "When we say “we”, “our”, or “us” in this document, we are referring to the owners, operators and administrators of this Pragmatic Meet instance. The Pragmatic Meet software is provided by the team of Pragmatic Meet contributors. Unless explicitly stated, this Pragmatic Meet instance is an independent service using Pragmatic Meet's source code. You may find more information about this instance on the <a href=\"/about/instance\">\"About this instance\"</a> page."
 msgstr ""
