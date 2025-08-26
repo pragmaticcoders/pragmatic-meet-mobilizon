@@ -483,7 +483,7 @@
     role="navigation"
     aria-label="main navigation"
     class="bg-white border-t border-gray-200 py-4 mt-8"
-    :class="{ 'sticky bottom-0 shadow-lg': showFixedNavbar }"
+    :class="{ 'sm:sticky sm:bottom-0 shadow-lg': showFixedNavbar }"
     v-if="hasCurrentActorPermissionsToEdit"
   >
     <div
