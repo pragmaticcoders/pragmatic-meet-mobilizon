@@ -359,13 +359,22 @@ onInviteMemberError((error) => {
 });
 
 onInviteMemberDone(() => {
-  const invitedActor = selectedActors.value[0];
-  notifier?.success(
-    t("{username} was invited to {group}", {
-      username: invitedActor?.name || invitedActor?.preferredUsername || "",
-      group: displayName(group.value),
-    })
-  );
+  if (selectedActors.value.length === 1) {
+    const invitedActor = selectedActors.value[0];
+    notifier?.success(
+      t("{username} was invited to {group}", {
+        username: invitedActor?.name || invitedActor?.preferredUsername || "",
+        group: displayName(group.value),
+      })
+    );
+  } else if (selectedActors.value.length > 1) {
+    notifier?.success(
+      t("{count} users were invited to {group}", {
+        count: selectedActors.value.length,
+        group: displayName(group.value),
+      })
+    );
+  }
   selectedActors.value = [];
 });
 
@@ -375,11 +384,19 @@ const inviteMember = async (): Promise<void> => {
     inviteError.value = t("Please select a user to invite");
     return;
   }
-  const actorToInvite = selectedActors.value[0];
-  inviteMemberMutation({
-    groupId: group.value?.id,
-    targetActorUsername: actorToInvite.preferredUsername,
-  });
+  
+  // Process all selected actors, not just the first one
+  for (const actorToInvite of selectedActors.value) {
+    try {
+      await inviteMemberMutation({
+        groupId: group.value?.id,
+        targetActorUsername: actorToInvite.preferredUsername,
+      });
+    } catch (error) {
+      console.error(`Failed to invite ${actorToInvite.preferredUsername}:`, error);
+      // Continue with other invitations even if one fails
+    }
+  }
 };
 
 const loadMoreMembers = async (): Promise<void> => {
