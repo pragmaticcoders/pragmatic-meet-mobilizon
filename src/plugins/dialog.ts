@@ -20,6 +20,7 @@ export class Dialog {
     onCancel,
     inputAttrs,
     hasInput,
+    contentClass,
   }: {
     title?: string;
     message: string;
@@ -32,6 +33,7 @@ export class Dialog {
     onCancel?: (source: string) => void;
     inputAttrs?: Record<string, any>;
     hasInput?: boolean;
+    contentClass?: string;
   }) {
     this.app.config.globalProperties.$oruga.modal.open({
       component: DialogComponent,
@@ -49,7 +51,7 @@ export class Dialog {
         hasInput,
       },
       autoFocus: false,
-      contentClass: "!w-auto !max-w-lg !bg-transparent",
+      contentClass: contentClass || "!w-auto !max-w-lg !bg-transparent",
       overlayClass: "bg-black bg-opacity-50",
       closable: true,
       trapFocus: true,

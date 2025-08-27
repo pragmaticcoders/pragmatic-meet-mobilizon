@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-white p-6 max-w-lg w-full">
+  <div
+    class="bg-white p-6 w-full"
+    :class="size === 'wide' ? 'max-w-2xl' : 'max-w-lg'"
+  >
     <div class="flex justify-between items-start mb-4">
       <h2 class="text-xl font-bold text-gray-900" v-if="title">{{ title }}</h2>
       <button

@@ -18,7 +18,7 @@
         <h1
           class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl md:pr-[15%] leading-[1.4]"
         >
-          <span class="rhombus-bg text-white px-5 py-1 inline-block">{{
+          <span class="rhombus-bg text-white px-4 py-1 inline-block">{{
             t("Free")
           }}</span>
           <span class="ml-4">{{ restOfSlogan }}</span>
@@ -74,7 +74,6 @@ const restOfSlogan = computed(() => {
   transform: skew(-20deg);
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
   transition: all 0.3s ease;
-  margin: 0 8px;
 }
 
 .rhombus-bg:hover {

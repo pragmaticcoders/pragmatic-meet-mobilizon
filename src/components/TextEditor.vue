@@ -42,89 +42,6 @@
         </button>
 
         <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          :class="{
-            'is-active': editor?.isActive('heading', {
-              level: props.headingLevel[0],
-            }),
-          }"
-          @click="
-            editor
-              ?.chain()
-              .focus()
-              .toggleHeading({ level: props.headingLevel[0] })
-              .run()
-          "
-          type="button"
-          :title="t('Heading Level 1')"
-        >
-          <FormatHeader1 :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          :class="{
-            'is-active': editor?.isActive('heading', {
-              level: props.headingLevel[1],
-            }),
-          }"
-          @click="
-            editor
-              ?.chain()
-              .focus()
-              .toggleHeading({ level: props.headingLevel[1] })
-              .run()
-          "
-          type="button"
-          :title="t('Heading Level 2')"
-        >
-          <FormatHeader2 :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          :class="{
-            'is-active': editor?.isActive('heading', {
-              level: props.headingLevel[2],
-            }),
-          }"
-          @click="
-            editor
-              ?.chain()
-              .focus()
-              .toggleHeading({ level: props.headingLevel[2] })
-              .run()
-          "
-          type="button"
-          :title="t('Heading Level 3')"
-        >
-          <FormatHeader3 :size="24" />
-        </button>
-
-        <button
-          class="menubar__button"
-          @click="showLinkMenu()"
-          :class="{ 'is-active': editor?.isActive('link') }"
-          type="button"
-          :title="t('Add link')"
-        >
-          <LinkIcon :size="24" />
-        </button>
-
-        <button
-          v-if="editor?.isActive('link')"
-          class="menubar__button"
-          @click="editor?.chain().focus().unsetLink().run()"
-          type="button"
-          :title="t('Remove link')"
-        >
-          <LinkOff :size="24" />
-        </button>
-
-        <button
           class="menubar__button"
           v-if="!isBasicMode"
           @click="showImagePrompt()"
@@ -132,59 +49,6 @@
           :title="t('Add picture')"
         >
           <Image :size="24" />
-        </button>
-
-        <button
-          class="menubar__button"
-          v-if="!isBasicMode"
-          :class="{ 'is-active': editor?.isActive('bulletList') }"
-          @click="editor?.chain().focus().toggleBulletList().run()"
-          type="button"
-          :title="t('Bullet list')"
-        >
-          <FormatListBulleted :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          :class="{ 'is-active': editor?.isActive('orderedList') }"
-          @click="editor?.chain().focus().toggleOrderedList().run()"
-          type="button"
-          :title="t('Ordered list')"
-        >
-          <FormatListNumbered :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          :class="{ 'is-active': editor?.isActive('blockquote') }"
-          @click="editor?.chain().focus().toggleBlockquote().run()"
-          type="button"
-          :title="t('Quote')"
-        >
-          <FormatQuoteClose :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          @click="editor?.chain().focus().undo().run()"
-          type="button"
-          :title="t('Undo')"
-        >
-          <Undo :size="24" />
-        </button>
-
-        <button
-          v-if="!isBasicMode"
-          class="menubar__button"
-          @click="editor?.chain().focus().redo().run()"
-          type="button"
-          :title="t('Redo')"
-        >
-          <Redo :size="24" />
         </button>
       </div>
 
@@ -198,9 +62,6 @@
           offset: [20, 15],
           arrow: false,
           maxWidth: 'none',
-          boundary: 'viewport',
-          flip: false,
-          shift: true,
         }"
       >
         <button
@@ -268,24 +129,13 @@ import Link from "@tiptap/extension-link";
 import { AutoDir } from "./Editor/Autodir";
 // import sanitizeHtml from "sanitize-html";
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
-import { Dialog } from "@/plugins/dialog";
 import { useI18n } from "vue-i18n";
 import { useMutation } from "@vue/apollo-composable";
 import { Notifier } from "@/plugins/notifier";
 import FormatBold from "vue-material-design-icons/FormatBold.vue";
 import FormatItalic from "vue-material-design-icons/FormatItalic.vue";
 import FormatUnderline from "vue-material-design-icons/FormatUnderline.vue";
-import FormatHeader1 from "vue-material-design-icons/FormatHeader1.vue";
-import FormatHeader2 from "vue-material-design-icons/FormatHeader2.vue";
-import FormatHeader3 from "vue-material-design-icons/FormatHeader3.vue";
-import LinkIcon from "vue-material-design-icons/Link.vue";
-import LinkOff from "vue-material-design-icons/LinkOff.vue";
 import Image from "vue-material-design-icons/Image.vue";
-import FormatListBulleted from "vue-material-design-icons/FormatListBulleted.vue";
-import FormatListNumbered from "vue-material-design-icons/FormatListNumbered.vue";
-import FormatQuoteClose from "vue-material-design-icons/FormatQuoteClose.vue";
-import Undo from "vue-material-design-icons/Undo.vue";
-import Redo from "vue-material-design-icons/Redo.vue";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useFocusWithin } from "@vueuse/core";
 
@@ -353,8 +203,7 @@ const editor = useEditor({
       "aria-multiline": isShortMode.value.toString(),
       "aria-label": ariaLabel.value ?? "",
       role: "textbox",
-      class:
-        "dark:prose-invert bg-white dark:bg-zinc-700 !max-w-full min-h-[52px] placeholder:text-md",
+      class: "bg-white !max-w-full min-h-[52px] placeholder:text-md",
     },
     transformPastedHTML: transformPastedHTML,
   },
@@ -413,25 +262,6 @@ watch(value, (val: string) => {
   }
 });
 
-const dialog = inject<Dialog>("dialog");
-
-/**
- * Show a popup to get the link from the URL
- */
-const showLinkMenu = (): void => {
-  dialog?.prompt({
-    message: t("Enter the link URL"),
-    hasInput: true,
-    inputAttrs: {
-      type: "url",
-    },
-    onConfirm: (prompt: string) => {
-      if (!editor.value) return;
-      editor.value.chain().focus().setLink({ href: prompt }).run();
-    },
-  });
-};
-
 const {
   mutate: uploadMediaMutation,
   onDone: uploadMediaDone,
@@ -481,7 +311,7 @@ const replyToComment = (actor: IActor): void => {
   if (!editor.value) return;
   const username = usernameWithDomain(actor);
   const displayName = actor?.name || username;
-  
+
   editor.value
     .chain()
     .focus()
@@ -500,7 +330,7 @@ const focus = (): void => {
   editor.value?.chain().focus("end");
 };
 
-defineExpose({ replyToComment, focus });
+defineExpose({ replyToComment, focus, editor });
 
 onBeforeUnmount(() => {
   editor.value?.destroy();
@@ -580,8 +410,8 @@ const checkEditorEmpty = () => {
 
   &.comment_mode {
     div.ProseMirror {
-      min-height: 2rem;
-      max-height: 30vh;
+      min-height: 62px;
+      max-height: 132px;
       overflow-y: auto;
     }
   }
@@ -589,10 +419,11 @@ const checkEditorEmpty = () => {
   &__content {
     div.ProseMirror {
       min-height: 2.5rem;
-      border-radius: 4px;
-      padding: 12px 6px 12px 16px;
+      border-radius: 0;
+      padding: 18px;
       line-height: 1.5;
       word-wrap: break-word;
+      font-family: "Mulish", sans-serif;
     }
 
     h1 {
