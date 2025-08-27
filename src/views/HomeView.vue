@@ -261,13 +261,19 @@ const currentUser = computed(() => currentUserResult.value?.currentUser);
 
 const instanceName = computed(() => config.value?.name);
 
-const { result: userResult } = useQuery<{ loggedUser: IUser }>(
+// Get start of today to include all of today's events
+const todayStart = new Date();
+todayStart.setHours(0, 0, 0, 0);
+
+const { result: userResult, loading: userLoading, error: userError } = useQuery<{ loggedUser: IUser }>(
   HOME_USER_QUERIES,
-  { afterDateTime: new Date().toISOString() },
+  { afterDateTime: todayStart.toISOString() },
   () => ({
     enabled: currentUser.value?.id != undefined,
   })
 );
+
+
 
 const loggedUser = computed(() => userResult.value?.loggedUser);
 const followedGroupEvents = computed(
@@ -354,12 +360,25 @@ const calculateDiffDays = (date: string): number => {
 };
 
 const thisWeekGoingToEvents = computed<IParticipant[]>(() => {
-  const res = (currentUserParticipations.value || []).filter(
-    ({ event, role }) =>
-      event.beginsOn != null &&
-      isAfter(event.beginsOn, 0) &&
-      isBefore(event.beginsOn, 7) &&
-      role !== ParticipantRole.REJECTED
+  const allParticipations = currentUserParticipations.value || [];
+  
+  const res = allParticipations.filter(
+    ({ event, role }) => {
+      if (!event.beginsOn || role === ParticipantRole.REJECTED) {
+        return false;
+      }
+      
+      const eventDate = new Date(event.beginsOn);
+      const today = new Date();
+      const diffDays = calculateDiffDays(event.beginsOn);
+      
+      // Include events that are today or in the future (up to 30 days)
+      // For today's events, even if the time has passed, we still want to show them
+      const isToday = eventDate.toDateString() === today.toDateString();
+      const isUpcoming = diffDays >= 0 && diffDays < 30;
+      
+      return isToday || isUpcoming;
+    }
   );
   res.sort(
     (a: IParticipant, b: IParticipant) =>

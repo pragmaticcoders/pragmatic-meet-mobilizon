@@ -20,7 +20,7 @@ export async function changeIdentity(identity: IPerson): Promise<void> {
   console.debug("Changing identity", identity);
 
   // Update current actor in cache
-  updateCurrentActorClient(identity);
+  await updateCurrentActorClient(identity);
 
   if (identity.id) {
     console.debug("Saving actor data");
