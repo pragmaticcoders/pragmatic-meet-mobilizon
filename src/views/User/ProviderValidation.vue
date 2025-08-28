@@ -5,12 +5,16 @@
 <script lang="ts" setup>
 import { ICurrentUserRole } from "@/types/enums";
 import { UPDATE_CURRENT_USER_CLIENT, LOGGED_USER } from "../../graphql/user";
+import { GET_PERSON } from "../../graphql/actor";
+import { HOME_USER_QUERIES } from "../../graphql/home";
 import RouteName from "../../router/name";
 import { saveUserData } from "../../utils/auth";
 import { changeIdentity } from "../../utils/identity";
 import { ICurrentUser, IUser } from "../../types/current-user.model";
+import { IPerson } from "../../types/actor";
 import { useRouter } from "vue-router";
-import { useLazyQuery, useMutation } from "@vue/apollo-composable";
+import { useLazyQuery, useMutation, useQuery, useApolloClient } from "@vue/apollo-composable";
+import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 import { computed, onMounted } from "vue";
@@ -22,6 +26,7 @@ useHead({
 });
 
 const router = useRouter();
+const { client: apolloClient } = useApolloClient();
 
 const {
   onDone: onUpdateCurrentUserClientDone,
@@ -59,7 +64,7 @@ onMounted(async () => {
     await new Promise(resolve => setTimeout(resolve, 200));
     
     // Use enhanced meta tag reading with retry logic to handle OAuth callback timing
-    const [accessToken, refreshToken, userId, userEmail, userRole, redirectUrl] =
+    const [accessToken, refreshToken, userId, userEmail, userRole, redirectUrl, userActorId] =
       await Promise.all([
         getValueFromMetaWithRetry("auth-access-token"),
         getValueFromMetaWithRetry("auth-refresh-token"),
@@ -67,6 +72,7 @@ onMounted(async () => {
         getValueFromMetaWithRetry("auth-user-email"),
         getValueFromMetaWithRetry("auth-user-role"),
         getValueFromMetaWithRetry("auth-redirect-url"),
+        getValueFromMetaWithRetry("auth-user-actor-id"),
       ]);
 
     console.log("OAuth callback: Meta tag retrieval completed", {
@@ -76,6 +82,7 @@ onMounted(async () => {
       hasAccessToken: !!accessToken,
       hasRefreshToken: !!refreshToken,
       redirectUrl: redirectUrl || "none",
+      hasUserActorId: !!userActorId,
     });
 
     if (!(userId && userEmail && userRole && accessToken && refreshToken)) {
@@ -152,15 +159,110 @@ onMounted(async () => {
     // Save authentication data
     saveUserData(login);
 
+    console.log("OAuth callback: Updating Apollo currentUser cache", {
+      id: userId,
+      email: userEmail,
+      isLoggedIn: true,
+      role: userRole as ICurrentUserRole,
+    });
+
     // Update Apollo cache
-    updateCurrentUserClient({
+    await updateCurrentUserClient({
       id: userId,
       email: userEmail,
       isLoggedIn: true,
       role: userRole as ICurrentUserRole,
     });
     
+    console.log("OAuth callback: currentUser cache update completed");
+    
+    // If user has an actor profile, fetch and set it as currentActor
+    if (userActorId && userActorId !== "null" && userActorId !== "") {
+      try {
+        console.log("OAuth callback: Fetching user actor profile", { userActorId });
+        
+        // Use Apollo client directly to fetch actor data
+        const { data: actorData } = await apolloClient.query({
+          query: GET_PERSON,
+          variables: { actorId: userActorId },
+          fetchPolicy: 'network-only'
+        });
+        
+        if (actorData?.person) {
+          console.log("OAuth callback: Setting currentActor from fetched profile", { 
+            actorId: actorData.person.id,
+            name: actorData.person.name 
+          });
+          
+          // Use changeIdentity to properly set the currentActor
+          await changeIdentity(actorData.person as IPerson);
+        } else {
+          console.warn("OAuth callback: No actor data returned for actorId", userActorId);
+        }
+      } catch (error) {
+        console.error("OAuth callback: Failed to fetch and set user actor", error);
+        // Don't block the authentication flow if actor fetching fails
+      }
+    } else {
+      console.log("OAuth callback: No user actor ID provided, skipping currentActor setup");
+    }
+    
+    // Wait a bit to ensure cache updates are processed
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Verify that currentUser is now populated in the cache
+    const { currentUser: verifyCurrentUser } = useCurrentUserClient();
+    console.log("OAuth callback: Verifying currentUser cache state", {
+      hasCurrentUser: !!verifyCurrentUser.value,
+      currentUserId: verifyCurrentUser.value?.id,
+      isLoggedIn: verifyCurrentUser.value?.isLoggedIn
+    });
+    
+    if (!verifyCurrentUser.value?.id) {
+      console.warn("OAuth callback: currentUser not found in cache after first update, retrying...");
+      
+      // Retry the cache update
+      try {
+        await updateCurrentUserClient({
+          id: userId,
+          email: userEmail,
+          isLoggedIn: true,
+          role: userRole as ICurrentUserRole,
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        console.log("OAuth callback: After retry - currentUser cache state", {
+          hasCurrentUser: !!verifyCurrentUser.value,
+          currentUserId: verifyCurrentUser.value?.id,
+          isLoggedIn: verifyCurrentUser.value?.isLoggedIn
+        });
+        
+        if (!verifyCurrentUser.value?.id) {
+          console.error("OAuth callback: currentUser still not in cache after retry, events may not load properly");
+        }
+      } catch (retryError) {
+        console.error("OAuth callback: Failed to retry currentUser cache update", retryError);
+      }
+    }
+    
     console.log("OAuth callback: Authentication completed successfully");
+    
+    // Trigger a refetch of user queries to ensure events are loaded
+    // This helps in case there are any remaining cache timing issues
+    if (verifyCurrentUser.value?.id) {
+      console.log("OAuth callback: Triggering HOME_USER_QUERIES refetch to ensure events are loaded");
+      try {
+        await apolloClient.query({
+          query: HOME_USER_QUERIES,
+          variables: { afterDateTime: new Date().toISOString() },
+          fetchPolicy: 'network-only'
+        });
+        console.log("OAuth callback: HOME_USER_QUERIES refetch completed");
+      } catch (refetchError) {
+        console.warn("OAuth callback: Failed to refetch HOME_USER_QUERIES, events may need manual refresh", refetchError);
+      }
+    }
     
     // Redirect to profile settings if coming from LinkedIn, otherwise go to home
     if (redirectUrl) {
