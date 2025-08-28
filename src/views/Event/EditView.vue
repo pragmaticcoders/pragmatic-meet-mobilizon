@@ -618,7 +618,6 @@ import {
 import cloneDeep from "lodash/cloneDeep";
 import { IEventOptions } from "@/types/event-options.model";
 import { IAddress } from "@/types/address.model";
-import { LOGGED_USER_PARTICIPATIONS } from "@/graphql/participant";
 import {
   useCurrentActorClient,
   useCurrentUserIdentities,
