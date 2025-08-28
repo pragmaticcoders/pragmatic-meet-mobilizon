@@ -741,6 +741,11 @@ const initializeNewEvent = () => {
 
   // Default values for hideParticipants
   hideParticipants.value = true;
+
+  // Set default category if not already set
+  if (!event.value.category) {
+    event.value.category = "SOCIAL_ACTIVITIES";
+  }
 };
 
 const organizerActor = computed({
@@ -1176,6 +1181,11 @@ const buildVariables = async () => {
     ...toEditJSON(new EventModel(event.value)),
     options: eventOptions.value,
   };
+
+  // Ensure category is always set to a valid value
+  if (!res.category) {
+    res.category = "SOCIAL_ACTIVITIES";
+  }
 
   res = { ...res, organizerActorId: localOrganizerActor.id };
   

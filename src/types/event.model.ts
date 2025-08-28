@@ -180,7 +180,7 @@ export class EventModel implements IEvent {
 
   metadata: IEventMetadataDescription[] = [];
 
-  category = "MEETING";
+  category = "SOCIAL_ACTIVITIES";
 
   constructor(hash?: IEvent | IEditableEvent) {
     if (!hash) return;
