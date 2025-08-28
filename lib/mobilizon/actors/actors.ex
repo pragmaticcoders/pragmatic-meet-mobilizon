@@ -45,6 +45,12 @@ defmodule Mobilizon.Actors do
     :private
   ])
 
+  defenum(ApprovalStatus, :actor_approval_status, [
+    :pending_approval,
+    :approved,
+    :rejected
+  ])
+
   defenum(MemberRole, :member_role, [
     :invited,
     :not_approved,
@@ -322,6 +328,7 @@ defmodule Mobilizon.Actors do
           String.t(),
           boolean | nil,
           boolean | nil,
+          atom() | nil,
           integer | nil,
           integer | nil
         ) :: Page.t(Actor.t())
@@ -332,6 +339,7 @@ defmodule Mobilizon.Actors do
         domain \\ "",
         local \\ true,
         suspended \\ false,
+        approval_status \\ nil,
         page \\ nil,
         limit \\ nil
       )
@@ -343,11 +351,12 @@ defmodule Mobilizon.Actors do
         domain,
         local,
         suspended,
+        approval_status,
         page,
         limit
       ) do
     person_query()
-    |> filter_actors(preferred_username, name, domain, local, suspended)
+    |> filter_actors(preferred_username, name, domain, local, suspended, approval_status)
     |> Page.build_page(page, limit)
   end
 
@@ -358,11 +367,12 @@ defmodule Mobilizon.Actors do
         domain,
         local,
         suspended,
+        approval_status,
         page,
         limit
       ) do
     group_query()
-    |> filter_actors(preferred_username, name, domain, local, suspended)
+    |> filter_actors(preferred_username, name, domain, local, suspended, approval_status)
     |> Page.build_page(page, limit)
   end
 
@@ -381,7 +391,8 @@ defmodule Mobilizon.Actors do
           String.t(),
           String.t(),
           boolean() | nil,
-          boolean() | nil
+          boolean() | nil,
+          atom() | nil
         ) ::
           Ecto.Query.t()
   defp filter_actors(
@@ -390,10 +401,12 @@ defmodule Mobilizon.Actors do
          name,
          domain,
          local,
-         suspended
+         suspended,
+         approval_status
        ) do
     query
     |> filter_suspended(suspended)
+    |> filter_approval_status(approval_status)
     |> filter_preferred_username(preferred_username)
     |> filter_name(name)
     |> filter_domain(domain)
@@ -423,6 +436,10 @@ defmodule Mobilizon.Actors do
   defp filter_suspended(query, true), do: where(query, [a], a.suspended)
   defp filter_suspended(query, false), do: where(query, [a], not a.suspended)
   defp filter_suspended(query, nil), do: query
+
+  @spec filter_approval_status(Ecto.Queryable.t(), atom() | nil) :: Ecto.Query.t()
+  defp filter_approval_status(query, nil), do: query
+  defp filter_approval_status(query, status), do: where(query, [a], a.approval_status == ^status)
 
   @spec filter_out_anonymous_actor_id(Ecto.Queryable.t(), integer() | String.t()) ::
           Ecto.Query.t()
@@ -1870,6 +1887,7 @@ defmodule Mobilizon.Actors do
           String.t(),
           boolean | nil,
           boolean | nil,
+          atom() | nil,
           integer()
         ) :: Enum.t()
   def stream_persons(
@@ -1878,10 +1896,11 @@ defmodule Mobilizon.Actors do
         domain \\ "",
         local \\ true,
         suspended \\ false,
+        approval_status \\ nil,
         chunk_size \\ 500
       ) do
     person_query()
-    |> filter_actors(preferred_username, name, domain, local, suspended)
+    |> filter_actors(preferred_username, name, domain, local, suspended, approval_status)
     |> preload([:user])
     |> Page.chunk(chunk_size)
   end

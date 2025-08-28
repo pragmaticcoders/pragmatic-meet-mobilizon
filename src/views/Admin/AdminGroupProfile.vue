@@ -52,7 +52,23 @@
         </tr>
       </tbody>
     </table>
-    <div class="flex gap-1">
+    <div class="flex gap-1 flex-wrap">
+      <!-- Approval/Rejection buttons -->
+      <o-button
+        @click="approveGroup"
+        v-if="group.approvalStatus === 'PENDING_APPROVAL'"
+        variant="success"
+        >{{ t("Approve Group") }}</o-button
+      >
+      <o-button
+        @click="rejectGroup"
+        v-if="group.approvalStatus === 'PENDING_APPROVAL'"
+        variant="danger"
+        outlined
+        >{{ t("Reject Group") }}</o-button
+      >
+      
+      <!-- Suspend/Unsuspend buttons -->
       <o-button
         @click="confirmSuspendProfile"
         v-if="!group.suspended"
@@ -69,6 +85,8 @@
         variant="primary"
         >{{ t("Unsuspend") }}</o-button
       >
+      
+      <!-- Refresh button -->
       <o-button
         @click="
           refreshProfile({
@@ -320,7 +338,7 @@
   </empty-content>
 </template>
 <script lang="ts" setup>
-import { GET_GROUP, REFRESH_PROFILE } from "@/graphql/group";
+import { GET_GROUP, REFRESH_PROFILE, APPROVE_GROUP, REJECT_GROUP } from "@/graphql/group";
 import { formatBytes } from "@/utils/datetime";
 import { MemberRole } from "@/types/enums";
 import { SUSPEND_PROFILE, UNSUSPEND_PROFILE } from "../../graphql/actor";
@@ -393,10 +411,23 @@ useHead({
 
 const metadata = computed((): Array<Record<string, string>> => {
   if (!group.value) return [];
+  
+  // Determine status based on suspended and approval status
+  let statusText = "";
+  if (group.value.suspended) {
+    statusText = t("Suspended") as string;
+  } else if (group.value.approvalStatus === "PENDING_APPROVAL") {
+    statusText = t("Pending Approval") as string;
+  } else if (group.value.approvalStatus === "REJECTED") {
+    statusText = t("Rejected") as string;
+  } else {
+    statusText = t("Active") as string;
+  }
+  
   const res: Record<string, string>[] = [
     {
       key: t("Status") as string,
-      value: (group.value.suspended ? t("Suspended") : t("Active")) as string,
+      value: statusText,
     },
     {
       key: t("Domain") as string,
@@ -513,6 +544,54 @@ onRefreshProfileError((e) => {
   console.error(e);
   notifier?.error(t("Error while suspending group"));
 });
+
+// Approve group mutation
+const { mutate: approveGroupMutation, onError: onApproveGroupError } = useMutation<{
+  approveGroup: IGroup;
+}>(APPROVE_GROUP, () => ({
+  refetchQueries: [
+    {
+      query: GET_GROUP,
+      variables: {
+        id: props.id,
+      },
+    },
+  ],
+}));
+
+onApproveGroupError((e) => {
+  console.error(e);
+  notifier?.error(t("Error while approving group"));
+});
+
+const approveGroup = () => {
+  approveGroupMutation({ groupId: props.id });
+  notifier?.success(t("Group approved successfully"));
+};
+
+// Reject group mutation
+const { mutate: rejectGroupMutation, onError: onRejectGroupError } = useMutation<{
+  rejectGroup: IGroup;
+}>(REJECT_GROUP, () => ({
+  refetchQueries: [
+    {
+      query: GET_GROUP,
+      variables: {
+        id: props.id,
+      },
+    },
+  ],
+}));
+
+onRejectGroupError((e) => {
+  console.error(e);
+  notifier?.error(t("Error while rejecting group"));
+});
+
+const rejectGroup = () => {
+  rejectGroupMutation({ groupId: props.id });
+  notifier?.success(t("Group rejected"));
+};
 
 const onOrganizedEventsPageChange = async (page: number): Promise<void> => {
   organizedEventsPage.value = page;

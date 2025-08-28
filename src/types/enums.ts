@@ -180,6 +180,12 @@ export enum GroupVisibility {
   PRIVATE = "PRIVATE",
 }
 
+export enum ApprovalStatus {
+  PENDING_APPROVAL = "PENDING_APPROVAL",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
 export enum AddressSearchType {
   ADMINISTRATIVE = "ADMINISTRATIVE",
 }

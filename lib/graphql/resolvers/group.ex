@@ -89,13 +89,40 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   """
   @spec get_group(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, Actor.t()} | {:error, String.t()}
+  def get_group(_parent, %{id: id}, %{context: %{current_user: %User{role: role}, current_actor: %Actor{id: actor_id}}}) do
+    case Actors.get_actor_with_preload(id, true) do
+      %Actor{type: :Group, suspended: suspended, approval_status: approval_status} = actor ->
+        cond do
+          # Moderators can see all groups
+          is_moderator(role) -> {:ok, actor}
+          
+          # Group owners can see their own groups even if pending approval
+          Actors.member?(actor_id, id) -> {:ok, actor}
+          
+          # Other users can only see approved, non-suspended groups
+          suspended == false and approval_status == :approved -> {:ok, actor}
+          
+          # Group not found for all other cases
+          true -> {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
+        end
+
+      nil ->
+        {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
+    end
+  end
+
   def get_group(_parent, %{id: id}, %{context: %{current_user: %User{role: role}}}) do
     case Actors.get_actor_with_preload(id, true) do
-      %Actor{type: :Group, suspended: suspended} = actor ->
-        if suspended == false or is_moderator(role) do
-          {:ok, actor}
-        else
-          {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
+      %Actor{type: :Group, suspended: suspended, approval_status: approval_status} = actor ->
+        cond do
+          # Moderators can see all groups
+          is_moderator(role) -> {:ok, actor}
+          
+          # Other users can only see approved, non-suspended groups
+          suspended == false and approval_status == :approved -> {:ok, actor}
+          
+          # Group not found for all other cases
+          true -> {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
         end
 
       nil ->
@@ -118,18 +145,35 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
           suspended: suspended,
           page: page,
           limit: limit
-        },
+        } = args,
         %{
           context: %{current_user: %User{role: role}}
         }
       )
       when is_moderator(role) do
+    # Moderators can see all groups including those pending approval
+    approval_status = Map.get(args, :approval_status)
     {:ok,
-     Actors.list_actors(:Group, preferred_username, name, domain, local, suspended, page, limit)}
+     Actors.list_actors(:Group, preferred_username, name, domain, local, suspended, approval_status, page, limit)}
   end
 
-  def list_groups(_parent, _args, _resolution),
-    do: {:error, dgettext("errors", "You may not list groups unless moderator.")}
+  def list_groups(
+        _parent,
+        %{
+          preferred_username: preferred_username,
+          name: name,
+          domain: domain,
+          local: local,
+          suspended: suspended,
+          page: page,
+          limit: limit
+        },
+        _resolution
+      ) do
+    # Regular users can only see approved groups
+    {:ok,
+     Actors.list_actors(:Group, preferred_username, name, domain, local, suspended, :approved, page, limit)}
+  end
 
   # TODO Move me to somewhere cleaner
   @spec save_attached_pictures(map()) :: map()
@@ -499,4 +543,72 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
         feed_tokens: []
     }
   end
+
+  @doc """
+  Approve a group (admin only)
+  """
+  @spec approve_group(any(), map(), Absinthe.Resolution.t()) :: {:ok, Actor.t()} | {:error, String.t()}
+  def approve_group(_parent, %{group_id: group_id}, %{
+        context: %{
+          current_user: %User{role: role} = _user
+        }
+      })
+      when is_moderator(role) do
+    case Actors.get_actor(group_id) do
+      %Actor{type: :Group} = group ->
+        case Actors.update_actor(group, %{approval_status: :approved}) do
+          {:ok, updated_group} ->
+            Logger.info("Group #{group_id} approved by moderator")
+            {:ok, updated_group}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:error, "Failed to approve group: #{inspect(changeset.errors)}"}
+        end
+
+      %Actor{} ->
+        {:error, dgettext("errors", "Actor is not a group")}
+
+      nil ->
+        {:error, dgettext("errors", "Group not found")}
+    end
+  end
+
+  def approve_group(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "Only moderators and administrators can approve groups")}
+  end
+
+  @doc """
+  Reject a group (admin only)
+  """
+  @spec reject_group(any(), map(), Absinthe.Resolution.t()) :: {:ok, Actor.t()} | {:error, String.t()}
+  def reject_group(_parent, %{group_id: group_id}, %{
+        context: %{
+          current_user: %User{role: role} = _user
+        }
+      })
+      when is_moderator(role) do
+    case Actors.get_actor(group_id) do
+      %Actor{type: :Group} = group ->
+        case Actors.update_actor(group, %{approval_status: :rejected}) do
+          {:ok, updated_group} ->
+            Logger.info("Group #{group_id} rejected by moderator")
+            {:ok, updated_group}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            {:error, "Failed to reject group: #{inspect(changeset.errors)}"}
+        end
+
+      %Actor{} ->
+        {:error, dgettext("errors", "Actor is not a group")}
+
+      nil ->
+        {:error, dgettext("errors", "Group not found")}
+    end
+  end
+
+  def reject_group(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "Only moderators and administrators can reject groups")}
+  end
+
+
 end

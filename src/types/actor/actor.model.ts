@@ -1,5 +1,5 @@
 import type { IMedia } from "@/types/media.model";
-import { ActorType } from "../enums";
+import { ActorType, ApprovalStatus } from "../enums";
 
 export interface IActor {
   id?: string;
@@ -10,6 +10,7 @@ export interface IActor {
   summary: string;
   preferredUsername: string;
   suspended: boolean;
+  approvalStatus?: ApprovalStatus;
   avatar?: IMedia | null;
   banner?: IMedia | null;
   type: ActorType;
@@ -39,6 +40,8 @@ export class Actor implements IActor {
   summary = "";
 
   suspended = false;
+
+  approvalStatus?: ApprovalStatus = ApprovalStatus.APPROVED;
 
   url = "";
 

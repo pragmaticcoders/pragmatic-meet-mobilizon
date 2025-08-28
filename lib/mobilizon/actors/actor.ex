@@ -8,7 +8,7 @@ defmodule Mobilizon.Actors.Actor do
   import Ecto.Changeset
 
   alias Mobilizon.{Actors, Addresses, Config, Crypto, Mention, Share}
-  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, Follower, Member}
+  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, ApprovalStatus, Follower, Member}
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.Comment
@@ -46,6 +46,7 @@ defmodule Mobilizon.Actors.Actor do
           openness: atom(),
           visibility: atom(),
           suspended: boolean,
+          approval_status: atom(),
           avatar: File.t() | nil,
           banner: File.t() | nil,
           user: User.t() | nil,
@@ -85,7 +86,8 @@ defmodule Mobilizon.Actors.Actor do
     :last_refreshed_at,
     :user_id,
     :physical_address_id,
-    :visibility
+    :visibility,
+    :approval_status
   ]
   @attrs @required_attrs ++ @optional_attrs
 
@@ -97,7 +99,8 @@ defmodule Mobilizon.Actors.Actor do
     :user_id,
     :visibility,
     :openness,
-    :physical_address_id
+    :physical_address_id,
+    :approval_status
   ]
   @update_attrs @update_required_attrs ++ @update_optional_attrs
 
@@ -149,7 +152,8 @@ defmodule Mobilizon.Actors.Actor do
     :summary,
     :visibility,
     :openness,
-    :manually_approves_followers
+    :manually_approves_followers,
+    :approval_status
   ]
   @group_creation_attrs @group_creation_required_attrs ++ @group_creation_optional_attrs
 
@@ -178,6 +182,7 @@ defmodule Mobilizon.Actors.Actor do
     field(:openness, ActorOpenness, default: :moderated)
     field(:visibility, ActorVisibility, default: :private)
     field(:suspended, :boolean, default: false)
+    field(:approval_status, ApprovalStatus, default: :approved)
     field(:last_refreshed_at, :utc_datetime)
 
     embeds_one(:avatar, File, on_replace: :update)

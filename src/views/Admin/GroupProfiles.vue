@@ -17,9 +17,20 @@
       >
     </div>
     <div v-if="groups">
-      <div class="flex gap-2">
+      <div class="flex gap-4 flex-wrap items-center mb-4">
         <o-switch v-model="local">{{ t("Local") }}</o-switch>
         <o-switch v-model="suspended">{{ t("Suspended") }}</o-switch>
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+            {{ t("Approval Status") }}:
+          </label>
+          <o-select v-model="approvalStatus" class="min-w-[140px]">
+            <option value="">{{ t("All") }}</option>
+            <option value="PENDING_APPROVAL">{{ t("Pending Approval") }}</option>
+            <option value="APPROVED">{{ t("Approved") }}</option>
+            <option value="REJECTED">{{ t("Rejected") }}</option>
+          </o-select>
+        </div>
       </div>
       <o-table
         :data="groups.elements"
@@ -135,6 +146,7 @@ const domain = useRouteQuery("domain", "");
 
 const local = useRouteQuery("local", domain.value === "", booleanTransformer);
 const suspended = useRouteQuery("suspended", false, booleanTransformer);
+const approvalStatus = useRouteQuery("approvalStatus", "");
 const page = useRouteQuery("page", 1, integerTransformer);
 
 const {
@@ -149,6 +161,7 @@ const {
   domain: domain.value,
   local: local.value,
   suspended: suspended.value,
+  approvalStatus: approvalStatus.value || undefined,
   page: page.value,
   limit: PROFILES_PER_PAGE,
 }));
@@ -187,6 +200,7 @@ const doFetchMore = async (): Promise<void> => {
       domain: domain.value,
       local: local.value,
       suspended: suspended.value,
+      approvalStatus: approvalStatus.value || undefined,
       page: page.value,
       limit: PROFILES_PER_PAGE,
     },
