@@ -109,6 +109,7 @@
         @page-change="loadMoreMembers"
         @sort="(field: string, order: string) => emit('sort', field, order)"
         class="border border-[#cac9cb]"
+        :key="`members-${tableRefreshKey}-${members.total}-${members.elements.length}`"
       >
         <o-table-column
           field="actor.preferredUsername"
@@ -210,9 +211,11 @@
           >
             <o-button
               v-if="props.row.role === MemberRole.NOT_APPROVED"
-              @click="approveMember({ memberId: props.row.id })"
+              @click="approveMember(props.row)"
               icon-left="check"
               class="bg-[#007e44] text-white px-4 py-2 font-medium hover:bg-green-700"
+              :loading="isApproveLoading(props.row.id)"
+              :disabled="isApproveLoading(props.row.id)"
               >{{ t("Approve member") }}</o-button
             >
             <o-button
@@ -220,6 +223,8 @@
               @click="rejectMember(props.row)"
               icon-left="exit-to-app"
               class="bg-[#cc0000] text-white px-4 py-2 font-medium hover:bg-red-700"
+              :loading="isRemoveLoading(props.row.id)"
+              :disabled="isRemoveLoading(props.row.id)"
               >{{ t("Reject member") }}</o-button
             >
             <o-button
@@ -231,6 +236,8 @@
               @click="promoteMember(props.row)"
               icon-left="chevron-double-up"
               class="border border-[#155eef] text-[#155eef] px-4 py-2 font-medium bg-white hover:bg-[#e8effd]"
+              :loading="isRemoveLoading(props.row.id)"
+              :disabled="isRemoveLoading(props.row.id)"
               >{{ t("Promote") }}</o-button
             >
             <o-button
@@ -282,7 +289,7 @@ import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, nextTick, watch } from "vue";
 import {
   enumTransformer,
   integerTransformer,
@@ -317,20 +324,92 @@ const roles = useRouteQuery("roles", undefined, enumTransformer(MemberRole));
 const MEMBERS_PER_PAGE = 10;
 const notifier = inject<Notifier>("notifier");
 
+// Per-member loading states
+const approveLoadingMembers = ref<Set<string>>(new Set());
+const removeLoadingMembers = ref<Set<string>>(new Set());
+const updateLoadingMembers = ref<Set<string>>(new Set());
+
+// Helper functions for loading states
+const setApproveLoading = (memberId: string, loading: boolean) => {
+  if (loading) {
+    approveLoadingMembers.value.add(memberId);
+  } else {
+    approveLoadingMembers.value.delete(memberId);
+  }
+};
+
+const isApproveLoading = (memberId: string) => {
+  return approveLoadingMembers.value.has(memberId);
+};
+
+const setRemoveLoading = (memberId: string, loading: boolean) => {
+  if (loading) {
+    removeLoadingMembers.value.add(memberId);
+  } else {
+    removeLoadingMembers.value.delete(memberId);
+  }
+};
+
+const isRemoveLoading = (memberId: string) => {
+  return removeLoadingMembers.value.has(memberId);
+};
+
+// Reactive key to force table re-render after cache updates
+const tableRefreshKey = ref(0);
+const forceTableRefresh = async () => {
+  tableRefreshKey.value++;
+  await nextTick();
+  console.log("Table refresh triggered:", tableRefreshKey.value);
+};
+
+// Fallback refresh function - use only when cache updates fail
+const refreshMembersData = async () => {
+  console.log("FALLBACK: Refreshing members data with refetch...");
+  try {
+    await refetchGroupMembers();
+    forceTableRefresh();
+  } catch (error) {
+    console.error("Error refreshing members data:", error);
+    // Fallback to force refresh only
+    forceTableRefresh();
+  }
+};
+
 const {
   result: groupMembersResult,
   fetchMore: fetchMoreGroupMembers,
   loading: groupMembersLoading,
-} = useQuery<{ group: IGroup }>(GROUP_MEMBERS, () => ({
-  groupName: props.preferredUsername,
-  page: page.value,
-  limit: MEMBERS_PER_PAGE,
-  roles: roles.value,
-}));
+  refetch: refetchGroupMembers,
+} = useQuery<{ group: IGroup }>(
+  GROUP_MEMBERS, 
+  () => ({
+    groupName: props.preferredUsername,
+    page: page.value,
+    limit: MEMBERS_PER_PAGE,
+    roles: roles.value,
+  }),
+  () => ({
+          enabled: props.preferredUsername !== undefined,
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
+  })
+);
 const group = computed(() => groupMembersResult.value?.group);
 
 const members = computed(
   () => group.value?.members ?? { total: 0, elements: [] }
+);
+
+// Simplified watcher - just for debugging, no actions
+watch(
+  members,
+  (newMembers, oldMembers) => {
+    console.log("Members data changed:", {
+      count: newMembers.elements?.length || 0,
+      total: newMembers.total || 0
+    });
+  },
+  { deep: false } // Shallow watch to avoid excessive triggers
 );
 
 const {
@@ -338,17 +417,135 @@ const {
   onDone: onInviteMemberDone,
   onError: onInviteMemberError,
 } = useMutation<{ inviteMember: IMember }>(INVITE_MEMBER, () => ({
-  refetchQueries: [
-    {
-      query: GROUP_MEMBERS,
-      variables: {
+  update: (cache, { data }) => {
+    if (data?.inviteMember) {
+      console.log("Updating cache after member invitation", data.inviteMember);
+      
+      const invitedMember = data.inviteMember;
+      
+      // Update cache for current filter (if it matches the invited member's role)
+      try {
+        const currentVariables = {
         groupName: props.preferredUsername,
         page: page.value,
         limit: MEMBERS_PER_PAGE,
         roles: roles.value,
-      },
-    },
-  ],
+        };
+        
+        // Only update current filter if it includes INVITED role or no filter
+        if (!roles.value || roles.value === MemberRole.INVITED) {
+          const existingData = cache.readQuery<{ group: IGroup }>({
+            query: GROUP_MEMBERS,
+            variables: currentVariables,
+          });
+
+          if (existingData?.group?.members?.elements) {
+            console.log("Adding invited member to current filter cache");
+            
+            // Add the invited member to the beginning of the list
+            const updatedElements = [invitedMember, ...existingData.group.members.elements];
+
+            cache.writeQuery({
+              query: GROUP_MEMBERS,
+              variables: currentVariables,
+              data: {
+                ...existingData,
+                group: {
+                  ...existingData.group,
+                  members: {
+                    ...existingData.group.members,
+                    elements: updatedElements,
+                    total: existingData.group.members.total + 1
+                  }
+                }
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.debug("Current filter cache update not needed or failed:", error);
+      }
+      
+      // Always update cache for "INVITED" filter
+      try {
+        const invitedVariables = {
+          groupName: props.preferredUsername,
+          page: 1, // Always add to first page
+          limit: MEMBERS_PER_PAGE,
+          roles: MemberRole.INVITED, // Specifically for invited members
+        };
+        
+        const invitedData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: invitedVariables,
+        });
+
+        if (invitedData?.group?.members?.elements) {
+          console.log("Adding invited member to INVITED filter cache");
+          
+          const updatedInvitedElements = [invitedMember, ...invitedData.group.members.elements];
+
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: invitedVariables,
+            data: {
+              ...invitedData,
+              group: {
+                ...invitedData.group,
+                members: {
+                  ...invitedData.group.members,
+                  elements: updatedInvitedElements,
+                  total: invitedData.group.members.total + 1
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.debug("INVITED filter cache update not needed:", error);
+      }
+      
+      // Update cache for "all members" (no filter)
+      try {
+        const allMembersVariables = {
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: undefined,
+        };
+        
+        const allMembersData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: allMembersVariables,
+        });
+
+        if (allMembersData?.group?.members?.elements) {
+          console.log("Adding invited member to all members cache");
+          
+          const updatedAllElements = [invitedMember, ...allMembersData.group.members.elements];
+
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: allMembersVariables,
+            data: {
+              ...allMembersData,
+              group: {
+                ...allMembersData.group,
+                members: {
+                  ...allMembersData.group.members,
+                  elements: updatedAllElements,
+                  total: allMembersData.group.members.total + 1
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.debug("All members cache update not needed:", error);
+      }
+    }
+  },
+  // Remove refetchQueries to avoid conflicts
 }));
 
 onInviteMemberError((error) => {
@@ -361,21 +558,49 @@ onInviteMemberError((error) => {
 onInviteMemberDone(() => {
   if (selectedActors.value.length === 1) {
     const invitedActor = selectedActors.value[0];
-    notifier?.success(
-      t("{username} was invited to {group}", {
-        username: invitedActor?.name || invitedActor?.preferredUsername || "",
-        group: displayName(group.value),
-      })
-    );
+    
+    // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
+    if (roles.value && roles.value !== MemberRole.INVITED) {
+      // Auto-switch to INVITED filter to show the invited member
+      roles.value = MemberRole.INVITED;
+      
+      notifier?.success(
+        t("{username} was invited to {group}. Showing invited members.", {
+          username: invitedActor?.name || invitedActor?.preferredUsername || "",
+          group: displayName(group.value),
+        })
+      );
+    } else {
+      notifier?.success(
+        t("{username} was invited to {group}", {
+          username: invitedActor?.name || invitedActor?.preferredUsername || "",
+          group: displayName(group.value),
+        })
+      );
+    }
   } else if (selectedActors.value.length > 1) {
-    notifier?.success(
-      t("{count} users were invited to {group}", {
-        count: selectedActors.value.length,
-        group: displayName(group.value),
-      })
-    );
+    // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
+    if (roles.value && roles.value !== MemberRole.INVITED) {
+      // Auto-switch to INVITED filter to show the invited members
+      roles.value = MemberRole.INVITED;
+      
+      notifier?.success(
+        t("{count} users were invited to {group}. Showing invited members.", {
+          count: selectedActors.value.length,
+          group: displayName(group.value),
+        })
+      );
+    } else {
+      notifier?.success(
+        t("{count} users were invited to {group}", {
+          count: selectedActors.value.length,
+          group: displayName(group.value),
+        })
+      );
+    }
   }
   selectedActors.value = [];
+  refreshMembersData();
 });
 
 const inviteMember = async (): Promise<void> => {
@@ -418,20 +643,112 @@ const {
   onDone: onRemoveMemberDone,
   onError: onRemoveMemberError,
 } = useMutation(REMOVE_MEMBER, () => ({
-  refetchQueries: [
-    {
-      query: GROUP_MEMBERS,
-      variables: {
+  errorPolicy: 'all', // Allow cache updates even if there are GraphQL errors
+  update: (cache, { data }, { context }) => {
+    console.log("removeMember cache update called", { data, context });
+    if (data?.removeMember && context?.oldMember) {
+      console.log("Updating cache after member removal", context.oldMember.id, "role:", context.oldMember.role);
+      
+      // Try to update cache for current query with filters
+      try {
+        const currentVariables = {
         groupName: props.preferredUsername,
         page: page.value,
         limit: MEMBERS_PER_PAGE,
         roles: roles.value,
-      },
-    },
-  ],
-}));
+        };
+        
+        const existingData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: currentVariables,
+        });
 
-onRemoveMemberDone(({ context }) => {
+        if (existingData?.group?.members?.elements) {
+          console.log("Found existing data, removing member from cache", existingData.group.members.elements.length);
+          
+          // Filter out the removed member
+          const updatedElements = existingData.group.members.elements.filter(
+            member => member.id !== context.oldMember.id
+          );
+
+          console.log("Updated elements count", updatedElements.length);
+
+          // Write back to cache
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: currentVariables,
+            data: {
+              ...existingData,
+              group: {
+                ...existingData.group,
+                members: {
+                  ...existingData.group.members,
+                  elements: updatedElements,
+                  total: Math.max(0, existingData.group.members.total - 1)
+                }
+              }
+            }
+          });
+          
+          console.log("Cache updated successfully");
+        } else {
+          console.warn("No existing data found in cache");
+        }
+      } catch (error) {
+        console.warn("Failed to update cache:", error);
+      }
+      
+      // Also try to update cache for "all members" query (no role filter)
+      try {
+        const allMembersVariables = {
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: undefined, // No role filter
+        };
+        
+        const allMembersData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: allMembersVariables,
+        });
+
+        if (allMembersData?.group?.members?.elements) {
+          const updatedAllElements = allMembersData.group.members.elements.filter(
+            member => member.id !== context.oldMember.id
+          );
+
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: allMembersVariables,
+            data: {
+              ...allMembersData,
+              group: {
+                ...allMembersData.group,
+                members: {
+                  ...allMembersData.group.members,
+                  elements: updatedAllElements,
+                  total: Math.max(0, allMembersData.group.members.total - 1)
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.debug("No cache entry for all members query (this is ok)");
+      }
+    }
+  },
+ }));
+
+onRemoveMemberDone((result: any) => {
+  console.log("removeMember onDone called", result);
+  const context = result.context;
+  
+  // Clear loading state
+  if (context?.oldMember?.id) {
+    setRemoveLoading(context.oldMember.id, false);
+  }
+  
   let message = t("The member was removed from the group {group}", {
     group: displayName(group.value),
   }) as string;
@@ -441,20 +758,31 @@ onRemoveMemberDone(({ context }) => {
     }) as string;
   }
   notifier?.success(message);
+  refreshMembersData();
 });
 
 onRemoveMemberError((error) => {
-  console.error(error);
+  console.error("Member removal error:", error);
+  
+  // Clear loading state for all members on error (fallback)
+  removeLoadingMembers.value.clear();
+  
+  // Since we no longer use refetchQueries, this should be a genuine error
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     notifier?.error(error.graphQLErrors[0].message);
+  } else {
+    notifier?.error(t("An error occurred while removing the member"));
   }
 });
 
 const removeMember = (oldMember: IMember) => {
+  if (!oldMember.id || isRemoveLoading(oldMember.id)) return;
+  
+  setRemoveLoading(oldMember.id, true);
   mutateRemoveMember(
     {
-      groupId: group.value?.id,
       memberId: oldMember.id,
+      exclude: false, // false = just remove, true = exclude/ban
     },
     {
       context: { oldMember },
@@ -483,39 +811,116 @@ const demoteMember = (member: IMember): void => {
 };
 
 const {
-  mutate: approveMember,
+  mutate: approveMemberMutation,
   onDone: onApproveMemberDone,
   onError: onApproveMemberError,
 } = useMutation<{ approveMember: IMember }, { memberId: string }>(
   APPROVE_MEMBER,
   {
-    refetchQueries: [
-      {
+    update: (cache, { data }, { context }) => {
+      if (data?.approveMember) {
+        const approvedMember = data.approveMember; // Now has role: MEMBER
+        const memberId = approvedMember.id;
+        try {
+          const notApprovedVariables = {
+            groupName: props.preferredUsername,
+            page: page.value,
+            limit: MEMBERS_PER_PAGE,
+            roles: MemberRole.NOT_APPROVED,
+          };
+          
+          const notApprovedData = cache.readQuery<{ group: IGroup }>({
+            query: GROUP_MEMBERS,
+            variables: notApprovedVariables,
+          });
+
+          if (notApprovedData?.group?.members?.elements) {
+            console.log("Removing approved member from NOT_APPROVED filter cache");
+          }
+        } catch (error) {
+          console.debug("NOT_APPROVED filter cache update not needed:", error);
+        }
+        
+        // Add to "MEMBER" filter cache (if exists)
+        try {
+          const memberVariables = {
+            groupName: props.preferredUsername,
+            page: 1, // Add to first page
+            limit: MEMBERS_PER_PAGE,
+            roles: MemberRole.MEMBER,
+          };
+          
+          const memberData = cache.readQuery<{ group: IGroup }>({
+            query: GROUP_MEMBERS,
+            variables: memberVariables,
+          });
+
+          if (memberData?.group?.members?.elements) {
+            console.log("Adding approved member to MEMBER filter cache");
+            
+            const updatedMemberElements = [approvedMember, ...memberData.group.members.elements];
+
+            cache.writeQuery({
         query: GROUP_MEMBERS,
-        variables: {
-          groupName: preferredUsername.value,
-          page: page.value,
-          limit: MEMBERS_PER_PAGE,
-          roles: roles.value,
-        },
-      },
-    ],
+              variables: memberVariables,
+              data: {
+                ...memberData,
+                group: {
+                  ...memberData.group,
+                  members: {
+                    ...memberData.group.members,
+                    elements: updatedMemberElements,
+                    total: memberData.group.members.total + 1
+                  }
+                }
+              }
+            });
+          }
+        } catch (error) {
+          console.debug("MEMBER filter cache update not needed:", error);
+        }
+      }
+    },
+    // Removed refetchQueries to avoid conflicts with cache update
   }
 );
 
-onApproveMemberDone(() => {
+onApproveMemberDone((result: any) => {
+  console.log("approveMember onDone called", result);
+  const context = result.context;
+  if (context?.oldMember?.id) {
+    setApproveLoading(context.oldMember.id, false);
+  }
   notifier?.success(t("The member was approved"));
+  refreshMembersData();
 });
 
 onApproveMemberError((error) => {
-  console.error(error);
+  console.error("approveMember error:", error);
+  // Clear loading state for all members on error (fallback)
+  approveLoadingMembers.value.clear();
+  
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     notifier?.error(error.graphQLErrors[0].message);
   }
+  // Fallback refresh on error
+  refreshMembersData();
 });
+
+// Wrapper function for approve member with loading state management
+const approveMember = (member: IMember) => {
+  if (!member.id || isApproveLoading(member.id)) return;
+  
+  setApproveLoading(member.id, true);
+  approveMemberMutation(
+    { memberId: member.id }, 
+    { context: { oldMember: member } }
+  );
+};
 
 const rejectMember = (member: IMember): void => {
   if (!member.id) return;
+  console.log("Rejecting member:", member.id, member.role);
   removeMember(member);
 };
 
@@ -527,20 +932,104 @@ const {
   { id: string; role: MemberRole },
   { memberId: string; role: MemberRole; oldRole: MemberRole }
 >(UPDATE_MEMBER, () => ({
-  refetchQueries: [
-    {
-      query: GROUP_MEMBERS,
-      variables: {
-        groupName: props.preferredUsername,
-        page: page.value,
-        limit: MEMBERS_PER_PAGE,
-        roles: roles.value,
-      },
-    },
-  ],
+  errorPolicy: 'all',
+  update: (cache, { data }, { context }) => {
+    console.log("updateMember cache update called", { data, context });
+    if (data && context?.oldMember) {
+      console.log("Updating cache after role change", context.oldMember.id, "from", context.oldMember.role, "to", data.role);
+      
+      // For role changes, we need to update all relevant caches
+      const memberId = context.oldMember.id;
+      const oldRole = context.oldMember.role;
+      const newRole = data.role;
+      
+      // Update current filter cache
+      try {
+        const currentVariables = {
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: roles.value,
+        };
+        
+        const currentData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: currentVariables,
+        });
+
+        if (currentData?.group?.members?.elements) {
+          const updatedElements = currentData.group.members.elements.map(member => 
+            member.id === memberId 
+              ? { ...member, role: newRole }
+              : member
+          );
+
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: currentVariables,
+            data: {
+              ...currentData,
+              group: {
+                ...currentData.group,
+                members: {
+                  ...currentData.group.members,
+                  elements: updatedElements
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.debug("Current filter cache update failed:", error);
+      }
+      
+      // Update "all members" cache (no filter)
+      try {
+        const allMembersVariables = {
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: undefined,
+        };
+        
+        const allMembersData = cache.readQuery<{ group: IGroup }>({
+          query: GROUP_MEMBERS,
+          variables: allMembersVariables,
+        });
+
+        if (allMembersData?.group?.members?.elements) {
+          const updatedAllElements = allMembersData.group.members.elements.map(member => 
+            member.id === memberId 
+              ? { ...member, role: newRole }
+              : member
+          );
+
+          cache.writeQuery({
+            query: GROUP_MEMBERS,
+            variables: allMembersVariables,
+            data: {
+              ...allMembersData,
+              group: {
+                ...allMembersData.group,
+                members: {
+                  ...allMembersData.group.members,
+                  elements: updatedAllElements
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        console.debug("All members cache update failed:", error);
+      }
+    }
+  },
+  // Removed refetchQueries to avoid conflicts
 }));
 
-onUpdateMutationDone(({ data, context }) => {
+onUpdateMutationDone((result: any) => {
+  const { data } = result;
+  const context = result.context;
   let successMessage;
   console.debug("onUpdateMutationDone", context);
   switch (data?.role) {

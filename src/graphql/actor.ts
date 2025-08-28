@@ -286,6 +286,12 @@ export const LOGGED_USER_MEMBERSHIPS = gql`
               uuid
               url
             }
+            members {
+              total
+            }
+            followers {
+              total
+            }
             organizedEvents {
               elements {
                 id

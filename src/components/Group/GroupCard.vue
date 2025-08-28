@@ -87,14 +87,14 @@
           <!-- Member count as tag -->
           <div
             v-if="
-              (group?.members?.total && group?.followers?.total) ||
+              (group?.members?.total !== undefined && group?.followers?.total !== undefined) ||
               group?.membersCount ||
               group?.followersCount
             "
             class="bg-primary-50 px-2 py-1 flex items-center gap-1.5"
           >
             <span class="text-[15px] text-primary-500 leading-[23px]">
-              <span v-if="group?.members?.total && group?.followers?.total">
+              <span v-if="group?.members?.total !== undefined && group?.followers?.total !== undefined">
                 {{ group.members.total + group.followers.total }}
               </span>
               <span v-else>

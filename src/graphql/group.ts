@@ -36,6 +36,12 @@ export const LIST_GROUPS = gql`
           uuid
           url
         }
+        members {
+          total
+        }
+        followers {
+          total
+        }
         organizedEvents {
           elements {
             id

@@ -166,7 +166,7 @@ const to = computed(() => {
 });
 
 const getMemberCount = computed(() => {
-  if (props.group?.members?.total && props.group?.followers?.total) {
+  if (props.group?.members?.total !== undefined && props.group?.followers?.total !== undefined) {
     return props.group.members.total + props.group.followers.total;
   }
   return (props.group.membersCount ?? 0) + (props.group.followersCount ?? 0);
