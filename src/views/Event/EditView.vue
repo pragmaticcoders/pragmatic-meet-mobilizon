@@ -418,8 +418,23 @@
     v-else
   >
     <o-notification variant="danger">
-      {{ t("Only group moderators can create, edit and delete events.") }}
+      {{ missingActorMessage }}
     </o-notification>
+    <div v-if="!currentActor?.id && !props.eventId" class="mt-4">
+      <o-button 
+        variant="primary" 
+        @click="$router.push('/identity/create')"
+        class="mr-3"
+      >
+        {{ t("Create Profile") }}
+      </o-button>
+      <o-button 
+        variant="text" 
+        @click="$router.push('/')"
+      >
+        {{ t("Go to Home") }}
+      </o-button>
+    </div>
   </div>
   <o-modal
     v-model:active="dateSettingsIsOpen"
@@ -571,6 +586,7 @@ import {
   EDIT_EVENT,
   EVENT_PERSON_PARTICIPATION,
 } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import {
   EventModel,
   IEditableEvent,
@@ -579,6 +595,7 @@ import {
   toEditJSON,
 } from "@/types/event.model";
 import { LOGGED_USER_DRAFTS } from "@/graphql/actor";
+import { LOGGED_USER_PARTICIPATIONS } from "@/graphql/participant";
 import {
   IActor,
   IGroup,
@@ -921,6 +938,11 @@ const updateEvent = async (): Promise<void> => {
 };
 
 const hasCurrentActorPermissionsToEdit = computed((): boolean => {
+  // First check if we have a current actor for new events
+  if (!props.eventId && !currentActor.value?.id) {
+    return false;
+  }
+
   return !(
     props.eventId &&
     event.value?.organizerActor?.id !== undefined &&
@@ -929,6 +951,13 @@ const hasCurrentActorPermissionsToEdit = computed((): boolean => {
       .includes(event.value?.organizerActor?.id) &&
     !hasGroupPrivileges.value
   );
+});
+
+const missingActorMessage = computed((): string => {
+  if (!currentActor.value?.id && !props.eventId) {
+    return t("No organizer profile found. You need to create a profile to organize events. This may happen after logging in with LinkedIn - please create your profile first.") as string;
+  }
+  return t("Only group moderators can create, edit and delete events.") as string;
 });
 
 const hasGroupPrivileges = computed((): boolean => {
@@ -988,39 +1017,97 @@ const handleError = (err: any) => {
  */
 const postCreateOrUpdate = (store: any, updatedEvent: IEvent) => {
   const resultEvent: IEvent = { ...updatedEvent };
-  if (!updatedEvent.draft) {
-    store.writeQuery({
-      query: EVENT_PERSON_PARTICIPATION,
-      variables: {
-        eventId: resultEvent.id,
-        name: resultEvent.organizerActor?.preferredUsername,
-      },
-      data: {
-        person: {
-          __typename: "Person",
-          id: resultEvent?.organizerActor?.id,
-          participations: {
-            __typename: "PaginatedParticipantList",
-            total: 1,
-            elements: [
-              {
-                __typename: "Participant",
-                id: "unknown",
-                role: ParticipantRole.CREATOR,
-                actor: {
-                  __typename: "Actor",
-                  id: resultEvent?.organizerActor?.id,
+  if (!updatedEvent.draft && resultEvent?.organizerActor?.id) {
+    // Update the EVENT_PERSON_PARTICIPATION cache with correct variables
+    try {
+      store.writeQuery({
+        query: EVENT_PERSON_PARTICIPATION,
+        variables: {
+          eventId: resultEvent.id,
+          actorId: resultEvent.organizerActor.id, // Fixed: use actorId instead of name
+        },
+        data: {
+          person: {
+            __typename: "Person",
+            id: resultEvent.organizerActor.id,
+            participations: {
+              __typename: "PaginatedParticipantList",
+              total: 1,
+              elements: [
+                {
+                  __typename: "Participant",
+                  id: "unknown",
+                  role: ParticipantRole.CREATOR,
+                  actor: {
+                    __typename: "Actor",
+                    id: resultEvent.organizerActor.id,
+                  },
+                  event: {
+                    __typename: "Event",
+                    id: resultEvent.id,
+                  },
                 },
-                event: {
-                  __typename: "Event",
-                  id: resultEvent.id,
-                },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.warn("Failed to update EVENT_PERSON_PARTICIPATION cache:", error);
+    }
+
+    // Also try to update the HOME_USER_QUERIES cache to immediately show the event on home page
+    try {
+      // Use start of today to match HomeView query
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const afterDateTime = todayStart.toISOString();
+      
+      const homeData = store.readQuery({
+        query: HOME_USER_QUERIES,
+        variables: {
+          afterDateTime,
+        },
+      });
+
+      if (homeData?.loggedUser?.participations?.elements) {
+        const newParticipation = {
+          __typename: "Participant",
+          id: "unknown",
+          role: ParticipantRole.CREATOR,
+          actor: {
+            __typename: "Actor",
+            id: resultEvent.organizerActor.id,
+            preferredUsername: resultEvent.organizerActor.preferredUsername,
+            name: resultEvent.organizerActor.name,
+            avatar: resultEvent.organizerActor.avatar,
+          },
+          event: resultEvent,
+        };
+
+        const updatedHomeData = {
+          ...homeData,
+          loggedUser: {
+            ...homeData.loggedUser,
+            participations: {
+              ...homeData.loggedUser.participations,
+              total: homeData.loggedUser.participations.total + 1,
+              elements: [newParticipation, ...homeData.loggedUser.participations.elements],
+            },
+          },
+        };
+
+        store.writeQuery({
+          query: HOME_USER_QUERIES,
+          variables: {
+            afterDateTime,
+          },
+          data: updatedHomeData,
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to update HOME_USER_QUERIES cache:", error);
+    }
   }
 };
 
@@ -1037,11 +1124,23 @@ const postRefetchQueries = (
       },
     ];
   }
+  
+  // Use start of today to match HomeView query
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const afterDateTime = todayStart.toISOString();
+  
   return [
     {
       query: LOGGED_USER_PARTICIPATIONS,
       variables: {
-        afterDateTime: new Date(),
+        afterDateTime,
+      },
+    },
+    {
+      query: HOME_USER_QUERIES,
+      variables: {
+        afterDateTime,
       },
     },
   ];
@@ -1058,17 +1157,29 @@ const organizerActorEqualToCurrentActor = computed((): boolean => {
  * Build variables for Event GraphQL creation query
  */
 const buildVariables = async () => {
+  // Check if we have a valid organizer actor before proceeding
+  const localOrganizerActor = event.value?.organizerActor?.id
+    ? event.value.organizerActor
+    : organizerActor.value;
+
+  if (!localOrganizerActor?.id) {
+    // No organizer actor found - this can happen with LinkedIn login issues
+    notification.open({
+      message: t("Unable to create event: No organizer profile found. Please create or select a profile first.") as string,
+      variant: "danger",
+      position: "bottom-right",
+      duration: 5000,
+    });
+    throw new Error("No organizer actor found");
+  }
+
   let res = {
     ...toEditJSON(new EventModel(event.value)),
     options: eventOptions.value,
   };
 
-  const localOrganizerActor = event.value?.organizerActor?.id
-    ? event.value.organizerActor
-    : organizerActor.value;
-  if (organizerActor.value) {
-    res = { ...res, organizerActorId: localOrganizerActor?.id };
-  }
+  res = { ...res, organizerActorId: localOrganizerActor.id };
+  
   const attributedToId = event.value?.attributedTo?.id
     ? event.value?.attributedTo.id
     : null;

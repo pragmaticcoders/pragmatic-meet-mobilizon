@@ -258,8 +258,15 @@ defmodule Mobilizon.Web.AuthController do
       {:ok, %User{} = user} ->
         # User exists - update profile if needed and proceed with login
         Logger.info("Found existing user for #{email}")
-        update_user_profile_from_linkedin(user, user_info)
-        complete_linkedin_authentication(conn, user, username, name, intent)
+        
+        case update_user_profile_from_linkedin(user, user_info) do
+          {:ok, updated_user} ->
+            complete_linkedin_authentication(conn, updated_user, username, name, intent)
+          
+          {:error, error} ->
+            Logger.error("Failed to update LinkedIn profile for user #{email}: #{inspect(error)}")
+            redirect_to_error(conn, :profile_update_failed, "linkedin")
+        end
 
       {:error, :user_not_found} ->
         # User doesn't exist - handle based on intent
@@ -311,30 +318,32 @@ defmodule Mobilizon.Web.AuthController do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
         Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
 
-        # Determine redirect URL based on intent
+        # Determine redirect URL based on intent and whether user has an actor
         redirect_url =
-          case intent do
-            "login" ->
-              # For login, redirect to home screen
+          case {intent, user.default_actor_id} do
+            {"login", nil} ->
+              # Login but no actor - this should not happen after our fixes, but redirect to identity creation as fallback
+              Logger.warn("LinkedIn login for user #{user.email} with no default actor - redirecting to identity creation")
+              "/identity/create?source=linkedin"
+              
+            {"login", _actor_id} ->
+              # Login with actor - redirect to home
               "/"
 
-            _ ->
-              # For registration, use existing behavior (redirect to identity pages)
-              case user.default_actor_id do
+            {_, nil} ->
+              # Registration or other intent with no actor - redirect to create identity
+              "/identity/create?source=linkedin"
+
+            {_, _actor_id} ->
+              # Registration or other intent with actor - redirect to edit identity
+              case Actors.get_actor(user.default_actor_id) do
+                %Actor{} = actor ->
+                  "/identity/update/#{actor.preferred_username}?source=linkedin"
+
                 nil ->
-                  # No default actor, redirect to create identity
+                  # Fallback if actor lookup fails - redirect to create
+                  Logger.warn("Actor #{user.default_actor_id} not found for user #{user.email} - redirecting to identity creation")
                   "/identity/create?source=linkedin"
-
-                _actor_id ->
-                  # Has default actor, get username and redirect to edit
-                  case Actors.get_actor(user.default_actor_id) do
-                    %Actor{} = actor ->
-                      "/identity/update/#{actor.preferred_username}?source=linkedin"
-
-                    nil ->
-                      # Fallback if actor lookup fails - redirect to create
-                      "/identity/create?source=linkedin"
-                  end
               end
           end
 
@@ -406,18 +415,25 @@ defmodule Mobilizon.Web.AuthController do
         case create_actor_from_linkedin(user, user_info) do
           {:ok, actor} ->
             # Update user's default_actor_id
-            user
-            |> User.changeset(%{default_actor_id: actor.id})
-            |> Repo.update()
+            case user |> User.changeset(%{default_actor_id: actor.id}) |> Repo.update() do
+              {:ok, updated_user} ->
+                Logger.info("Successfully created and linked actor #{actor.id} for user #{user.email}")
+                {:ok, updated_user}
+              
+              {:error, error} ->
+                Logger.error("Failed to link actor #{actor.id} to user #{user.email}: #{inspect(error)}")
+                {:error, error}
+            end
 
           {:error, error} ->
             Logger.error("Failed to create actor for user #{user.email}: #{inspect(error)}")
-            :ok
+            {:error, error}
         end
 
       _actor_id ->
         # User has an actor, optionally update missing fields
         update_actor_from_linkedin_if_needed(user, user_info)
+        {:ok, user}
     end
   end
 
