@@ -32,7 +32,7 @@
               v-if="!comment.deletedAt"
               dir="auto"
               :class="{ organizer: commentFromOrganizer }"
-              >{{ actorComment?.name }}</strong
+              >{{ actorComment?.name || t('[Unknown]') }}</strong
             >
           </div>
 
@@ -146,8 +146,8 @@
         <AccountCircle v-else :size="48" />
         <div class="flex-1">
           <div class="flex gap-1 items-center">
-            <strong>{{ currentActor?.name }}</strong>
-            <small dir="ltr">@{{ currentActor?.preferredUsername }}</small>
+            <strong>{{ currentActor?.name || t('[Unknown]') }}</strong>
+            <small dir="ltr">@{{ currentActor?.preferredUsername || 'unknown' }}</small>
           </div>
           <div class="flex flex-col gap-2">
             <editor

@@ -6,7 +6,7 @@
         keypath="You have been invited by {invitedBy} to the following group:"
       >
         <template #invitedBy>
-          <b>{{ member?.invitedBy?.name }}</b>
+          <b>{{ member?.invitedBy?.name || t('[Unknown]') }}</b>
         </template>
       </i18n-t>
     </div>

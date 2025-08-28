@@ -36,7 +36,7 @@
             <AccountCircle v-else :size="48" />
           </div>
           <div class="prose dark:prose-invert">
-            <strong>{{ comment?.actor?.name }}</strong>
+            <strong>{{ comment?.actor?.name || t('[Unknown]') }}</strong>
             <small v-if="comment.actor"
               >@{{ usernameWithDomain(comment?.actor) }}</small
             >
