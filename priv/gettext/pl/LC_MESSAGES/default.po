@@ -2167,155 +2167,15 @@ msgstr ""
 msgid "View the details"
 msgstr "Zobacz szczegóły"
 
-#: lib/mobilizon/events/categories.ex:32
-#, elixir-autogen, elixir-format
-msgid "Arts"
-msgstr "Sztuka"
-
-#: lib/mobilizon/events/categories.ex:68
-#, elixir-autogen, elixir-format
-msgid "Auto, boat and air"
-msgstr "Samochody, łodzie i samoloty"
-
-#: lib/mobilizon/events/categories.ex:36
-#, elixir-autogen, elixir-format
-msgid "Book clubs"
-msgstr "Kluby książkowe"
-
-#: lib/mobilizon/events/categories.ex:40
-#, elixir-autogen, elixir-format
-msgid "Business"
-msgstr "Biznes"
-
-#: lib/mobilizon/events/categories.ex:44
-#, elixir-autogen, elixir-format
-msgid "Causes"
-msgstr "Szlachetne cele"
-
 #: lib/mobilizon/events/categories.ex:48
-#, elixir-autogen, elixir-format
-msgid "Comedy"
-msgstr "Komedia / humor"
-
-#: lib/mobilizon/events/categories.ex:72
-#, elixir-autogen, elixir-format
-msgid "Community"
-msgstr "Społeczności"
-
-#: lib/mobilizon/events/categories.ex:52
-#, elixir-autogen, elixir-format
-msgid "Crafts"
-msgstr "Rękodzieło"
-
-#: lib/mobilizon/events/categories.ex:76
-#, elixir-autogen, elixir-format
-msgid "Family & Education"
-msgstr "Rodzina i edukacja"
-
-#: lib/mobilizon/events/categories.ex:80
-#, elixir-autogen, elixir-format
-msgid "Fashion & Beauty"
-msgstr "Moda i uroda"
-
-#: lib/mobilizon/events/categories.ex:84
-#, elixir-autogen, elixir-format
-msgid "Film & Media"
-msgstr "Film i media"
-
-#: lib/mobilizon/events/categories.ex:56
-#, elixir-autogen, elixir-format
-msgid "Food & Drink"
-msgstr "Jedzenie i napoje"
-
-#: lib/mobilizon/events/categories.ex:88
 #, elixir-autogen, elixir-format
 msgid "Games"
 msgstr "Gry"
-
-#: lib/mobilizon/events/categories.ex:60
-#, elixir-autogen, elixir-format
-msgid "Health"
-msgstr "Zdrowie"
-
-#: lib/mobilizon/events/categories.ex:100
-#, elixir-autogen, elixir-format
-msgid "LGBTQ"
-msgstr "LGBT+"
-
-#: lib/mobilizon/events/categories.ex:92
-#, elixir-autogen, elixir-format
-msgid "Language & Culture"
-msgstr "Język & Kultura"
-
-#: lib/mobilizon/events/categories.ex:96
-#, elixir-autogen, elixir-format
-msgid "Learning"
-msgstr "Uczenie się"
-
-#: lib/mobilizon/events/categories.ex:149
-#, elixir-autogen, elixir-format
-msgid "Meeting"
-msgstr "Spotykanie ludzi"
-
-#: lib/mobilizon/events/categories.ex:104
-#, elixir-autogen, elixir-format
-msgid "Movements and politics"
-msgstr "Organizacje,ruchy i polityka"
 
 #: lib/mobilizon/events/categories.ex:64
 #, elixir-autogen, elixir-format
 msgid "Music"
 msgstr "Muzyka"
-
-#: lib/mobilizon/events/categories.ex:108
-#, elixir-autogen, elixir-format
-msgid "Networking"
-msgstr "<i>Networking</i>"
-
-#: lib/mobilizon/events/categories.ex:128
-#, elixir-autogen, elixir-format
-msgid "Outdoors & Adventure"
-msgstr "Turystyka & Sporty, gry i zabawy w terenie"
-
-#: lib/mobilizon/events/categories.ex:112
-#, elixir-autogen, elixir-format
-msgid "Party"
-msgstr "Przyjęcia i imprezy"
-
-#: lib/mobilizon/events/categories.ex:116
-#, elixir-autogen, elixir-format
-msgid "Performing & Visual Arts"
-msgstr "Sztuki sceniczne i wizualne"
-
-#: lib/mobilizon/events/categories.ex:120
-#, elixir-autogen, elixir-format
-msgid "Pets"
-msgstr "Zwierzęta domowe"
-
-#: lib/mobilizon/events/categories.ex:124
-#, elixir-autogen, elixir-format
-msgid "Photography"
-msgstr "Fotografia"
-
-#: lib/mobilizon/events/categories.ex:136
-#, elixir-autogen, elixir-format
-msgid "Science & Tech"
-msgstr "Nauka & Technika"
-
-#: lib/mobilizon/events/categories.ex:132
-#, elixir-autogen, elixir-format
-msgid "Spirituality, Religion & Beliefs"
-msgstr "Duchowość, Religia & Przekonania"
-
-#: lib/mobilizon/events/categories.ex:140
-#, elixir-autogen, elixir-format
-msgid "Sports"
-msgstr "Sport"
-
-#: lib/mobilizon/events/categories.ex:144
-#, elixir-autogen, elixir-format
-msgid "Theatre"
-msgstr "Teatr"
 
 #: lib/web/templates/email/participation/event_card.text.eex:9
 #, elixir-autogen, elixir-format
@@ -2414,3 +2274,88 @@ msgstr ""
 "zaznaczono, ta instancja Mobilizon jest niezależną usługą korzystającą z "
 "kodu źródłowego Mobilizon. Więcej informacji o tej instancji można znaleźć "
 "na stronie <a href=\"/about/instance\">„Informacje o tej instancji”</a>."
+
+#: lib/mobilizon/events/categories.ex:32
+#, elixir-autogen, elixir-format
+msgid "Art & Culture"
+msgstr "Sztuka i Kultura"
+
+#: lib/mobilizon/events/categories.ex:36
+#, elixir-autogen, elixir-format
+msgid "Career & Business"
+msgstr "Kariera i Biznes"
+
+#: lib/mobilizon/events/categories.ex:40
+#, elixir-autogen, elixir-format
+msgid "Community & Environment"
+msgstr "Społeczność i Środowisko"
+
+#: lib/mobilizon/events/categories.ex:44
+#, elixir-autogen, elixir-format
+msgid "Dance"
+msgstr "Taniec"
+
+#: lib/mobilizon/events/categories.ex:52
+#, elixir-autogen, elixir-format
+msgid "Hobbies & Passions"
+msgstr "Hobby i Pasje"
+
+#: lib/mobilizon/events/categories.ex:56
+#, elixir-autogen, elixir-format
+msgid "Identity & Language"
+msgstr "Tożsamość i Język"
+
+#: lib/mobilizon/events/categories.ex:60
+#, elixir-autogen, elixir-format
+msgid "Movement & Politics"
+msgstr "Ruchy i Polityka"
+
+#: lib/mobilizon/events/categories.ex:68
+#, elixir-autogen, elixir-format
+msgid "Parents & Family"
+msgstr "Rodzice i Rodzina"
+
+#: lib/mobilizon/events/categories.ex:72
+#, elixir-autogen, elixir-format
+msgid "Pets & Animals"
+msgstr "Zwierzęta domowe"
+
+#: lib/mobilizon/events/categories.ex:76
+#, elixir-autogen, elixir-format
+msgid "Religion & Spirituality"
+msgstr "Religia i Duchowość"
+
+#: lib/mobilizon/events/categories.ex:80
+#, elixir-autogen, elixir-format
+msgid "Science & Education"
+msgstr "Nauka i Edukacja"
+
+#: lib/mobilizon/events/categories.ex:84
+#, elixir-autogen, elixir-format
+msgid "Social Activities"
+msgstr "Aktywności społeczne"
+
+#: lib/mobilizon/events/categories.ex:88
+#, elixir-autogen, elixir-format
+msgid "Sports & Fitness"
+msgstr "Sport i Fitness"
+
+#: lib/mobilizon/events/categories.ex:92
+#, elixir-autogen, elixir-format
+msgid "Technology"
+msgstr "Technologia"
+
+#: lib/mobilizon/events/categories.ex:96
+#, elixir-autogen, elixir-format
+msgid "Travel & Outdoor"
+msgstr "Podróże i Outdoor"
+
+#: lib/mobilizon/events/categories.ex:100
+#, elixir-autogen, elixir-format
+msgid "Wellness"
+msgstr "Wellness"
+
+#: lib/mobilizon/events/categories.ex:104
+#, elixir-autogen, elixir-format
+msgid "Writing"
+msgstr "Pisanie"

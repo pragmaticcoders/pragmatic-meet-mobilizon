@@ -9,6 +9,7 @@ defmodule Mobilizon.Web.Router do
     #    plug(:accepts, ["json"])
     plug(:put_request_context)
     plug(Mobilizon.Web.Auth.Pipeline)
+    plug(Mobilizon.Web.Plugs.DetectLocalePlug)
     plug(Mobilizon.Web.Plugs.SetLocalePlug)
   end
 

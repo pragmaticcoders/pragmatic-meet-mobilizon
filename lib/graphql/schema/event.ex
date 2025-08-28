@@ -461,7 +461,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       )
 
       arg(:category, :event_category,
-        default_value: "MEETING",
+        default_value: "SOCIAL_ACTIVITIES",
         description: "The event's category"
       )
 

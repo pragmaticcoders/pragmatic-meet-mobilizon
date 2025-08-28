@@ -4,7 +4,7 @@ defmodule Mobilizon.Events.Categories do
   """
   import Mobilizon.Web.Gettext
 
-  @default "MEETING"
+  @default "SOCIAL_ACTIVITIES"
 
   @spec default :: String.t()
   def default do
@@ -28,125 +28,80 @@ defmodule Mobilizon.Events.Categories do
   defp build_in_categories do
     [
       %{
-        id: :arts,
-        label: gettext("Arts")
+        id: :art_and_culture,
+        label: gettext("Art & Culture")
       },
       %{
-        id: :book_clubs,
-        label: gettext("Book clubs")
+        id: :career_and_business,
+        label: gettext("Career & Business")
       },
       %{
-        id: :business,
-        label: gettext("Business")
+        id: :community_and_environment,
+        label: gettext("Community & Environment")
       },
       %{
-        id: :causes,
-        label: gettext("Causes")
-      },
-      %{
-        id: :comedy,
-        label: gettext("Comedy")
-      },
-      %{
-        id: :crafts,
-        label: gettext("Crafts")
-      },
-      %{
-        id: :food_drink,
-        label: gettext("Food & Drink")
-      },
-      %{
-        id: :health,
-        label: gettext("Health")
-      },
-      %{
-        id: :music,
-        label: gettext("Music")
-      },
-      %{
-        id: :auto_boat_air,
-        label: gettext("Auto, boat and air")
-      },
-      %{
-        id: :community,
-        label: gettext("Community")
-      },
-      %{
-        id: :family_education,
-        label: gettext("Family & Education")
-      },
-      %{
-        id: :fashion_beauty,
-        label: gettext("Fashion & Beauty")
-      },
-      %{
-        id: :film_media,
-        label: gettext("Film & Media")
+        id: :dance,
+        label: gettext("Dance")
       },
       %{
         id: :games,
         label: gettext("Games")
       },
       %{
-        id: :language_culture,
-        label: gettext("Language & Culture")
+        id: :hobbies_and_passions,
+        label: gettext("Hobbies & Passions")
       },
       %{
-        id: :learning,
-        label: gettext("Learning")
+        id: :identity_and_language,
+        label: gettext("Identity & Language")
       },
       %{
-        id: :lgbtq,
-        label: gettext("LGBTQ")
+        id: :movement_and_politics,
+        label: gettext("Movement & Politics")
       },
       %{
-        id: :movements_politics,
-        label: gettext("Movements and politics")
+        id: :music,
+        label: gettext("Music")
       },
       %{
-        id: :networking,
-        label: gettext("Networking")
+        id: :parents_and_family,
+        label: gettext("Parents & Family")
       },
       %{
-        id: :party,
-        label: gettext("Party")
+        id: :pets_and_animals,
+        label: gettext("Pets & Animals")
       },
       %{
-        id: :performing_visual_arts,
-        label: gettext("Performing & Visual Arts")
+        id: :religion_and_spirituality,
+        label: gettext("Religion & Spirituality")
       },
       %{
-        id: :pets,
-        label: gettext("Pets")
+        id: :science_and_education,
+        label: gettext("Science & Education")
       },
       %{
-        id: :photography,
-        label: gettext("Photography")
+        id: :social_activities,
+        label: gettext("Social Activities")
       },
       %{
-        id: :outdoors_adventure,
-        label: gettext("Outdoors & Adventure")
+        id: :sports_and_fitness,
+        label: gettext("Sports & Fitness")
       },
       %{
-        id: :spirituality_religion_beliefs,
-        label: gettext("Spirituality, Religion & Beliefs")
+        id: :technology,
+        label: gettext("Technology")
       },
       %{
-        id: :science_tech,
-        label: gettext("Science & Tech")
+        id: :travel_and_outdoor,
+        label: gettext("Travel & Outdoor")
       },
       %{
-        id: :sports,
-        label: gettext("Sports")
+        id: :wellness,
+        label: gettext("Wellness")
       },
       %{
-        id: :theatre,
-        label: gettext("Theatre")
-      },
-      # Legacy default value
-      %{
-        id: :meeting,
-        label: gettext("Meeting")
+        id: :writing,
+        label: gettext("Writing")
       }
     ]
   end
