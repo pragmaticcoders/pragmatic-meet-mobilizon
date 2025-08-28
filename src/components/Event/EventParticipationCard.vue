@@ -1,6 +1,6 @@
 <template>
   <article
-    class="bg-white border border-[#cac9cb] overflow-hidden flex flex-col w-[273px]"
+    class="bg-white border border-[#cac9cb] overflow-hidden flex flex-col w-full"
   >
     <router-link
       :to="{
@@ -120,7 +120,7 @@
           </div>
           <div class="flex items-center gap-2">
             <div class="w-6 h-6 flex items-center justify-center">
-              <MapMarker class="w-5 h-5 text-gray-500" />
+              <MapMarker class="w-6 h-6 text-gray-500" />
             </div>
             <div
               class="text-[15px] font-medium text-[#37363a] leading-[23px] flex-1 flex items-center gap-1"

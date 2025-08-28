@@ -50,6 +50,9 @@ export const HOME_USER_QUERIES = gql`
               notApproved
               participant
             }
+            physicalAddress {
+              ...AdressFragment
+            }
             options {
               ...EventOptions
             }

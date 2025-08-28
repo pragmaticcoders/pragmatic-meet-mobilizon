@@ -22,13 +22,11 @@
           v-model="locale"
           :placeholder="t('Select a language')"
         >
-          <option
-            v-for="(language, lang) in langs"
-            :value="lang"
-            :key="lang"
-            :selected="isLangSelected(lang)"
-          >
-            {{ flagForLocale(lang) }} {{ language }}
+          <option value="en" key="en">
+            🇬🇧 English
+          </option>
+          <option value="pl" key="pl">
+            🇵🇱 Polski
           </option>
         </o-select>
       </div>
@@ -81,9 +79,7 @@
 import { saveLocaleData } from "@/utils/auth";
 import { loadLanguageAsync } from "@/utils/i18n";
 import RouteName from "../router/name";
-import langs from "../i18n/langs.json";
 import { watch } from "vue";
-import { flagForLocale } from "@/utils/locale";
 import { useI18n } from "vue-i18n";
 
 const { locale, t } = useI18n({ useScope: "global" });
@@ -96,11 +92,7 @@ watch(locale, async () => {
   }
 });
 
-const isLangSelected = (lang: string): boolean => {
-  return lang === locale.value;
-};
 
-// flagForLocale now imported from utils
 </script>
 
 <style lang="scss">

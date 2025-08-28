@@ -2,10 +2,10 @@
   <LinkOrRouterLink
     :to="to"
     :isInternal="isInternal"
-    class="bg-white border border-[#cac9cb] flex flex-col w-[273px]"
+    class="bg-white border border-[#cac9cb] overflow-hidden flex flex-col w-full h-[400px]"
   >
     <!-- Group cover image -->
-    <div class="relative aspect-[273/154] bg-gray-100">
+    <div class="relative h-[154px] bg-gray-100 flex-shrink-0">
       <img
         v-if="group.banner?.url"
         :src="group.banner.url"
@@ -60,9 +60,9 @@
     </div>
 
     <!-- Group details -->
-    <div class="p-5 flex flex-col gap-4">
+    <div class="p-5 flex flex-col flex-1 min-h-0 overflow-hidden">
       <!-- Title section -->
-      <div class="flex flex-col">
+      <div class="flex flex-col mb-4">
         <div class="flex items-center gap-2">
           <figure
             v-if="group.avatar"
@@ -81,13 +81,13 @@
             <AccountGroup class="w-6 h-6 text-gray-500" />
           </div>
           <h3
-            class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"
+            class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1 truncate"
           >
             {{ displayName(group) }}
           </h3>
         </div>
         <div class="pl-8">
-          <span class="text-xs font-medium text-[#37363a] leading-[18px]">
+          <span class="text-xs font-medium text-[#37363a] leading-[18px] truncate block">
             @{{ usernameWithDomain(group) }}
           </span>
         </div>
@@ -96,17 +96,18 @@
       <!-- Group description -->
       <div
         v-if="group.summary"
-        class="text-[15px] font-medium text-black leading-[23px] line-clamp-3"
+        class="text-[15px] font-medium text-black leading-[23px] line-clamp-3 flex-1 min-h-0 mb-4 overflow-hidden"
         v-html="group.summary"
       ></div>
+      <div v-else class="flex-1 mb-4"></div>
 
       <!-- Group info -->
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-1 mt-auto">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 flex items-center justify-center">
             <AccountMultiple class="w-5 h-5 text-gray-500" />
           </div>
-          <span class="text-[15px] font-medium text-black leading-[23px]">
+          <span class="text-[15px] font-medium text-black leading-[23px] truncate">
             {{ getMemberCount }} {{ t("members") }}
           </span>
         </div>
@@ -114,7 +115,7 @@
           <div class="w-6 h-6 flex items-center justify-center">
             <MapMarker class="w-5 h-5 text-gray-500" />
           </div>
-          <span class="text-[15px] font-medium text-[#37363a] leading-[23px]">
+          <span class="text-[15px] font-medium text-[#37363a] leading-[23px] truncate">
             {{ group.physicalAddress.locality || group.physicalAddress.region }}
           </span>
         </div>

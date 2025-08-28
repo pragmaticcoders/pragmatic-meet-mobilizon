@@ -1,9 +1,9 @@
 <template>
   <LinkOrRouterLink
-    class="bg-white border border-gray-200 shadow-sm snap-center"
+    class="bg-white border border-gray-200 shadow-sm snap-center w-full"
     :class="{
       'sm:flex sm:items-start': mode === 'row',
-      'sm:max-w-xs w-[18rem] shrink-0 flex flex-col': mode === 'column',
+      'flex flex-col': mode === 'column',
     }"
     :to="to"
     :isInternal="isInternal"

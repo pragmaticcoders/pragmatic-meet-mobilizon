@@ -20,12 +20,12 @@ export class Notifier {
     this.notification(message, "info");
   }
 
-  private notification(message: string, type: string) {
+  private notification(message: string, variant: string) {
     this.app.config.globalProperties.$oruga.notification.open({
       message: escapeHtml(message),
       duration: 5000,
       position: "bottom-right",
-      type,
+      variant,
     });
   }
 }

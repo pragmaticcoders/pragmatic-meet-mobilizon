@@ -261,19 +261,34 @@
           <template #options>
             <fieldset class="flex flex-col">
               <legend class="sr-only">{{ t("Languages") }}</legend>
-              <div v-for="(language, key) in langs" :key="key">
+              <div>
                 <input
-                  :id="key"
+                  id="en"
                   type="checkbox"
                   name="eventStartDateRange"
-                  :value="key"
+                  value="en"
                   v-model="languageOneOf"
                   class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
                 />
                 <label
-                  :for="key"
+                  for="en"
                   class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
-                  >{{ language }}</label
+                  >🇬🇧 English</label
+                >
+              </div>
+              <div>
+                <input
+                  id="pl"
+                  type="checkbox"
+                  name="eventStartDateRange"
+                  value="pl"
+                  v-model="languageOneOf"
+                  class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-blue-500 text-blue-600"
+                />
+                <label
+                  for="pl"
+                  class="cursor-pointer ml-3 text-sm font-medium text-gray-900"
+                  >🇵🇱 Polski</label
                 >
               </div>
             </fieldset>
@@ -296,7 +311,7 @@
               {{
                 listShortDisjunctionFormatter(
                   languageOneOf.map(
-                    (lang) => langs[lang as keyof typeof langs] || lang
+                    (lang) => lang === 'en' ? '🇬🇧 English' : lang === 'pl' ? '🇵🇱 Polski' : lang
                   )
                 )
               }}
@@ -601,7 +616,6 @@ import { useHead } from "@/utils/head";
 import type { Locale } from "date-fns";
 import FilterSection from "@/components/Search/filters/FilterSection.vue";
 import { listShortDisjunctionFormatter } from "@/utils/listFormat";
-import langs from "@/i18n/langs.json";
 import {
   useEventCategories,
   useFeatures,
@@ -1014,7 +1028,7 @@ const boostLanguagesQuery = computed((): string[] => {
   for (const completeLanguage of navigator.languages) {
     const language = completeLanguage.split("-")[0];
 
-    if (Object.keys(langs).find((langKey) => langKey === language)) {
+    if (['en', 'pl'].includes(language)) {
       languages.add(language);
     }
   }

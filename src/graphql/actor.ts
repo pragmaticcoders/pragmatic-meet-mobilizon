@@ -282,6 +282,10 @@ export const LOGGED_USER_MEMBERSHIPS = gql`
           }
           parent {
             ...ActorFragment
+            banner {
+              uuid
+              url
+            }
             organizedEvents {
               elements {
                 id

@@ -1,5 +1,5 @@
 <template>
-  <section class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="event">
+  <section class="max-w-screen-xl mx-auto px-3 sm:px-4 md:px-16" v-if="event">
     <breadcrumbs-nav
       :links="[
         { name: RouteName.MY_EVENTS, text: t('My events') },
@@ -15,14 +15,14 @@
         },
       ]"
     />
-    <h1 class="text-3xl font-bold mb-6">{{ t("Participants") }}</h1>
-    <div class="mb-6">
-      <div class="flex items-center justify-between gap-4">
+    <h1 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{{ t("Participants") }}</h1>
+    <div class="mb-4 sm:mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div class="flex items-center gap-2">
-          <label for="role-select" class="text-sm font-medium"
+          <label for="role-select" class="text-sm font-medium whitespace-nowrap"
             >{{ t("Status") }}:</label
           >
-          <o-select v-model="role" id="role-select" class="min-w-[150px]">
+          <o-select v-model="role" id="role-select" class="min-w-[150px] flex-1 sm:flex-initial">
             <option value="EVERYTHING">
               {{ t("Everything") }}
             </option>
@@ -40,15 +40,18 @@
             </option>
           </o-select>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <o-button
             @click="acceptParticipants(checkedRows)"
             variant="primary"
             :disabled="!canAcceptParticipants() || bulkActionLoading"
             :loading="bulkActionLoading"
             icon-left="check"
+            size="small"
+            class="text-xs sm:text-sm"
           >
-            {{ t("Approve") }}
+            <span class="hidden xs:inline">{{ t("Approve") }}</span>
+            <span class="xs:hidden">{{ t("Approve") }}</span>
           </o-button>
           <o-button
             @click="refuseParticipants(checkedRows)"
@@ -56,8 +59,11 @@
             :disabled="!canRefuseParticipants() || bulkActionLoading"
             :loading="bulkActionLoading"
             icon-left="close"
+            size="small"
+            class="text-xs sm:text-sm"
           >
-            {{ t("Reject") }}
+            <span class="hidden xs:inline">{{ t("Reject") }}</span>
+            <span class="xs:hidden">{{ t("Reject") }}</span>
           </o-button>
           <o-dropdown aria-role="list" v-if="exportFormats.length > 0">
             <template #trigger="{ active }">
@@ -65,6 +71,8 @@
                 :label="t('Export')"
                 variant="primary"
                 :icon-right="active ? 'menu-up' : 'menu-down'"
+                size="small"
+                class="text-xs sm:text-sm"
               />
             </template>
 
@@ -95,68 +103,219 @@
         </div>
       </div>
     </div>
-    <o-table
-      :data="event.participants.elements"
-      ref="queueTable"
-      detailed
-      detail-key="id"
-      v-model:checked-rows="checkedRows"
-      checkable
-      :is-row-checkable="
-        (row: IParticipant) => row.role !== ParticipantRole.CREATOR
-      "
-      checkbox-position="left"
-      :show-detail-icon="false"
-      :loading="participantsLoading"
-      paginated
-      :current-page="page"
-      backend-pagination
-      :pagination-simple="true"
-      :aria-next-label="t('Next page')"
-      :aria-previous-label="t('Previous page')"
-      :aria-page-label="t('Page')"
-      :aria-current-label="t('Current page')"
-      :total="event.participants.total"
-      :per-page="PARTICIPANTS_PER_PAGE"
-      backend-sorting
-      :default-sort-direction="'desc'"
-      :default-sort="['insertedAt', 'desc']"
-      @page-change="(newPage: number) => (page = newPage)"
-      @sort="(field: string, order: string) => emit('sort', field, order)"
-    >
+    <!-- Mobile Card Layout -->
+    <div class="block md:hidden">
+      <div v-if="participantsLoading" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+      <div v-else-if="event.participants.elements.length === 0" class="text-center py-8">
+        <EmptyContent icon="account-circle" :inline="true">
+          {{ t("No participant matches the filters") }}
+        </EmptyContent>
+      </div>
+      <div v-else class="space-y-3">
+        <div
+          v-for="participant in event.participants.elements"
+          :key="participant.id"
+          class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
+        >
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <input
+                v-if="participant.role !== ParticipantRole.CREATOR"
+                type="checkbox"
+                :value="participant"
+                v-model="checkedRows"
+                class="mt-1 rounded border-gray-300"
+              />
+              <figure v-if="participant.actor.avatar" class="flex-shrink-0">
+                <img
+                  class="rounded-full w-10 h-10 object-cover"
+                  :src="participant.actor.avatar.url"
+                  alt=""
+                />
+              </figure>
+              <Incognito
+                v-else-if="participant.actor.preferredUsername === 'anonymous'"
+                :size="40"
+                class="flex-shrink-0"
+              />
+              <AccountCircle v-else :size="40" class="flex-shrink-0" />
+              <div class="min-w-0 flex-1">
+                <div v-if="participant.actor.preferredUsername !== 'anonymous'">
+                  <div class="font-medium text-sm truncate">
+                    {{ participant.actor.name || usernameWithDomain(participant.actor) }}
+                  </div>
+                  <div class="text-xs text-gray-500 truncate" v-if="participant.actor.name">
+                    @{{ usernameWithDomain(participant.actor) }}
+                  </div>
+                </div>
+                <span v-else class="text-sm text-gray-500">
+                  {{ t("Anonymous participant") }}
+                </span>
+              </div>
+            </div>
+            <span
+              class="inline-block px-2 py-1 text-xs font-medium rounded-sm flex-shrink-0"
+              :class="{
+                'bg-blue-500 text-white': participant.role === ParticipantRole.CREATOR,
+                'bg-green-100 text-green-800': participant.role === ParticipantRole.PARTICIPANT,
+                'bg-gray-100 text-gray-800': 
+                  participant.role === ParticipantRole.NOT_CONFIRMED ||
+                  participant.role === ParticipantRole.NOT_APPROVED,
+                'bg-red-100 text-red-800': participant.role === ParticipantRole.REJECTED,
+              }"
+            >
+              <template v-if="participant.role === ParticipantRole.CREATOR">
+                {{ t("Organizer") }}
+              </template>
+              <template v-else-if="participant.role === ParticipantRole.PARTICIPANT">
+                {{ t("Participant") }}
+              </template>
+              <template v-else-if="participant.role === ParticipantRole.NOT_CONFIRMED">
+                {{ t("Not confirmed") }}
+              </template>
+              <template v-else-if="participant.role === ParticipantRole.NOT_APPROVED">
+                {{ t("Not approved") }}
+              </template>
+              <template v-else-if="participant.role === ParticipantRole.REJECTED">
+                {{ t("Rejected") }}
+              </template>
+            </span>
+          </div>
+          
+          <div class="space-y-2 text-sm">
+            <div v-if="participant.metadata && participant.metadata.message">
+              <div class="font-medium text-gray-700">{{ t("Message") }}:</div>
+              <div class="text-gray-600 bg-gray-50 p-2 rounded text-xs">
+                {{ participant.metadata.message }}
+              </div>
+            </div>
+            
+            <div class="flex justify-between items-center text-xs text-gray-500">
+              <div>
+                <div>{{ participant.insertedAt ? formatDateString(participant.insertedAt.toString()) : '' }}</div>
+                <div>{{ participant.insertedAt ? formatTimeString(participant.insertedAt.toString()) : '' }}</div>
+              </div>
+              
+              <div class="flex gap-1" v-if="participant.role !== ParticipantRole.CREATOR">
+                <o-button
+                  v-if="
+                    participant.role === ParticipantRole.NOT_APPROVED ||
+                    participant.role === ParticipantRole.REJECTED
+                  "
+                  @click="participant.id && updateSingleParticipant(participant.id, ParticipantRole.PARTICIPANT)"
+                  size="small"
+                  variant="success"
+                  icon-left="check"
+                  :title="t('Approve')"
+                />
+                <o-button
+                  v-if="participant.role !== ParticipantRole.REJECTED"
+                  @click="participant.id && updateSingleParticipant(participant.id, ParticipantRole.REJECTED)"
+                  size="small"
+                  variant="danger"
+                  icon-left="close"
+                  :title="t('Reject')"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Mobile Pagination -->
+      <div v-if="event.participants.total > PARTICIPANTS_PER_PAGE" class="mt-6">
+        <div class="flex justify-between items-center">
+          <o-button
+            @click="page = page - 1"
+            :disabled="page <= 1"
+            variant="primary"
+            outlined
+            size="small"
+          >
+            {{ t('Previous page') }}
+          </o-button>
+          <span class="text-sm text-gray-600">
+            {{ t('Page') }} {{ page }} {{ t('of') }} {{ Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE) }}
+          </span>
+          <o-button
+            @click="page = page + 1"
+            :disabled="page >= Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE)"
+            variant="primary"
+            outlined
+            size="small"
+          >
+            {{ t('Next page') }}
+          </o-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Desktop Table Layout -->
+    <div class="hidden md:block">
+      <o-table
+        :data="event.participants.elements"
+        ref="queueTable"
+        detailed
+        detail-key="id"
+        v-model:checked-rows="checkedRows"
+        checkable
+        :is-row-checkable="
+          (row: IParticipant) => row.role !== ParticipantRole.CREATOR
+        "
+        checkbox-position="left"
+        :show-detail-icon="false"
+        :loading="participantsLoading"
+        paginated
+        :current-page="page"
+        backend-pagination
+        :pagination-simple="true"
+        :aria-next-label="t('Next page')"
+        :aria-previous-label="t('Previous page')"
+        :aria-page-label="t('Page')"
+        :aria-current-label="t('Current page')"
+        :total="event.participants.total"
+        :per-page="PARTICIPANTS_PER_PAGE"
+        backend-sorting
+        :default-sort-direction="'desc'"
+        :default-sort="['insertedAt', 'desc']"
+        @page-change="(newPage: number) => (page = newPage)"
+        @sort="(field: string, order: string) => emit('sort', field, order)"
+      >
       <o-table-column
         field="actor.preferredUsername"
         :label="t('Participant')"
         v-slot="props"
       >
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <figure v-if="props.row.actor.avatar" class="flex-shrink-0">
             <img
-              class="rounded-full w-10 h-10 object-cover"
+              class="rounded-full w-8 h-8 sm:w-10 sm:h-10 object-cover"
               :src="props.row.actor.avatar.url"
               alt=""
-              height="40"
-              width="40"
+              :height="32"
+              :width="32"
             />
           </figure>
           <Incognito
             v-else-if="props.row.actor.preferredUsername === 'anonymous'"
-            :size="40"
+            :size="32"
             class="flex-shrink-0"
           />
-          <AccountCircle v-else :size="40" class="flex-shrink-0" />
-          <div>
+          <AccountCircle v-else :size="32" class="flex-shrink-0" />
+          <div class="min-w-0 flex-1">
             <div v-if="props.row.actor.preferredUsername !== 'anonymous'">
-              <div class="font-medium text-sm">
+              <div class="font-medium text-xs sm:text-sm truncate">
                 {{
                   props.row.actor.name || usernameWithDomain(props.row.actor)
                 }}
               </div>
-              <div class="text-xs text-gray-500" v-if="props.row.actor.name">
+              <div class="text-xs text-gray-500 truncate" v-if="props.row.actor.name">
                 @{{ usernameWithDomain(props.row.actor) }}
               </div>
             </div>
-            <span v-else class="text-sm text-gray-500">
+            <span v-else class="text-xs sm:text-sm text-gray-500">
               {{ t("Anonymous participant") }}
             </span>
           </div>
@@ -164,7 +323,7 @@
       </o-table-column>
       <o-table-column field="role" :label="t('Role')" v-slot="props">
         <span
-          class="inline-block px-3 py-1 text-xs font-medium rounded-sm"
+          class="inline-block px-2 sm:px-3 py-1 text-xs font-medium rounded-sm"
           :class="{
             'bg-blue-500 text-white':
               props.row.role === ParticipantRole.CREATOR,
@@ -231,16 +390,16 @@
         </p>
       </o-table-column>
       <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
-        <div class="text-sm">
-          <div>{{ formatDateString(props.row.insertedAt) }}</div>
-          <div class="text-gray-500">
+        <div class="text-xs sm:text-sm">
+          <div class="truncate">{{ formatDateString(props.row.insertedAt) }}</div>
+          <div class="text-gray-500 truncate">
             {{ formatTimeString(props.row.insertedAt) }}
           </div>
         </div>
       </o-table-column>
       <o-table-column :label="t('Actions')" v-slot="props">
         <div
-          class="flex gap-1"
+          class="flex gap-1 justify-center sm:justify-start"
           v-if="props.row.role !== ParticipantRole.CREATOR"
         >
           <o-button
@@ -278,7 +437,8 @@
           {{ t("No participant matches the filters") }}
         </EmptyContent>
       </template>
-    </o-table>
+      </o-table>
+    </div>
   </section>
 </template>
 
