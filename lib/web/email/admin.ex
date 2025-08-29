@@ -10,6 +10,8 @@ defmodule Mobilizon.Web.Email.Admin do
   alias Mobilizon.Config
   alias Mobilizon.Reports.Report
   alias Mobilizon.Users.User
+  alias Mobilizon.Users
+  alias Mobilizon.Actors.Actor
 
   alias Mobilizon.Web.Email
 
@@ -151,5 +153,38 @@ defmodule Mobilizon.Web.Email.Admin do
       subject: subject,
       offer_unsupscription: false
     })
+  end
+
+  @spec new_group_to_validate(User.t(), Actor.t()) :: Swoosh.Email.t()
+  def new_group_to_validate(%User{email: email, locale: user_locale}, group) do
+    Gettext.put_locale(user_locale)
+
+    subject =
+      gettext(
+        "New group to validate on %{instance}",
+        instance: Config.instance_name()
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:new_group_to_validate, %{
+      locale: user_locale,
+      subject: subject,
+      group: group,
+      instance_name: Config.instance_name(),
+      offer_unsupscription: false
+    })
+  end
+
+  @spec notify_admins_of_new_group(Actor.t()) :: :ok
+  def notify_admins_of_new_group(%Actor{type: :Group} = group) do
+    Users.list_moderators()
+    |> Enum.each(fn admin_user ->
+      admin_user
+      |> new_group_to_validate(group)
+      |> Email.Mailer.send_email()
+    end)
+
+    :ok
   end
 end

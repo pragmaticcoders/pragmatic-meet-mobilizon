@@ -11,6 +11,7 @@ defmodule Mobilizon.GraphQL.API.Groups do
   alias Mobilizon.GraphQL.Error
   alias Mobilizon.Federation.ActivityPub.{Actions, Activity}
   alias Mobilizon.Service.Formatter.HTML
+  alias Mobilizon.Web.Email.Admin
 
   @doc """
   Create a group
@@ -29,7 +30,15 @@ defmodule Mobilizon.GraphQL.API.Groups do
 
     case Actors.get_local_actor_by_name(preferred_username) do
       nil ->
-        Actions.Create.create(:actor, args, true, %{"actor" => args.creator_actor.url})
+        case Actions.Create.create(:actor, args, true, %{"actor" => args.creator_actor.url}) do
+          {:ok, activity, %Actor{type: :Group} = group} ->
+            # Send notification to admins about the new group
+            Admin.notify_admins_of_new_group(group)
+            {:ok, activity, group}
+
+          error ->
+            error
+        end
 
       %Actor{} ->
         {:error,

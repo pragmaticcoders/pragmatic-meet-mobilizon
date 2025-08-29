@@ -1,0 +1,17 @@
+<%= gettext "New Group Requires Validation" %>
+==================================================
+
+<%= gettext "Hello," %>
+
+<%= gettext "A new group has been created on %{instance} and requires validation from an administrator.", instance: @instance_name %>
+
+<%= gettext "Group Details:" %>
+- <%= gettext "Name:" %> <%= @group.name %>
+- <%= gettext "Handle:" %> @<%= @group.preferred_username %>
+<%= if @group.summary do %>- <%= gettext "Summary:" %> <%= @group.summary %><% end %>
+
+<%= gettext "To validate this group, please visit the admin panel:" %>
+<%= Mobilizon.Web.Endpoint.url() %>/admin/groups
+
+--
+<%= gettext "You are receiving this email because you are an administrator of %{instance}.", instance: @instance_name %>
