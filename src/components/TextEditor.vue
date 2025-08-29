@@ -6,52 +6,6 @@
       id="tiptab-editor"
       :data-actor-id="currentActor && currentActor.id"
     >
-      <div
-        class="mb-2 menubar bar-is-hidden"
-        v-if="isDescriptionMode"
-        :editor="editor"
-      >
-        <button
-          class="menubar__button"
-          :class="{ 'is-active': editor?.isActive('bold') }"
-          @click="editor?.chain().focus().toggleBold().run()"
-          type="button"
-          :title="t('Bold')"
-        >
-          <FormatBold :size="24" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'is-active': editor?.isActive('italic') }"
-          @click="editor?.chain().focus().toggleItalic().run()"
-          type="button"
-          :title="t('Italic')"
-        >
-          <FormatItalic :size="24" />
-        </button>
-
-        <button
-          class="menubar__button"
-          :class="{ 'is-active': editor?.isActive('underline') }"
-          @click="editor?.chain().focus().toggleUnderline().run()"
-          type="button"
-          :title="t('Underline')"
-        >
-          <FormatUnderline :size="24" />
-        </button>
-
-        <button
-          class="menubar__button"
-          v-if="!isBasicMode"
-          @click="showImagePrompt()"
-          type="button"
-          :title="t('Add picture')"
-        >
-          <Image :size="24" />
-        </button>
-      </div>
-
       <bubble-menu
         v-if="editor && isCommentMode"
         class="bubble-menu"
@@ -94,6 +48,52 @@
         v-if="editor"
         ref="editorContentRef"
       />
+
+      <div
+        class="input-actions mt-2"
+        v-if="isDescriptionMode || isCommentMode"
+        :editor="editor"
+      >
+        <button
+          class="action-button"
+          :class="{ 'is-active': editor?.isActive('bold') }"
+          @click="editor?.chain().focus().toggleBold().run()"
+          type="button"
+          :title="t('Bold')"
+        >
+          <o-icon icon="format-bold" />
+        </button>
+
+        <button
+          class="action-button"
+          :class="{ 'is-active': editor?.isActive('italic') }"
+          @click="editor?.chain().focus().toggleItalic().run()"
+          type="button"
+          :title="t('Italic')"
+        >
+          <o-icon icon="format-italic" />
+        </button>
+
+        <button
+          class="action-button"
+          :class="{ 'is-active': editor?.isActive('underline') }"
+          @click="editor?.chain().focus().toggleUnderline().run()"
+          type="button"
+          :title="t('Underline')"
+        >
+          <o-icon icon="format-underline" />
+        </button>
+
+        <button
+          class="action-button"
+          @click="showImagePrompt()"
+          type="button"
+          :title="t('Add picture')"
+        >
+          <o-icon icon="image" />
+        </button>
+      </div>
+
       <p v-if="editorErrorMessage" class="text-sm text-mbz-danger">
         {{ editorErrorMessage }}
       </p>
@@ -132,10 +132,7 @@ import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMutation } from "@vue/apollo-composable";
 import { Notifier } from "@/plugins/notifier";
-import FormatBold from "vue-material-design-icons/FormatBold.vue";
-import FormatItalic from "vue-material-design-icons/FormatItalic.vue";
-import FormatUnderline from "vue-material-design-icons/FormatUnderline.vue";
-import Image from "vue-material-design-icons/Image.vue";
+
 import Placeholder from "@tiptap/extension-placeholder";
 import { useFocusWithin } from "@vueuse/core";
 
@@ -352,20 +349,36 @@ const checkEditorEmpty = () => {
 @use "@/styles/_mixins" as *;
 @import "./Editor/style.scss";
 
-.menubar {
-  transition:
-    visibility 0.2s 0.4s,
-    opacity 0.2s 0.4s;
+.input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem; /* gap-1.5 */
 
-  &__button {
-    font-weight: bold;
-    display: inline-flex;
+  .action-button {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: 0;
-    padding: 0.2rem 0.5rem;
-    // @include margin-right(0.2rem);
-    border-radius: 3px;
+    transition: background-color 0.2s;
     cursor: pointer;
+
+    &:hover {
+      background-color: #f9fafb; /* hover:bg-gray-50 */
+    }
+
+    &.is-active {
+      background-color: #e5e7eb; /* bg-gray-200 */
+    }
+
+    .o-icon,
+    :deep(.o-icon) {
+      width: 2rem !important; /* size-8 */
+      height: 2rem !important; /* size-8 */
+      color: #155eef !important; /* text-[#155eef] */
+    }
   }
 }
 
@@ -599,16 +612,15 @@ const checkEditorEmpty = () => {
   pointer-events: none;
   height: 0;
 }
+
+/* Ensure action buttons have proper styling */
+.input-actions .action-button .o-icon {
+  color: #155eef !important;
+  width: 2rem !important;
+  height: 2rem !important;
+}
 </style>
 <style>
-.menubar__button {
-  @apply mx-0.5;
-}
-
-.menubar__button.is-active {
-  @apply bg-zinc-300 dark:bg-zinc-500;
-}
-
 .mention[data-id] {
   @apply inline-block border border-zinc-600 dark:border-zinc-300 rounded py-0.5 px-1;
 }

@@ -387,7 +387,6 @@
   "Do you really want to suspend this profile? All of the profiles content will be deleted.": "Czy naprawdę chcesz zawiesić ten profil? Cała jego zawartość zostanie usunięta.",
   "Do you wish to {create_event} or {explore_events}?": "Czy chcesz {create_event} lub {explore_events}?",
   "Do you wish to {create_group} or {explore_groups}?": "Czy chcesz {create_group} lub {explore_groups}?",
-  "Does the event needs to be confirmed later or is it cancelled?": "Czy wydarzenie wymaga jeszcze późniejszego potwierdzenia, czy też zostało odwołane?",
   "Domain": "Domen",
   "Domain or instance name": "Nazwa domeny lub instancji",
   "Draft": "Szkic",
@@ -1802,5 +1801,10 @@
   "Error while saving user settings": "Błąd podczas zapisywania ustawień użytkownika",
   "Error while updating locale": "Błąd podczas aktualizacji ustawień regionalnych",
   "Impossible to authenticate, either your email or password are invalid.": "Niemożliwe uwierzytelnienie, Twój adres e-mail lub hasło są nieprawidłowe.",
-  "Information": "Informacje"
-}
+  "Information": "Informacje",
+  "New conversation": "Nowa rozmowa",
+  "Write your message...": "Napisz swoją wiadomość...",
+  "Sending...": "Wysyłanie...",
+  "To:": "Do:",
+  "with:": "z:"
+  }
