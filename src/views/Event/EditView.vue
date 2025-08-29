@@ -163,20 +163,7 @@
         />
       </div>
 
-      <div class="mb-6">
-        <label for="website-url" class="block text-sm font-medium mb-2">{{
-          t("Website / URL")
-        }}</label>
-        <o-input
-          icon="link"
-          type="url"
-          v-model="event.onlineAddress"
-          placeholder="URL"
-          id="website-url"
-          expanded
-          class="w-full"
-        />
-      </div>
+
 
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-bold mb-6">{{ t("Organizers") }}</h2>

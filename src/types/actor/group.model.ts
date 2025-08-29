@@ -23,6 +23,7 @@ export interface IGroup extends IActor {
   openness: Openness;
   visibility: GroupVisibility;
   manuallyApprovesFollowers: boolean;
+  customUrl?: string;
   activity: Paginate<IActivity>;
   followers: Paginate<IFollower>;
   membersCount?: number;
@@ -57,6 +58,8 @@ export class Group extends Actor implements IGroup {
   physicalAddress: IAddress = new Address();
 
   manuallyApprovesFollowers = false;
+
+  customUrl?: string;
 
   patch(hash: IGroup | Record<string, unknown>): void {
     Object.assign(this, hash);

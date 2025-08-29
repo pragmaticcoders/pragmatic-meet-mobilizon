@@ -53,6 +53,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
     field(:suspended, :boolean, description: "If the actor is suspended")
     field(:approval_status, :approval_status, description: "The approval status of the group")
+    field(:custom_url, :string, description: "Custom URL for the group")
 
     field(:avatar, :media, description: "The actor's avatar media")
     field(:banner, :media, description: "The actor's banner media")
@@ -305,6 +306,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
       arg(:name, :string, description: "The displayed name for the group")
       arg(:summary, :string, description: "The summary for the group", default_value: "")
+      arg(:custom_url, :string, description: "Custom URL for the group")
 
       arg(:visibility, :group_visibility,
         description: "The visibility for the group",
@@ -341,6 +343,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
       arg(:name, :string, description: "The displayed name for the group")
       arg(:summary, :string, description: "The summary for the group", default_value: "")
+      arg(:custom_url, :string, description: "Custom URL for the group")
 
       arg(:visibility, :group_visibility, description: "The visibility for the group")
 

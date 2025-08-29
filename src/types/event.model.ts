@@ -49,7 +49,6 @@ interface IEventEditJSON {
   picture?: IMedia | { mediaId: string } | null;
   attributedToId: string | null;
   organizerActorId?: string;
-  onlineAddress?: string;
   phoneAddress?: string;
   physicalAddress?: IAddress;
   tags: string[];
@@ -89,7 +88,6 @@ export interface IEvent {
   comments: IComment[];
   conversations: Paginate<IConversation>;
 
-  onlineAddress?: string;
   phoneAddress?: string;
   physicalAddress: IAddress | null;
 
@@ -124,8 +122,6 @@ export class EventModel implements IEvent {
   description = "";
 
   local = true;
-
-  onlineAddress: string | undefined = "";
 
   phoneAddress: string | undefined = "";
 
@@ -219,7 +215,6 @@ export class EventModel implements IEvent {
 
     this.relatedEvents = hash.relatedEvents;
 
-    this.onlineAddress = hash.onlineAddress;
     this.phoneAddress = hash.phoneAddress;
     this.physicalAddress = hash.physicalAddress
       ? new Address(hash.physicalAddress)
@@ -263,7 +258,6 @@ export function toEditJSON(event: IEditableEvent): IEventEditJSON {
     externalParticipationUrl: event.externalParticipationUrl,
     draft: event.draft,
     tags: event.tags.map((t) => t.title),
-    onlineAddress: event.onlineAddress,
     phoneAddress: event.phoneAddress,
     physicalAddress: removeTypeName(event.physicalAddress),
     options: removeTypeName(event.options),
