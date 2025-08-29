@@ -92,10 +92,13 @@
           v-if="showUpcoming && showDrafts && drafts && drafts.total > 0"
         >
           <h2 class="text-2xl mb-2 mt-0">{{ t("Drafts") }}</h2>
-          <multi-event-minimalist-card
-            :events="drafts.elements"
-            :showOrganizer="true"
-          />
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <event-participation-card
+              v-for="event in drafts.elements"
+              :key="event.id"
+              :participation="createMockParticipation(event)"
+            />
+          </div>
           <o-pagination
             class="mt-4"
             v-show="drafts.total > LOGGED_USER_DRAFTS_LIMIT"
@@ -130,12 +133,12 @@
                     @event-deleted="eventDeleted"
                     class="participation"
                   />
-                  <event-minimalist-card
+                  <event-participation-card
                     v-else-if="
                       element.id &&
                       !monthParticipationsIds(month[1]).includes(element?.id)
                     "
-                    :event="element"
+                    :participation="createMockParticipation(element)"
                     class="participation flex-shrink-0"
                   />
                 </template>
@@ -310,8 +313,7 @@ import RouteName from "@/router/name";
 import type { IParticipant } from "../../types/participant.model";
 import { LOGGED_USER_DRAFTS } from "../../graphql/actor";
 import type { IEvent } from "../../types/event.model";
-import MultiEventMinimalistCard from "../../components/Event/MultiEventMinimalistCard.vue";
-import EventMinimalistCard from "../../components/Event/EventMinimalistCard.vue";
+
 import {
   LOGGED_USER_PARTICIPATIONS,
   LOGGED_USER_UPCOMING_EVENTS,
@@ -328,6 +330,8 @@ import { useI18n } from "vue-i18n";
 import { useRestrictions } from "@/composition/apollo/config";
 import { useHead } from "@/utils/head";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
+import { CURRENT_ACTOR_CLIENT } from "@/graphql/actor";
+import { IPerson } from "@/types/actor";
 
 const EventParticipationCard = defineAsyncComponent(
   () => import("@/components/Event/EventParticipationCard.vue")
@@ -336,6 +340,14 @@ const EventParticipationCard = defineAsyncComponent(
 type Eventable = IParticipant | IEvent;
 
 const { t } = useI18n({ useScope: "global" });
+
+// Get current actor for mock participations
+const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
+  CURRENT_ACTOR_CLIENT
+);
+const currentActor = computed<IPerson | undefined>(
+  () => currentActorResult.value?.currentActor
+);
 
 const futurePage = ref(1);
 const pastPage = ref(1);
@@ -603,6 +615,21 @@ const { restrictions } = useRestrictions();
 const hideCreateEventButton = computed((): boolean => {
   return restrictions.value?.onlyGroupsCanCreateEvents === true;
 });
+
+/**
+ * Helper function to create mock participation for events without participation data
+ */
+const createMockParticipation = (event: IEvent): IParticipant => {
+  return {
+    id: `mock-${event.id}`,
+    event,
+    actor: currentActor.value || {} as IPerson,
+    role: ParticipantRole.NOT_APPROVED,
+    metadata: {},
+    insertedAt: new Date(),
+    updatedAt: new Date(),
+  } as IParticipant;
+};
 
 useHead({
   title: computed(() => t("My events")),

@@ -129,6 +129,7 @@
             v-if="currentActor"
             :currentActor="currentActor"
             :placeholder="t('Write a new message')"
+            class="w-full"
           />
         </o-field>
         <o-button
