@@ -30,16 +30,56 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
         %{preferred_username: name} = args,
         %{
           context: %{
-            current_actor: %Actor{id: actor_id}
+            current_actor: %Actor{id: actor_id},
+            current_user: %User{role: role}
           }
         }
       ) do
     case ActivityPubActor.find_or_make_group_from_nickname(name) do
-      {:ok, %Actor{id: group_id, suspended: false} = group} ->
-        if Actors.member?(actor_id, group_id) do
-          {:ok, group}
-        else
-          find_group(parent, args, nil)
+      {:ok, %Actor{id: group_id, suspended: false, approval_status: approval_status} = group} ->
+        cond do
+          # Moderators can see all groups
+          is_moderator(role) -> {:ok, group}
+          
+          # Group members (including creator) can see their group even if pending approval
+          Actors.member?(actor_id, group_id) -> {:ok, group}
+          
+          # Other users can only see approved groups  
+          approval_status == :approved -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+          
+          # Group not found for all other cases
+          true -> {:error, :group_not_found}
+        end
+
+      {:ok, %Actor{}} ->
+        {:error, :group_not_found}
+
+      {:error, err} ->
+        Logger.debug("Unable to find group, #{inspect(err)}")
+        {:error, :group_not_found}
+    end
+  end
+
+  def find_group(
+        parent,
+        %{preferred_username: name} = args,
+        %{
+          context: %{
+            current_user: %User{role: role}
+          }
+        }
+      ) do
+    case ActivityPubActor.find_or_make_group_from_nickname(name) do
+      {:ok, %Actor{suspended: false, approval_status: approval_status} = group} ->
+        cond do
+          # Moderators can see all groups
+          is_moderator(role) -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+          
+          # Other users can only see approved groups
+          approval_status == :approved -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+          
+          # Group not found for all other cases
+          true -> {:error, :group_not_found}
         end
 
       {:ok, %Actor{}} ->
@@ -53,7 +93,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
 
   def find_group(_parent, %{preferred_username: name}, _resolution) do
     case ActivityPubActor.find_or_make_group_from_nickname(name) do
-      {:ok, %Actor{suspended: false} = actor} ->
+      {:ok, %Actor{suspended: false, approval_status: :approved} = actor} ->
         %Actor{} = actor = restrict_fields_for_non_member_request(actor)
         {:ok, actor}
 

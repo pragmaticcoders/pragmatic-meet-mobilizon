@@ -58,7 +58,8 @@ defmodule Mobilizon.GraphQL.API.Search do
                 exclude_my_groups: Map.get(args, :exclude_my_groups, false),
                 exclude_stale_actors: true,
                 local_only: Map.get(args, :search_target, :internal) == :self,
-                sort_by: Map.get(args, :sort_by)
+                sort_by: Map.get(args, :sort_by),
+                approval_status_filter: Map.get(args, :approval_status_filter, :approved)
               ],
               page,
               limit

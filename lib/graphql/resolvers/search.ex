@@ -42,9 +42,24 @@ defmodule Mobilizon.GraphQL.Resolvers.Search do
         %{page: page, limit: limit} = args,
         %{context: context} = _resolution
       ) do
+    import Mobilizon.Users.Guards
+    current_user = Map.get(context, :current_user)
     current_actor = Map.get(context, :current_actor)
     current_actor_id = if current_actor, do: current_actor.id, else: nil
-    args = Map.put(args, :current_actor_id, current_actor_id)
+    
+    # Only approved groups should be visible in search to regular users
+    # Moderators can see all groups in search
+    # Anonymous users can only see approved groups
+    approval_status_filter = case current_user do
+      %{role: role} when is_moderator(role) -> :all
+      _ -> :approved
+    end
+    
+    args = 
+      args
+      |> Map.put(:current_actor_id, current_actor_id)
+      |> Map.put(:approval_status_filter, approval_status_filter)
+    
     Search.search_actors(args, page, limit, :Group)
   end
 

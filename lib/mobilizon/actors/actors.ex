@@ -547,6 +547,7 @@ defmodule Mobilizon.Actors do
     |> events_for_bounding_box(Keyword.get(options, :bbox))
     |> filter_by_type(Keyword.get(options, :actor_type, :Group))
     |> filter_by_minimum_visibility(Keyword.get(options, :minimum_visibility, :public))
+    |> filter_by_approval_status(Keyword.get(options, :approval_status_filter, :approved))
     |> filter_suspended(false)
     |> filter_out_anonymous_actor_id(anonymous_actor_id)
     # order_by
@@ -1838,6 +1839,17 @@ defmodule Mobilizon.Actors do
 
   defp filter_by_minimum_visibility(query, :public) do
     from(a in query, where: a.visibility == ^:public)
+  end
+
+  @spec filter_by_approval_status(Ecto.Queryable.t(), atom()) :: Ecto.Query.t()
+  defp filter_by_approval_status(query, :all), do: query
+
+  defp filter_by_approval_status(query, :approved) do
+    from(a in query, where: a.approval_status == ^:approved)
+  end
+
+  defp filter_by_approval_status(query, :pending_approval) do
+    from(a in query, where: a.approval_status == ^:pending_approval)
   end
 
   @spec filter_by_name(query :: Ecto.Queryable.t(), [String.t()]) :: Ecto.Query.t()
