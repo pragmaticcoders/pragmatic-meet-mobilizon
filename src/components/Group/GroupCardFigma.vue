@@ -5,7 +5,7 @@
     class="bg-white border border-[#cac9cb] overflow-hidden flex flex-col w-full h-[380px]"
   >
     <!-- Group cover image -->
-    <div class="relative h-[200px] bg-gray-100 flex-shrink-0 overflow-hidden">
+    <div class="relative h-[200px] flex-shrink-0 overflow-hidden">
       <div v-if="group.banner?.url" class="w-full h-full">
         <lazy-image-wrapper :picture="group.banner" class="w-full h-full" />
       </div>
