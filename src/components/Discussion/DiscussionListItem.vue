@@ -15,7 +15,7 @@
         "
       >
         <img
-          class="rounded-xl"
+          class="rounded-full"
           :src="discussion.lastComment.actor.avatar.url"
           alt=""
           width="32"

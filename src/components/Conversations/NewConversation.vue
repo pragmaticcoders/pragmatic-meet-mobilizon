@@ -289,8 +289,17 @@ const sendForm = async (e: Event) => {
     return;
   }
 
+  // Check if user is trying to message themselves
+  const isSelfMessage = actorMentions.value.some(
+    (actor) => actor.id === currentActor.value?.id
+  );
+  if (isSelfMessage) {
+    errors.value.push("You cannot send a message to yourself");
+    return;
+  }
+
   isLoading.value = true;
-  errors.value = []; // Clear previous errors
+  // Note: We clear errors after all validation passes, but we already cleared them at the start of the function
 
   try {
     console.debug("Sending new private message");

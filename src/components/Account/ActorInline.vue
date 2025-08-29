@@ -3,13 +3,11 @@
     class="inline-flex items-start gap-2 bg-white dark:bg-violet-1 dark:text-white p-2 rounded-md"
   >
     <div class="flex-none">
-      <figure v-if="actor.avatar">
+      <figure v-if="actor.avatar" class="w-9 h-9 rounded-full overflow-hidden">
         <img
-          class="rounded-xl"
+          class="w-full h-full object-cover"
           :src="actor.avatar.url"
           alt=""
-          width="36"
-          height="36"
           loading="lazy"
         />
       </figure>

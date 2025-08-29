@@ -1,5 +1,5 @@
 <template>
-  <div class="flex justify-center" style="height: 284px; overflow: hidden">
+  <div class="w-full">
     <lazy-image-wrapper :picture="picture" />
   </div>
 </template>

@@ -377,6 +377,7 @@
   "Discussions": "Dyskusje",
   "Discussions list": "Lista dyskusji",
   "Display name": "Wyświetlana nazwa",
+  "Display name is required": "Wyświetlana nazwa jest wymagana",
   "Display participation price": "Wyświetlaj cenę uczestnictwa",
   "Displayed nickname": "Nazwa wyświetlana",
   "Displayed on homepage and meta tags. Describe what Mobilizon is and what makes this instance special in a single paragraph.": "Wyświetlany na stronie głównej i w meta tagach. Opisz w jednym akapicie, czym jest Mobilizon i co czyni tę instancję wyjątkową.",
@@ -1376,6 +1377,7 @@
   "User settings": "Ustawienia użytkownika lub użytkowniczki",
   "User suspended and report resolved": "Zawieszono użytkownika i załatwiono zgłoszenie",
   "Username": "Nazwa użytkownika lub użytkowniczki",
+  "Username is required": "Nazwa użytkownika jest wymagana",
   "Users": "Użytkownicy lub użytkowniczki",
   "Validating account": "Sprawdzanie konta",
   "Validating email": "Sprawdzanie e-maila",
@@ -1784,6 +1786,7 @@
   "This profile does not belong to you": "Ten profil nie należy do Ciebie",
   "Profile with username %{username} not found": "Profil o nazwie użytkownika %{username} nie został znaleziony",
   "You cannot change your password.": "Nie możesz zmienić swojego hasła.",
+  "You cannot send a message to yourself": "Nie możesz wysłać wiadomości do siebie",
   "The current password is invalid": "Aktualne hasło jest nieprawidłowe",
   "The new password must be different": "Nowe hasło musi być różne",
   "You need to be logged-in to change your password": "Musisz być zalogowany, aby zmienić swoje hasło",
@@ -1807,4 +1810,4 @@
   "Sending...": "Wysyłanie...",
   "To:": "Do:",
   "with:": "z:"
-  }
+}

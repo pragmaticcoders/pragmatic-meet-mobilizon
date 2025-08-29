@@ -25,11 +25,11 @@
       <!-- Header Section - Banner Area -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 pt-4">
         <!-- Top Banner - Bigger without gray background -->
-        <div class="relative overflow-hidden h-64" v-if="group.banner">
+        <div class="relative overflow-hidden" v-if="group.banner">
           <!-- Group Banner Background -->
           <lazy-image-wrapper
             :picture="group.banner"
-            class="w-full h-full object-cover"
+            class="w-full"
           />
         </div>
         <!-- Fallback when no banner -->

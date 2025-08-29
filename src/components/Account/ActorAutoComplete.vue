@@ -91,6 +91,7 @@ import { computed, ref } from "vue";
 import ActorInline from "./ActorInline.vue";
 import { useI18n } from "vue-i18n";
 import { debounce } from "lodash";
+import { useCurrentActorClient } from "@/composition/apollo/actor";
 
 const emit = defineEmits<{
   "update:modelValue": [value: IActor[]];
@@ -114,6 +115,7 @@ const modelValueWithDisplayName = computed(() =>
 );
 
 const { t } = useI18n({ useScope: "global" });
+const { currentActor } = useCurrentActorClient();
 
 const availableActors = ref<IActor[]>([]);
 const searchLoading = ref(false);
@@ -148,7 +150,14 @@ onSearchPersonsAndGroupsResult((result) => {
         displayName: displayName(group),
       })),
     ];
-    availableActors.value = actors;
+    
+    // Filter out the current user/actor to prevent messaging themselves
+    const filteredActors = actors.filter((actor) => {
+      if (!currentActor.value) return true;
+      return actor.id !== currentActor.value.id;
+    });
+    
+    availableActors.value = filteredActors;
   } else {
     availableActors.value = [];
   }

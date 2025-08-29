@@ -74,7 +74,7 @@
             }}
           </span>
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <event-participation-card
             v-for="participation in thisWeek(row)"
             :key="participation[1].id"
@@ -98,7 +98,7 @@
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
       </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <event-participation-card
           v-for="event in filteredFollowedGroupsEvents"
           :key="event.id"
@@ -130,7 +130,7 @@
       <p class="text-gray-600 mb-6">
         {{ t("Discover interesting events happening near you") }}
       </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <event-participation-card
           v-for="event in displayedPublicEvents"
           :key="event.id"

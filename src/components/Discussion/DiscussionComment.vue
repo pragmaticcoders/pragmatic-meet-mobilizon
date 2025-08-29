@@ -5,7 +5,7 @@
     <div class="">
       <figure class="" v-if="comment.actor && comment.actor.avatar">
         <img
-          class="rounded-xl"
+          class="rounded-full"
           :src="comment.actor.avatar.url"
           alt=""
           :width="48"

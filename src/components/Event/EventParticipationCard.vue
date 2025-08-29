@@ -102,15 +102,14 @@
               class="w-6 h-6 rounded-full overflow-hidden"
             >
               <img
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover rounded-full"
                 :src="actorAvatarURL"
                 alt=""
               />
             </figure>
             <div
               v-else
-              class="w-6 h-6 bg-gray-200 flex items-center justify-center"
-              style="border-radius: 50%; min-width: 24px; min-height: 24px; width: 24px; height: 24px;"
+              class="w-6 h-6 bg-gray-200 flex items-center justify-center rounded-full"
             >
               <svg class="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="8" r="3"/>
