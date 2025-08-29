@@ -138,7 +138,7 @@
                 }}</span>
               </template>
               <template v-else-if="participation.event.options && participation.event.options.isOnline">
-                <Video class="w-4 h-4" />
+                <Video class="w-6 h-6" />
                 <span>{{ t("Online") }}</span>
               </template>
             </div>
