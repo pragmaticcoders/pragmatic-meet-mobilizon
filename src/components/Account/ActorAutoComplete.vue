@@ -117,6 +117,7 @@ const { t } = useI18n({ useScope: "global" });
 
 const availableActors = ref<IActor[]>([]);
 const searchLoading = ref(false);
+const currentSearchTerm = ref("");
 
 // Search both persons and groups (now available to all users)
 const {
@@ -130,7 +131,9 @@ const {
 
 // Handle successful search results for persons and groups
 onSearchPersonsAndGroupsResult((result) => {
+  // Always stop loading when we get any result, even if it's outdated
   searchLoading.value = false;
+  
   if (result.data) {
     const persons = result.data.searchPersons?.elements || [];
     const groups = result.data.searchGroups?.elements || [];
@@ -158,8 +161,6 @@ onSearchPersonsAndGroupsError((error) => {
   availableActors.value = [];
 });
 
-const currentSearchTerm = ref("");
-
 const performSearch = (text: string) => {
   if (text.trim() === "") {
     availableActors.value = [];
@@ -168,6 +169,7 @@ const performSearch = (text: string) => {
     return;
   }
 
+  // Always update the search term and set loading
   currentSearchTerm.value = text;
   searchLoading.value = true;
 

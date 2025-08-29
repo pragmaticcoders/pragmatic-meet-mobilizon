@@ -81,8 +81,8 @@
       </h2>
 
       <div class="space-y-4">
-        <div class="flex gap-4">
-          <div class="flex-1 max-w-md">
+        <div class="flex gap-4 flex flex-col md:flex-row">
+          <div class="flex-1 max-w-md min-w-[200px]">
             <label class="block font-medium text-[15px] text-[#1c1b1f] pb-2">
               {{ t("City") }}
             </label>
@@ -99,7 +99,7 @@
             />
           </div>
 
-          <div class="w-32">
+          <div class="w-42">
             <label class="block font-medium text-[15px] text-[#1c1b1f] mb-2">
               {{ t("Radius") }}
             </label>

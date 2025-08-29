@@ -98,7 +98,13 @@
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
       </p>
-      <multi-card :events="filteredFollowedGroupsEvents" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <event-participation-card
+          v-for="event in filteredFollowedGroupsEvents"
+          :key="event.id"
+          :participation="createMockParticipation(event)"
+        />
+      </div>
       <div class="text-right mt-6">
         <router-link
           class="text-blue-600 hover:text-blue-700 font-medium"
@@ -124,7 +130,13 @@
       <p class="text-gray-600 mb-6">
         {{ t("Discover interesting events happening near you") }}
       </p>
-      <multi-card :events="displayedPublicEvents" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <event-participation-card
+          v-for="event in displayedPublicEvents"
+          :key="event.id"
+          :participation="createMockParticipation(event)"
+        />
+      </div>
       <div class="text-right mt-6">
         <router-link
           class="text-blue-600 hover:text-blue-700 font-medium"
@@ -160,17 +172,10 @@
       <!-- Groups content -->
       <div v-if="canShowUserGroups">
         <MultiGroupCard :groups="displayedGroups" />
-        <div class="text-right mt-6" v-if="currentUser?.id">
+        <div class="text-right mt-6">
           <router-link
             class="text-blue-600 hover:text-blue-700 font-medium"
-            :to="{ name: ActorRouteName.MY_GROUPS }"
-            >{{ t("View everything") }} →</router-link
-          >
-        </div>
-        <div class="text-right mt-6" v-else>
-          <router-link
-            class="text-blue-600 hover:text-blue-700 font-medium"
-            :to="{ name: RouteName.SEARCH }"
+            :to="{ name: RouteName.SEARCH, query: { contentType: 'GROUPS', groupPage: '1' } }"
             >{{ t("View everything") }} →</router-link
           >
         </div>
@@ -202,7 +207,6 @@
 <script lang="ts" setup>
 import { ParticipantRole } from "@/types/enums";
 import { IParticipant } from "../types/participant.model";
-import MultiCard from "../components/Event/MultiCard.vue";
 import MultiGroupCard from "../components/Group/MultiGroupCard.vue";
 import EmptyContent from "../components/Utils/EmptyContent.vue";
 import {
@@ -750,6 +754,21 @@ const performGeoLocation = () => {
       doingGeoloc.value = false;
     }
   );
+};
+
+/**
+ * Helper function to create mock participation for events without participation data
+ */
+const createMockParticipation = (event: IEvent): IParticipant => {
+  return {
+    id: `mock-${event.id}`,
+    event,
+    actor: currentActor.value || {} as IPerson,
+    role: ParticipantRole.NOT_APPROVED,
+    metadata: {},
+    insertedAt: new Date(),
+    updatedAt: new Date(),
+  } as IParticipant;
 };
 
 /**

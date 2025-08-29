@@ -47,7 +47,7 @@
           @click="openChangeEmailModal"
           class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
         >
-          {{ t("Zmień") }}
+          {{ t("Change") }}
         </button>
       </div>
 
