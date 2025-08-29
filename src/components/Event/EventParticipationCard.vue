@@ -9,12 +9,13 @@
       }"
       class="block"
     >
-      <div class="relative aspect-[273/154] bg-gray-100">
-        <lazy-image-wrapper
-          v-if="participation.event.picture"
-          :picture="participation.event.picture"
-          class="w-full h-full object-cover"
-        />
+      <div class="relative h-[200px] bg-gray-100 overflow-hidden">
+        <div v-if="participation.event.picture" class="w-full h-full">
+          <lazy-image-wrapper
+            :picture="participation.event.picture"
+            class="w-full h-full"
+          />
+        </div>
         <div v-else class="w-full h-full flex items-center justify-center">
           <svg
             width="64"
