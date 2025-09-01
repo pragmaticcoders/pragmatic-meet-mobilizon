@@ -20,17 +20,13 @@ defmodule Mobilizon.Web.BannerController do
         _ -> "theme-light"
       end
 
-    banner_html =
-      File.read!("lib/web/templates/banner/iframe.html.heex")
-      |> String.replace("Logo-on-light.png", logo_file)
-      |> String.replace("theme-light", theme_class)
-
     conn
     |> put_resp_header("content-type", "text/html; charset=utf-8")
     |> put_resp_header("x-frame-options", "ALLOWALL")
     |> put_resp_header("access-control-allow-origin", "*")
     |> put_resp_header("access-control-allow-methods", "GET")
     |> put_resp_header("cache-control", "public, max-age=3600")
-    |> send_resp(200, banner_html)
+    |> put_layout(false)
+    |> render("iframe.html", logo_file: logo_file, theme_class: theme_class)
   end
 end
