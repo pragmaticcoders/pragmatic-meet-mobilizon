@@ -120,6 +120,11 @@ defmodule Mobilizon.Web.Router do
     get("/favicon.svg", ManifestController, :favicon)
   end
 
+  scope "/", Mobilizon.Web do
+    pipe_through(:browser)
+    get("/banner/iframe", BannerController, :iframe)
+  end
+
   # Health check endpoints
   scope "/", Mobilizon.Web do
     get("/health", HealthController, :health)
