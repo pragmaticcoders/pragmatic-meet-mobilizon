@@ -56,7 +56,7 @@ defmodule Mobilizon.GraphQL.API.Groups do
   def update_group(%{id: id, updater_actor: updater_actor} = args) do
     with {:ok, %Actor{type: :Group} = group} <- Actors.get_group_by_actor_id(id),
          {:ok, user} <- get_user_from_actor(updater_actor) do
-      if group_update_allowed?(group, user) do
+      if group_update_allowed?(group, user, args) do
         Actions.Update.update(group, args, true, %{"actor" => args.updater_actor.url})
       else
         {:error, get_unapproved_group_error_message(group)}
@@ -76,9 +76,28 @@ defmodule Mobilizon.GraphQL.API.Groups do
   end
 
   # Helper to check if group update is allowed
-  defp group_update_allowed?(%Actor{type: :Group, approval_status: :approved, suspended: false}, _user), do: true
-  defp group_update_allowed?(_group, %Users.User{role: role}) when role in [:administrator, :moderator], do: true
-  defp group_update_allowed?(_group, _user), do: false
+  defp group_update_allowed?(%Actor{type: :Group, approval_status: :approved, suspended: false}, _user, _args), do: true
+  defp group_update_allowed?(_group, %Users.User{role: role}, _args) when role in [:administrator, :moderator], do: true
+  defp group_update_allowed?(%Actor{type: :Group, approval_status: :pending_approval, suspended: false}, _user, args) do
+    # Allow only custom_url updates for pending groups
+    only_custom_url_update?(args)
+  end
+  defp group_update_allowed?(_group, _user, _args), do: false
+
+  # Helper to check if only custom_url is being updated
+  defp only_custom_url_update?(args) do
+    # Remove internal fields and check if only custom_url remains
+    update_fields = args
+                   |> Map.drop([:id, :updater_actor])
+                   |> Map.keys()
+    
+    case update_fields do
+      [:custom_url] -> true
+      [:customUrl] -> true  # Handle camelCase variant
+      [] -> false  # No fields to update
+      _ -> false   # Multiple fields or other fields
+    end
+  end
 
   # Helper to get appropriate error message
   defp get_unapproved_group_error_message(%Actor{approval_status: :pending_approval}) do

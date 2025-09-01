@@ -70,16 +70,9 @@
               v-model="editableGroup.customUrl"
               type="url"
               :placeholder="t('https://example.com')"
-              :disabled="group?.approvalStatus === ApprovalStatus.PENDING_APPROVAL"
               expanded
               class="w-full"
             />
-            <p class="text-sm text-gray-500">
-              {{ t("Optional: Add a custom URL for your group (e.g., your website or social media)") }}
-            </p>
-            <p v-if="group?.approvalStatus === ApprovalStatus.PENDING_APPROVAL" class="text-sm text-amber-600">
-              {{ t("URL editing is disabled while your group is awaiting approval") }}
-            </p>
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
