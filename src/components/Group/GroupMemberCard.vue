@@ -58,7 +58,7 @@
               <span class="text-sm text-gray-500 dark:text-gray-400">
                 @{{ usernameWithDomain(member.parent) }}
               </span>
-              <div class="flex gap-2 mt-1">
+              <div class="flex flex-wrap gap-2 mt-1">
                 <span
                   v-if="member.role === MemberRole.ADMINISTRATOR"
                   class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200"
@@ -70,6 +70,18 @@
                   class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                 >
                   {{ t("Moderator") }}
+                </span>
+                <span
+                  v-if="member.parent.approvalStatus === ApprovalStatus.PENDING_APPROVAL"
+                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                >
+                  {{ t("Pending Admin Approval") }}
+                </span>
+                <span
+                  v-else-if="member.parent.approvalStatus === ApprovalStatus.REJECTED"
+                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                >
+                  {{ t("Rejected") }}
                 </span>
               </div>
             </div>
@@ -112,7 +124,7 @@
 <script lang="ts" setup>
 import { displayNameAndUsername, usernameWithDomain } from "@/types/actor";
 import { IMember } from "@/types/actor/member.model";
-import { MemberRole } from "@/types/enums";
+import { MemberRole, ApprovalStatus } from "@/types/enums";
 import RouteName from "../../router/name";
 import ExitToApp from "vue-material-design-icons/ExitToApp.vue";
 import DotsHorizontal from "vue-material-design-icons/DotsHorizontal.vue";
