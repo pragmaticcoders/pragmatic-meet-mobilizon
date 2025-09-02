@@ -59,7 +59,7 @@
             nich zrzuty ekranu, kopiować lub w inny sposób ponownie udostępniać.
             <span class="font-bold"
               >Nie udostępniaj żadnych niebezpiecznych informacji przez
-              Mobilizon.</span
+              Pragmatic Meet.</span
             >
           </li>
           <li>
@@ -84,7 +84,7 @@
           class="list-disc ml-6 text-[17px] leading-[26px] text-[#1c1b1f] space-y-2"
         >
           <li>
-            Aby zapewnić podstawową funkcjonalność Mobilizon. Zgodnie z polityką
+            Aby zapewnić podstawową funkcjonalność Pragmatic Meet. Zgodnie z polityką
             tej instancji, możliwe będzie wchodzenie w interakcje z treściami
             innych osób i publikowanie własnych treści wyłącznie po zalogowaniu.
           </li>

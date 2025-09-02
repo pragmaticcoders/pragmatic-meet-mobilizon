@@ -290,7 +290,7 @@
               <p class="text-[15px] text-[#1c1b1f] leading-[23px] mt-1 pl-8">
                 {{
                   $t(
-                    "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
+                    "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Pragmatic Meet's search or regular search engines."
                   )
                 }}
               </p>

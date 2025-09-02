@@ -225,7 +225,7 @@
                   <p class="text-sm text-gray-600 mt-1">
                     {{
                       t(
-                        "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Mobilizon's search or regular search engines."
+                        "You'll need to transmit the group URL so people may access the group's profile. The group won't be findable in Pragmatic Meet's search or regular search engines."
                       )
                     }}
                   </p>

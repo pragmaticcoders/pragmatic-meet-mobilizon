@@ -76,7 +76,7 @@
           <p class="text-[17px] leading-[26px]">
             {{
               t(
-                "When we say 'we', 'our' or 'us' in this document, we mean the owners, operators and administrators of this Mobilizon instance. The Mobilizon software is provided by the Mobilizon team of contributors, supported by"
+                "When we say 'we', 'our' or 'us' in this document, we mean the owners, operators and administrators of this Pragmatic Meet instance. The Pragmatic Meet software is provided by the Pragmatic Meet team of contributors, supported by"
               )
             }}
             <a
@@ -86,7 +86,7 @@
             >,
             {{
               t(
-                "a French non-profit organization working for free/libre software. Unless explicitly stated, this Mobilizon instance is an independent service using Mobilizon source code."
+                "a French non-profit organization working for free/libre software. Unless explicitly stated, this Pragmatic Meet instance is an independent service using Pragmatic Meet source code."
               )
             }}
           </p>
@@ -202,7 +202,7 @@
         <p class="text-[17px] leading-[26px]">
           {{
             t(
-              "Since Mobilizon is a distributed network, it is possible, depending on the visibility rules set for the content, that the content has been distributed to other Mobilizon instances. When you delete your content, we will ask these other instances to delete it as well. Our responsibility for deleting content from these other instances ends there. If for some reason another instance does not delete the content, we are not responsible for it."
+              "Since Pragmatic Meet is a distributed network, it is possible, depending on the visibility rules set for the content, that the content has been distributed to other Pragmatic Meet instances. When you delete your content, we will ask these other instances to delete it as well. Our responsibility for deleting content from these other instances ends there. If for some reason another instance does not delete the content, we are not responsible for it."
             )
           }}
         </p>
@@ -331,7 +331,7 @@
         <p class="text-[17px] leading-[26px]">
           {{
             t(
-              "This service runs on a Mobilizon instance. Its source code is licensed under"
+              "This service runs on a Pragmatic Meet instance. Its source code is licensed under"
             )
           }}
           <a
@@ -346,7 +346,7 @@
           }}
         </p>
         <p class="text-[17px] leading-[26px]">
-          {{ t("To see more information about Mobilizon software,") }}
+          {{ t("To see more information about Pragmatic Meet software,") }}
           <a
             href="https://joinmobilizon.org/"
             class="font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"

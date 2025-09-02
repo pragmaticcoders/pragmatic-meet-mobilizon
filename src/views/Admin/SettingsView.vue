@@ -23,7 +23,7 @@
           <small>
             {{
               t(
-                "Displayed on homepage and meta tags. Describe what Mobilizon is and what makes this instance special in a single paragraph."
+                "Displayed on homepage and meta tags. Describe what Pragmatic Meet is and what makes this instance special in a single paragraph."
               )
             }}
           </small>
