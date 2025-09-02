@@ -311,8 +311,9 @@
 import { ParticipantRole } from "@/types/enums";
 import RouteName from "@/router/name";
 import type { IParticipant } from "../../types/participant.model";
-import { LOGGED_USER_DRAFTS } from "../../graphql/actor";
+import { LOGGED_USER_DRAFTS, CURRENT_ACTOR_CLIENT } from "../../graphql/actor";
 import type { IEvent } from "../../types/event.model";
+import type { IPerson } from "@/types/actor";
 
 import {
   LOGGED_USER_PARTICIPATIONS,
@@ -331,7 +332,6 @@ import { useRestrictions } from "@/composition/apollo/config";
 import { useHead } from "@/utils/head";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
 import { useCurrentActorType } from "@/composition/actorType";
-
 
 const EventParticipationCard = defineAsyncComponent(
   () => import("@/components/Event/EventParticipationCard.vue")
@@ -610,7 +610,7 @@ const eventDeleted = (eventid: string): void => {
   });
 };
 
-const { restrictions } = useRestrictions();
+useRestrictions();
 const { isCurrentActorGroup } = useCurrentActorType();
 
 const hideCreateEventButton = computed((): boolean => {
@@ -625,7 +625,7 @@ const createMockParticipation = (event: IEvent): IParticipant => {
   return {
     id: `mock-${event.id}`,
     event,
-    actor: currentActor.value || {} as IPerson,
+    actor: currentActor.value || ({} as IPerson),
     role: ParticipantRole.NOT_APPROVED,
     metadata: {},
     insertedAt: new Date(),

@@ -103,14 +103,22 @@
               {{ t("Iframe Banner Code") }}
             </label>
             <p class="text-sm text-gray-600">
-              {{ t("Copy this code to embed the Pragmatic Meet banner in any website:") }}
+              {{
+                t(
+                  "Copy this code to embed the Pragmatic Meet banner in any website:"
+                )
+              }}
             </p>
-            
+
             <!-- Light Theme Option -->
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-900">☀️ {{ t("Light Theme") }}</span>
-                <span class="text-xs text-gray-600">({{ t("for light backgrounds") }})</span>
+                <span class="text-sm font-medium text-gray-900"
+                  >☀️ {{ t("Light Theme") }}</span
+                >
+                <span class="text-xs text-gray-600"
+                  >({{ t("for light backgrounds") }})</span
+                >
               </div>
               <div class="relative">
                 <textarea
@@ -142,8 +150,12 @@
             <!-- Dark Theme Option -->
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-900">🌙 {{ t("Dark Theme") }}</span>
-                <span class="text-xs text-gray-600">({{ t("for dark backgrounds") }})</span>
+                <span class="text-sm font-medium text-gray-900"
+                  >🌙 {{ t("Dark Theme") }}</span
+                >
+                <span class="text-xs text-gray-600"
+                  >({{ t("for dark backgrounds") }})</span
+                >
               </div>
               <div class="relative">
                 <textarea
@@ -372,14 +384,18 @@
 
 <script lang="ts" setup>
 import PictureUpload from "@/components/PictureUpload.vue";
-import { GroupVisibility, MemberRole, Openness, ApprovalStatus } from "@/types/enums";
+import { GroupVisibility, MemberRole, Openness } from "@/types/enums";
 import { IGroup, usernameWithDomain, displayName } from "@/types/actor";
 import { IAddress } from "@/types/address.model";
 import { ServerParseError } from "@apollo/client/link/http";
 import { ErrorResponse } from "@apollo/client/link/error";
 import RouteName from "@/router/name";
 import { buildFileFromIMedia } from "@/utils/image";
-import { useAvatarMaxSize, useBannerMaxSize, useHost } from "@/composition/config";
+import {
+  useAvatarMaxSize,
+  useBannerMaxSize,
+  useHost,
+} from "@/composition/config";
 import { useI18n } from "vue-i18n";
 import { computed, ref, defineAsyncComponent, inject } from "vue";
 import { useGroup, useUpdateGroup } from "@/composition/apollo/group";
@@ -554,25 +570,31 @@ const host = useHost();
 const baseUrl = computed(() => {
   const protocol = window.location.protocol;
   const hostname = host;
-  const port = window.location.port ? `:${window.location.port}` : '';
+  const port = window.location.port ? `:${window.location.port}` : "";
   return `${protocol}//${hostname}${port}`;
 });
 
 const iframeCodeLight = computed(() => {
-  return `<iframe 
-    src="${baseUrl.value}/banner/iframe?theme=light" 
-    width="100%" 
-    height="150" 
+  const groupParam = group.value?.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=light${groupParam}"
+    width="100%"
+    height="150"
     frameborder="0"
     title="Pragmatic Meet Banner">
 </iframe>`;
 });
 
 const iframeCodeDark = computed(() => {
-  return `<iframe 
-    src="${baseUrl.value}/banner/iframe?theme=dark" 
-    width="100%" 
-    height="150" 
+  const groupParam = group.value?.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=dark${groupParam}"
+    width="100%"
+    height="150"
     frameborder="0"
     title="Pragmatic Meet Banner">
 </iframe>`;
