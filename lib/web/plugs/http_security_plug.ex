@@ -36,13 +36,22 @@ defmodule Mobilizon.Web.Plugs.HTTPSecurityPlug do
 
     report_uri = Config.get([:http_security, :report_uri])
 
-    headers = [
+    # Allow custom x-frame-options configuration
+    x_frame_options = Keyword.get(options, :x_frame_options, "DENY")
+
+    base_headers = [
       {"x-xss-protection", "0"},
-      {"x-frame-options", "DENY"},
       {"x-content-type-options", "nosniff"},
       {"referrer-policy", referrer_policy},
       {"content-security-policy", csp_string(options)}
     ]
+
+    headers =
+      if x_frame_options do
+        [{"x-frame-options", x_frame_options} | base_headers]
+      else
+        base_headers
+      end
 
     if report_uri do
       report_group = %{
@@ -113,13 +122,27 @@ defmodule Mobilizon.Web.Plugs.HTTPSecurityPlug do
     script_src = [script_src] ++ [get_csp_config(:script_src, options)]
 
     style_src =
-      if Config.get(:env) == :dev, do: [@style_src | "'unsafe-inline' "], else: @style_src
+      if Keyword.get(options, :iframe_mode, false) do
+        # Iframe mode - permissive style-src without hash
+        "style-src 'self' 'unsafe-inline' fonts.googleapis.com"
+      else
+        # Default behavior
+        base_style =
+          if Config.get(:env) == :dev, do: [@style_src | "'unsafe-inline' "], else: @style_src
 
-    style_src = [style_src] ++ [get_csp_config(:style_src, options)]
+        config_style = [get_csp_config(:style_src, options)]
+        hash_style = ["'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"]
+        [base_style] ++ config_style ++ hash_style
+      end
 
-    style_src = [style_src] ++ ["'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"]
-
-    font_src = [@font_src] ++ [get_csp_config(:font_src, options)]
+    font_src =
+      if Keyword.get(options, :iframe_mode, false) do
+        # Iframe mode - permissive font-src
+        "font-src 'self' fonts.gstatic.com data:"
+      else
+        # Default behavior
+        [@font_src] ++ [get_csp_config(:font_src, options)]
+      end
 
     frame_src = build_csp_field(:frame_src, options)
     frame_ancestors = build_csp_field(:frame_ancestors, options)

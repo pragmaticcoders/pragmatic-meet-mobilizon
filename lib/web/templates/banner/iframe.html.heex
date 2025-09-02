@@ -22,7 +22,6 @@
     
     .banner-container {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 20px;
@@ -32,7 +31,6 @@
       border: 1px solid #e5e7eb;
       max-width: 500px;
       width: 100%;
-      text-align: center;
     }
     
     .banner-logo {
@@ -46,7 +44,7 @@
     }
     
     .banner-text {
-      margin-top: 16px;
+      margin-left: 20px;
     }
     
     .banner-title {
@@ -64,85 +62,7 @@
       font-weight: 500;
       font-family: var(--font-family-primary);
       color: #6b7280;
-      margin: 0 0 12px 0;
-    }
-    
-    .banner-link {
-      display: inline-block;
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      color: white;
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: var(--font-family-primary);
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
-      margin-top: 8px;
-    }
-    
-    .banner-link:hover {
-      background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-    }
-    
-    .banner-services {
-      font-size: 16px;
-      line-height: 1.5;
-      font-weight: 600;
-      font-family: var(--font-family-primary);
-      color: #1f2937;
-      margin: 6px 0 4px 0;
-      max-width: 320px;
-    }
-    
-    .banner-tagline {
-      font-size: 16px;
-      line-height: 1.5;
-      font-weight: 500;
-      font-family: var(--font-family-primary);
-      color: #6b7280;
       margin: 0;
-      max-width: 320px;
-    }
-    
-    /* Dark theme styles */
-    .theme-dark {
-      background-color: #1f2937;
-    }
-    
-    .theme-dark .banner-container {
-      background: #374151;
-      border: 1px solid #4b5563;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-    }
-    
-    .theme-dark .banner-title {
-      color: #f9fafb;
-    }
-    
-    .theme-dark .banner-subtitle {
-      color: #d1d5db;
-    }
-    
-    .theme-dark .banner-services {
-      color: #f9fafb;
-    }
-    
-    .theme-dark .banner-tagline {
-      color: #9ca3af;
-    }
-    
-    .theme-dark .banner-link {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-    }
-    
-    .theme-dark .banner-link:hover {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
     }
     
     /* Responsive design */
@@ -152,10 +72,13 @@
       }
       
       .banner-container {
+        flex-direction: column;
+        text-align: center;
         padding: 16px;
       }
       
       .banner-text {
+        margin-left: 0;
         margin-top: 12px;
       }
       
@@ -167,37 +90,15 @@
       .banner-subtitle {
         font-size: 14px;
       }
-      
-      .banner-link {
-        padding: 6px 12px;
-        font-size: 13px;
-      }
-      
-      .banner-services {
-        font-size: 14px;
-        max-width: 100%;
-      }
-      
-      .banner-tagline {
-        font-size: 14px;
-        max-width: 100%;
-      }
     }
   </style>
 </head>
-<body class={@theme_class}>
+<body>
   <div class="banner-container">
-    <img src={"/img/icons/#{@logo_file}"} alt="Pragmatic Meet Logo" class="banner-logo">
+    <img src="/img/icons/Logo-on-light.png" alt="Pragmatic Meet Logo" class="banner-logo">
     <div class="banner-text">
-      <a href="https://www.pragmaticcoders.com/contact" target="_blank" class="banner-link">
-        🚀 Start Your Project
-      </a>
-      <p class="banner-services">
-        Custom software development • Fintech • AI • Healthcare • Mobile apps
-      </p>
-      <p class="banner-tagline">
-        Ready to transform your vision into reality? Let's build something amazing together!
-      </p>
+      <h1 class="banner-title">Pragmatic Meet</h1>
+      <p class="banner-subtitle">Where Ideas Come Together</p>
     </div>
   </div>
 </body>

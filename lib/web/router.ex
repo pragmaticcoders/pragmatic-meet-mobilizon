@@ -85,6 +85,18 @@ defmodule Mobilizon.Web.Router do
     plug(:put_secure_browser_headers)
   end
 
+  pipeline :iframe_embeddable do
+    plug(:put_request_context)
+    plug(:accepts, ["html"])
+
+    # Custom security headers that allow iframe embedding
+    plug(Mobilizon.Web.Plugs.HTTPSecurityPlug,
+      frame_ancestors: ["*"],
+      x_frame_options: nil,
+      iframe_mode: true
+    )
+  end
+
   scope "/exports", Mobilizon.Web do
     pipe_through(:browser)
     get("/:format/:file", ExportController, :export)
@@ -118,11 +130,6 @@ defmodule Mobilizon.Web.Router do
     get("/manifest.webmanifest", ManifestController, :manifest)
     get("/manifest.json", ManifestController, :manifest)
     get("/favicon.svg", ManifestController, :favicon)
-  end
-
-  scope "/", Mobilizon.Web do
-    pipe_through(:browser)
-    get("/banner/iframe", BannerController, :iframe)
   end
 
   # Health check endpoints
@@ -255,6 +262,13 @@ defmodule Mobilizon.Web.Router do
   scope "/proxy/", Mobilizon.Web do
     get("/:sig/:url", MediaProxyController, :remote)
     get("/:sig/:url/:filename", MediaProxyController, :remote)
+  end
+
+  # Banner endpoints - embeddable in iframes
+  scope "/banner", Mobilizon.Web do
+    pipe_through(:iframe_embeddable)
+
+    get("/iframe", BannerController, :iframe)
   end
 
   if Application.compile_env(:mobilizon, :env) in [:dev, :e2e] do
