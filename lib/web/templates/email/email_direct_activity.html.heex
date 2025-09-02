@@ -1,6 +1,6 @@
 <!-- HERO -->
 <tr>
-  <td bgcolor="#474467" align="center" style="padding: 0px 10px 0px 10px;">
+  <td bgcolor="#4EB798" align="center" style="padding: 0px 10px 0px 10px;">
     <!--[if (gte mso 9)|(IE)]>
       <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
         <tr>
@@ -12,7 +12,7 @@
           bgcolor="#ffffff"
           align="center"
           valign="top"
-          style="padding: 40px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #3A384C; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; line-height: 48px;"
+          style="padding: 40px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #3A384C; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; line-height: 48px;"
         >
           <h1 style="font-size: 48px; font-weight: 400; margin: 0;">
             <%= @subject %>
@@ -29,7 +29,7 @@
 </tr>
 <!-- COPY BLOCK -->
 <tr>
-  <td bgcolor="#E6E4F4" align="center" style="padding: 0px 10px 0px 10px;">
+  <td bgcolor="#f0f9f7" align="center" style="padding: 0px 10px 0px 10px;">
     <!--[if (gte mso 9)|(IE)]>
       <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
         <tr>
@@ -41,7 +41,7 @@
         <td
           bgcolor="#ffffff"
           align="left"
-          style="padding: 20px 5% 0px; color: #474467; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
+          style="padding: 20px 5% 0px; color: #1a1a1a; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
         >
           <p style="margin: 0;">
             <%= case @recap do %>
@@ -73,7 +73,7 @@
             <tr>
               <td
                 align="center"
-                style="border-radius: 3px; text-align: left; padding: 10px 5% 0px 30px; color: #474467; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400;line-height: 25px;"
+                style="border-radius: 3px; text-align: left; padding: 10px 5% 0px 30px; color: #1a1a1a; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400;line-height: 25px;"
               >
                 <ul style="margin: 0 auto; padding-left: 15px;">
                   <%= for {_, group_activities} <- @activities do %>
@@ -130,7 +130,7 @@
                                               |> URI.decode()
                                             }
                                             target="_blank"
-                                            style="text-decoration: none;color: #474467;font-family: 'Roboto', Helvetica, Arial, sans-serif;font-size: 18px;font-weight: bold;line-height: 25px;"
+                                            style="text-decoration: none;color: #1a1a1a;font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif;font-size: 18px;font-weight: bold;line-height: 25px;"
                                           >
                                             <%= hd(group_activities).group.name ||
                                               "@#{Mobilizon.Actors.Actor.preferred_username_and_domain(hd(group_activities).group)}" %>
@@ -147,7 +147,7 @@
                                                 |> URI.decode()
                                               }
                                               target="_blank"
-                                              style="text-decoration: none;display: block;color: #7a7a7a;font-family: 'Roboto', Helvetica, Arial, sans-serif;font-size: 16px;font-weight: 400;line-height: 25px;"
+                                              style="text-decoration: none;display: block;color: #7a7a7a;font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif;font-size: 16px;font-weight: 400;line-height: 25px;"
                                             >
                                               @<%= Mobilizon.Actors.Actor.preferred_username_and_domain(
                                                 hd(group_activities).group
@@ -254,7 +254,7 @@
         <td
           bgcolor="#ffffff"
           align="left"
-          style="padding: 20px 30px 40px 30px; color: #474467; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px;"
+          style="padding: 20px 30px 40px 30px; color: #1a1a1a; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 20px;"
         >
           <p style="margin: 0">
             <%= dgettext(

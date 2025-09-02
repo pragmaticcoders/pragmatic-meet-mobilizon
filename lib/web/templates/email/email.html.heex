@@ -44,11 +44,11 @@
       </script>
     <% end %>
   </head>
-  <body style="background-color: #ECEBF2; margin: 0 !important; padding: 0 !important;mso-line-height-rule: exactly;">
+  <body style="background-color: #f5f5f5; margin: 0 !important; padding: 0 !important;mso-line-height-rule: exactly; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif;"></body>
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <!-- LOGO -->
       <tr>
-        <td bgcolor="#474467" align="center">
+        <td bgcolor="#1a1a1a" align="center">
           <!--[if (gte mso 9)|(IE)]>
             <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
               <tr>
@@ -63,7 +63,7 @@
                     src={"#{"#{Mobilizon.Web.Endpoint.url()}/img/pragmatic_logo.svg"}"}
                     width="340"
                     height="108"
-                    style="display: block; width: 340px; max-width: 370px; min-width: 340px; font-family: 'Roboto', Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;"
+                    style="display: block; width: 340px; max-width: 370px; min-width: 340px; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; color: #ffffff; font-size: 18px;"
                     border="0"
                   />
                 </a>
@@ -81,7 +81,7 @@
       <%= if Mobilizon.Config.instance_demo_mode?() do %>
         <!-- BETA WARNING -->
         <tr>
-          <td bgcolor="#ECEBF2" align="center" style="padding: 30px 10px 0px 10px;">
+          <td bgcolor="#f5f5f5" align="center" style="padding: 30px 10px 0px 10px;">
             <!--[if (gte mso 9)|(IE)]>
               <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
                 <tr>
@@ -99,14 +99,14 @@
                 <td
                   bgcolor="#FFD599"
                   align="center"
-                  style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #3A384C; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
+                  style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #3A384C; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
                 >
                   <h2 style="font-size: 25px; font-weight: 400; color: #D35204; margin: 0;">
                     <%= gettext("Warning") %>
                   </h2>
                   <br />
                   <p style="margin: 0; color: #3A384C">
-                    <%= gettext("This is a demonstration site to test Mobilizon.") %>
+                    <%= gettext("This is a demonstration site to test Pragmatic Meet.") %>
                   </p>
                   <p style="margin: 0; color: #3A384C;">
                     <b><%= gettext("Please do not use it for real purposes.") %></b>
@@ -124,7 +124,7 @@
       <% end %>
       <!-- SUPPORT CALLOUT -->
       <tr>
-        <td bgcolor="#ECEBF2" align="center" style="padding: 30px 10px 0px 10px;">
+        <td bgcolor="#f5f5f5" align="center" style="padding: 30px 10px 0px 10px;">
           <!--[if (gte mso 9)|(IE)]>
             <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
               <tr>
@@ -134,20 +134,20 @@
             <!-- HEADLINE -->
             <tr>
               <td
-                bgcolor="#474467"
+                bgcolor="#4EB798"
                 align="center"
-                style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #3A384C; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
+                style="padding: 30px 30px 30px 30px; border-radius: 4px 4px 4px 4px; color: #3A384C; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 400; line-height: 25px;"
               >
                 <h2 style="font-size: 20px; font-weight: 400; color: #FFFFFF; margin: 0;">
                   <%= gettext("Need help? Is something not working as expected?") %>
                 </h2>
                 <p style="margin: 0;">
                   <a
-                    href="https://framacolibri.org/c/mobilizon/39"
+                    href="https://pragmaticcoders.com/contact"
                     target="_blank"
                     style="color: #FFFFFF;"
                   >
-                    <%= gettext("Ask the community on Framacolibri") %>
+                    <%= gettext("Contact Pragmatic Coders Support") %>
                   </a>
                 </p>
               </td>
@@ -162,7 +162,7 @@
       </tr>
       <!-- FOOTER -->
       <tr>
-        <td bgcolor="#ECEBF2" align="center" style="padding: 0px 10px 0px 10px;">
+        <td bgcolor="#f5f5f5" align="center" style="padding: 0px 10px 0px 10px;">
           <!--[if (gte mso 9)|(IE)]>
             <table align="center" border="0" cellspacing="0" cellpadding="0" width="600">
               <tr>
@@ -172,9 +172,9 @@
             <!-- ADDRESS -->
             <tr>
               <td
-                bgcolor="#ECEBF2"
+                bgcolor="#f5f5f5"
                 align="center"
-                style="padding: 30px 30px 30px 30px; color: #474467; font-family: 'Roboto', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 18px;"
+                style="padding: 30px 30px 30px 30px; color: #1a1a1a; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 400; line-height: 18px;"
               >
                 <%= if @offer_unsupscription do %>
                   <p>
@@ -184,13 +184,13 @@
                   </p>
                 <% end %>
                 <p style="margin: 0;">
-                  <%= gettext("<b>%{instance}</b> is powered by Mobilizon.",
+                  <%= gettext("<b>%{instance}</b> is powered by Pragmatic Meet.",
                     instance: @instance_name
                   )
                   |> raw %>
                   <br />
-                  <a href="https://joinmobilizon.org">
-                    <%= gettext("Learn more about Mobilizon here!") %>
+                  <a href="https://pragmaticcoders.com" style="color: #4EB798;">
+                    <%= gettext("Learn more about Pragmatic Coders here!") %>
                   </a>
                 </p>
               </td>
