@@ -52,6 +52,8 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
     )
 
     field(:suspended, :boolean, description: "If the actor is suspended")
+    field(:approval_status, :approval_status, description: "The approval status of the group")
+    field(:custom_url, :string, description: "Marketing URL for the group")
 
     field(:avatar, :media, description: "The actor's avatar media")
     field(:banner, :media, description: "The actor's banner media")
@@ -224,6 +226,15 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
   end
 
   @desc """
+  The approval status of a group
+  """
+  enum :approval_status do
+    value(:pending_approval, description: "The group is pending approval from an administrator")
+    value(:approved, description: "The group has been approved and is active")
+    value(:rejected, description: "The group has been rejected by an administrator")
+  end
+
+  @desc """
   A paginated list of groups
   """
   object :paginated_group_list do
@@ -252,6 +263,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
       )
 
       arg(:suspended, :boolean, default_value: false, description: "Filter by suspended status")
+      arg(:approval_status, :approval_status, description: "Filter by approval status")
       arg(:page, :integer, default_value: 1, description: "The page in the paginated group list")
       arg(:limit, :integer, default_value: 10, description: "The limit of groups per page")
 
@@ -294,6 +306,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
       arg(:name, :string, description: "The displayed name for the group")
       arg(:summary, :string, description: "The summary for the group", default_value: "")
+      arg(:custom_url, :string, description: "Marketing URL for the group")
 
       arg(:visibility, :group_visibility,
         description: "The visibility for the group",
@@ -330,6 +343,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
       arg(:name, :string, description: "The displayed name for the group")
       arg(:summary, :string, description: "The summary for the group", default_value: "")
+      arg(:custom_url, :string, description: "Marketing URL for the group")
 
       arg(:visibility, :group_visibility, description: "The visibility for the group")
 
@@ -394,6 +408,20 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
       arg(:group_id, non_null(:id), description: "The group ID")
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&Group.unfollow_group/3)
+    end
+
+    @desc "Approve a group (admin only)"
+    field :approve_group, :group do
+      arg(:group_id, non_null(:id), description: "The group ID")
+      middleware(Rajska.QueryAuthorization, permit: [:moderator, :administrator], scope: false)
+      resolve(&Group.approve_group/3)
+    end
+
+    @desc "Reject a group (admin only)"
+    field :reject_group, :group do
+      arg(:group_id, non_null(:id), description: "The group ID")
+      middleware(Rajska.QueryAuthorization, permit: [:moderator, :administrator], scope: false)
+      resolve(&Group.reject_group/3)
     end
   end
 end

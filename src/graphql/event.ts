@@ -39,6 +39,7 @@ const FULL_EVENT_FRAGMENT = gql`
     publishAt
     onlineAddress
     phoneAddress
+    customUrl
     physicalAddress {
       ...AdressFragment
     }
@@ -181,6 +182,7 @@ export const CREATE_EVENT = gql`
     $picture: MediaInput
     $onlineAddress: String
     $phoneAddress: String
+    $customUrl: String
     $category: EventCategory
     $physicalAddress: AddressInput
     $options: EventOptionsInput
@@ -203,6 +205,7 @@ export const CREATE_EVENT = gql`
       picture: $picture
       onlineAddress: $onlineAddress
       phoneAddress: $phoneAddress
+      customUrl: $customUrl
       category: $category
       physicalAddress: $physicalAddress
       options: $options
@@ -231,6 +234,7 @@ export const EDIT_EVENT = gql`
     $picture: MediaInput
     $onlineAddress: String
     $phoneAddress: String
+    $customUrl: String
     $organizerActorId: ID
     $attributedToId: ID
     $category: EventCategory
@@ -254,6 +258,7 @@ export const EDIT_EVENT = gql`
       picture: $picture
       onlineAddress: $onlineAddress
       phoneAddress: $phoneAddress
+      customUrl: $customUrl
       organizerActorId: $organizerActorId
       attributedToId: $attributedToId
       category: $category

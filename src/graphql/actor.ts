@@ -13,6 +13,9 @@ export const ACTOR_FRAGMENT = gql`
     domain
     summary
     url
+    ... on Group {
+      approvalStatus
+    }
   }
 `;
 

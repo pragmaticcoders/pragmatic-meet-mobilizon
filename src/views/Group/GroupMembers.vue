@@ -35,18 +35,32 @@
         <form @submit.prevent="inviteMember" class="flex-1 min-w-0">
           <ActorAutoComplete
             v-model="selectedActors"
-            :placeholder="t(`Search for a user to invite`)"
+            :placeholder="isGroupPendingApproval ? t('Invites disabled during approval') : t('Search for a user to invite')"
+            :disabled="isGroupPendingApproval"
           />
         </form>
         <div class="flex-shrink-0">
           <o-button
             variant="primary"
             native-type="submit"
-            class="bg-[#155eef] text-white px-8 py-[18px] font-bold hover:bg-blue-600 whitespace-nowrap"
+            :disabled="isGroupPendingApproval"
+            :class="[
+              'px-8 py-[18px] font-bold whitespace-nowrap',
+              isGroupPendingApproval
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                : 'bg-[#155eef] text-white hover:bg-blue-600'
+            ]"
+            :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
             @click="inviteMember"
             >{{ t("Invite member") }}</o-button
           >
         </div>
+      </div>
+      <div v-if="isGroupPendingApproval" class="mb-4">
+        <p class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+          <span class="font-medium">{{ t("Member invitations are disabled") }}</span> - 
+          {{ t("You can invite members once your group is approved by administrators") }}
+        </p>
       </div>
       <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
@@ -274,7 +288,7 @@
 </template>
 
 <script lang="ts" setup>
-import { MemberRole } from "@/types/enums";
+import { MemberRole, ApprovalStatus } from "@/types/enums";
 import { IMember } from "@/types/actor/member.model";
 import RouteName from "@/router/name";
 import {
@@ -395,6 +409,10 @@ const {
   })
 );
 const group = computed(() => groupMembersResult.value?.group);
+
+const isGroupPendingApproval = computed((): boolean => {
+  return group.value?.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
+});
 
 const members = computed(
   () => group.value?.members ?? { total: 0, elements: [] }
@@ -605,6 +623,13 @@ onInviteMemberDone(() => {
 
 const inviteMember = async (): Promise<void> => {
   inviteError.value = "";
+  
+  // Prevent invites if group is pending approval
+  if (isGroupPendingApproval.value) {
+    inviteError.value = t("Cannot invite members while group is awaiting approval");
+    return;
+  }
+  
   if (!selectedActors.value.length) {
     inviteError.value = t("Please select a user to invite");
     return;

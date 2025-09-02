@@ -53,6 +53,7 @@ defmodule Mobilizon.Events.Event do
           online_address: String.t() | nil,
           phone_address: String.t(),
           category: String.t(),
+          custom_url: String.t() | nil,
           options: EventOptions.t(),
           organizer_actor: Actor.t(),
           attributed_to: Actor.t() | nil,
@@ -91,7 +92,8 @@ defmodule Mobilizon.Events.Event do
     :physical_address_id,
     :attributed_to_id,
     :language,
-    :long_event
+    :long_event,
+    :custom_url
   ]
   @attrs @required_attrs ++ @optional_attrs
 
@@ -116,6 +118,7 @@ defmodule Mobilizon.Events.Event do
     field(:online_address, :string)
     field(:phone_address, :string)
     field(:category, :string)
+    field(:custom_url, :string)
     field(:language, :string, default: "und")
 
     embeds_one(:options, EventOptions, on_replace: :delete)

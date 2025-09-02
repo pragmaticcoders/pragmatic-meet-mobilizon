@@ -13,6 +13,7 @@ export const LIST_GROUPS = gql`
     $domain: String
     $local: Boolean
     $suspended: Boolean
+    $approvalStatus: ApprovalStatus
     $page: Int
     $limit: Int
   ) {
@@ -22,12 +23,14 @@ export const LIST_GROUPS = gql`
       domain: $domain
       local: $local
       suspended: $suspended
+      approvalStatus: $approvalStatus
       page: $page
       limit: $limit
     ) {
       elements {
         ...ActorFragment
         suspended
+        approvalStatus
         avatar {
           uuid
           url
@@ -66,6 +69,7 @@ export const GROUP_VERY_BASIC_FIELDS_FRAGMENTS = gql`
     visibility
     openness
     manuallyApprovesFollowers
+    customUrl
     physicalAddress {
       description
       street
@@ -107,6 +111,7 @@ export const GROUP_BASIC_FIELDS_FRAGMENTS = gql`
   fragment GroupBasicFields on Group {
     ...ActorFragment
     suspended
+    approvalStatus
     visibility
     openness
     manuallyApprovesFollowers
@@ -301,6 +306,7 @@ export const CREATE_GROUP = gql`
     $preferredUsername: String!
     $name: String!
     $summary: String
+    $customUrl: String
     $avatar: MediaInput
     $banner: MediaInput
     $physicalAddress: AddressInput
@@ -312,6 +318,7 @@ export const CREATE_GROUP = gql`
       preferredUsername: $preferredUsername
       name: $name
       summary: $summary
+      customUrl: $customUrl
       banner: $banner
       avatar: $avatar
       physicalAddress: $physicalAddress
@@ -334,6 +341,7 @@ export const UPDATE_GROUP = gql`
     $id: ID!
     $name: String
     $summary: String
+    $customUrl: String
     $avatar: MediaInput
     $banner: MediaInput
     $visibility: GroupVisibility
@@ -345,6 +353,7 @@ export const UPDATE_GROUP = gql`
       id: $id
       name: $name
       summary: $summary
+      customUrl: $customUrl
       banner: $banner
       avatar: $avatar
       visibility: $visibility
@@ -457,4 +466,28 @@ export const GROUP_TIMELINE = gql`
     }
   }
   ${ACTOR_FRAGMENT}
+`;
+
+export const APPROVE_GROUP = gql`
+  mutation ApproveGroup($groupId: ID!) {
+    approveGroup(groupId: $groupId) {
+      id
+      name
+      preferredUsername
+      approvalStatus
+      suspended
+    }
+  }
+`;
+
+export const REJECT_GROUP = gql`
+  mutation RejectGroup($groupId: ID!) {
+    rejectGroup(groupId: $groupId) {
+      id
+      name
+      preferredUsername
+      approvalStatus
+      suspended
+    }
+  }
 `;

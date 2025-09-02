@@ -330,8 +330,8 @@ import { useI18n } from "vue-i18n";
 import { useRestrictions } from "@/composition/apollo/config";
 import { useHead } from "@/utils/head";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
-import { CURRENT_ACTOR_CLIENT } from "@/graphql/actor";
-import { IPerson } from "@/types/actor";
+import { useCurrentActorType } from "@/composition/actorType";
+
 
 const EventParticipationCard = defineAsyncComponent(
   () => import("@/components/Event/EventParticipationCard.vue")
@@ -611,9 +611,11 @@ const eventDeleted = (eventid: string): void => {
 };
 
 const { restrictions } = useRestrictions();
+const { isCurrentActorGroup } = useCurrentActorType();
 
 const hideCreateEventButton = computed((): boolean => {
-  return restrictions.value?.onlyGroupsCanCreateEvents === true;
+  // Hide create event button for individual users (persons) - only show for groups
+  return !isCurrentActorGroup.value;
 });
 
 /**

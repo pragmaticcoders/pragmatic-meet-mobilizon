@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen">
+
     <o-notification v-if="groupLoading" variant="info">
       {{ t("Loading…") }}
     </o-notification>
@@ -8,6 +9,7 @@
     </o-notification>
 
     <div v-if="group">
+
       <!-- Breadcrumbs -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 pt-4">
         <breadcrumbs-nav
@@ -20,6 +22,30 @@
             },
           ]"
         />
+      </div>
+
+      <!-- Pending Approval Banner - Positioned under breadcrumbs -->
+      <div
+        v-if="isGroupPendingApproval && isCurrentActorAGroupAdminOrOwner"
+        class="max-w-screen-xl mx-auto px-4 md:px-16 pb-4"
+      >
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="ml-3">
+              <p class="text-sm text-yellow-700">
+                <strong>{{ t("Group Awaiting Administrator Approval") }}</strong>
+              </p>
+              <p class="text-sm text-yellow-700 mt-1">
+                {{ t("This group is pending approval from site administrators and is currently only visible to administrators and the group owner. Most group functionalities including member management, event creation, discussions, and announcements are limited until the group is approved. Resources can still be added and managed.") }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Header Section - Banner Area -->
@@ -330,9 +356,11 @@
 
       <!-- Main Content -->
       <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
-        <!-- Three-column layout for main sections -->
+
+
+        <!-- Two-column layout for main sections -->
         <div
-          class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4"
+          class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"
           style="grid-template-rows: 1fr"
         >
           <!-- Members Section -->
@@ -404,7 +432,14 @@
                   name: RouteName.GROUP_MEMBERS_SETTINGS,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                :disabled="isGroupPendingApproval"
+                :class="[
+                  'w-full py-2 px-4 rounded-lg font-medium transition-colors',
+                  isGroupPendingApproval
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ]"
+                :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
               >
                 {{ t("Manage Members") }}
               </o-button>
@@ -461,81 +496,7 @@
             </div>
           </div>
 
-          <!-- Location Section -->
-          <div
-            class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col"
-            style="height: 380px"
-          >
-            <div class="flex items-center mb-2">
-              <MapMarker class="text-red-500 mr-3" :size="24" />
-              <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                {{ t("Location") }}
-              </h2>
-            </div>
 
-            <!-- Content area that grows -->
-            <div
-              class="flex-grow flex flex-col justify-center items-center text-center min-h-[160px]"
-            >
-              <div v-if="physicalAddress && physicalAddress.url">
-                <div class="mb-2">
-                  <component
-                    :is="physicalAddress.poiInfos.poiIcon.icon || 'Earth'"
-                    class="text-4xl text-red-500"
-                    :size="48"
-                  />
-                </div>
-
-                <address class="not-italic">
-                  <p class="font-semibold text-gray-900 dark:text-white mb-1">
-                    {{ physicalAddress.poiInfos.name }}
-                  </p>
-                  <p class="text-gray-600 dark:text-gray-300 text-sm">
-                    {{ physicalAddress.poiInfos.alternativeName }}
-                  </p>
-                </address>
-
-                <div class="mt-4">
-                  <o-button
-                    v-if="physicalAddress.geom"
-                    @click="showMap = !showMap"
-                    @keyup.enter="showMap = !showMap"
-                    class="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                  >
-                    {{ t("Show map") }}
-                  </o-button>
-                </div>
-              </div>
-
-              <div
-                v-else
-                class="text-center text-gray-500 dark:text-gray-400 py-8"
-              >
-                <MapMarker
-                  class="mx-auto mb-2 opacity-50 empty-state-icon"
-                  :size="48"
-                />
-                <p>{{ t("No location defined yet") }}</p>
-              </div>
-            </div>
-
-            <!-- Button at bottom -->
-            <div
-              class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
-            >
-              <o-button
-                v-if="isCurrentActorAGroupAdmin && !previewPublic"
-                tag="router-link"
-                :to="{
-                  name: RouteName.GROUP_PUBLIC_SETTINGS,
-                  params: { preferredUsername: usernameWithDomain(group) },
-                }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-              >
-                {{ t("Edit Location") }}
-              </o-button>
-            </div>
-          </div>
         </div>
 
         <!-- Bottom sections for Events and Announcements -->
@@ -644,7 +605,14 @@
                   name: RouteName.CREATE_EVENT,
                   query: { actorId: group?.id },
                 }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                :disabled="isGroupPendingApproval"
+                :class="[
+                  'w-full py-2 px-4 rounded-lg font-medium transition-colors',
+                  isGroupPendingApproval
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ]"
+                :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
               >
                 {{ t("Create Event") }}
               </o-button>
@@ -757,7 +725,14 @@
                   name: RouteName.POST_CREATE,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                :disabled="isGroupPendingApproval"
+                :class="[
+                  'w-full py-2 px-4 rounded-lg font-medium transition-colors',
+                  isGroupPendingApproval
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ]"
+                :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
               >
                 {{ t("Create Announcement") }}
               </o-button>
@@ -868,7 +843,14 @@
                   name: RouteName.CREATE_DISCUSSION,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                :disabled="isGroupPendingApproval"
+                :class="[
+                  'w-full py-2 px-4 rounded-lg font-medium transition-colors',
+                  isGroupPendingApproval
+                    ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                ]"
+                :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
               >
                 {{ t("Start Discussion") }}
               </o-button>
@@ -981,7 +963,7 @@
                   name: RouteName.RESOURCE_FOLDER_ROOT,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+                class="w-full py-2 px-4 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {{ t("Add Resource") }}
               </o-button>
@@ -1010,21 +992,6 @@
       </div>
 
       <!-- Modals -->
-      <o-modal
-        v-if="group && physicalAddress && physicalAddress.geom"
-        v-model:active="showMap"
-        :close-button-aria-label="t('Close')"
-      >
-        <div class="map">
-          <map-leaflet
-            :coords="physicalAddress.geom"
-            :marker="{
-              text: physicalAddress.fullName,
-              icon: physicalAddress.poiInfos.poiIcon.icon,
-            }"
-          />
-        </div>
-      </o-modal>
 
       <o-modal
         v-if="group"
@@ -1056,11 +1023,11 @@ import {
   IPerson,
   usernameWithDomain,
 } from "@/types/actor";
-import { Address } from "@/types/address.model";
+
 import InvitationsList from "@/components/Group/InvitationsList.vue";
 import { addMinutes } from "date-fns";
 import { JOIN_GROUP } from "@/graphql/member";
-import { MemberRole } from "@/types/enums";
+import { MemberRole, ApprovalStatus } from "@/types/enums";
 import { IMember } from "@/types/actor/member.model";
 import RouteName from "../../router/name";
 import ReportModal from "@/components/Report/ReportModal.vue";
@@ -1090,7 +1057,7 @@ import Chat from "vue-material-design-icons/Chat.vue";
 import Link from "vue-material-design-icons/Link.vue";
 
 import Information from "vue-material-design-icons/Information.vue";
-import MapMarker from "vue-material-design-icons/MapMarker.vue";
+
 import CalendarToday from "vue-material-design-icons/CalendarToday.vue";
 import Calendar from "vue-material-design-icons/Calendar.vue";
 import Bullhorn from "vue-material-design-icons/Bullhorn.vue";
@@ -1164,7 +1131,7 @@ const ShareGroupModal = defineAsyncComponent(
   () => import("@/components/Group/ShareGroupModal.vue")
 );
 
-const showMap = ref(false);
+
 const isReportModalActive = ref(false);
 const reportModalRef = ref();
 const isShareModalActive = ref(false);
@@ -1453,10 +1420,7 @@ const isCurrentActorOnADifferentDomainThanGroup = computed((): boolean => {
 //   );
 // });
 
-const physicalAddress = computed((): Address | null => {
-  if (!group.value?.physicalAddress) return null;
-  return new Address(group.value?.physicalAddress);
-});
+
 
 const ableToReport = computed((): boolean => {
   return (
@@ -1477,6 +1441,14 @@ const isCurrentActorAGroupAdmin = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.ADMINISTRATOR);
 });
 
+const isCurrentActorAGroupOwner = computed((): boolean => {
+  return hasCurrentActorThisRole(MemberRole.CREATOR);
+});
+
+const isCurrentActorAGroupAdminOrOwner = computed((): boolean => {
+  return isCurrentActorAGroupAdmin.value || isCurrentActorAGroupOwner.value;
+});
+
 const isCurrentActorAGroupModerator = computed((): boolean => {
   return hasCurrentActorThisRole([
     MemberRole.MODERATOR,
@@ -1490,6 +1462,10 @@ const isCurrentActorAGroupMember = computed((): boolean => {
     MemberRole.ADMINISTRATOR,
     MemberRole.MEMBER,
   ]);
+});
+
+const isGroupPendingApproval = computed((): boolean => {
+  return group.value?.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
 });
 
 const currentActorFollow = computed((): IFollower | undefined => {

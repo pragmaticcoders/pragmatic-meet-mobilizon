@@ -64,6 +64,18 @@
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
+              {{ t("Marketing URL") }}
+            </label>
+            <o-input
+              v-model="editableGroup.customUrl"
+              type="url"
+              :placeholder="t('https://example.com')"
+              expanded
+              class="w-full"
+            />
+          </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
               {{ t("Avatar") }}
             </label>
             <picture-upload
@@ -360,7 +372,7 @@
 
 <script lang="ts" setup>
 import PictureUpload from "@/components/PictureUpload.vue";
-import { GroupVisibility, MemberRole, Openness } from "@/types/enums";
+import { GroupVisibility, MemberRole, Openness, ApprovalStatus } from "@/types/enums";
 import { IGroup, usernameWithDomain, displayName } from "@/types/actor";
 import { IAddress } from "@/types/address.model";
 import { ServerParseError } from "@apollo/client/link/http";
@@ -507,6 +519,7 @@ const buildVariables = computed(() => {
     id: group.value?.id ?? "",
     name: editableGroup.value?.name,
     summary: editableGroup.value?.summary,
+    customUrl: editableGroup.value?.customUrl,
     visibility: editableGroup.value?.visibility,
     openness: editableGroup.value?.openness,
     manuallyApprovesFollowers: editableGroup.value?.manuallyApprovesFollowers,

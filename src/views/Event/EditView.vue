@@ -178,6 +178,24 @@
         />
       </div>
 
+      <div class="mb-6">
+        <label for="custom-url" class="block text-sm font-medium mb-2">{{
+          t("Custom URL")
+        }}</label>
+        <o-input
+          icon="link"
+          type="url"
+          v-model="event.customUrl"
+          :placeholder="t('https://example.com')"
+          id="custom-url"
+          expanded
+          class="w-full"
+        />
+        <p class="text-xs text-gray-600 mt-1">
+          {{ t("Optional: Add a custom URL for your event (e.g., your website or social media)") }}
+        </p>
+      </div>
+
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-bold mb-6">{{ t("Organizers") }}</h2>
 

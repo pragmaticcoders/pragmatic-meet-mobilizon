@@ -8,7 +8,7 @@ defmodule Mobilizon.Actors.Actor do
   import Ecto.Changeset
 
   alias Mobilizon.{Actors, Addresses, Config, Crypto, Mention, Share}
-  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, Follower, Member}
+  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, ApprovalStatus, Follower, Member}
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.Comment
@@ -46,6 +46,8 @@ defmodule Mobilizon.Actors.Actor do
           openness: atom(),
           visibility: atom(),
           suspended: boolean,
+          approval_status: atom(),
+          custom_url: String.t() | nil,
           avatar: File.t() | nil,
           banner: File.t() | nil,
           user: User.t() | nil,
@@ -85,7 +87,9 @@ defmodule Mobilizon.Actors.Actor do
     :last_refreshed_at,
     :user_id,
     :physical_address_id,
-    :visibility
+    :visibility,
+    :approval_status,
+    :custom_url
   ]
   @attrs @required_attrs ++ @optional_attrs
 
@@ -97,7 +101,9 @@ defmodule Mobilizon.Actors.Actor do
     :user_id,
     :visibility,
     :openness,
-    :physical_address_id
+    :physical_address_id,
+    :approval_status,
+    :custom_url
   ]
   @update_attrs @update_required_attrs ++ @update_optional_attrs
 
@@ -149,7 +155,9 @@ defmodule Mobilizon.Actors.Actor do
     :summary,
     :visibility,
     :openness,
-    :manually_approves_followers
+    :manually_approves_followers,
+    :approval_status,
+    :custom_url
   ]
   @group_creation_attrs @group_creation_required_attrs ++ @group_creation_optional_attrs
 
@@ -178,6 +186,8 @@ defmodule Mobilizon.Actors.Actor do
     field(:openness, ActorOpenness, default: :moderated)
     field(:visibility, ActorVisibility, default: :private)
     field(:suspended, :boolean, default: false)
+    field(:approval_status, ApprovalStatus, default: :approved)
+    field(:custom_url, :string)
     field(:last_refreshed_at, :utc_datetime)
 
     embeds_one(:avatar, File, on_replace: :update)
@@ -347,6 +357,7 @@ defmodule Mobilizon.Actors.Actor do
     |> cast_embed(:avatar)
     |> cast_embed(:banner)
     |> put_address(attrs)
+    |> validate_custom_url_for_groups_only()
     |> unique_constraint(:url, name: :actors_url_index)
     |> unique_constraint(:preferred_username, name: :actors_preferred_username_domain_type_index)
     |> validate_format(:preferred_username, ~r/[A-z0-9_]+/)
@@ -406,6 +417,29 @@ defmodule Mobilizon.Actors.Actor do
           "Username must only contain alphanumeric lowercased characters and underscores."
         )
       )
+    end
+  end
+
+  defp validate_custom_url_for_groups_only(%Ecto.Changeset{} = changeset) do
+    custom_url = Ecto.Changeset.get_change(changeset, :custom_url)
+    actor_type = Ecto.Changeset.get_field(changeset, :type)
+
+    case {custom_url, actor_type} do
+      {nil, _} ->
+        # No custom_url provided, no validation needed
+        changeset
+
+      {_, :Group} ->
+        # Groups are allowed to have custom URLs
+        changeset
+
+      {_url, _other_type} ->
+        # Custom URLs are only allowed for groups and events
+        add_error(
+          changeset,
+          :custom_url,
+          dgettext("errors", "Only groups can have marketing URLs")
+        )
     end
   end
 
