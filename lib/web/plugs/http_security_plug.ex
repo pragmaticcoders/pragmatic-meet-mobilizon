@@ -145,7 +145,14 @@ defmodule Mobilizon.Web.Plugs.HTTPSecurityPlug do
       end
 
     frame_src = build_csp_field(:frame_src, options)
-    frame_ancestors = build_csp_field(:frame_ancestors, options)
+
+    frame_ancestors =
+      if Keyword.get(options, :iframe_mode, false) do
+        # Iframe mode - allow all schemes including file:// for development
+        "frame-ancestors * file: data:"
+      else
+        build_csp_field(:frame_ancestors, options)
+      end
 
     report = if report_uri, do: ["report-uri ", report_uri, " ; report-to csp-endpoint"]
     insecure = if scheme == "https", do: "upgrade-insecure-requests"
