@@ -97,6 +97,81 @@
               :maxSize="bannerMaxSize"
             />
           </div>
+
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Iframe Banner Code") }}
+            </label>
+            <p class="text-sm text-gray-600">
+              {{ t("Copy this code to embed the Pragmatic Meet banner in any website:") }}
+            </p>
+            
+            <!-- Light Theme Option -->
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900">☀️ {{ t("Light Theme") }}</span>
+                <span class="text-xs text-gray-600">({{ t("for light backgrounds") }})</span>
+              </div>
+              <div class="relative">
+                <textarea
+                  readonly
+                  :value="iframeCodeLight"
+                  class="w-full p-3 border border-gray-300 rounded bg-gray-50 text-sm font-mono resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows="6"
+                ></textarea>
+                <div class="absolute top-2 right-2">
+                  <o-tooltip
+                    v-if="canShowCopyButton"
+                    :label="t('Code copied to clipboard')"
+                    :active="showCopiedTooltipLight"
+                    variant="success"
+                    position="left"
+                  />
+                  <o-button
+                    variant="primary"
+                    icon-right="content-paste"
+                    native-type="button"
+                    @click="copyIframeCodeLight"
+                    @keyup.enter="copyIframeCodeLight"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Dark Theme Option -->
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-900">🌙 {{ t("Dark Theme") }}</span>
+                <span class="text-xs text-gray-600">({{ t("for dark backgrounds") }})</span>
+              </div>
+              <div class="relative">
+                <textarea
+                  readonly
+                  :value="iframeCodeDark"
+                  class="w-full p-3 border border-gray-300 rounded bg-gray-50 text-sm font-mono resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows="6"
+                ></textarea>
+                <div class="absolute top-2 right-2">
+                  <o-tooltip
+                    v-if="canShowCopyButton"
+                    :label="t('Code copied to clipboard')"
+                    :active="showCopiedTooltipDark"
+                    variant="success"
+                    position="left"
+                  />
+                  <o-button
+                    variant="primary"
+                    icon-right="content-paste"
+                    native-type="button"
+                    @click="copyIframeCodeDark"
+                    @keyup.enter="copyIframeCodeDark"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="space-y-3">
             <h3 class="text-lg font-semibold text-gray-900">
               {{ t("Group visibility") }}
@@ -304,7 +379,7 @@ import { ServerParseError } from "@apollo/client/link/http";
 import { ErrorResponse } from "@apollo/client/link/error";
 import RouteName from "@/router/name";
 import { buildFileFromIMedia } from "@/utils/image";
-import { useAvatarMaxSize, useBannerMaxSize } from "@/composition/config";
+import { useAvatarMaxSize, useBannerMaxSize, useHost } from "@/composition/config";
 import { useI18n } from "vue-i18n";
 import { computed, ref, defineAsyncComponent, inject } from "vue";
 import { useGroup, useUpdateGroup } from "@/composition/apollo/group";
@@ -348,6 +423,8 @@ const bannerFile = ref<File | null>(null);
 const errors = ref<string[]>([]);
 
 const showCopiedTooltip = ref(false);
+const showCopiedTooltipLight = ref(false);
+const showCopiedTooltipDark = ref(false);
 
 const editableGroup = ref<IGroup>();
 
@@ -472,6 +549,50 @@ const currentAddress = computed({
 
 const avatarMaxSize = useAvatarMaxSize();
 const bannerMaxSize = useBannerMaxSize();
+const host = useHost();
+
+const baseUrl = computed(() => {
+  const protocol = window.location.protocol;
+  const hostname = host;
+  const port = window.location.port ? `:${window.location.port}` : '';
+  return `${protocol}//${hostname}${port}`;
+});
+
+const iframeCodeLight = computed(() => {
+  return `<iframe 
+    src="${baseUrl.value}/banner/iframe?theme=light" 
+    width="100%" 
+    height="150" 
+    frameborder="0"
+    title="Pragmatic Meet Banner">
+</iframe>`;
+});
+
+const iframeCodeDark = computed(() => {
+  return `<iframe 
+    src="${baseUrl.value}/banner/iframe?theme=dark" 
+    width="100%" 
+    height="150" 
+    frameborder="0"
+    title="Pragmatic Meet Banner">
+</iframe>`;
+});
+
+const copyIframeCodeLight = async (): Promise<void> => {
+  await window.navigator.clipboard.writeText(iframeCodeLight.value);
+  showCopiedTooltipLight.value = true;
+  setTimeout(() => {
+    showCopiedTooltipLight.value = false;
+  }, 2000);
+};
+
+const copyIframeCodeDark = async (): Promise<void> => {
+  await window.navigator.clipboard.writeText(iframeCodeDark.value);
+  showCopiedTooltipDark.value = true;
+  setTimeout(() => {
+    showCopiedTooltipDark.value = false;
+  }, 2000);
+};
 
 const handleError = (err: ErrorResponse) => {
   if (err?.networkError?.name === "ServerParseError") {

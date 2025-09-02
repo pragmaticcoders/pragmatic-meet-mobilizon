@@ -74,7 +74,7 @@
             }}
           </span>
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <event-participation-card
             v-for="participation in thisWeek(row)"
             :key="participation[1].id"
@@ -98,7 +98,13 @@
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
       </p>
-      <multi-card :events="filteredFollowedGroupsEvents" />
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <event-participation-card
+          v-for="event in filteredFollowedGroupsEvents"
+          :key="event.id"
+          :participation="createMockParticipation(event)"
+        />
+      </div>
       <div class="text-right mt-6">
         <router-link
           class="text-blue-600 hover:text-blue-700 font-medium"
@@ -116,8 +122,32 @@
       </div>
     </section>
 
+    <!-- Public events for non-logged users -->
+    <section class="mx-auto mb-8" v-if="canShowPublicEvents">
+      <h2 class="text-xl font-bold text-gray-900 mb-2">
+        {{ t("Upcoming events") }}
+      </h2>
+      <p class="text-gray-600 mb-6">
+        {{ t("Discover interesting events happening near you") }}
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <event-participation-card
+          v-for="event in displayedPublicEvents"
+          :key="event.id"
+          :participation="createMockParticipation(event)"
+        />
+      </div>
+      <div class="text-right mt-6">
+        <router-link
+          class="text-blue-600 hover:text-blue-700 font-medium"
+          :to="{ name: RouteName.SEARCH }"
+          >{{ t("View everything") }} →</router-link
+        >
+      </div>
+    </section>
+
     <!-- Recent events (only show when user has no upcoming events) -->
-    <div class="mx-auto" v-if="!canShowMyUpcomingEvents">
+    <div class="mx-auto" v-if="!canShowMyUpcomingEvents && !canShowPublicEvents">
       <CloseEvents
         @doGeoLoc="performGeoLocation()"
         :userLocation="
@@ -142,17 +172,10 @@
       <!-- Groups content -->
       <div v-if="canShowUserGroups">
         <MultiGroupCard :groups="displayedGroups" />
-        <div class="text-right mt-6" v-if="currentUser?.id">
+        <div class="text-right mt-6">
           <router-link
             class="text-blue-600 hover:text-blue-700 font-medium"
-            :to="{ name: ActorRouteName.MY_GROUPS }"
-            >{{ t("View everything") }} →</router-link
-          >
-        </div>
-        <div class="text-right mt-6" v-else>
-          <router-link
-            class="text-blue-600 hover:text-blue-700 font-medium"
-            :to="{ name: RouteName.SEARCH }"
+            :to="{ name: RouteName.SEARCH, query: { contentType: 'GROUPS', groupPage: '1' } }"
             >{{ t("View everything") }} →</router-link
           >
         </div>
@@ -184,7 +207,6 @@
 <script lang="ts" setup>
 import { ParticipantRole } from "@/types/enums";
 import { IParticipant } from "../types/participant.model";
-import MultiCard from "../components/Event/MultiCard.vue";
 import MultiGroupCard from "../components/Group/MultiGroupCard.vue";
 import EmptyContent from "../components/Utils/EmptyContent.vue";
 import {
@@ -196,11 +218,10 @@ import { ICurrentUser, IUser } from "../types/current-user.model";
 import { CURRENT_USER_CLIENT } from "../graphql/user";
 import { HOME_USER_QUERIES } from "../graphql/home";
 import { IMember } from "../types/actor/member.model";
-import { LIST_GROUPS } from "../graphql/group";
+import { SEARCH_GROUPS, SEARCH_EVENTS } from "../graphql/search";
 import RouteName from "../router/name";
 import { ActorRouteName } from "../router/actor";
 import { IEvent } from "../types/event.model";
-// import { IFollowedGroupEvent } from "../types/followedGroupEvent.model";
 import CloseEvents from "@/components/Local/CloseEvents.vue";
 import {
   computed,
@@ -287,26 +308,7 @@ const { result: userMembershipsResult } = useQuery<{
   enabled: currentUser.value?.id != undefined,
 }));
 
-// Fetch all available groups (when not logged in)
-const { result: allGroupsResult } = useQuery<{
-  groups: { elements: IGroup[] };
-}>(LIST_GROUPS, { limit: 6 }, () => ({
-  enabled: currentUser.value?.id === undefined,
-}));
-
-const displayedGroups = computed<IGroup[]>(() => {
-  if (currentUser.value?.id) {
-    // User is logged in - show their groups
-    return (
-      userMembershipsResult.value?.loggedUser?.memberships?.elements || []
-    )
-      .map((membership: IMember) => membership.parent)
-      .slice(0, 6);
-  } else {
-    // User is not logged in - show all available groups
-    return (allGroupsResult.value?.groups?.elements || []).slice(0, 6);
-  }
-});
+// Note: SEARCH_GROUPS query and displayedGroups moved below userLocation definition to avoid initialization error
 
 const currentUserParticipations = computed(
   () => loggedUser.value?.participations.elements
@@ -418,6 +420,39 @@ const canShowFollowedGroupEvents = computed<boolean>(() => {
 
 const canShowUserGroups = computed<boolean>(() => {
   return displayedGroups.value.length > 0;
+});
+
+const displayedPublicEvents = computed<IEvent[]>(() => {
+  if (currentUser.value?.id) {
+    // User is logged in - don't show public events
+    return [];
+  } else {
+    // User is not logged in - show public upcoming events
+    const rawEvents = publicEventsResult.value?.searchEvents?.elements || [];
+    
+    const today = new Date();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0); // Start of today
+    
+    const filteredEvents = rawEvents.filter(event => {
+      // Only show upcoming events (today and future)
+      if (!event.beginsOn) {
+        return false;
+      }
+      
+      const eventDate = new Date(event.beginsOn);
+      return eventDate >= todayStart;
+    });
+    
+    // Limit to max 6 events
+    return filteredEvents.slice(0, 6);
+  }
+});
+
+const canShowPublicEvents = computed<boolean>(() => {
+  const isLoggedOut = !currentUser.value?.id;
+  const hasEvents = displayedPublicEvents.value.length > 0;
+  return isLoggedOut && hasEvents;
 });
 
 const groupsSectionTitle = computed(() => {
@@ -585,6 +620,82 @@ const distance = computed<number | null>({
   },
 });
 
+// Fetch all available groups (when not logged in) - use SEARCH_GROUPS (public API)
+// Placed here after userLocation and distance are defined to avoid initialization errors
+const { result: allGroupsResult, loading: allGroupsLoading, error: allGroupsError } = useQuery<{
+  searchGroups: { elements: IGroup[] };
+}>(SEARCH_GROUPS, () => ({ 
+  limit: 6, 
+  groupPage: 1,
+  term: "", // Empty term to get all public groups
+  location: userLocation.value?.name || undefined,
+  radius: distance.value || undefined
+}), () => {
+  const isEnabled = !currentUser.value?.id;
+  console.log("SEARCH_GROUPS query enabled check:", {
+    currentUser: currentUser.value,
+    currentUserId: currentUser.value?.id,
+    isEnabled,
+    enabledCondition: !currentUser.value?.id
+  });
+  return {
+    enabled: isEnabled,
+  };
+});
+
+// Define displayedGroups here after allGroupsResult is available
+const displayedGroups = computed<IGroup[]>(() => {
+  const result = (() => {
+    if (currentUser.value?.id) {
+      // User is logged in - show their groups
+      return (
+        userMembershipsResult.value?.loggedUser?.memberships?.elements || []
+      )
+        .map((membership: IMember) => membership.parent)
+        .slice(0, 6);
+    } else {
+      // User is not logged in - show public groups from search
+      return (allGroupsResult.value?.searchGroups?.elements || []).slice(0, 6);
+    }
+  })();
+  
+  console.log("displayedGroups computed:", {
+    isLoggedIn: !!currentUser.value?.id,
+    resultCount: result.length,
+    result,
+    rawSearchGroupsData: allGroupsResult.value?.searchGroups?.elements,
+    rawMembershipsData: userMembershipsResult.value?.loggedUser?.memberships?.elements,
+    loading: allGroupsLoading.value,
+    error: allGroupsError.value
+  });
+  
+  return result;
+});
+
+// Fetch public events (when not logged in) - use SEARCH_EVENTS (public API)
+const { result: publicEventsResult, loading: publicEventsLoading, error: publicEventsError } = useQuery<{
+  searchEvents: { elements: IEvent[] };
+}>(SEARCH_EVENTS, () => {
+  const queryParams = {
+    limit: 6,
+    eventPage: 1,
+    longEvents: false,
+    term: "", // Empty term to get all public events
+    location: userLocation.value?.name || undefined,
+    radius: distance.value || undefined
+  };
+  
+
+  return queryParams;
+}, () => {
+  const isEnabled = !currentUser.value?.id; // true if user is not logged in (null or undefined)
+  
+  return {
+    enabled: isEnabled,
+  };
+});
+
+
 const { mutate: saveCurrentUserLocation } = useMutation<any, LocationType>(
   UPDATE_CURRENT_USER_LOCATION_CLIENT
 );
@@ -643,6 +754,21 @@ const performGeoLocation = () => {
       doingGeoloc.value = false;
     }
   );
+};
+
+/**
+ * Helper function to create mock participation for events without participation data
+ */
+const createMockParticipation = (event: IEvent): IParticipant => {
+  return {
+    id: `mock-${event.id}`,
+    event,
+    actor: currentActor.value || {} as IPerson,
+    role: ParticipantRole.NOT_APPROVED,
+    metadata: {},
+    insertedAt: new Date(),
+    updatedAt: new Date(),
+  } as IParticipant;
 };
 
 /**

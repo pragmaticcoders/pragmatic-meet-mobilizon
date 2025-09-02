@@ -58,7 +58,7 @@
           for="identity-display-name"
           class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-2"
         >
-          {{ t("Display name") }}
+          {{ t("Display name") }} <span class="text-red-500">*</span>
         </label>
         <o-input
           aria-required="true"
@@ -78,7 +78,7 @@
           for="identity-username"
           class="block font-semibold text-[14px] leading-[20px] text-[#1c1b1f] mb-2"
         >
-          {{ t("Username") }}
+          {{ t("Username") }} <span class="text-red-500">*</span>
         </label>
         <div class="flex">
           <o-input
@@ -362,6 +362,25 @@ watch(
 );
 
 const submit = (): Promise<void> => {
+  // Clear previous errors
+  errors.value = [];
+  
+  // Validate required fields
+  const validationErrors: string[] = [];
+  
+  if (!identity.value.name?.trim()) {
+    validationErrors.push(t("Display name is required") as string);
+  }
+  
+  if (!identity.value.preferredUsername?.trim()) {
+    validationErrors.push(t("Username is required") as string);
+  }
+  
+  if (validationErrors.length > 0) {
+    errors.value = validationErrors;
+    return Promise.resolve();
+  }
+
   if (props.isUpdate) return updateIdentity();
 
   return createIdentity();

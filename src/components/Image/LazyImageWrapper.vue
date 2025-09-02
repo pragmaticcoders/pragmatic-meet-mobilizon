@@ -2,9 +2,7 @@
   <lazy-image
     v-if="pictureOrDefault.url !== undefined"
     :src="pictureOrDefault.url"
-    :width="pictureOrDefault.metadata.width"
-    :height="pictureOrDefault.metadata.height"
-    :blurhash="pictureOrDefault.metadata.blurhash"
+    :blurhash="pictureOrDefault.metadata?.blurhash"
     :rounded="rounded"
   />
 </template>
@@ -18,13 +16,9 @@ const { defaultPicture } = useDefaultPicture();
 
 const DEFAULT_CARD_URL = "/img/pragmatic_social_media.svg";
 const DEFAULT_BLURHASH = "MCHKI4El-P-U}+={R-WWoes,Iu-P=?R,xD";
-const DEFAULT_WIDTH = 630;
-const DEFAULT_HEIGHT = 350;
 const DEFAULT_PICTURE = {
   url: DEFAULT_CARD_URL,
   metadata: {
-    width: DEFAULT_WIDTH,
-    height: DEFAULT_HEIGHT,
     blurhash: DEFAULT_BLURHASH,
   },
 };
@@ -42,15 +36,18 @@ const props = withDefaults(
 const pictureOrDefault = computed(() => {
   if (props.picture === null) {
     if (defaultPicture?.value?.url) {
-      return defaultPicture.value;
+      return {
+        url: defaultPicture.value.url,
+        metadata: {
+          blurhash: (defaultPicture.value as any).metadata?.blurhash || DEFAULT_BLURHASH,
+        },
+      };
     }
     return DEFAULT_PICTURE;
   }
   return {
     url: props?.picture?.url,
     metadata: {
-      width: props?.picture?.metadata?.width,
-      height: props?.picture?.metadata?.height,
       blurhash: props?.picture?.metadata?.blurhash,
     },
   };

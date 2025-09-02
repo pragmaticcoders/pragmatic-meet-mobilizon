@@ -9,12 +9,13 @@
       }"
       class="block"
     >
-      <div class="relative aspect-[273/154] bg-gray-100">
-        <lazy-image-wrapper
-          v-if="participation.event.picture"
-          :picture="participation.event.picture"
-          class="w-full h-full object-cover"
-        />
+      <div class="relative h-[200px] overflow-hidden">
+        <div v-if="participation.event.picture" class="w-full h-full">
+          <lazy-image-wrapper
+            :picture="participation.event.picture"
+            class="w-full h-full"
+          />
+        </div>
         <div v-else class="w-full h-full flex items-center justify-center">
           <svg
             width="64"
@@ -64,7 +65,7 @@
         </div>
       </div>
     </router-link>
-    <div class="p-5 flex flex-col gap-4 flex-1">
+    <div class="p-5 pb-2 flex flex-col gap-2 flex-1">
       <div class="flex flex-col h-24">
         <div class="text-[#37363a] text-xs font-medium leading-[18px] mb-1">
           {{
@@ -85,7 +86,7 @@
             name: RouteName.EVENT,
             params: { uuid: participation.event.uuid },
           }"
-          class="flex-1"
+          class="h-[52px] overflow-hidden"
         >
           <h3
             class="text-[17px] font-bold text-[#1c1b1f] leading-[26px] line-clamp-2"
@@ -94,7 +95,7 @@
           </h3>
         </router-link>
       </div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-1">
         <div class="flex flex-col gap-1">
           <div class="flex items-center gap-2">
             <figure
@@ -102,16 +103,19 @@
               class="w-6 h-6 rounded-full overflow-hidden"
             >
               <img
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover rounded-full"
                 :src="actorAvatarURL"
                 alt=""
               />
             </figure>
             <div
               v-else
-              class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"
+              class="w-6 h-6 bg-gray-200 flex items-center justify-center rounded-full"
             >
-              <AccountCircle class="w-6 h-6 text-gray-500" />
+              <svg class="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="8" r="3"/>
+                <path d="M12 14c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"/>
+              </svg>
             </div>
             <span
               class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"
@@ -134,7 +138,7 @@
                 }}</span>
               </template>
               <template v-else-if="participation.event.options && participation.event.options.isOnline">
-                <Video class="w-4 h-4" />
+                <Video class="w-6 h-6" />
                 <span>{{ t("Online") }}</span>
               </template>
             </div>
@@ -180,7 +184,7 @@ import ContentDuplicate from "vue-material-design-icons/ContentDuplicate.vue";
 import Delete from "vue-material-design-icons/Delete.vue";
 import AccountMultiplePlus from "vue-material-design-icons/AccountMultiplePlus.vue";
 import ViewCompact from "vue-material-design-icons/ViewCompact.vue";
-import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
+
 import MapMarker from "vue-material-design-icons/MapMarker.vue";
 import Video from "vue-material-design-icons/Video.vue";
 import { useOruga } from "@oruga-ui/oruga-next";

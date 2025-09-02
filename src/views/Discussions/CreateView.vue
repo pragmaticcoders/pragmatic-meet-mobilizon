@@ -49,6 +49,7 @@
           v-if="currentActor"
           :current-actor="currentActor"
           :placeholder="t('Write a new message')"
+          class="w-full"
         />
       </o-field>
 

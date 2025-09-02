@@ -17,13 +17,11 @@
               :inline="true"
               v-if="!comment.deletedAt && actorComment.avatar"
             >
-              <figure>
+              <figure class="w-6 h-6 rounded-full overflow-hidden">
                 <img
-                  class="rounded-xl"
+                  class="w-full h-full object-cover"
                   :src="actorComment.avatar.url"
                   alt=""
-                  width="24"
-                  height="24"
                 />
               </figure>
             </popover-actor-card>

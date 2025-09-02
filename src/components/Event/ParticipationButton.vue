@@ -158,13 +158,11 @@
         @keyup.enter="joinEvent(currentActor)"
       >
         <div class="flex gap-2 items-center">
-          <figure class="" v-if="currentActor?.avatar">
+          <figure class="w-6 h-6 rounded-full overflow-hidden" v-if="currentActor?.avatar">
             <img
-              class="rounded-xl"
+              class="w-full h-full object-cover"
               :src="currentActor.avatar.url"
               alt=""
-              width="24"
-              height="24"
             />
           </figure>
           <AccountCircle v-else />

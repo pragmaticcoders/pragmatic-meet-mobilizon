@@ -1,13 +1,40 @@
 <template>
   <div class="conversation-view" v-if="conversation">
     <div class="conversation-header">
-      <router-link
-        :to="{ name: RouteName.CONVERSATION_LIST }"
-        class="back-link"
-      >
-        <o-icon icon="chevron-left" />
-      </router-link>
-      <h1 class="conversation-title">{{ t("Conversation") }}</h1>
+      <div class="header-top">
+        <router-link
+          :to="{ name: RouteName.CONVERSATION_LIST }"
+          class="back-link"
+        >
+          <o-icon icon="chevron-left" />
+        </router-link>
+        <h1 class="conversation-title">{{ t("Conversation") }}</h1>
+      </div>
+      <div class="participants-section">
+        <span class="participants-label">{{ t("with:") }}</span>
+        <div class="conversation-participants">
+          <div
+            v-for="participant in otherParticipants"
+            :key="participant.id"
+            class="participant-item"
+          >
+            <div class="participant-avatar">
+              <img
+                v-if="participant.avatar?.url"
+                :src="participant.avatar.url"
+                :alt="participant.name"
+                class="size-full object-cover rounded-full"
+              />
+              <o-icon
+                v-else
+                icon="account-circle"
+                class="size-full text-gray-400"
+              />
+            </div>
+            <span class="participant-name">{{ displayName(participant) }}</span>
+          </div>
+        </div>
+      </div>
     </div>
     <div
       v-if="
@@ -162,40 +189,6 @@
                 <o-icon icon="send" />
               </button>
             </div>
-            <div class="input-actions">
-              <button
-                type="button"
-                class="action-button"
-                :title="t('Bold')"
-                @click="toggleBold"
-              >
-                <o-icon icon="format-bold" />
-              </button>
-              <button
-                type="button"
-                class="action-button"
-                :title="t('Italic')"
-                @click="toggleItalic"
-              >
-                <o-icon icon="format-italic" />
-              </button>
-              <button
-                type="button"
-                class="action-button"
-                :title="t('Underline')"
-                @click="toggleUnderline"
-              >
-                <o-icon icon="format-underline" />
-              </button>
-              <button
-                type="button"
-                class="action-button"
-                :title="t('Add picture')"
-                @click="addImage"
-              >
-                <o-icon icon="image" />
-              </button>
-            </div>
           </div>
         </form>
       </div>
@@ -233,20 +226,54 @@
   @apply h-screen flex flex-col bg-white max-w-screen-xl mx-auto;
 
   .conversation-header {
-    @apply bg-white border-b border-[#cac9cb] px-4 md:px-16 py-4 md:py-8 flex items-center gap-4;
+    @apply bg-white border-b border-[#cac9cb] px-4 md:px-16 py-4 md:py-8 flex flex-col gap-4;
 
-    .back-link {
-      @apply inline-flex items-center justify-center size-[50px] min-w-[42px] min-h-[42px] hover:bg-gray-50;
-      text-decoration: none;
+    .header-top {
+      @apply flex items-center gap-4;
 
-      :deep(.o-icon) {
-        @apply text-[#737275] size-6;
+      .back-link {
+        @apply inline-flex items-center justify-center size-[50px] min-w-[42px] min-h-[42px] hover:bg-gray-50;
+        text-decoration: none;
+
+        :deep(.o-icon) {
+          @apply text-[#737275] size-6;
+        }
+      }
+
+      .conversation-title {
+        @apply text-[30px] leading-[40px] font-bold text-[#1c1b1f];
+        font-family: "Mulish", sans-serif;
       }
     }
 
-    .conversation-title {
-      @apply text-[30px] leading-[40px] font-bold text-[#1c1b1f];
-      font-family: "Mulish", sans-serif;
+    .participants-section {
+      @apply flex items-center gap-3 flex-wrap;
+
+      .participants-label {
+        @apply text-[18px] leading-[26px] font-medium text-[#6b7280];
+        font-family: "Mulish", sans-serif;
+      }
+
+      .conversation-participants {
+        @apply flex items-center gap-3 flex-wrap;
+
+        .participant-item {
+          @apply flex items-center gap-2 bg-gray-50 hover:bg-gray-100 transition-colors rounded-full px-3 py-2;
+
+          .participant-avatar {
+            @apply size-8 rounded-full overflow-hidden flex items-center justify-center;
+
+            :deep(.o-icon) {
+              @apply size-6;
+            }
+          }
+
+          .participant-name {
+            @apply text-[16px] leading-[24px] font-medium text-[#1c1b1f];
+            font-family: "Mulish", sans-serif;
+          }
+        }
+      }
     }
   }
 
@@ -375,8 +402,24 @@
     .conversation-header {
       @apply px-6 py-4;
 
-      .conversation-title {
-        @apply text-[20px] leading-[28px];
+      .header-top {
+        .conversation-title {
+          @apply text-[20px] leading-[28px];
+        }
+      }
+
+      .participants-section {
+        .participants-label {
+          @apply text-[16px] leading-[22px];
+        }
+
+        .conversation-participants {
+          .participant-item {
+            .participant-name {
+              @apply text-[14px] leading-[20px];
+            }
+          }
+        }
       }
     }
 
@@ -419,7 +462,6 @@ import {
   computed,
   onMounted,
   onUnmounted,
-  inject,
 } from "vue";
 import { useHead } from "@/utils/head";
 import { useRouter } from "vue-router";
@@ -427,9 +469,6 @@ import { useCurrentActorClient } from "../../composition/apollo/actor";
 import { AbsintheGraphQLError } from "../../types/errors.model";
 import { useI18n } from "vue-i18n";
 import { IConversation } from "@/types/conversation";
-import { UPLOAD_MEDIA } from "../../graphql/upload";
-import { listenFileUpload } from "../../utils/upload";
-import { Notifier } from "@/plugins/notifier";
 import { usernameWithDomain, displayName } from "@/types/actor";
 import { formatList } from "@/utils/i18n";
 import throttle from "lodash/throttle";
@@ -652,37 +691,7 @@ const loadMoreComments = async (): Promise<void> => {
   }
 };
 
-// const dialog = inject<Dialog>("dialog");
-
-// const openDeleteDiscussionConfirmation = (): void => {
-//   dialog?.confirm({
-//     variant: "danger",
-//     title: t("Delete this conversation"),
-//     message: t("Are you sure you want to delete this entire conversation?"),
-//     confirmText: t("Delete conversation"),
-//     cancelText: t("Cancel"),
-//     onConfirm: () =>
-//       deleteConversation({
-//         discussionId: conversation.value?.id,
-//       }),
-//   });
-// };
-
 const router = useRouter();
-
-// const { mutate: deleteConversation, onDone: deleteConversationDone } =
-//   useMutation(DELETE_DISCUSSION);
-
-// deleteConversationDone(() => {
-//   if (conversation.value?.actor) {
-//     router.push({
-//       name: RouteName.DISCUSSION_LIST,
-//       params: {
-//         preferredUsername: usernameWithDomain(conversation.value.actor),
-//       },
-//     });
-//   }
-// });
 
 onConversationError((discussionError) =>
   handleErrors(discussionError.graphQLErrors as AbsintheGraphQLError[])
@@ -776,58 +785,4 @@ const formatTime = (date: string | Date): string => {
 
 // Editor reference
 const editorRef = ref<any>(null);
-
-// Text formatting functions
-const toggleBold = () => {
-  editorRef.value?.editor?.chain().focus().toggleBold().run();
-};
-
-const toggleItalic = () => {
-  editorRef.value?.editor?.chain().focus().toggleItalic().run();
-};
-
-const toggleUnderline = () => {
-  editorRef.value?.editor?.chain().focus().toggleUnderline().run();
-};
-
-const notifier = inject<Notifier>("notifier");
-
-const {
-  mutate: uploadMediaMutation,
-  onDone: uploadMediaDone,
-  onError: uploadMediaError,
-} = useMutation(UPLOAD_MEDIA);
-
-const addImage = async () => {
-  try {
-    const image = await listenFileUpload();
-    uploadMediaMutation({
-      file: image,
-      name: image.name,
-    });
-  } catch (uploadError) {
-    console.error("Error selecting image:", uploadError);
-  }
-};
-
-uploadMediaDone(({ data }) => {
-  if (data.uploadMedia && data.uploadMedia.url && editorRef.value?.editor) {
-    editorRef.value?.editor
-      .chain()
-      .focus()
-      .setImage({
-        src: data.uploadMedia.url,
-        alt: "",
-        "data-media-id": data.uploadMedia.id,
-      })
-      .run();
-  }
-});
-
-uploadMediaError((uploadError) => {
-  console.error(uploadError);
-  if (uploadError.graphQLErrors && uploadError.graphQLErrors.length > 0) {
-    notifier?.error(uploadError.graphQLErrors[0].message);
-  }
-});
 </script>

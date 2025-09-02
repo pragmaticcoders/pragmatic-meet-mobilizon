@@ -108,13 +108,11 @@
               class="flex items-center text-violet-3 dark:text-white"
               dir="auto"
             >
-              <figure class="" v-if="actorAvatarURL">
+              <figure class="w-6 h-6 rounded-full overflow-hidden" v-if="actorAvatarURL">
                 <img
-                  class="rounded-xl"
+                  class="w-full h-full object-cover"
                   :src="actorAvatarURL"
                   alt=""
-                  width="24"
-                  height="24"
                   loading="lazy"
                 />
               </figure>

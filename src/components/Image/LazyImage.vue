@@ -1,11 +1,11 @@
 <template>
   <div ref="wrapper" class="flex-1" v-bind="$attrs">
-    <div class="h-full w-full max-w-100 min-h-[10rem]">
+    <div class="w-full aspect-video">
       <!-- Show the placeholder as background -->
       <blurhash-img
         v-if="blurhash"
         :hash="blurhash"
-        :aspect-ratio="height / width"
+        :aspect-ratio="9 / 16"
         class="transition-opacity duration-500"
         :class="blurhashOpacity"
       />
@@ -17,7 +17,9 @@
         :class="imageOpacity"
         alt=""
         src=""
-        loading="lazy"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
     </div>
   </div>

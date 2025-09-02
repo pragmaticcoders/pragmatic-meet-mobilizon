@@ -1,51 +1,146 @@
 <template>
-  <form @submit="sendForm" class="flex flex-col gap-4">
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        {{ t("Recipients") }}
-      </label>
-      <ActorAutoComplete v-model="actorMentions" />
-      <p class="text-xs text-gray-500 mt-1">
-        {{ t("Search for people or groups to send a message to") }}
-      </p>
-    </div>
-
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">
-        {{ t("Message") }}
-      </label>
-      <Editor
-        v-model="text"
-        mode="basic"
-        :aria-label="t('Message body')"
-        v-if="currentActor"
-        :currentActor="currentActor"
-        :placeholder="t('Write a new message')"
-      />
-    </div>
-
-    <o-notification
-      class="my-2"
-      variant="danger"
-      :closable="false"
-      v-for="error in errors"
-      :key="error"
+  <div class="bg-white h-full flex flex-col">
+    <!-- Header -->
+    <div
+      class="conversation-header bg-white border-b border-[#cac9cb] px-4 md:px-16 py-4 md:py-8 flex items-center gap-4"
     >
-      {{ error }}
-    </o-notification>
-
-    <footer class="flex gap-2 py-3 mx-2 justify-end">
-      <o-button
-        :disabled="!canSend || isLoading"
-        :loading="isLoading"
-        nativeType="submit"
-        variant="primary"
+      <h1
+        class="text-[30px] leading-[40px] font-bold text-[#1c1b1f]"
+        style="font-family: Mulish, sans-serif"
       >
-        {{ t("Send") }}
-      </o-button>
-    </footer>
-  </form>
+        {{ t("New conversation") }}
+      </h1>
+    </div>
+
+    <!-- Form Content -->
+    <form @submit="sendForm" class="flex-1 flex flex-col">
+      <div
+        class="conversation-content flex-1 overflow-y-auto px-4 md:px-16 py-4 md:py-6 bg-white space-y-6"
+      >
+        <!-- Recipients Field -->
+        <div>
+          <div class="flex items-center gap-4">
+            <label
+              class="text-[17px] leading-[26px] font-bold text-[#1c1b1f] min-w-fit"
+              style="font-family: Mulish, sans-serif"
+            >
+              {{ t("To:") }}
+            </label>
+            <div class="flex-1">
+              <ActorAutoComplete v-model="actorMentions" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Message Field -->
+        <div class="flex-1 flex flex-col">
+          <div class="flex-1 min-h-[150px]">
+            <Editor
+              v-model="text"
+              mode="basic"
+              :aria-label="'Message body'"
+              v-if="currentActor"
+              :currentActor="currentActor"
+              :placeholder="t('Write your message...')"
+              class="h-full"
+            />
+          </div>
+        </div>
+
+        <!-- Error Messages -->
+        <o-notification
+          class="my-2"
+          variant="danger"
+          :closable="false"
+          v-for="error in errors"
+          :key="error"
+        >
+          {{ error }}
+        </o-notification>
+      </div>
+
+      <!-- Footer with Cancel and Send Buttons -->
+      <div
+        class="conversation-footer bg-white border-t border-[#cac9cb] px-4 md:px-16 py-6 md:py-8"
+      >
+        <div class="flex justify-between items-center gap-4">
+          <button
+            type="button"
+            @click="emit('close')"
+            class="size-[60px] md:size-auto md:px-4 md:py-3 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-[17px] leading-[26px] font-bold"
+            style="font-family: Mulish, sans-serif"
+          >
+            <span class="hidden md:inline">{{ t("Cancel") }}</span>
+            <o-icon icon="close" class="md:hidden" />
+          </button>
+          <button
+            type="submit"
+            :disabled="!canSend || isLoading"
+            class="bg-[#155eef] text-white size-[60px] md:size-auto md:px-4 md:py-3 flex items-center justify-center gap-2 hover:bg-[#0d4dd8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[17px] leading-[26px] font-bold"
+            style="font-family: Mulish, sans-serif"
+          >
+            <span v-if="isLoading" class="flex items-center gap-2">
+              <svg
+                class="animate-spin h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span class="hidden md:inline">{{ t("Sending...") }}</span>
+            </span>
+            <span v-else class="flex items-center gap-2">
+              <span class="hidden md:inline">{{ t("Send") }}</span>
+              <o-icon icon="send" />
+            </span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 </template>
+
+<style scoped>
+/* Mobile specific styles */
+@media (max-width: 768px) {
+  .conversation-header {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .conversation-header h1 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .conversation-content {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .conversation-footer {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+</style>
 
 <script lang="ts" setup>
 import { IActor, IGroup, IPerson, usernameWithDomain } from "@/types/actor";
@@ -79,6 +174,7 @@ const props = withDefaults(
 provide(DefaultApolloClient, apolloClient);
 
 const router = useRouter();
+const { t } = useI18n();
 
 const emit = defineEmits(["close"]);
 
@@ -110,7 +206,7 @@ textGroupMentions.value.forEach(async (textGroupMention) => {
   actorMentions.value.push(result.group);
 });
 
-const { t } = useI18n({ useScope: "global" });
+// const { t } = useI18n({ useScope: "global" });
 
 const text = ref("");
 
@@ -193,8 +289,17 @@ const sendForm = async (e: Event) => {
     return;
   }
 
+  // Check if user is trying to message themselves
+  const isSelfMessage = actorMentions.value.some(
+    (actor) => actor.id === currentActor.value?.id
+  );
+  if (isSelfMessage) {
+    errors.value.push("You cannot send a message to yourself");
+    return;
+  }
+
   isLoading.value = true;
-  errors.value = []; // Clear previous errors
+  // Note: We clear errors after all validation passes, but we already cleared them at the start of the function
 
   try {
     console.debug("Sending new private message");

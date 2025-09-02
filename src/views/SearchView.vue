@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
+  <div class="max-w-screen-xl mx-auto px-6 md:px-16 py-8">
     <!-- Page Title -->
     <h1 class="text-3xl font-bold text-gray-900 text-center mb-8">
       {{ t("Browse events and groups:") }}
@@ -70,7 +70,7 @@
     </div>
   </div>
   <div
-    class="max-w-screen-xl mx-auto px-4 md:px-16 py-6 flex flex-col lg:flex-row gap-6"
+    class="max-w-screen-xl mx-auto px-6 md:px-16 py-6 flex flex-col lg:flex-row gap-6"
   >
     <aside
       class="flex-none lg:block lg:sticky top-8 w-full lg:w-80 flex-col justify-between bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
@@ -446,17 +446,13 @@
             <SkeletonEventResultList v-for="i in 8" :key="i" />
           </template>
           <template v-if="searchEvents && searchEvents.total > 0">
-            <event-card
-              mode="row"
-              v-for="event in searchEvents?.elements"
-              :event="event"
-              :key="event.uuid"
-              :options="{
-                isRemoteEvent: event.__typename === 'EventResult',
-                isLoggedIn: currentUser?.isLoggedIn,
-              }"
-              class="my-4"
-            />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              <event-participation-card
+                v-for="event in searchEvents?.elements"
+                :key="event.uuid"
+                :participation="createMockParticipation(event)"
+              />
+            </div>
             <o-pagination
               v-show="searchEvents && searchEvents?.total > EVENT_PAGE_LIMIT"
               :total="searchEvents.total"
@@ -513,15 +509,7 @@
             <SkeletonGroupResultList v-for="i in 6" :key="i" />
           </template>
           <template v-else-if="searchGroups && searchGroups?.total > 0">
-            <GroupCard
-              class="my-2"
-              v-for="group in searchGroups?.elements"
-              :group="group"
-              :key="group.id"
-              :isRemoteGroup="group.__typename === 'GroupResult'"
-              :isLoggedIn="currentUser?.isLoggedIn"
-              mode="row"
-            />
+            <MultiGroupCard :groups="searchGroups?.elements || []" class="mb-6" />
             <o-pagination
               v-show="searchGroups && searchGroups?.total > GROUP_PAGE_LIMIT"
               :total="searchGroups?.total"
@@ -592,14 +580,15 @@ import {
   startOfMonth,
   eachWeekendOfInterval,
 } from "date-fns";
-import { ContentType, EventStatus, SearchTargets } from "@/types/enums";
-import EventCard from "@/components/Event/EventCard.vue";
+import { ContentType, EventStatus, SearchTargets, ParticipantRole } from "@/types/enums";
 import { IEvent } from "@/types/event.model";
 import { SEARCH_EVENTS_AND_GROUPS, SEARCH_EVENTS } from "@/graphql/search";
 import { Paginate } from "@/types/paginate";
-import { IGroup } from "@/types/actor";
-import GroupCard from "@/components/Group/GroupCard.vue";
+import { IGroup, IPerson } from "@/types/actor";
+import MultiGroupCard from "@/components/Group/MultiGroupCard.vue";
+import { IParticipant } from "@/types/participant.model";
 import { CURRENT_USER_CLIENT } from "@/graphql/user";
+import { CURRENT_ACTOR_CLIENT } from "@/graphql/actor";
 import { ICurrentUser } from "@/types/current-user.model";
 import { useQuery } from "@vue/apollo-composable";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
@@ -636,6 +625,10 @@ import { arrayTransformer } from "@/utils/route";
 
 const EventMarkerMap = defineAsyncComponent(
   () => import("@/components/Search/EventMarkerMap.vue")
+);
+
+const EventParticipationCard = defineAsyncComponent(
+  () => import("@/components/Event/EventParticipationCard.vue")
 );
 
 const search = useRouteQuery("search", "");
@@ -765,6 +758,13 @@ const { result: currentUserResult } = useQuery<{ currentUser: ICurrentUser }>(
 );
 
 const currentUser = computed(() => currentUserResult.value?.currentUser);
+
+const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
+  CURRENT_ACTOR_CLIENT
+);
+const currentActor = computed<IPerson | undefined>(
+  () => currentActorResult.value?.currentActor
+);
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -1115,4 +1115,19 @@ const { result: searchShortElementsResult } = useQuery<{
   zoom: zoom.value,
   boostLanguages: boostLanguagesQuery.value,
 }));
+
+/**
+ * Helper function to create mock participation for events without participation data
+ */
+const createMockParticipation = (event: IEvent): IParticipant => {
+  return {
+    id: `mock-${event.id}`,
+    event,
+    actor: currentActor.value || {} as IPerson,
+    role: ParticipantRole.NOT_APPROVED,
+    metadata: {},
+    insertedAt: new Date(),
+    updatedAt: new Date(),
+  } as IParticipant;
+};
 </script>

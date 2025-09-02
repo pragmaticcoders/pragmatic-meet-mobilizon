@@ -160,6 +160,95 @@
         />
       </div>
 
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-[#1c1b1f]">
+          {{ t("Iframe Banner Code") }}
+        </label>
+        <div class="space-y-3">
+          <p class="text-[15px] text-[#37363a] leading-[23px]">
+            {{
+              t(
+                "Copy this code to embed the Pragmatic Meet banner in any website:"
+              )
+            }}
+          </p>
+
+          <!-- Light Theme Option -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-[#1c1b1f]"
+                >☀️ {{ t("Light Theme") }}</span
+              >
+              <span class="text-xs text-[#37363a]"
+                >({{ t("for light backgrounds") }})</span
+              >
+            </div>
+            <div class="relative">
+              <textarea
+                readonly
+                :value="iframeCodeLight"
+                class="w-full p-[18px] border border-[#cac9cb] rounded bg-gray-50 text-sm font-mono resize-none"
+                rows="6"
+              ></textarea>
+              <div class="absolute top-2 right-2">
+                <o-tooltip
+                  v-if="canShowCopyButton"
+                  :label="t('Code copied to clipboard')"
+                  :active="showCopiedTooltipLight"
+                  variant="success"
+                  position="left"
+                />
+                <o-button
+                  variant="primary"
+                  icon-right="content-paste"
+                  native-type="button"
+                  @click="copyIframeCodeLight"
+                  @keyup.enter="copyIframeCodeLight"
+                  size="small"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Dark Theme Option -->
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-[#1c1b1f]"
+                >🌙 {{ t("Dark Theme") }}</span
+              >
+              <span class="text-xs text-[#37363a]"
+                >({{ t("for dark backgrounds") }})</span
+              >
+            </div>
+            <div class="relative">
+              <textarea
+                readonly
+                :value="iframeCodeDark"
+                class="w-full p-[18px] border border-[#cac9cb] rounded bg-gray-50 text-sm font-mono resize-none"
+                rows="6"
+              ></textarea>
+              <div class="absolute top-2 right-2">
+                <o-tooltip
+                  v-if="canShowCopyButton"
+                  :label="t('Code copied to clipboard')"
+                  :active="showCopiedTooltipDark"
+                  variant="success"
+                  position="left"
+                />
+                <o-button
+                  variant="primary"
+                  icon-right="content-paste"
+                  native-type="button"
+                  @click="copyIframeCodeDark"
+                  @keyup.enter="copyIframeCodeDark"
+                  size="small"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <fieldset class="space-y-4">
         <legend class="text-xl font-bold text-[#1c1b1f] leading-[30px]">
           {{ t("Group visibility") }}
@@ -377,12 +466,68 @@ const bannerMaxSize = useBannerMaxSize();
 
 const notifier = inject<Notifier>("notifier");
 
+const showCopiedTooltipLight = ref(false);
+const showCopiedTooltipDark = ref(false);
+
 watch(
   () => group.value.name,
   (newGroupName) => {
     group.value.preferredUsername = convertToUsername(newGroupName);
   }
 );
+
+const baseUrl = computed(() => {
+  const protocol = window.location.protocol;
+  const hostname = host;
+  const port = window.location.port ? `:${window.location.port}` : "";
+  return `${protocol}//${hostname}${port}`;
+});
+
+const iframeCodeLight = computed(() => {
+  const groupParam = group.value.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=light${groupParam}"
+    width="100%"
+    height="150"
+    frameborder="0"
+    title="Pragmatic Meet Banner">
+</iframe>`;
+});
+
+const iframeCodeDark = computed(() => {
+  const groupParam = group.value.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=dark${groupParam}"
+    width="100%"
+    height="150"
+    frameborder="0"
+    title="Pragmatic Meet Banner">
+</iframe>`;
+});
+
+const canShowCopyButton = computed((): boolean => {
+  return window.isSecureContext;
+});
+
+const copyIframeCodeLight = async (): Promise<void> => {
+  await window.navigator.clipboard.writeText(iframeCodeLight.value);
+  showCopiedTooltipLight.value = true;
+  setTimeout(() => {
+    showCopiedTooltipLight.value = false;
+  }, 2000);
+};
+
+const copyIframeCodeDark = async (): Promise<void> => {
+  await window.navigator.clipboard.writeText(iframeCodeDark.value);
+  showCopiedTooltipDark.value = true;
+  setTimeout(() => {
+    showCopiedTooltipDark.value = false;
+  }, 2000);
+};
 
 const buildVariables = computed(() => {
   let avatarObj = {};
