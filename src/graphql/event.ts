@@ -37,6 +37,7 @@ const FULL_EVENT_FRAGMENT = gql`
       }
     }
     publishAt
+    onlineAddress
     phoneAddress
     physicalAddress {
       ...AdressFragment
@@ -178,7 +179,7 @@ export const CREATE_EVENT = gql`
     $draft: Boolean
     $tags: [String]
     $picture: MediaInput
-
+    $onlineAddress: String
     $phoneAddress: String
     $category: EventCategory
     $physicalAddress: AddressInput
@@ -200,7 +201,7 @@ export const CREATE_EVENT = gql`
       draft: $draft
       tags: $tags
       picture: $picture
-
+      onlineAddress: $onlineAddress
       phoneAddress: $phoneAddress
       category: $category
       physicalAddress: $physicalAddress
@@ -228,7 +229,7 @@ export const EDIT_EVENT = gql`
     $draft: Boolean
     $tags: [String]
     $picture: MediaInput
-
+    $onlineAddress: String
     $phoneAddress: String
     $organizerActorId: ID
     $attributedToId: ID
@@ -251,7 +252,7 @@ export const EDIT_EVENT = gql`
       draft: $draft
       tags: $tags
       picture: $picture
-
+      onlineAddress: $onlineAddress
       phoneAddress: $phoneAddress
       organizerActorId: $organizerActorId
       attributedToId: $attributedToId

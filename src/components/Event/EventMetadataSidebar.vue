@@ -76,7 +76,7 @@
       />
     </event-metadata-block>
     <event-metadata-block
-      v-if="event.attributedTo?.customUrl && urlToHostname(event.attributedTo.customUrl)"
+      v-if="event.onlineAddress && urlToHostname(event.onlineAddress)"
       :title="t('Website')"
     >
       <template #icon>
@@ -86,13 +86,13 @@
         target="_blank"
         class="underline"
         rel="noopener noreferrer ugc"
-        :href="event.attributedTo.customUrl"
+        :href="event.onlineAddress"
         :title="
           t('View page on {hostname} (in a new window)', {
-            hostname: urlToHostname(event.attributedTo.customUrl),
+            hostname: urlToHostname(event.onlineAddress),
           })
         "
-        >{{ simpleURL(event.attributedTo.customUrl) }}</a
+        >{{ simpleURL(event.onlineAddress) }}</a
       >
     </event-metadata-block>
     <event-metadata-block
