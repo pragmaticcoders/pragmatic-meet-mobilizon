@@ -1,17 +1,39 @@
 <template>
   <section class="container mx-auto mt-8 mb-12 lg:pl-[20%]">
     <div class="mx-auto">
-      <!-- Header with slogan (publish buttons hidden - only groups can create events) -->
-      <div class="relative mb-6">
-        <!-- Slogan with full width since buttons are hidden -->
+      <!-- Header with slogan and publish button -->
+      <div class="relative mb-6 md:pr-[10%]">
+        <!-- Publish button positioned at far right on desktop, hidden on mobile -->
+        <div class="hidden md:block absolute top-0 right-0 z-10">
+          <router-link
+            :to="{ name: RouteName.CREATE_GROUP }"
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            <Plus :size="20" />
+            {{ t("Create group") }}
+          </router-link>
+        </div>
+
+        <!-- Slogan with space for button on desktop -->
         <h1
-          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl leading-[1.4]"
+          class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl md:pr-[15%] leading-[1.4]"
         >
-          <span class="rhombus-bg text-white px-4 py-1 inline-block">{{
+          <span class="rhombus-bg text-white px-5 py-1 inline-block">{{
             t("Free")
           }}</span>
           <span class="ml-4">{{ restOfSlogan }}</span>
         </h1>
+
+        <!-- Publish button below slogan on mobile -->
+        <div class="md:hidden mt-4">
+          <router-link
+            :to="{ name: RouteName.CREATE_EVENT }"
+            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+          >
+            <Plus :size="20" />
+            {{ t("Publish") }}
+          </router-link>
+        </div>
       </div>
 
       <!-- Description with max width -->
@@ -52,6 +74,7 @@ const restOfSlogan = computed(() => {
   transform: skew(-20deg);
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
   transition: all 0.3s ease;
+  margin: 0 8px;
 }
 
 .rhombus-bg:hover {

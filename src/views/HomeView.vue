@@ -147,7 +147,10 @@
     </section>
 
     <!-- Recent events (only show when user has no upcoming events) -->
-    <div class="mx-auto" v-if="!canShowMyUpcomingEvents && !canShowPublicEvents">
+    <div
+      class="mx-auto"
+      v-if="!canShowMyUpcomingEvents && !canShowPublicEvents"
+    >
       <CloseEvents
         @doGeoLoc="performGeoLocation()"
         :userLocation="
@@ -175,7 +178,10 @@
         <div class="text-right mt-6">
           <router-link
             class="text-blue-600 hover:text-blue-700 font-medium"
-            :to="{ name: RouteName.SEARCH, query: { contentType: 'GROUPS', groupPage: '1' } }"
+            :to="{
+              name: RouteName.SEARCH,
+              query: { contentType: 'GROUPS', groupPage: '1' },
+            }"
             >{{ t("View everything") }} →</router-link
           >
         </div>
@@ -220,7 +226,6 @@ import { HOME_USER_QUERIES } from "../graphql/home";
 import { IMember } from "../types/actor/member.model";
 import { SEARCH_GROUPS, SEARCH_EVENTS } from "../graphql/search";
 import RouteName from "../router/name";
-import { ActorRouteName } from "../router/actor";
 import { IEvent } from "../types/event.model";
 import CloseEvents from "@/components/Local/CloseEvents.vue";
 import {
@@ -286,15 +291,13 @@ const instanceName = computed(() => config.value?.name);
 const todayStart = new Date();
 todayStart.setHours(0, 0, 0, 0);
 
-const { result: userResult, loading: userLoading, error: userError } = useQuery<{ loggedUser: IUser }>(
+const { result: userResult } = useQuery<{ loggedUser: IUser }>(
   HOME_USER_QUERIES,
   { afterDateTime: todayStart.toISOString() },
   () => ({
     enabled: currentUser.value?.id != undefined,
   })
 );
-
-
 
 const loggedUser = computed(() => userResult.value?.loggedUser);
 const followedGroupEvents = computed(
@@ -318,10 +321,6 @@ const address = ref<IAddress | null>(null);
 const noAddress = ref(false);
 const current_distance = ref<number | null>(null);
 
-watch(address, (newAdd, oldAdd) =>
-  console.debug("ADDRESS UPDATED from", oldAdd, " to ", newAdd)
-);
-
 const isToday = (date: string): boolean => {
   return new Date(date).toDateString() === new Date().toDateString();
 };
@@ -336,10 +335,6 @@ const isInDays = (date: string, nbDays: number): boolean => {
 
 const isBefore = (date: string, nbDays: number): boolean => {
   return calculateDiffDays(date) < nbDays;
-};
-
-const isAfter = (date: string, nbDays: number): boolean => {
-  return calculateDiffDays(date) >= nbDays;
 };
 
 const isInLessThanSevenDays = (date: string): boolean => {
@@ -363,25 +358,20 @@ const calculateDiffDays = (date: string): number => {
 
 const thisWeekGoingToEvents = computed<IParticipant[]>(() => {
   const allParticipations = currentUserParticipations.value || [];
-  
-  const res = allParticipations.filter(
-    ({ event, role }) => {
-      if (!event.beginsOn || role === ParticipantRole.REJECTED) {
-        return false;
-      }
-      
-      const eventDate = new Date(event.beginsOn);
-      const today = new Date();
-      const diffDays = calculateDiffDays(event.beginsOn);
-      
-      // Include events that are today or in the future (up to 30 days)
-      // For today's events, even if the time has passed, we still want to show them
-      const isToday = eventDate.toDateString() === today.toDateString();
-      const isUpcoming = diffDays >= 0 && diffDays < 30;
-      
-      return isToday || isUpcoming;
+
+  const res = allParticipations.filter(({ event, role }) => {
+    if (!event.beginsOn || role === ParticipantRole.REJECTED) {
+      return false;
     }
-  );
+
+    const diffDays = calculateDiffDays(event.beginsOn);
+
+    // Include events that are today or in the future (up to 30 days)
+    // For today's events, even if the time has passed, we still want to show them
+    const isUpcoming = diffDays >= 0 && diffDays < 30;
+
+    return isToday || isUpcoming;
+  });
   res.sort(
     (a: IParticipant, b: IParticipant) =>
       new Date(a.event.beginsOn).getTime() -
@@ -429,21 +419,19 @@ const displayedPublicEvents = computed<IEvent[]>(() => {
   } else {
     // User is not logged in - show public upcoming events
     const rawEvents = publicEventsResult.value?.searchEvents?.elements || [];
-    
-    const today = new Date();
-    const todayStart = new Date();
+
     todayStart.setHours(0, 0, 0, 0); // Start of today
-    
-    const filteredEvents = rawEvents.filter(event => {
+
+    const filteredEvents = rawEvents.filter((event) => {
       // Only show upcoming events (today and future)
       if (!event.beginsOn) {
         return false;
       }
-      
+
       const eventDate = new Date(event.beginsOn);
       return eventDate >= todayStart;
     });
-    
+
     // Limit to max 6 events
     return filteredEvents.slice(0, 6);
   }
@@ -537,12 +525,6 @@ const { result: reverseGeocodeResult } = useQuery<{
 const userSettingsLocation = computed(() => {
   const location = reverseGeocodeResult.value?.reverseGeocode[0];
   const placeName = location?.locality ?? location?.region ?? location?.country;
-  console.debug(
-    "userSettingsLocation from reverseGeocode",
-    reverseGeocodeResult.value,
-    coords.value,
-    placeName
-  );
   if (placeName) {
     return {
       lat: coords.value?.latitude,
@@ -562,10 +544,6 @@ const { result: currentUserLocationResult } = useQuery<{
 
 // The user's location currently in the Apollo cache
 const currentUserLocation = computed(() => {
-  console.debug(
-    "currentUserLocation from LocationType",
-    currentUserLocationResult.value
-  );
   return {
     ...(currentUserLocationResult.value?.currentUserLocation ?? {
       lat: undefined,
@@ -580,7 +558,6 @@ const currentUserLocation = computed(() => {
 });
 
 const userLocation = computed(() => {
-  console.debug("new userLocation");
   if (noAddress.value) {
     return {
       lon: null,
@@ -589,7 +566,6 @@ const userLocation = computed(() => {
     };
   }
   if (address.value) {
-    console.debug("userLocation is typed location");
     return addressToLocation(address.value);
   }
   const local_address = getAddressFromLocal();
@@ -622,26 +598,24 @@ const distance = computed<number | null>({
 
 // Fetch all available groups (when not logged in) - use SEARCH_GROUPS (public API)
 // Placed here after userLocation and distance are defined to avoid initialization errors
-const { result: allGroupsResult, loading: allGroupsLoading, error: allGroupsError } = useQuery<{
+const { result: allGroupsResult } = useQuery<{
   searchGroups: { elements: IGroup[] };
-}>(SEARCH_GROUPS, () => ({ 
-  limit: 6, 
-  groupPage: 1,
-  term: "", // Empty term to get all public groups
-  location: userLocation.value?.name || undefined,
-  radius: distance.value || undefined
-}), () => {
-  const isEnabled = !currentUser.value?.id;
-  console.log("SEARCH_GROUPS query enabled check:", {
-    currentUser: currentUser.value,
-    currentUserId: currentUser.value?.id,
-    isEnabled,
-    enabledCondition: !currentUser.value?.id
-  });
-  return {
-    enabled: isEnabled,
-  };
-});
+}>(
+  SEARCH_GROUPS,
+  () => ({
+    limit: 6,
+    groupPage: 1,
+    term: "", // Empty term to get all public groups
+    location: userLocation.value?.name || undefined,
+    radius: distance.value || undefined,
+  }),
+  () => {
+    const isEnabled = !currentUser.value?.id;
+    return {
+      enabled: isEnabled,
+    };
+  }
+);
 
 // Define displayedGroups here after allGroupsResult is available
 const displayedGroups = computed<IGroup[]>(() => {
@@ -658,43 +632,35 @@ const displayedGroups = computed<IGroup[]>(() => {
       return (allGroupsResult.value?.searchGroups?.elements || []).slice(0, 6);
     }
   })();
-  
-  console.log("displayedGroups computed:", {
-    isLoggedIn: !!currentUser.value?.id,
-    resultCount: result.length,
-    result,
-    rawSearchGroupsData: allGroupsResult.value?.searchGroups?.elements,
-    rawMembershipsData: userMembershipsResult.value?.loggedUser?.memberships?.elements,
-    loading: allGroupsLoading.value,
-    error: allGroupsError.value
-  });
-  
+
   return result;
 });
 
 // Fetch public events (when not logged in) - use SEARCH_EVENTS (public API)
-const { result: publicEventsResult, loading: publicEventsLoading, error: publicEventsError } = useQuery<{
+const { result: publicEventsResult } = useQuery<{
   searchEvents: { elements: IEvent[] };
-}>(SEARCH_EVENTS, () => {
-  const queryParams = {
-    limit: 6,
-    eventPage: 1,
-    longEvents: false,
-    term: "", // Empty term to get all public events
-    location: userLocation.value?.name || undefined,
-    radius: distance.value || undefined
-  };
-  
+}>(
+  SEARCH_EVENTS,
+  () => {
+    const queryParams = {
+      limit: 6,
+      eventPage: 1,
+      longEvents: false,
+      term: "", // Empty term to get all public events
+      location: userLocation.value?.name || undefined,
+      radius: distance.value || undefined,
+    };
 
-  return queryParams;
-}, () => {
-  const isEnabled = !currentUser.value?.id; // true if user is not logged in (null or undefined)
-  
-  return {
-    enabled: isEnabled,
-  };
-});
+    return queryParams;
+  },
+  () => {
+    const isEnabled = !currentUser.value?.id; // true if user is not logged in (null or undefined)
 
+    return {
+      enabled: isEnabled,
+    };
+  }
+);
 
 const { mutate: saveCurrentUserLocation } = useMutation<any, LocationType>(
   UPDATE_CURRENT_USER_LOCATION_CLIENT
@@ -763,7 +729,7 @@ const createMockParticipation = (event: IEvent): IParticipant => {
   return {
     id: `mock-${event.id}`,
     event,
-    actor: currentActor.value || {} as IPerson,
+    actor: currentActor.value || ({} as IPerson),
     role: ParticipantRole.NOT_APPROVED,
     metadata: {},
     insertedAt: new Date(),
