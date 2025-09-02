@@ -12,7 +12,7 @@
           Niektóre terminy, techniczne lub inne, użyte w poniższym tekście mogą
           obejmować pojęcia, które są trudne do zrozumienia. Udostępniliśmy
           <a
-            href="https://meetup.pragmaticcoders.com/glossary"
+            href="https://pragmaticmeet.com/glossary"
             class="font-bold underline"
             >słowniczek</a
           >, aby pomóc w ich lepszym zrozumieniu.

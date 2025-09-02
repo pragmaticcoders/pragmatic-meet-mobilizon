@@ -127,7 +127,7 @@ config :mobilizon, :linkedin,
   redirect_uri:
     System.get_env(
       "LINKEDIN_REDIRECT_URI",
-      "https://meetup.pragmaticcoders.com/auth/linkedin/callback"
+      "https://pragmaticmeet.com/auth/linkedin/callback"
     )
 
 # HTTP client configuration for OAuth requests

@@ -63,9 +63,9 @@
             }}
             <span class="font-bold"> Pragmatic Meet </span>
             (<a
-              href="https://meetup.pragmaticcoders.com/"
+              href="https://pragmaticmeet.com/"
               class="font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-              >meetup.pragmaticcoders.com</a
+              >pragmaticmeet.com</a
             >)
             {{
               t(
