@@ -146,14 +146,22 @@
         </label>
         <div class="space-y-3">
           <p class="text-[15px] text-[#37363a] leading-[23px]">
-            {{ t("Copy this code to embed the Pragmatic Meet banner in any website:") }}
+            {{
+              t(
+                "Copy this code to embed the Pragmatic Meet banner in any website:"
+              )
+            }}
           </p>
-          
+
           <!-- Light Theme Option -->
           <div class="space-y-2">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-[#1c1b1f]">☀️ {{ t("Light Theme") }}</span>
-              <span class="text-xs text-[#37363a]">({{ t("for light backgrounds") }})</span>
+              <span class="text-sm font-medium text-[#1c1b1f]"
+                >☀️ {{ t("Light Theme") }}</span
+              >
+              <span class="text-xs text-[#37363a]"
+                >({{ t("for light backgrounds") }})</span
+              >
             </div>
             <div class="relative">
               <textarea
@@ -185,8 +193,12 @@
           <!-- Dark Theme Option -->
           <div class="space-y-2">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-[#1c1b1f]">🌙 {{ t("Dark Theme") }}</span>
-              <span class="text-xs text-[#37363a]">({{ t("for dark backgrounds") }})</span>
+              <span class="text-sm font-medium text-[#1c1b1f]"
+                >🌙 {{ t("Dark Theme") }}</span
+              >
+              <span class="text-xs text-[#37363a]"
+                >({{ t("for dark backgrounds") }})</span
+              >
             </div>
             <div class="relative">
               <textarea
@@ -447,25 +459,31 @@ watch(
 const baseUrl = computed(() => {
   const protocol = window.location.protocol;
   const hostname = host;
-  const port = window.location.port ? `:${window.location.port}` : '';
+  const port = window.location.port ? `:${window.location.port}` : "";
   return `${protocol}//${hostname}${port}`;
 });
 
 const iframeCodeLight = computed(() => {
-  return `<iframe 
-    src="${baseUrl.value}/banner/iframe?theme=light" 
-    width="100%" 
-    height="150" 
+  const groupParam = group.value.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=light${groupParam}"
+    width="100%"
+    height="150"
     frameborder="0"
     title="Pragmatic Meet Banner">
 </iframe>`;
 });
 
 const iframeCodeDark = computed(() => {
-  return `<iframe 
-    src="${baseUrl.value}/banner/iframe?theme=dark" 
-    width="100%" 
-    height="150" 
+  const groupParam = group.value.preferredUsername
+    ? `&group=${encodeURIComponent(group.value.preferredUsername)}`
+    : "";
+  return `<iframe
+    src="${baseUrl.value}/banner/iframe?theme=dark${groupParam}"
+    width="100%"
+    height="150"
     frameborder="0"
     title="Pragmatic Meet Banner">
 </iframe>`;

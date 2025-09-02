@@ -9,9 +9,10 @@ defmodule Mobilizon.Web.BannerController do
   """
   def iframe(conn, params) do
     theme = Map.get(params, "theme", "light")
+    group = Map.get(params, "group", nil)
 
     conn
     |> put_layout(false)
-    |> render("iframe.html", theme: theme)
+    |> render("iframe.html", theme: theme, group: group)
   end
 end
