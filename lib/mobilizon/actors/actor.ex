@@ -434,11 +434,11 @@ defmodule Mobilizon.Actors.Actor do
         changeset
 
       {_url, _other_type} ->
-        # Non-group actors cannot have custom URLs
+        # Custom URLs are only allowed for groups and events
         add_error(
           changeset,
           :custom_url,
-          dgettext("errors", "Only groups can have custom URLs")
+          dgettext("errors", "Only groups can have marketing URLs")
         )
     end
   end

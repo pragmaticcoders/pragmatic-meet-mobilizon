@@ -64,7 +64,7 @@
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
-              {{ t("Custom URL") }}
+              {{ t("Marketing URL") }}
             </label>
             <o-input
               v-model="editableGroup.customUrl"

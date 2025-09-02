@@ -61,6 +61,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
     field(:online_address, :string, description: "Online address of the event")
     field(:phone_address, :string, description: "Phone address for the event")
+    field(:custom_url, :string, description: "Custom URL for the event")
 
     field(:attributed_to, :actor,
       resolve: dataloader(Actors),
@@ -451,6 +452,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       arg(:publish_at, :datetime, description: "Datetime when the event was published")
       arg(:online_address, :string, description: "Online address of the event")
       arg(:phone_address, :string, description: "Phone address for the event")
+      arg(:custom_url, :string, description: "Custom URL for the event")
 
       arg(:organizer_actor_id, non_null(:id),
         description: "The event's organizer ID (as a person)"
@@ -520,6 +522,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
       arg(:online_address, :string, description: "Online address of the event")
       arg(:phone_address, :string, description: "Phone address for the event")
+      arg(:custom_url, :string, description: "Custom URL for the event")
       arg(:organizer_actor_id, :id, description: "The event's organizer ID (as a person)")
 
       arg(:attributed_to_id, :id,

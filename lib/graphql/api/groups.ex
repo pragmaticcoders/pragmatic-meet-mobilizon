@@ -79,14 +79,14 @@ defmodule Mobilizon.GraphQL.API.Groups do
   defp group_update_allowed?(%Actor{type: :Group, approval_status: :approved, suspended: false}, _user, _args), do: true
   defp group_update_allowed?(_group, %Users.User{role: role}, _args) when role in [:administrator, :moderator], do: true
   defp group_update_allowed?(%Actor{type: :Group, approval_status: :pending_approval, suspended: false}, _user, args) do
-    # Allow only custom_url updates for pending groups
+    # Allow only marketing URL updates for pending groups
     only_custom_url_update?(args)
   end
   defp group_update_allowed?(_group, _user, _args), do: false
 
-  # Helper to check if only custom_url is being updated
+  # Helper to check if only marketing URL is being updated
   defp only_custom_url_update?(args) do
-    # Remove internal fields and check if only custom_url remains
+    # Remove internal fields and check if only marketing URL remains
     update_fields = args
                    |> Map.drop([:id, :updater_actor])
                    |> Map.keys()

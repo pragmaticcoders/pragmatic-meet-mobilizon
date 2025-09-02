@@ -108,21 +108,21 @@
 
       <div class="space-y-1.5">
         <label
-          for="group-custom-url"
+          for="group-marketing-url"
           class="block text-xs font-bold text-[#1c1b1f]"
         >
-          {{ t("Custom URL") }}
+          {{ t("Marketing URL") }}
         </label>
         <o-input
           expanded
           v-model="group.customUrl"
-          id="group-custom-url"
+          id="group-marketing-url"
           type="url"
           :placeholder="t('https://example.com')"
           class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
         />
         <p class="text-[13px] text-[#666666] leading-[20px]">
-          {{ t("Optional: Add a custom URL for your group (e.g., your website or social media)") }}
+          {{ t("Optional: Add a marketing URL for your group (e.g., your website or social media)") }}
         </p>
       </div>
 
