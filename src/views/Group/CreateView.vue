@@ -111,20 +111,24 @@
           for="group-marketing-url"
           class="block text-xs font-bold text-[#1c1b1f]"
         >
-          {{ t("Marketing URL") }}
+          {{ t("Marketing URL") }} <span class="text-red-600">*</span>
         </label>
-        <o-input
-          expanded
-          v-model="group.customUrl"
-          id="group-marketing-url"
-          type="url"
-          :placeholder="t('https://example.com')"
-          class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
-        />
+        <o-field :message="customUrlErrors[0]" :type="customUrlErrors[1]">
+          <o-input
+            expanded
+            v-model="group.customUrl"
+            id="group-marketing-url"
+            type="url"
+            required
+            aria-required="true"
+            :placeholder="t('https://example.com')"
+            class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
+          />
+        </o-field>
         <p class="text-[13px] text-[#666666] leading-[20px]">
           {{
             t(
-              "Optional: Add a marketing URL for your group (e.g., your website or social media)"
+              "Required: Add a marketing URL for your group (e.g., your website or social media)"
             )
           }}
         </p>
@@ -460,6 +464,7 @@ const errors = ref<string[]>([]);
 const fieldErrors = reactive<Record<string, string | undefined>>({
   preferred_username: undefined,
   summary: undefined,
+  custom_url: undefined,
 });
 
 const router = useRouter();
@@ -630,6 +635,12 @@ const preferredUsernameErrors = computed(() => {
   return [message, type];
 });
 
+const customUrlErrors = computed(() => {
+  const message = fieldErrors.custom_url ? fieldErrors.custom_url : undefined;
+  const type = fieldErrors.custom_url ? "danger" : undefined;
+  return [message, type];
+});
+
 const { onDone, onError, mutate, loading } = useCreateGroup();
 
 onDone(() => {
@@ -651,6 +662,14 @@ const createGroup = async (): Promise<void> => {
   errors.value = [];
   fieldErrors.preferred_username = undefined;
   fieldErrors.summary = undefined;
+  fieldErrors.custom_url = undefined;
+
+  // Client-side validation for required marketing URL
+  if (!group.value.customUrl || group.value.customUrl.trim() === '') {
+    fieldErrors.custom_url = t("Marketing URL is required") as string;
+    return;
+  }
+
   mutate(buildVariables.value);
 };
 </script>

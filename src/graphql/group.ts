@@ -307,7 +307,7 @@ export const CREATE_GROUP = gql`
     $preferredUsername: String!
     $name: String!
     $summary: String
-    $customUrl: String
+    $customUrl: String!
     $avatar: MediaInput
     $banner: MediaInput
     $physicalAddress: AddressInput
