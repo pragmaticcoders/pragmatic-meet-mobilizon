@@ -500,6 +500,8 @@ const {
   }),
   () => ({
     enabled: conversationId.value !== undefined,
+    fetchPolicy: "no-cache",
+    notifyOnNetworkStatusChange: false,
   })
 );
 

@@ -307,7 +307,7 @@ uploadMediaError((error) => {
 const replyToComment = (actor: IActor): void => {
   if (!editor.value) return;
   const username = usernameWithDomain(actor);
-  const displayName = actor?.name || username;
+  const displayName = (actor && actor.name) ? actor.name : username;
 
   editor.value
     .chain()
