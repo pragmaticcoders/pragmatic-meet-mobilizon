@@ -7,24 +7,20 @@ import { IPerson } from "@/types/actor";
 import pDebounce from "p-debounce";
 import { MentionOptions } from "@tiptap/extension-mention";
 import { Editor } from "@tiptap/core";
-import { provideApolloClient, useLazyQuery } from "@vue/apollo-composable";
+
 import { Paginate } from "@/types/paginate";
 
 const fetchItems = async (query: string): Promise<IPerson[]> => {
   try {
     if (query === "") return [];
-    const res = await provideApolloClient(apolloClient)(async () => {
-      const { load: loadSearchPersonsQuery } = useLazyQuery<
-        { searchPersons: Paginate<IPerson> },
-        { searchText: string }
-      >(SEARCH_PERSONS);
-
-      return await loadSearchPersonsQuery(SEARCH_PERSONS, {
-        searchText: query,
-      });
+    const res = await apolloClient.query<
+      { searchPersons: Paginate<IPerson> },
+      { searchText: string }
+    >({
+      query: SEARCH_PERSONS,
+      variables: { searchText: query },
     });
-    if (!res) return [];
-    return res.searchPersons.elements;
+    return res.data.searchPersons.elements;
   } catch (e) {
     console.error(e);
     return [];
@@ -41,6 +37,16 @@ const mentionOptions: MentionOptions = {
   renderLabel({ options, node }) {
     const label = node.attrs.label || node.attrs.id || "";
     return `${options.suggestion.char}${label}`;
+  },
+  renderText({ options, node }) {
+    return `${options.suggestion.char}${node.attrs.label || node.attrs.id}`;
+  },
+  renderHTML({ options, node }) {
+    return [
+      "span",
+      { class: "mention", "data-id": node.attrs.id },
+      `${options.suggestion.char}${node.attrs.label || node.attrs.id}`,
+    ];
   },
   suggestion: {
     items: async ({

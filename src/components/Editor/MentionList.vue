@@ -20,7 +20,7 @@ import { ref, watch } from "vue";
 
 const props = defineProps<{
   items: IPerson[];
-  command: ({ id }: { id: string }) => any;
+  command: ({ id, label }: { id: string; label?: string }) => any;
 }>();
 
 // @Prop({ type: Function, required: true }) command!: any;
@@ -70,9 +70,15 @@ const selectItem = (index: number): void => {
   const item = props.items[index];
 
   if (item) {
-    props.command({ 
+    // Handle cases where name might be "undefined" string or empty
+    const displayName =
+      item.name && item.name !== "undefined" && item.name.trim() !== ""
+        ? item.name
+        : usernameWithDomain(item);
+
+    props.command({
       id: usernameWithDomain(item),
-      label: item.name || usernameWithDomain(item)
+      label: displayName,
     });
   }
 };
