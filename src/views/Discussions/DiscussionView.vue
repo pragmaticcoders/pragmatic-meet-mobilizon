@@ -272,6 +272,7 @@ const error = ref<string | null>(null);
 const { mutate: replyToDiscussionMutation } = useMutation<{
   replyToDiscussion: IDiscussion;
 }>(REPLY_TO_DISCUSSION, () => ({
+  fetchPolicy: "no-cache",
   update: (store: ApolloCache<InMemoryCache>, { data }: FetchResult) => {
     const discussionData = store.readQuery<{
       discussion: IDiscussion;
@@ -400,12 +401,15 @@ const loadMoreComments = async (): Promise<void> => {
 
 const { mutate: updateDiscussionMutation } = useMutation<{
   updateDiscussion: IDiscussion;
-}>(UPDATE_DISCUSSION);
+}>(UPDATE_DISCUSSION, {
+  fetchPolicy: "no-cache",
+});
 
 const updateDiscussion = async (): Promise<void> => {
   updateDiscussionMutation({
     discussionId: discussion.value?.id,
     title: newTitle.value,
+    
   });
 
   editTitleMode.value = false;
