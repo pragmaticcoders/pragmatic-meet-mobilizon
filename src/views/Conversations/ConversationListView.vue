@@ -58,6 +58,7 @@ import { useHead } from "@/utils/head";
 import { IPerson } from "@/types/actor";
 import { useOruga } from "@oruga-ui/oruga-next";
 import { arrayTransformer } from "@/utils/route";
+import { useRouter } from "vue-router";
 
 const page = useRouteQuery("page", 1, integerTransformer);
 const CONVERSATIONS_PER_PAGE = 10;
@@ -67,6 +68,7 @@ const personMentions = useRouteQuery("personMentions", [], arrayTransformer);
 const groupMentions = useRouteQuery("groupMentions", [], arrayTransformer);
 
 const { t } = useI18n({ useScope: "global" });
+const router = useRouter();
 
 useHead({
   title: computed(() => t("List of conversations")),
@@ -103,17 +105,22 @@ const NewConversation = defineAsyncComponent(
 );
 
 const openNewMessageModal = () => {
-  modal.open({
+  const modalInstance = modal.open({
     component: NewConversation,
     props: {
       personMentions: personMentions.value,
       groupMentions: groupMentions.value,
+      onClose: () => {
+        // Close the modal instance and clear query parameters
+        modalInstance.close();
+        showModal.value = false;
+        // If we came from a deep link, navigate back
+        if (personMentions.value.length || groupMentions.value.length) {
+          router.back();
+        }
+      },
     },
     trapFocus: true,
-    onClose: () => {
-      // Clear the query parameter when modal is closed
-      showModal.value = false;
-    },
   });
 };
 
