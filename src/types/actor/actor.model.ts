@@ -56,6 +56,7 @@ export class Actor implements IActor {
   }
 
   usernameWithDomain(): string {
+    if (!this.preferredUsername) return "";
     const domain = this.domain ? `@${this.domain}` : "";
     return `@${this.preferredUsername}${domain}`;
   }
@@ -69,7 +70,7 @@ export function usernameWithDomain(
   actor: IMinimalActor | undefined,
   force = false
 ): string {
-  if (!actor) return "";
+  if (!actor || !actor.preferredUsername) return "";
   if (actor?.domain) {
     return `${actor.preferredUsername}@${actor.domain}`;
   }

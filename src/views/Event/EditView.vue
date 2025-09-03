@@ -335,52 +335,7 @@
         </div>
       </section>
 
-      <section
-        class="my-8 p-4 bg-gray-50 border border-gray-200"
-        :class="{
-          'border-red-300 bg-red-50':
-            props.isUpdate === false && !agreedToTerms,
-        }"
-      >
-        <h2
-          class="text-lg font-semibold mb-3"
-          :class="{
-            'text-red-700': props.isUpdate === false && !agreedToTerms,
-          }"
-        >
-          {{ t("Zgody") }} <span class="text-red-500">*</span>
-        </h2>
-        <div class="space-y-3">
-          <label
-            class="flex items-start gap-3"
-            :class="{
-              'text-red-700': props.isUpdate === false && !agreedToTerms,
-            }"
-          >
-            <o-checkbox
-              v-model="agreedToTerms"
-              class="mt-1"
-              :class="{
-                'border-red-300': props.isUpdate === false && !agreedToTerms,
-              }"
-            />
-            <span class="text-sm">
-              *
-              {{
-                t(
-                  "Oświadczam, że rozumiem, iż wydarzeniem bezpłatnego korzystania z platformy Pragmatic Meet jest umieszczenie na stronie mojej społeczności widocznego logo zawierającego link prowadzący do strony"
-                )
-              }}
-              <a
-                href="https://www.pragmaticcoders.com/"
-                target="_blank"
-                class="text-blue-600 hover:underline"
-                >Pragmatic Coders</a
-              >.
-            </span>
-          </label>
-        </div>
-      </section>
+
     </form>
   </div>
   <div
@@ -474,12 +429,7 @@
       <div
         class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
       >
-        <div
-          class="text-sm text-orange-600 order-2 sm:order-1"
-          v-if="props.isUpdate === false && !agreedToTerms"
-        >
-          * {{ t("Wymagane zgody") }}
-        </div>
+
         <div
           class="flex flex-col sm:flex-row gap-3 sm:items-center sm:ml-auto order-1 sm:order-2"
         >
@@ -487,7 +437,7 @@
             variant="primary"
             size="medium"
             class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white hover:bg-blue-700"
-            :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
+            :disabled="saving"
             :loading="saving"
             @click="createOrUpdatePublish"
             @keyup.enter="createOrUpdatePublish"
@@ -504,7 +454,7 @@
             size="medium"
             class="w-full sm:w-auto px-6 py-2 border border-gray-300 hover:bg-gray-50"
             @click="createOrUpdateDraft"
-            :disabled="saving || (props.isUpdate === false && !agreedToTerms)"
+            :disabled="saving"
             :loading="saving"
           >
             <o-icon icon="content-save-outline" />
@@ -668,7 +618,6 @@ const bottomObserver = ref<HTMLElement | null>(null);
 const dateSettingsIsOpen = ref(false);
 
 const saving = ref(false);
-const agreedToTerms = ref(false);
 
 const setEventTimezoneToUserTimezoneIfUnset = () => {
   if (userTimezone.value && event.value.options.timezone == null) {
@@ -807,16 +756,7 @@ const router = useRouter();
 const validateForm = () => {
   if (!form.value) return;
 
-  // Check if agreement is ticked (only for new events, not drafts or updates)
-  if (props.isUpdate === false && !agreedToTerms.value) {
-    notification.open({
-      message: t("Wymagane zgody"),
-      variant: "danger",
-      position: "bottom-right",
-      duration: 3000,
-    });
-    return false;
-  }
+
 
   if (form.value.checkValidity()) {
     return true;
