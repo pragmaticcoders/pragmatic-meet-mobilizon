@@ -110,17 +110,16 @@ const openNewMessageModal = () => {
     props: {
       personMentions: personMentions.value,
       groupMentions: groupMentions.value,
-      onClose: () => {
-        // Close the modal instance and clear query parameters
-        modalInstance.close();
-        showModal.value = false;
-        // If we came from a deep link, navigate back
-        if (personMentions.value.length || groupMentions.value.length) {
-          router.back();
-        }
-      },
     },
     trapFocus: true,
+    onClose: () => {
+      // Clear query parameters when modal is closed
+      showModal.value = false;
+      // If we came from a deep link, navigate back
+      if (personMentions.value.length || groupMentions.value.length) {
+        router.back();
+      }
+    },
   });
 };
 

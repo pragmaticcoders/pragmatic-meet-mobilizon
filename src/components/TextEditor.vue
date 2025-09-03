@@ -128,7 +128,7 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { AutoDir } from "./Editor/Autodir";
 // import sanitizeHtml from "sanitize-html";
-import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMutation } from "@vue/apollo-composable";
 import { Notifier } from "@/plugins/notifier";
@@ -304,8 +304,12 @@ uploadMediaError((error) => {
 /**
  * We use this to programatically insert an actor mention when creating a reply to comment
  */
-const replyToComment = (actor: IActor): void => {
-  if (!editor.value) return;
+const replyToComment = async (actor: IActor): Promise<void> => {
+  if (!editor.value || !actor) return;
+
+  // Wait for the next tick to ensure actor data is fully loaded
+  await nextTick();
+
   const username = usernameWithDomain(actor);
   // Handle cases where name might be "undefined" string or empty
   const displayName =
