@@ -27,11 +27,11 @@
         <!-- Publish button below slogan on mobile -->
         <div class="md:hidden mt-4">
           <router-link
-            :to="{ name: RouteName.CREATE_EVENT }"
+            :to="{ name: RouteName.CREATE_GROUP }"
             class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
           >
             <Plus :size="20" />
-            {{ t("Publish") }}
+            {{ t("Create group") }}
           </router-link>
         </div>
       </div>
