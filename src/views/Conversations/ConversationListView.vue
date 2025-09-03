@@ -110,14 +110,23 @@ const openNewMessageModal = () => {
       groupMentions: groupMentions.value,
     },
     trapFocus: true,
+    onClose: () => {
+      // Clear the query parameter when modal is closed
+      showModal.value = false;
+    },
   });
-  // Clear the query parameter to prevent infinite modal opening
-  showModal.value = false;
 };
 
+// Use a flag to prevent multiple modal openings
+const hasOpenedModal = ref(false);
+
 watchEffect(() => {
-  if (showModal.value) {
+  if (showModal.value && !hasOpenedModal.value) {
+    hasOpenedModal.value = true;
     openNewMessageModal();
+    // Clear the flag and query parameter after opening
+    showModal.value = false;
+    hasOpenedModal.value = false;
   }
 });
 </script>

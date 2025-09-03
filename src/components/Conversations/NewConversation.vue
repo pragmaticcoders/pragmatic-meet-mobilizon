@@ -66,7 +66,7 @@
         <div class="flex justify-between items-center gap-4">
           <button
             type="button"
-            @click="emit('close')"
+            @click="handleClose"
             class="size-[60px] md:size-auto md:px-4 md:py-3 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-[17px] leading-[26px] font-bold"
             style="font-family: Mulish, sans-serif"
           >
@@ -222,6 +222,10 @@ const canSend = computed(() => {
   return actorMentions.value.length > 0 || /@.+/.test(text.value);
 });
 
+const handleClose = () => {
+  emit("close");
+};
+
 const { mutate: postPrivateMessageMutate, onError: onPrivateMessageError } =
   provideApolloClient(apolloClient)(() =>
     useMutation<
@@ -319,7 +323,7 @@ const sendForm = async (e: Event) => {
       name: RouteName.CONVERSATION,
       params: { id: result.data.postPrivateMessage.conversationParticipantId },
     });
-    emit("close");
+    handleClose();
   } catch (error) {
     console.error("Failed to send message:", error);
     errors.value.push("Failed to send message. Please try again.");

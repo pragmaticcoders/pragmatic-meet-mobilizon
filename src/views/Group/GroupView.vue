@@ -1080,7 +1080,6 @@ import Link from "vue-material-design-icons/Link.vue";
 
 import Information from "vue-material-design-icons/Information.vue";
 
-import CalendarToday from "vue-material-design-icons/CalendarToday.vue";
 import Calendar from "vue-material-design-icons/Calendar.vue";
 import Bullhorn from "vue-material-design-icons/Bullhorn.vue";
 import { useI18n } from "vue-i18n";
@@ -1091,8 +1090,6 @@ import { Dialog } from "@/plugins/dialog";
 import { Notifier } from "@/plugins/notifier";
 import { useGroupResourcesList } from "@/composition/apollo/resources";
 import { useGroupMembers } from "@/composition/apollo/members";
-
-import { useIsLongEvents } from "@/composition/apollo/config";
 
 const props = defineProps<{
   preferredUsername: string;
@@ -1117,7 +1114,7 @@ const { group: resourcesGroup } = useGroupResourcesList(preferredUsername, {
 
 const { t } = useI18n({ useScope: "global" });
 
-const { isLongEvents } = useIsLongEvents();
+// const { isLongEvents } = useIsLongEvents();
 
 // const { person } = usePersonStatusGroup(group);
 
@@ -1133,24 +1130,26 @@ const { result, subscribeToMore } = useQuery<{
     enabled:
       currentActor.value?.id !== undefined &&
       currentActor.value?.id !== null &&
+      currentActor.value?.id !== "" &&
       group.value?.preferredUsername !== undefined &&
+      group.value?.preferredUsername !== "" &&
       usernameWithDomain(group.value) !== "",
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: false,
   })
 );
-subscribeToMore<{ actorId: string; group: string }>({
-  document: GROUP_MEMBERSHIP_SUBSCRIPTION_CHANGED,
-  variables: {
-    actorId: currentActor.value?.id as string,
-    group: usernameWithDomain(group.value),
-  },
-});
+// Only subscribe if we have valid values
+if (currentActor.value?.id && group.value?.preferredUsername) {
+  subscribeToMore<{ actorId: string; group: string }>({
+    document: GROUP_MEMBERSHIP_SUBSCRIPTION_CHANGED,
+    variables: {
+      actorId: currentActor.value.id,
+      group: usernameWithDomain(group.value),
+    },
+  });
+}
 const person = computed(() => result.value?.person);
 
-const MapLeaflet = defineAsyncComponent(
-  () => import("@/components/LeafletMap.vue")
-);
 const ShareGroupModal = defineAsyncComponent(
   () => import("@/components/Group/ShareGroupModal.vue")
 );
