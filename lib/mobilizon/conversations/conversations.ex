@@ -174,8 +174,18 @@ defmodule Mobilizon.Conversations do
   @spec count_unread_conversation_participants_for_person(integer | String.t()) ::
           non_neg_integer()
   def count_unread_conversation_participants_for_person(actor_id) do
-    ConversationParticipant
-    |> where([cp], cp.actor_id == ^actor_id and cp.unread == true)
+    subquery =
+      ConversationParticipant
+      |> distinct([cp], cp.conversation_id)
+      |> join(:left, [cp], m in Member, on: cp.actor_id == m.parent_id)
+      |> where([cp], cp.actor_id == ^actor_id and cp.unread == true)
+      |> or_where(
+        [_cp, m],
+        m.actor_id == ^actor_id and m.role in [:creator, :administrator, :moderator]
+      )
+
+    subquery
+    |> subquery()
     |> Repo.aggregate(:count)
   end
 
