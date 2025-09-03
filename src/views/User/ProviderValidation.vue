@@ -28,6 +28,9 @@ useHead({
 const router = useRouter();
 const { client: apolloClient } = useApolloClient();
 
+// Get currentUser composable at the top level of setup to maintain proper context
+const { currentUser } = useCurrentUserClient();
+
 const {
   onDone: onUpdateCurrentUserClientDone,
   mutate: updateCurrentUserClient,
@@ -211,14 +214,13 @@ onMounted(async () => {
     await new Promise(resolve => setTimeout(resolve, 100));
     
     // Verify that currentUser is now populated in the cache
-    const { currentUser: verifyCurrentUser } = useCurrentUserClient();
     console.log("OAuth callback: Verifying currentUser cache state", {
-      hasCurrentUser: !!verifyCurrentUser.value,
-      currentUserId: verifyCurrentUser.value?.id,
-      isLoggedIn: verifyCurrentUser.value?.isLoggedIn
+      hasCurrentUser: !!currentUser.value,
+      currentUserId: currentUser.value?.id,
+      isLoggedIn: currentUser.value?.isLoggedIn
     });
     
-    if (!verifyCurrentUser.value?.id) {
+    if (!currentUser.value?.id) {
       console.warn("OAuth callback: currentUser not found in cache after first update, retrying...");
       
       // Retry the cache update
@@ -233,12 +235,12 @@ onMounted(async () => {
         await new Promise(resolve => setTimeout(resolve, 200));
         
         console.log("OAuth callback: After retry - currentUser cache state", {
-          hasCurrentUser: !!verifyCurrentUser.value,
-          currentUserId: verifyCurrentUser.value?.id,
-          isLoggedIn: verifyCurrentUser.value?.isLoggedIn
+          hasCurrentUser: !!currentUser.value,
+          currentUserId: currentUser.value?.id,
+          isLoggedIn: currentUser.value?.isLoggedIn
         });
         
-        if (!verifyCurrentUser.value?.id) {
+        if (!currentUser.value?.id) {
           console.error("OAuth callback: currentUser still not in cache after retry, events may not load properly");
         }
       } catch (retryError) {
@@ -250,7 +252,7 @@ onMounted(async () => {
     
     // Trigger a refetch of user queries to ensure events are loaded
     // This helps in case there are any remaining cache timing issues
-    if (verifyCurrentUser.value?.id) {
+    if (currentUser.value?.id) {
       console.log("OAuth callback: Triggering HOME_USER_QUERIES refetch to ensure events are loaded");
       try {
         await apolloClient.query({
