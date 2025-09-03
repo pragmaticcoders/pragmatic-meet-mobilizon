@@ -115,6 +115,7 @@ export const GROUP_BASIC_FIELDS_FRAGMENTS = gql`
     visibility
     openness
     manuallyApprovesFollowers
+    customUrl
     physicalAddress {
       description
       street
