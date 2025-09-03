@@ -330,7 +330,7 @@
         </h2>
         <p class="text-sm text-gray-600 mb-4">
           {{
-            props.isUpdate === true 
+            props.isUpdate === true
               ? t("Does the event needs to be confirmed later or is it cancelled?")
               : t("Does the event needs to be confirmed later?")
           }}
@@ -420,14 +420,6 @@
             </span>
           </label>
         </div>
-        <o-button
-          variant="text"
-          class="mt-4 text-blue-600"
-          @click="downloadLogo"
-        >
-          <o-icon icon="inbox-arrow-down" />
-          {{ t("Pobierz") }}
-        </o-button>
       </section>
     </form>
   </div>
@@ -439,15 +431,15 @@
       {{ missingActorMessage }}
     </o-notification>
     <div v-if="!currentActor?.id && !props.eventId" class="mt-4">
-      <o-button 
-        variant="primary" 
+      <o-button
+        variant="primary"
         @click="$router.push('/identity/create')"
         class="mr-3"
       >
         {{ t("Create Profile") }}
       </o-button>
-      <o-button 
-        variant="text" 
+      <o-button
+        variant="text"
         @click="$router.push('/')"
       >
         {{ t("Go to Home") }}
@@ -1084,7 +1076,7 @@ const postCreateOrUpdate = (store: any, updatedEvent: IEvent) => {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       const afterDateTime = todayStart.toISOString();
-      
+
       const homeData = store.readQuery({
         query: HOME_USER_QUERIES,
         variables: {
@@ -1146,12 +1138,12 @@ const postRefetchQueries = (
       },
     ];
   }
-  
+
   // Use start of today to match HomeView query
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const afterDateTime = todayStart.toISOString();
-  
+
   return [
     {
       query: LOGGED_USER_PARTICIPATIONS,
@@ -1206,7 +1198,7 @@ const buildVariables = async () => {
   }
 
   res = { ...res, organizerActorId: localOrganizerActor.id };
-  
+
   const attributedToId = event.value?.attributedTo?.id
     ? event.value?.attributedTo.id
     : null;
