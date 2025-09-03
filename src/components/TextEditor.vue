@@ -316,18 +316,28 @@ const replyToComment = (actor: IActor): void => {
       ? actor.name
       : username;
 
-  editor.value
-    .chain()
-    .focus()
-    .insertContent({
-      type: "mention",
-      attrs: {
-        id: username,
-        label: displayName,
-      },
-    })
-    .insertContent(" ")
-    .run();
+  // Only insert if we have valid values
+  if (
+    username &&
+    displayName &&
+    displayName !== "undefined" &&
+    displayName.trim() !== "" &&
+    username !== "undefined" &&
+    username.trim() !== ""
+  ) {
+    editor.value
+      .chain()
+      .focus()
+      .insertContent({
+        type: "mention",
+        attrs: {
+          id: username,
+          label: displayName,
+        },
+      })
+      .insertContent(" ")
+      .run();
+  }
 };
 
 const focus = (): void => {
