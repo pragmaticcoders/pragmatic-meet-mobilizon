@@ -146,7 +146,8 @@ defmodule Mobilizon.Actors.Actor do
     :inbox_url,
     :type,
     :preferred_username,
-    :members_url
+    :members_url,
+    :custom_url
   ]
   @group_creation_optional_attrs [
     :shared_inbox_url,
@@ -156,8 +157,7 @@ defmodule Mobilizon.Actors.Actor do
     :visibility,
     :openness,
     :manually_approves_followers,
-    :approval_status,
-    :custom_url
+    :approval_status
   ]
   @group_creation_attrs @group_creation_required_attrs ++ @group_creation_optional_attrs
 

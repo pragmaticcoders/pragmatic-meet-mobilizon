@@ -115,6 +115,7 @@ export const GROUP_BASIC_FIELDS_FRAGMENTS = gql`
     visibility
     openness
     manuallyApprovesFollowers
+    customUrl
     physicalAddress {
       description
       street
@@ -306,7 +307,7 @@ export const CREATE_GROUP = gql`
     $preferredUsername: String!
     $name: String!
     $summary: String
-    $customUrl: String
+    $customUrl: String!
     $avatar: MediaInput
     $banner: MediaInput
     $physicalAddress: AddressInput

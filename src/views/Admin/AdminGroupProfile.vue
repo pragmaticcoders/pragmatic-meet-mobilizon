@@ -44,9 +44,12 @@
         <tr v-for="{ key, value, link } in metadata" :key="key">
           <td>{{ key }}</td>
           <td v-if="link">
-            <router-link :to="link">
+            <router-link v-if="typeof link === 'object'" :to="link">
               {{ value }}
             </router-link>
+            <a v-else :href="link" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+              {{ value }}
+            </a>
           </td>
           <td v-else>{{ value }}</td>
         </tr>
@@ -438,6 +441,15 @@ const metadata = computed((): Array<Record<string, string>> => {
       value: formatBytes(group.value.mediaSize),
     },
   ];
+
+  // Add marketing URL if it exists
+  if (group.value.customUrl) {
+    res.push({
+      key: t("Marketing URL") as string,
+      value: group.value.customUrl,
+      link: group.value.customUrl,
+    });
+  }
   return res;
 });
 
