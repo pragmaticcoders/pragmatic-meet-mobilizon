@@ -173,7 +173,7 @@
                   icon-left="rss"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
-                  {{ t("Obserwuj") }}
+                  {{ t("Follow") }}
                 </o-button>
 
                 <!-- Contact Button -->
@@ -189,7 +189,7 @@
                   icon-left="email"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
-                  {{ t("Kontakt") }}
+                  {{ t("Contact") }}
                 </o-button>
 
                 <!-- Share Button -->
@@ -198,7 +198,7 @@
                   icon-left="share"
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
-                  {{ t("Udostępnij") }}
+                  {{ t("Share") }}
                 </o-button>
 
                 <!-- More Options Menu -->
@@ -259,7 +259,7 @@
                       class="flex items-center w-full px-4 py-2"
                     >
                       <AccountMultiplePlus class="mr-2" :size="18" />
-                      {{ t("Join Group") }}
+                      {{ t("Join group") }}
                     </button>
                   </o-dropdown-item>
 
@@ -282,7 +282,7 @@
                   >
                     <span class="flex items-center px-4 py-2">
                       <ExitToApp class="mr-2" :size="18" />
-                      {{ t("Leave Group") }}
+                      {{ t("Leave group") }}
                     </span>
                   </o-dropdown-item>
                 </o-dropdown>

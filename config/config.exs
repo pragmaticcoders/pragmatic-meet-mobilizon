@@ -118,8 +118,8 @@ config :mobilizon, :media_proxy,
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,
   relay: "localhost",
-  username: "",
-  password: "",
+  username: "test",
+  password: "test",
   # can be `:always` or `:never`
   auth: :if_available,
   # can be `true`
