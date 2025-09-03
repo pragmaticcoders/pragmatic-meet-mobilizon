@@ -111,6 +111,8 @@ const openNewMessageModal = () => {
     },
     trapFocus: true,
   });
+  // Clear the query parameter to prevent infinite modal opening
+  showModal.value = false;
 };
 
 watchEffect(() => {
