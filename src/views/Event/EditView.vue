@@ -652,7 +652,7 @@ useHead({
   ),
 });
 
-const { result: configResult } = useQuery<{ config: IConfig }>(CONFIG);
+const { result: configResult } = useQuery<{ config: IConfig }>(CONFIG, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const event = ref<IEditableEvent>(new EventModel());
 const unmodifiedEvent = ref<IEditableEvent>(new EventModel());

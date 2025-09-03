@@ -37,6 +37,7 @@ export function useGroupResourcesList(
         unref(name) !== "" &&
         currentUser.value?.isLoggedIn,
       fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     })
   );
   const group = computed(() => result.value?.group);

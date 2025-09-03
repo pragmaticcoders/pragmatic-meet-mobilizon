@@ -38,6 +38,7 @@ export function useGroupMembers(
       () => ({
         enabled: !!groupName.value && options.enabled?.value,
         fetchPolicy: "cache-and-network",
+        notifyOnNetworkStatusChange: false,
       })
     );
   const members = computed(() => result.value?.group?.members);

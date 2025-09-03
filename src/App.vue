@@ -75,7 +75,7 @@ import { useLazyCurrentUserIdentities } from "./composition/apollo/actor";
 const { result: configResult } = useQuery<{ config: IConfig }>(
   CONFIG,
   undefined,
-  { fetchPolicy: "cache-only" }
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 
 const config = computed(() => configResult.value?.config);

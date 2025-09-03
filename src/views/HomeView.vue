@@ -268,12 +268,14 @@ const { result: aboutConfigResult } = useQuery<{
     IConfig,
     "name" | "description" | "slogan" | "registrationsOpen"
   >;
-}>(ABOUT);
+}>(ABOUT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const config = computed(() => aboutConfigResult.value?.config);
 
 const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
-  CURRENT_ACTOR_CLIENT
+  CURRENT_ACTOR_CLIENT,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 const currentActor = computed<IPerson | undefined>(
   () => currentActorResult.value?.currentActor
@@ -281,7 +283,7 @@ const currentActor = computed<IPerson | undefined>(
 
 const { result: currentUserResult } = useQuery<{
   currentUser: ICurrentUser;
-}>(CURRENT_USER_CLIENT);
+}>(CURRENT_USER_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const currentUser = computed(() => currentUserResult.value?.currentUser);
 
@@ -296,6 +298,8 @@ const { result: userResult } = useQuery<{ loggedUser: IUser }>(
   { afterDateTime: todayStart.toISOString() },
   () => ({
     enabled: currentUser.value?.id != undefined,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   })
 );
 
@@ -309,6 +313,8 @@ const { result: userMembershipsResult } = useQuery<{
   loggedUser: { memberships: { elements: IMember[] } };
 }>(LOGGED_USER_MEMBERSHIPS, { limit: 6 }, () => ({
   enabled: currentUser.value?.id != undefined,
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
 }));
 
 // Note: SEARCH_GROUPS query and displayedGroups moved below userLocation definition to avoid initialization error
@@ -520,6 +526,8 @@ const { result: reverseGeocodeResult } = useQuery<{
   reverseGeocode: IAddress[];
 }>(REVERSE_GEOCODE, coords, () => ({
   enabled: coords.value?.longitude != undefined,
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
 }));
 
 const userSettingsLocation = computed(() => {
@@ -540,7 +548,7 @@ const userSettingsLocation = computed(() => {
 
 const { result: currentUserLocationResult } = useQuery<{
   currentUserLocation: LocationType;
-}>(CURRENT_USER_LOCATION_CLIENT);
+}>(CURRENT_USER_LOCATION_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 // The user's location currently in the Apollo cache
 const currentUserLocation = computed(() => {
@@ -613,6 +621,8 @@ const { result: allGroupsResult } = useQuery<{
     const isEnabled = !currentUser.value?.id;
     return {
       enabled: isEnabled,
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     };
   }
 );
@@ -658,6 +668,8 @@ const { result: publicEventsResult } = useQuery<{
 
     return {
       enabled: isEnabled,
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     };
   }
 );
@@ -680,6 +692,8 @@ const { onResult: onReverseGeocodeResult } = useQuery<{
   reverseGeocode: IAddress[];
 }>(REVERSE_GEOCODE, reverseGeoCodeInformation, () => ({
   enabled: reverseGeoCodeInformation.latitude !== undefined,
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
 }));
 
 onReverseGeocodeResult((result) => {

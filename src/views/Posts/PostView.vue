@@ -300,6 +300,8 @@ const { result: membershipsResult, loading: membershipsLoading } = useQuery<{
   () => ({
     enabled:
       currentActor.value?.id !== undefined && currentActor.value?.id !== null,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   })
 );
 const memberships = computed(() => membershipsResult.value?.person.memberships);
@@ -310,7 +312,7 @@ const {
   onError: onFetchPostError,
 } = useQuery<{
   post: IPost;
-}>(FETCH_POST, () => ({ slug: props.slug }));
+}>(FETCH_POST, () => ({ slug: props.slug }), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const handleErrors = (errors: AbsintheGraphQLErrors): void => {
   if (

@@ -36,7 +36,7 @@ const { t } = useI18n({ useScope: "global" });
 
 const { result: categoryStatsResult } = useQuery<{
   categoryStatistics: CategoryStatsModel[];
-}>(CATEGORY_STATISTICS);
+}>(CATEGORY_STATISTICS, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 const categoryStats = computed(
   () => categoryStatsResult.value?.categoryStatistics ?? []
 );

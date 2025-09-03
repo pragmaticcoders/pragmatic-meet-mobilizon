@@ -83,7 +83,7 @@ import { useRoute } from "vue-router";
 const { currentUser } = useCurrentUserClient();
 const $route = useRoute();
 
-const { result: configResult } = useQuery<{ config: IConfig }>(ABOUT);
+const { result: configResult } = useQuery<{ config: IConfig }>(ABOUT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const config = computed(() => configResult.value?.config);
 

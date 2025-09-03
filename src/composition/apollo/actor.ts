@@ -15,7 +15,7 @@ export function useCurrentActorClient() {
     result: currentActorResult,
     error,
     loading,
-  } = useQuery<{ currentActor: IPerson }>(CURRENT_ACTOR_CLIENT);
+  } = useQuery<{ currentActor: IPerson }>(CURRENT_ACTOR_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
   const currentActor = computed<IPerson | undefined>(
     () => currentActorResult.value?.currentActor
   );
@@ -44,6 +44,8 @@ export function useCurrentUserIdentities() {
       currentUser.value?.id !== undefined &&
       currentUser.value?.id !== null &&
       currentUser.value?.isLoggedIn === true,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   }));
 
   const identities = computed(() => result.value?.loggedUser?.actors);
@@ -67,6 +69,8 @@ export function usePersonStatusGroup(
         currentActor.value?.id !== undefined &&
         unref(groupFederatedUsername) !== undefined &&
         unref(groupFederatedUsername) !== "",
+      fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     })
   );
   subscribeToMore(() => ({

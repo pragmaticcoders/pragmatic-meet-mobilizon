@@ -58,6 +58,7 @@ export function useGroup(
     () => ({
       enabled: unref(name) !== undefined && unref(name) !== "",
       fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     })
   );
   const group = computed(() => result.value?.group);

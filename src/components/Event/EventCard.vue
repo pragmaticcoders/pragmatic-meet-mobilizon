@@ -97,7 +97,7 @@
         >
         <div class="w-full flex flex-col justify-between h-full">
           <h2
-            class="mt-0 mb-2 text-2xl line-clamp-3 font-bold text-violet-3 dark:text-white"
+            class="mt-4 mb-2 text-2xl line-clamp-3 font-bold text-violet-3 dark:text-white"
             dir="auto"
             :lang="event.language"
           >

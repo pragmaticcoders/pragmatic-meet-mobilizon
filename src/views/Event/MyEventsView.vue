@@ -344,7 +344,12 @@ const { t } = useI18n({ useScope: "global" });
 
 // Get current actor for mock participations
 const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
-  CURRENT_ACTOR_CLIENT
+  CURRENT_ACTOR_CLIENT,
+  undefined,
+  () => ({
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
 );
 const currentActor = computed<IPerson | undefined>(
   () => currentActorResult.value?.currentActor
@@ -438,7 +443,7 @@ const { result: draftsResult } = useQuery<{
 }>(
   LOGGED_USER_DRAFTS,
   () => ({ page: draftsPage.value, limit: LOGGED_USER_DRAFTS_LIMIT }),
-  () => ({ fetchPolicy: "cache-and-network" })
+  () => ({ fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false })
 );
 const drafts = computed(() => draftsResult.value?.loggedUser.drafts);
 

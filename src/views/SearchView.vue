@@ -754,13 +754,17 @@ const numberOfSearch = computed(() => {
 });
 
 const { result: currentUserResult } = useQuery<{ currentUser: ICurrentUser }>(
-  CURRENT_USER_CLIENT
+  CURRENT_USER_CLIENT,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 
 const currentUser = computed(() => currentUserResult.value?.currentUser);
 
 const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
-  CURRENT_ACTOR_CLIENT
+  CURRENT_ACTOR_CLIENT,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 const currentActor = computed<IPerson | undefined>(
   () => currentActorResult.value?.currentActor
@@ -1093,7 +1097,7 @@ const { result: searchElementsResult, loading: searchLoading } = useQuery<{
   sortByEvents: sortByForType(sortByEvents.value, EventSortValues),
   sortByGroups: sortByGroups.value,
   boostLanguages: boostLanguagesQuery.value,
-}));
+}), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 const { result: searchShortElementsResult } = useQuery<{
   searchEvents: Paginate<TypeNamed<IEvent>>;
@@ -1114,7 +1118,7 @@ const { result: searchShortElementsResult } = useQuery<{
   bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
   zoom: zoom.value,
   boostLanguages: boostLanguagesQuery.value,
-}));
+}), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
 /**
  * Helper function to create mock participation for events without participation data

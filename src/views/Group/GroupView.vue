@@ -1113,6 +1113,8 @@ const { result, subscribeToMore } = useQuery<{
       currentActor.value?.id !== null &&
       group.value?.preferredUsername !== undefined &&
       usernameWithDomain(group.value) !== "",
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   })
 );
 subscribeToMore<{ actorId: string; group: string }>({

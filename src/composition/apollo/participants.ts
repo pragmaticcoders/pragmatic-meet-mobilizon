@@ -34,6 +34,7 @@ export function useEventParticipants(
     () => ({
       enabled: unref(eventUuid) !== undefined && unref(eventUuid) !== "",
       fetchPolicy: "cache-and-network",
+      notifyOnNetworkStatusChange: false,
     })
   );
 

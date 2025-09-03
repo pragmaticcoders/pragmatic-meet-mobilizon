@@ -98,7 +98,9 @@ import GroupCard from "@/components/Group/GroupCard.vue";
 import EventCard from "@/components/Event/EventCard.vue";
 
 const { result: dashboardResult } = useQuery<{ dashboard: IDashboard }>(
-  DASHBOARD
+  DASHBOARD,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 
 const dashboard = computed(() => dashboardResult.value?.dashboard);

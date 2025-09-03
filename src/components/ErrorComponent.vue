@@ -116,7 +116,9 @@ useHead({
 });
 
 const { result: instanceConfig } = useQuery<{ config: Pick<IConfig, "name"> }>(
-  INSTANCE_NAME
+  INSTANCE_NAME,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
 );
 
 const instanceName = computed(() => instanceConfig.value?.config.name);
