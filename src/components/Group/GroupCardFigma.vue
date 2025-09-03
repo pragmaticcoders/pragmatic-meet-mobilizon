@@ -66,17 +66,24 @@
             class="w-6 h-6 rounded-full overflow-hidden flex-shrink-0"
           >
             <img
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover rounded-full"
               :src="group.avatar.url"
               alt=""
             />
           </figure>
           <div
             v-else
-            class="w-6 h-6 bg-gray-200 flex items-center justify-center flex-shrink-0 rounded-full"
+            class="bg-gray-200 flex items-center justify-center flex-shrink-0"
+            style="border-radius: 50%; width: 24px; height: 24px"
           >
-            <svg class="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58A2.01 2.01 0 0 0 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/>
+            <svg
+              class="w-5 h-5 text-gray-500"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path
+                d="M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91zM4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58A2.01 2.01 0 0 0 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29zM20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm4 3.43c0-.81-.48-1.53-1.22-1.85A6.95 6.95 0 0 0 20 14c-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24v-1.57zM12 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"
+              />
             </svg>
           </div>
           <h3
@@ -86,7 +93,9 @@
           </h3>
         </div>
         <div class="pl-8">
-          <span class="text-xs font-medium text-[#37363a] leading-[18px] truncate block">
+          <span
+            class="text-xs font-medium text-[#37363a] leading-[18px] truncate block"
+          >
             @{{ usernameWithDomain(group) }}
           </span>
         </div>
@@ -108,7 +117,9 @@
           <div class="w-6 h-6 flex items-center justify-center">
             <AccountMultiple class="w-5 h-5 text-gray-500" />
           </div>
-          <span class="text-[15px] font-medium text-black leading-[23px] truncate">
+          <span
+            class="text-[15px] font-medium text-black leading-[23px] truncate"
+          >
             {{ getMemberCount }} {{ t("members") }}
           </span>
         </div>
@@ -116,7 +127,9 @@
           <div class="w-6 h-6 flex items-center justify-center">
             <MapMarker class="w-5 h-5 text-gray-500" />
           </div>
-          <span class="text-[15px] font-medium text-[#37363a] leading-[23px] truncate">
+          <span
+            class="text-[15px] font-medium text-[#37363a] leading-[23px] truncate"
+          >
             {{ group.physicalAddress.locality || group.physicalAddress.region }}
           </span>
         </div>
@@ -168,7 +181,10 @@ const to = computed(() => {
 });
 
 const getMemberCount = computed(() => {
-  if (props.group?.members?.total !== undefined && props.group?.followers?.total !== undefined) {
+  if (
+    props.group?.members?.total !== undefined &&
+    props.group?.followers?.total !== undefined
+  ) {
     return props.group.members.total + props.group.followers.total;
   }
   return (props.group.membersCount ?? 0) + (props.group.followersCount ?? 0);
@@ -184,14 +200,14 @@ const stripHtml = (html: string): string => {
 // Computed property for truncated summary
 const truncatedSummary = computed(() => {
   if (!props.group.summary) return "";
-  
+
   const plainText = stripHtml(props.group.summary);
   const maxLength = 120; // Adjust this number as needed
-  
+
   if (plainText.length <= maxLength) {
     return plainText;
   }
-  
+
   return plainText.substring(0, maxLength).trim() + "...";
 });
 </script>

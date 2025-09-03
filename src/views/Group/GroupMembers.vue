@@ -35,7 +35,11 @@
         <form @submit.prevent="inviteMember" class="flex-1 min-w-0">
           <ActorAutoComplete
             v-model="selectedActors"
-            :placeholder="isGroupPendingApproval ? t('Invites disabled during approval') : t('Search for a user to invite')"
+            :placeholder="
+              isGroupPendingApproval
+                ? t('Invites disabled during approval')
+                : t('Search for a user to invite')
+            "
             :disabled="isGroupPendingApproval"
           />
         </form>
@@ -48,18 +52,31 @@
               'px-8 py-[18px] font-bold whitespace-nowrap',
               isGroupPendingApproval
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
-                : 'bg-[#155eef] text-white hover:bg-blue-600'
+                : 'bg-[#155eef] text-white hover:bg-blue-600',
             ]"
-            :title="isGroupPendingApproval ? t('This group is pending approval from administrators') : ''"
+            :title="
+              isGroupPendingApproval
+                ? t('This group is pending approval from administrators')
+                : ''
+            "
             @click="inviteMember"
             >{{ t("Invite member") }}</o-button
           >
         </div>
       </div>
       <div v-if="isGroupPendingApproval" class="mb-4">
-        <p class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-          <span class="font-medium">{{ t("Member invitations are disabled") }}</span> - 
-          {{ t("You can invite members once your group is approved by administrators") }}
+        <p
+          class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200"
+        >
+          <span class="font-medium">{{
+            t("Member invitations are disabled")
+          }}</span>
+          -
+          {{
+            t(
+              "You can invite members once your group is approved by administrators"
+            )
+          }}
         </p>
       </div>
       <!-- Gray separator line -->
@@ -395,7 +412,7 @@ const {
   loading: groupMembersLoading,
   refetch: refetchGroupMembers,
 } = useQuery<{ group: IGroup }>(
-  GROUP_MEMBERS, 
+  GROUP_MEMBERS,
   () => ({
     groupName: props.preferredUsername,
     page: page.value,
@@ -403,9 +420,9 @@ const {
     roles: roles.value,
   }),
   () => ({
-          enabled: props.preferredUsername !== undefined,
-      fetchPolicy: "cache-and-network",
-      notifyOnNetworkStatusChange: false,
+    enabled: props.preferredUsername !== undefined,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
   })
 );
 const group = computed(() => groupMembersResult.value?.group);
@@ -424,7 +441,7 @@ watch(
   (newMembers, oldMembers) => {
     console.log("Members data changed:", {
       count: newMembers.elements?.length || 0,
-      total: newMembers.total || 0
+      total: newMembers.total || 0,
     });
   },
   { deep: false } // Shallow watch to avoid excessive triggers
@@ -438,18 +455,18 @@ const {
   update: (cache, { data }) => {
     if (data?.inviteMember) {
       console.log("Updating cache after member invitation", data.inviteMember);
-      
+
       const invitedMember = data.inviteMember;
-      
+
       // Update cache for current filter (if it matches the invited member's role)
       try {
         const currentVariables = {
-        groupName: props.preferredUsername,
-        page: page.value,
-        limit: MEMBERS_PER_PAGE,
-        roles: roles.value,
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: roles.value,
         };
-        
+
         // Only update current filter if it includes INVITED role or no filter
         if (!roles.value || roles.value === MemberRole.INVITED) {
           const existingData = cache.readQuery<{ group: IGroup }>({
@@ -459,9 +476,12 @@ const {
 
           if (existingData?.group?.members?.elements) {
             console.log("Adding invited member to current filter cache");
-            
+
             // Add the invited member to the beginning of the list
-            const updatedElements = [invitedMember, ...existingData.group.members.elements];
+            const updatedElements = [
+              invitedMember,
+              ...existingData.group.members.elements,
+            ];
 
             cache.writeQuery({
               query: GROUP_MEMBERS,
@@ -473,17 +493,20 @@ const {
                   members: {
                     ...existingData.group.members,
                     elements: updatedElements,
-                    total: existingData.group.members.total + 1
-                  }
-                }
-              }
+                    total: existingData.group.members.total + 1,
+                  },
+                },
+              },
             });
           }
         }
       } catch (error) {
-        console.debug("Current filter cache update not needed or failed:", error);
+        console.debug(
+          "Current filter cache update not needed or failed:",
+          error
+        );
       }
-      
+
       // Always update cache for "INVITED" filter
       try {
         const invitedVariables = {
@@ -492,7 +515,7 @@ const {
           limit: MEMBERS_PER_PAGE,
           roles: MemberRole.INVITED, // Specifically for invited members
         };
-        
+
         const invitedData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: invitedVariables,
@@ -500,8 +523,11 @@ const {
 
         if (invitedData?.group?.members?.elements) {
           console.log("Adding invited member to INVITED filter cache");
-          
-          const updatedInvitedElements = [invitedMember, ...invitedData.group.members.elements];
+
+          const updatedInvitedElements = [
+            invitedMember,
+            ...invitedData.group.members.elements,
+          ];
 
           cache.writeQuery({
             query: GROUP_MEMBERS,
@@ -513,16 +539,16 @@ const {
                 members: {
                   ...invitedData.group.members,
                   elements: updatedInvitedElements,
-                  total: invitedData.group.members.total + 1
-                }
-              }
-            }
+                  total: invitedData.group.members.total + 1,
+                },
+              },
+            },
           });
         }
       } catch (error) {
         console.debug("INVITED filter cache update not needed:", error);
       }
-      
+
       // Update cache for "all members" (no filter)
       try {
         const allMembersVariables = {
@@ -531,7 +557,7 @@ const {
           limit: MEMBERS_PER_PAGE,
           roles: undefined,
         };
-        
+
         const allMembersData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: allMembersVariables,
@@ -539,8 +565,11 @@ const {
 
         if (allMembersData?.group?.members?.elements) {
           console.log("Adding invited member to all members cache");
-          
-          const updatedAllElements = [invitedMember, ...allMembersData.group.members.elements];
+
+          const updatedAllElements = [
+            invitedMember,
+            ...allMembersData.group.members.elements,
+          ];
 
           cache.writeQuery({
             query: GROUP_MEMBERS,
@@ -552,10 +581,10 @@ const {
                 members: {
                   ...allMembersData.group.members,
                   elements: updatedAllElements,
-                  total: allMembersData.group.members.total + 1
-                }
-              }
-            }
+                  total: allMembersData.group.members.total + 1,
+                },
+              },
+            },
           });
         }
       } catch (error) {
@@ -576,12 +605,12 @@ onInviteMemberError((error) => {
 onInviteMemberDone(() => {
   if (selectedActors.value.length === 1) {
     const invitedActor = selectedActors.value[0];
-    
+
     // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
     if (roles.value && roles.value !== MemberRole.INVITED) {
       // Auto-switch to INVITED filter to show the invited member
       roles.value = MemberRole.INVITED;
-      
+
       notifier?.success(
         t("{username} was invited to {group}. Showing invited members.", {
           username: invitedActor?.name || invitedActor?.preferredUsername || "",
@@ -601,7 +630,7 @@ onInviteMemberDone(() => {
     if (roles.value && roles.value !== MemberRole.INVITED) {
       // Auto-switch to INVITED filter to show the invited members
       roles.value = MemberRole.INVITED;
-      
+
       notifier?.success(
         t("{count} users were invited to {group}. Showing invited members.", {
           count: selectedActors.value.length,
@@ -623,18 +652,20 @@ onInviteMemberDone(() => {
 
 const inviteMember = async (): Promise<void> => {
   inviteError.value = "";
-  
+
   // Prevent invites if group is pending approval
   if (isGroupPendingApproval.value) {
-    inviteError.value = t("Cannot invite members while group is awaiting approval");
+    inviteError.value = t(
+      "Cannot invite members while group is awaiting approval"
+    );
     return;
   }
-  
+
   if (!selectedActors.value.length) {
     inviteError.value = t("Please select a user to invite");
     return;
   }
-  
+
   // Process all selected actors, not just the first one
   for (const actorToInvite of selectedActors.value) {
     try {
@@ -643,7 +674,10 @@ const inviteMember = async (): Promise<void> => {
         targetActorUsername: actorToInvite.preferredUsername,
       });
     } catch (error) {
-      console.error(`Failed to invite ${actorToInvite.preferredUsername}:`, error);
+      console.error(
+        `Failed to invite ${actorToInvite.preferredUsername}:`,
+        error
+      );
       // Continue with other invitations even if one fails
     }
   }
@@ -668,32 +702,40 @@ const {
   onDone: onRemoveMemberDone,
   onError: onRemoveMemberError,
 } = useMutation(REMOVE_MEMBER, () => ({
-  errorPolicy: 'all', // Allow cache updates even if there are GraphQL errors
+  errorPolicy: "all", // Allow cache updates even if there are GraphQL errors
   update: (cache, { data }, { context }) => {
     console.log("removeMember cache update called", { data, context });
     if (data?.removeMember && context?.oldMember) {
-      console.log("Updating cache after member removal", context.oldMember.id, "role:", context.oldMember.role);
-      
+      console.log(
+        "Updating cache after member removal",
+        context.oldMember.id,
+        "role:",
+        context.oldMember.role
+      );
+
       // Try to update cache for current query with filters
       try {
         const currentVariables = {
-        groupName: props.preferredUsername,
-        page: page.value,
-        limit: MEMBERS_PER_PAGE,
-        roles: roles.value,
+          groupName: props.preferredUsername,
+          page: page.value,
+          limit: MEMBERS_PER_PAGE,
+          roles: roles.value,
         };
-        
+
         const existingData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: currentVariables,
         });
 
         if (existingData?.group?.members?.elements) {
-          console.log("Found existing data, removing member from cache", existingData.group.members.elements.length);
-          
+          console.log(
+            "Found existing data, removing member from cache",
+            existingData.group.members.elements.length
+          );
+
           // Filter out the removed member
           const updatedElements = existingData.group.members.elements.filter(
-            member => member.id !== context.oldMember.id
+            (member) => member.id !== context.oldMember.id
           );
 
           console.log("Updated elements count", updatedElements.length);
@@ -709,12 +751,12 @@ const {
                 members: {
                   ...existingData.group.members,
                   elements: updatedElements,
-                  total: Math.max(0, existingData.group.members.total - 1)
-                }
-              }
-            }
+                  total: Math.max(0, existingData.group.members.total - 1),
+                },
+              },
+            },
           });
-          
+
           console.log("Cache updated successfully");
         } else {
           console.warn("No existing data found in cache");
@@ -722,7 +764,7 @@ const {
       } catch (error) {
         console.warn("Failed to update cache:", error);
       }
-      
+
       // Also try to update cache for "all members" query (no role filter)
       try {
         const allMembersVariables = {
@@ -731,16 +773,17 @@ const {
           limit: MEMBERS_PER_PAGE,
           roles: undefined, // No role filter
         };
-        
+
         const allMembersData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: allMembersVariables,
         });
 
         if (allMembersData?.group?.members?.elements) {
-          const updatedAllElements = allMembersData.group.members.elements.filter(
-            member => member.id !== context.oldMember.id
-          );
+          const updatedAllElements =
+            allMembersData.group.members.elements.filter(
+              (member) => member.id !== context.oldMember.id
+            );
 
           cache.writeQuery({
             query: GROUP_MEMBERS,
@@ -752,10 +795,10 @@ const {
                 members: {
                   ...allMembersData.group.members,
                   elements: updatedAllElements,
-                  total: Math.max(0, allMembersData.group.members.total - 1)
-                }
-              }
-            }
+                  total: Math.max(0, allMembersData.group.members.total - 1),
+                },
+              },
+            },
           });
         }
       } catch (error) {
@@ -763,17 +806,17 @@ const {
       }
     }
   },
- }));
+}));
 
 onRemoveMemberDone((result: any) => {
   console.log("removeMember onDone called", result);
   const context = result.context;
-  
+
   // Clear loading state
   if (context?.oldMember?.id) {
     setRemoveLoading(context.oldMember.id, false);
   }
-  
+
   let message = t("The member was removed from the group {group}", {
     group: displayName(group.value),
   }) as string;
@@ -788,10 +831,10 @@ onRemoveMemberDone((result: any) => {
 
 onRemoveMemberError((error) => {
   console.error("Member removal error:", error);
-  
+
   // Clear loading state for all members on error (fallback)
   removeLoadingMembers.value.clear();
-  
+
   // Since we no longer use refetchQueries, this should be a genuine error
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     notifier?.error(error.graphQLErrors[0].message);
@@ -802,7 +845,7 @@ onRemoveMemberError((error) => {
 
 const removeMember = (oldMember: IMember) => {
   if (!oldMember.id || isRemoveLoading(oldMember.id)) return;
-  
+
   setRemoveLoading(oldMember.id, true);
   mutateRemoveMember(
     {
@@ -853,19 +896,21 @@ const {
             limit: MEMBERS_PER_PAGE,
             roles: MemberRole.NOT_APPROVED,
           };
-          
+
           const notApprovedData = cache.readQuery<{ group: IGroup }>({
             query: GROUP_MEMBERS,
             variables: notApprovedVariables,
           });
 
           if (notApprovedData?.group?.members?.elements) {
-            console.log("Removing approved member from NOT_APPROVED filter cache");
+            console.log(
+              "Removing approved member from NOT_APPROVED filter cache"
+            );
           }
         } catch (error) {
           console.debug("NOT_APPROVED filter cache update not needed:", error);
         }
-        
+
         // Add to "MEMBER" filter cache (if exists)
         try {
           const memberVariables = {
@@ -874,7 +919,7 @@ const {
             limit: MEMBERS_PER_PAGE,
             roles: MemberRole.MEMBER,
           };
-          
+
           const memberData = cache.readQuery<{ group: IGroup }>({
             query: GROUP_MEMBERS,
             variables: memberVariables,
@@ -882,11 +927,14 @@ const {
 
           if (memberData?.group?.members?.elements) {
             console.log("Adding approved member to MEMBER filter cache");
-            
-            const updatedMemberElements = [approvedMember, ...memberData.group.members.elements];
+
+            const updatedMemberElements = [
+              approvedMember,
+              ...memberData.group.members.elements,
+            ];
 
             cache.writeQuery({
-        query: GROUP_MEMBERS,
+              query: GROUP_MEMBERS,
               variables: memberVariables,
               data: {
                 ...memberData,
@@ -895,10 +943,10 @@ const {
                   members: {
                     ...memberData.group.members,
                     elements: updatedMemberElements,
-                    total: memberData.group.members.total + 1
-                  }
-                }
-              }
+                    total: memberData.group.members.total + 1,
+                  },
+                },
+              },
             });
           }
         } catch (error) {
@@ -924,7 +972,7 @@ onApproveMemberError((error) => {
   console.error("approveMember error:", error);
   // Clear loading state for all members on error (fallback)
   approveLoadingMembers.value.clear();
-  
+
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     notifier?.error(error.graphQLErrors[0].message);
   }
@@ -935,10 +983,10 @@ onApproveMemberError((error) => {
 // Wrapper function for approve member with loading state management
 const approveMember = (member: IMember) => {
   if (!member.id || isApproveLoading(member.id)) return;
-  
+
   setApproveLoading(member.id, true);
   approveMemberMutation(
-    { memberId: member.id }, 
+    { memberId: member.id },
     { context: { oldMember: member } }
   );
 };
@@ -957,17 +1005,24 @@ const {
   { id: string; role: MemberRole },
   { memberId: string; role: MemberRole; oldRole: MemberRole }
 >(UPDATE_MEMBER, () => ({
-  errorPolicy: 'all',
+  errorPolicy: "all",
   update: (cache, { data }, { context }) => {
     console.log("updateMember cache update called", { data, context });
     if (data && context?.oldMember) {
-      console.log("Updating cache after role change", context.oldMember.id, "from", context.oldMember.role, "to", data.role);
-      
+      console.log(
+        "Updating cache after role change",
+        context.oldMember.id,
+        "from",
+        context.oldMember.role,
+        "to",
+        data.role
+      );
+
       // For role changes, we need to update all relevant caches
       const memberId = context.oldMember.id;
       const oldRole = context.oldMember.role;
       const newRole = data.role;
-      
+
       // Update current filter cache
       try {
         const currentVariables = {
@@ -976,17 +1031,16 @@ const {
           limit: MEMBERS_PER_PAGE,
           roles: roles.value,
         };
-        
+
         const currentData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: currentVariables,
         });
 
         if (currentData?.group?.members?.elements) {
-          const updatedElements = currentData.group.members.elements.map(member => 
-            member.id === memberId 
-              ? { ...member, role: newRole }
-              : member
+          const updatedElements = currentData.group.members.elements.map(
+            (member) =>
+              member.id === memberId ? { ...member, role: newRole } : member
           );
 
           cache.writeQuery({
@@ -998,16 +1052,16 @@ const {
                 ...currentData.group,
                 members: {
                   ...currentData.group.members,
-                  elements: updatedElements
-                }
-              }
-            }
+                  elements: updatedElements,
+                },
+              },
+            },
           });
         }
       } catch (error) {
         console.debug("Current filter cache update failed:", error);
       }
-      
+
       // Update "all members" cache (no filter)
       try {
         const allMembersVariables = {
@@ -1016,17 +1070,16 @@ const {
           limit: MEMBERS_PER_PAGE,
           roles: undefined,
         };
-        
+
         const allMembersData = cache.readQuery<{ group: IGroup }>({
           query: GROUP_MEMBERS,
           variables: allMembersVariables,
         });
 
         if (allMembersData?.group?.members?.elements) {
-          const updatedAllElements = allMembersData.group.members.elements.map(member => 
-            member.id === memberId 
-              ? { ...member, role: newRole }
-              : member
+          const updatedAllElements = allMembersData.group.members.elements.map(
+            (member) =>
+              member.id === memberId ? { ...member, role: newRole } : member
           );
 
           cache.writeQuery({
@@ -1038,10 +1091,10 @@ const {
                 ...allMembersData.group,
                 members: {
                   ...allMembersData.group.members,
-                  elements: updatedAllElements
-                }
-              }
-            }
+                  elements: updatedAllElements,
+                },
+              },
+            },
           });
         }
       } catch (error) {

@@ -192,56 +192,14 @@
           class="w-full"
         />
         <p class="text-xs text-gray-600 mt-1">
-          {{ t("Optional: Add a custom URL for your event (e.g., your website or social media)") }}
+          {{
+            t(
+              "Optional: Add a custom URL for your event (e.g., your website or social media)"
+            )
+          }}
         </p>
       </div>
 
-      <section class="border-t pt-8 mt-8">
-        <h2 class="text-xl font-bold mb-6">{{ t("Organizers") }}</h2>
-
-        <div v-if="features?.groups && organizerActor?.id">
-          <o-field>
-            <organizer-picker-wrapper
-              v-model="organizerActor"
-              v-model:contacts="event.contacts"
-            />
-          </o-field>
-          <p v-if="!attributedToAGroup && organizerActorEqualToCurrentActor">
-            {{
-              t("The event will show as attributed to your personal profile.")
-            }}
-          </p>
-          <p v-else-if="!attributedToAGroup">
-            {{ t("The event will show as attributed to this profile.") }}
-          </p>
-          <p v-else>
-            <span>{{
-              t("The event will show as attributed to this group.")
-            }}</span>
-            <span
-              v-if="event.contacts && event.contacts.length"
-              v-html="
-                ' ' +
-                t(
-                  '<b>{contact}</b> will be displayed as contact.',
-
-                  {
-                    contact: formatList(
-                      event.contacts.map((contact) =>
-                        escapeHtml(displayNameAndUsername(contact))
-                      )
-                    ),
-                  },
-                  event.contacts.length
-                )
-              "
-            />
-            <span v-else>
-              {{ t("You may show some members as contacts.") }}
-            </span>
-          </p>
-        </div>
-      </section>
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-bold mb-4">{{ t("Event metadata") }}</h2>
         <p class="text-sm text-gray-600 mb-4">
@@ -331,7 +289,9 @@
         <p class="text-sm text-gray-600 mb-4">
           {{
             props.isUpdate === true
-              ? t("Does the event needs to be confirmed later or is it cancelled?")
+              ? t(
+                  "Does the event needs to be confirmed later or is it cancelled?"
+                )
               : t("Does the event needs to be confirmed later?")
           }}
         </p>
@@ -438,10 +398,7 @@
       >
         {{ t("Create Profile") }}
       </o-button>
-      <o-button
-        variant="text"
-        @click="$router.push('/')"
-      >
+      <o-button variant="text" @click="$router.push('/')">
         {{ t("Go to Home") }}
       </o-button>
     </div>
@@ -969,9 +926,13 @@ const hasCurrentActorPermissionsToEdit = computed((): boolean => {
 
 const missingActorMessage = computed((): string => {
   if (!currentActor.value?.id && !props.eventId) {
-    return t("No organizer profile found. You need to create a profile to organize events. This may happen after logging in with LinkedIn - please create your profile first.") as string;
+    return t(
+      "No organizer profile found. You need to create a profile to organize events. This may happen after logging in with LinkedIn - please create your profile first."
+    ) as string;
   }
-  return t("Only group moderators can create, edit and delete events.") as string;
+  return t(
+    "Only group moderators can create, edit and delete events."
+  ) as string;
 });
 
 const hasGroupPrivileges = computed((): boolean => {
@@ -1106,7 +1067,10 @@ const postCreateOrUpdate = (store: any, updatedEvent: IEvent) => {
             participations: {
               ...homeData.loggedUser.participations,
               total: homeData.loggedUser.participations.total + 1,
-              elements: [newParticipation, ...homeData.loggedUser.participations.elements],
+              elements: [
+                newParticipation,
+                ...homeData.loggedUser.participations.elements,
+              ],
             },
           },
         };
@@ -1179,7 +1143,9 @@ const buildVariables = async () => {
   if (!localOrganizerActor?.id) {
     // No organizer actor found - this can happen with LinkedIn login issues
     notification.open({
-      message: t("Unable to create event: No organizer profile found. Please create or select a profile first.") as string,
+      message: t(
+        "Unable to create event: No organizer profile found. Please create or select a profile first."
+      ) as string,
       variant: "danger",
       position: "bottom-right",
       duration: 5000,

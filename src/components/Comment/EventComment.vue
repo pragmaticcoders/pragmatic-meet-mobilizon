@@ -19,7 +19,7 @@
             >
               <figure class="w-6 h-6 rounded-full overflow-hidden">
                 <img
-                  class="w-full h-full object-cover"
+                  class="w-full h-full object-cover rounded-full"
                   :src="actorComment.avatar.url"
                   alt=""
                 />
@@ -30,7 +30,7 @@
               v-if="!comment.deletedAt"
               dir="auto"
               :class="{ organizer: commentFromOrganizer }"
-              >{{ actorComment?.name || t('[Unknown]') }}</strong
+              >{{ actorComment?.name || t("[Unknown]") }}</strong
             >
           </div>
 
@@ -144,8 +144,10 @@
         <AccountCircle v-else :size="48" />
         <div class="flex-1">
           <div class="flex gap-1 items-center">
-            <strong>{{ currentActor?.name || t('[Unknown]') }}</strong>
-            <small dir="ltr">@{{ currentActor?.preferredUsername || 'unknown' }}</small>
+            <strong>{{ currentActor?.name || t("[Unknown]") }}</strong>
+            <small dir="ltr"
+              >@{{ currentActor?.preferredUsername || "unknown" }}</small
+            >
           </div>
           <div class="flex flex-col gap-2">
             <editor

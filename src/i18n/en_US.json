@@ -1741,5 +1741,19 @@
   "Write your message...": "Write your message...",
   "Sending...": "Sending...",
   "To:": "To:",
-  "with:": "with:"
+  "with:": "with:",
+  "Invites disabled during approval": "Invites disabled during approval",
+  "This group is pending approval from administrators": "This group is pending approval from administrators",
+  "Member invitations are disabled": "Member invitations are disabled",
+  "You can invite members once your group is approved by administrators": "You can invite members once your group is approved by administrators",
+  "Cannot invite members while group is awaiting approval": "Cannot invite members while group is awaiting approval",
+  "{username} was invited to {group}. Showing invited members.": "{username} was invited to {group}. Showing invited members.",
+  "{count} users were invited to {group}. Showing invited members.": "{count} users were invited to {group}. Showing invited members.",
+  "Iframe Banner Code": "Iframe Banner Code",
+  "Copy this code to embed the Pragmatic Meet banner in any website:": "Copy this code to embed the Pragmatic Meet banner in any website:",
+  "Light Theme": "Light Theme",
+  "Dark Theme": "Dark Theme",
+  "for light backgrounds": "for light backgrounds",
+  "for dark backgrounds": "for dark backgrounds",
+  "Code copied to clipboard": "Code copied to clipboard"
 }

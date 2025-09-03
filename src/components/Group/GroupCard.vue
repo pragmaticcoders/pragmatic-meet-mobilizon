@@ -47,13 +47,17 @@
                 v-if="group.avatar"
                 :src="group.avatar.url"
                 alt=""
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover rounded-full"
               />
               <div
                 v-else
                 class="w-full h-full flex items-center justify-center"
               >
-                <AccountGroup :size="16" class="text-gray-500" />
+                <AccountGroup
+                  :size="16"
+                  class="text-gray-500"
+                  style="border-radius: 50%"
+                />
               </div>
             </div>
             <span class="text-[15px] font-bold text-gray-700 leading-[23px]">
@@ -87,14 +91,20 @@
           <!-- Member count as tag -->
           <div
             v-if="
-              (group?.members?.total !== undefined && group?.followers?.total !== undefined) ||
+              (group?.members?.total !== undefined &&
+                group?.followers?.total !== undefined) ||
               group?.membersCount ||
               group?.followersCount
             "
             class="bg-primary-50 px-2 py-1 flex items-center gap-1.5"
           >
             <span class="text-[15px] text-primary-500 leading-[23px]">
-              <span v-if="group?.members?.total !== undefined && group?.followers?.total !== undefined">
+              <span
+                v-if="
+                  group?.members?.total !== undefined &&
+                  group?.followers?.total !== undefined
+                "
+              >
                 {{ group.members.total + group.followers.total }}
               </span>
               <span v-else>
