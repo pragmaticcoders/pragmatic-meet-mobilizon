@@ -1,8 +1,8 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <h1 class="">{{ t("Settings") }}</h1>
-    <div class="flex flex-wrap gap-2">
-      <aside class="sm:max-w-xs flex-1 min-w-[320px]">
+    <h1 class="mb-4">{{ t("Settings") }}</h1>
+    <div class="flex flex-col lg:flex-row gap-4">
+      <aside class="lg:max-w-xs lg:flex-1 w-full">
         <ul>
           <SettingMenuSection
             :title="t('Settings')"
@@ -23,7 +23,7 @@
           </SettingMenuSection>
         </ul>
       </aside>
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <router-view />
       </div>
     </div>
