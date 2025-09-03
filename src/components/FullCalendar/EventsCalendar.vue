@@ -85,12 +85,12 @@ const calendarOptions = computed((): object => {
     },
     eventClassNames: "bg-blue-600 border-blue-600 text-white rounded text-xs",
     headerToolbar: {
-      left: "prev,next today",
+      left: "prev,next",
       center: "title",
-      right: "dayGridMonth,dayGridWeek", // user can switch between the two
+      right: "today dayGridMonth,dayGridWeek", // user can switch between the two
     },
     height: "auto",
-    aspectRatio: 1.35,
+    aspectRatio: window.innerWidth < 768 ? 0.8 : 1.35,
     locale: locale,
     firstDay: 1,
     buttonText: {
@@ -123,14 +123,29 @@ const calendarOptions = computed((): object => {
 /* Header styling */
 .fc-toolbar {
   background: #f9fafb;
-  padding: 16px;
+  padding: 8px 12px;
   border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 768px) {
+  .fc-toolbar {
+    padding: 16px;
+    flex-wrap: nowrap;
+  }
 }
 
 .fc-toolbar-title {
-  font-size: 18px !important;
+  font-size: 16px !important;
   font-weight: 600 !important;
   color: #111827 !important;
+}
+
+@media (min-width: 768px) {
+  .fc-toolbar-title {
+    font-size: 18px !important;
+  }
 }
 
 /* Button styling */
@@ -139,8 +154,19 @@ const calendarOptions = computed((): object => {
   border: 1px solid #d1d5db !important;
   color: #374151 !important;
   font-weight: 500 !important;
-  padding: 6px 12px !important;
-  font-size: 14px !important;
+  padding: 8px 10px !important;
+  font-size: 12px !important;
+  min-height: 44px !important;
+  min-width: 44px !important;
+}
+
+@media (min-width: 768px) {
+  .fc-button {
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+    min-height: auto !important;
+    min-width: auto !important;
+  }
 }
 
 .fc-button:hover {
@@ -168,7 +194,15 @@ const calendarOptions = computed((): object => {
 .fc-daygrid-day-number {
   color: #374151 !important;
   font-weight: 500 !important;
-  padding: 8px !important;
+  padding: 4px !important;
+  font-size: 14px !important;
+}
+
+@media (min-width: 768px) {
+  .fc-daygrid-day-number {
+    padding: 8px !important;
+    font-size: 16px !important;
+  }
 }
 
 .fc-day-today {
@@ -223,15 +257,27 @@ const calendarOptions = computed((): object => {
 .fc-col-header-cell {
   background: #f9fafb !important;
   border-color: #e5e7eb !important;
-  padding: 12px 8px !important;
+  padding: 8px 4px !important;
+}
+
+@media (min-width: 768px) {
+  .fc-col-header-cell {
+    padding: 12px 8px !important;
+  }
 }
 
 .fc-col-header-cell-cushion {
   color: #6b7280 !important;
   font-weight: 600 !important;
-  font-size: 14px !important;
+  font-size: 12px !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
+}
+
+@media (min-width: 768px) {
+  .fc-col-header-cell-cushion {
+    font-size: 14px !important;
+  }
 }
 
 /* Remove dark mode overrides - using light theme only */

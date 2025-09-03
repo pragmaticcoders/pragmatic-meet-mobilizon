@@ -13,7 +13,7 @@
         v-for="(event, index) in listOfEventsByDate.events"
         v-bind:key="index"
       >
-        <div class="scroll-ml-6 snap-center shrink-0 my-4">
+        <div class="scroll-ml-6 snap-center shrink-0 my-2 md:my-4">
           <EventCard :event="event.event.extendedProps.event" />
         </div>
       </div>
@@ -140,9 +140,9 @@ const calendarOptions = computed((): object => {
     contentHeight: "auto",
     eventClassNames: "line-clamp-3 bg-mbz-yellow dark:bg-mbz-purple",
     headerToolbar: {
-      left: "prev,next,customTodayButton",
-      center: "",
-      right: "title",
+      left: "prev,next",
+      center: "title",
+      right: "customTodayButton",
     },
     locale: locale,
     firstDay: 1,
@@ -200,11 +200,43 @@ const calendarOptions = computed((): object => {
 
 <style>
 .agenda-view .fc-button {
-  font-size: 0.8rem !important;
+  font-size: 0.75rem !important;
+  padding: 8px 10px !important;
+  min-height: 40px !important;
+  min-width: 40px !important;
+}
+
+@media (min-width: 768px) {
+  .agenda-view .fc-button {
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+    min-height: auto !important;
+    min-width: auto !important;
+  }
+}
+
+.agenda-view .fc-toolbar {
+  padding: 8px 12px !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+@media (min-width: 768px) {
+  .agenda-view .fc-toolbar {
+    padding: 16px !important;
+    flex-wrap: nowrap !important;
+  }
 }
 
 .agenda-view .fc-toolbar-title {
-  font-size: 1rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+}
+
+@media (min-width: 768px) {
+  .agenda-view .fc-toolbar-title {
+    font-size: 1rem !important;
+  }
 }
 
 .agenda-view .fc-daygrid-day-events {
@@ -215,6 +247,25 @@ const calendarOptions = computed((): object => {
 
 .agenda-view .fc-more-link {
   pointer-events: none !important;
+  font-size: 0.75rem !important;
+}
+
+@media (min-width: 768px) {
+  .agenda-view .fc-more-link {
+    font-size: 0.875rem !important;
+  }
+}
+
+.agenda-view .fc-daygrid-day-number {
+  font-size: 0.875rem !important;
+  padding: 4px !important;
+}
+
+@media (min-width: 768px) {
+  .agenda-view .fc-daygrid-day-number {
+    font-size: 1rem !important;
+    padding: 8px !important;
+  }
 }
 
 .clock-icon {
@@ -223,6 +274,24 @@ const calendarOptions = computed((): object => {
 }
 
 .time {
-  font-size: 0.95rem !important;
+  font-size: 0.875rem !important;
+}
+
+@media (min-width: 768px) {
+  .time {
+    font-size: 0.95rem !important;
+  }
+}
+
+/* Mobile event card spacing */
+@media (max-width: 767px) {
+  .agenda-view .scroll-ml-6 {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .agenda-view .snap-center {
+    padding: 0 8px !important;
+  }
 }
 </style>
