@@ -263,11 +263,11 @@
               </svg>
             </div>
             <p class="text-gray-600 dark:text-gray-400 text-base mb-2">
-              {{ t("Nie masz żadnych nadchodzących wydarzeń.") }}
+              {{ t("You have no upcoming events.") }}
             </p>
             <p class="text-gray-500 dark:text-gray-500 text-sm">
               {{
-                t("Czy chcesz utworzyć wydarzenie lub przejrzeć wydarzenia?")
+                t("Would you like to create an event or browse events?")
               }}
             </p>
           </div>
@@ -328,6 +328,7 @@ import {
   useRouteQuery,
 } from "vue-use-route-query";
 import { useI18n } from "vue-i18n";
+import { locale } from "@/utils/i18n";
 import { useRestrictions } from "@/composition/apollo/config";
 import { useHead } from "@/utils/head";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
@@ -479,7 +480,7 @@ const monthlyEvents = (elements: Eventable[]): Map<string, Eventable[]> => {
   return res.reduce((acc: Map<string, Eventable[]>, element: Eventable) => {
     const month = new Date(
       "role" in element ? element.event.beginsOn : element.beginsOn
-    ).toLocaleDateString(undefined, {
+    ).toLocaleDateString(locale, {
       year: "numeric",
       month: "long",
     });
