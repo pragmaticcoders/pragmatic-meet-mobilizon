@@ -128,7 +128,7 @@
     </article>
     <form
       @submit.prevent="replyToComment"
-      v-if="currentActor?.id"
+      v-if="currentActor?.id && currentActor?.name"
       v-show="replyTo"
     >
       <article class="flex gap-2">
@@ -144,9 +144,9 @@
         <AccountCircle v-else :size="48" />
         <div class="flex-1">
           <div class="flex gap-1 items-center">
-            <strong>{{ currentActor?.name || t("[Unknown]") }}</strong>
+            <strong>{{ currentActor && currentActor.name ? currentActor.name : t("[Unknown]") }}</strong>
             <small dir="ltr"
-              >@{{ currentActor?.preferredUsername || "unknown" }}</small
+              >@{{ currentActor && currentActor.preferredUsername ? currentActor.preferredUsername : "unknown" }}</small
             >
           </div>
           <div class="flex flex-col gap-2">

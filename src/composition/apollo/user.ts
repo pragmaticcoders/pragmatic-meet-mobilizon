@@ -17,7 +17,7 @@ export function useCurrentUserClient() {
     onResult,
   } = useQuery<{
     currentUser: ICurrentUser;
-  }>(CURRENT_USER_CLIENT);
+  }>(CURRENT_USER_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
   const currentUser = computed(() => currentUserResult.value?.currentUser);
   return { currentUser, error, loading, onResult };
@@ -29,7 +29,7 @@ export function useLoggedUser() {
   const { result, error, onError, loading } = useQuery<{ loggedUser: IUser }>(
     LOGGED_USER_AND_SETTINGS,
     {},
-    () => ({ enabled: currentUser.value?.id != null })
+    () => ({ enabled: currentUser.value?.id != null, fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false })
   );
 
   const loggedUser = computed(() => result.value?.loggedUser);
@@ -42,7 +42,7 @@ export function useUserLocation() {
     error,
     loading,
     onResult,
-  } = useQuery<{ loggedUser: IUser }>(LOGGED_USER_LOCATION);
+  } = useQuery<{ loggedUser: IUser }>(LOGGED_USER_LOCATION, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
 
   const location = computed(
     () => userSettingsResult.value?.loggedUser.settings.location
