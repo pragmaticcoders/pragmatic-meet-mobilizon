@@ -27,7 +27,30 @@
               {{ t("To:") }}
             </label>
             <div class="flex-1">
-              <ActorAutoComplete v-model="actorMentions" />
+              <div v-if="isLoadingMentions" class="flex items-center gap-2 p-2 text-gray-600">
+                <svg
+                  class="animate-spin h-4 w-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span class="text-sm">{{ t("Loading mentions...") }}</span>
+              </div>
+              <ActorAutoComplete v-model="actorMentions" :disabled="isLoadingMentions" />
             </div>
           </div>
         </div>
@@ -75,7 +98,7 @@
           </button>
           <button
             type="submit"
-            :disabled="!canSend || isLoading"
+            :disabled="!canSend || isLoading || isLoadingMentions"
             class="bg-[#155eef] text-white size-[60px] md:size-auto md:px-4 md:py-3 flex items-center justify-center gap-2 hover:bg-[#0d4dd8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[17px] leading-[26px] font-bold"
             style="font-family: Mulish, sans-serif"
           >
@@ -101,6 +124,29 @@
                 ></path>
               </svg>
               <span class="hidden md:inline">{{ t("Sending...") }}</span>
+            </span>
+            <span v-else-if="isLoadingMentions" class="flex items-center gap-2">
+              <svg
+                class="animate-spin h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span class="hidden md:inline">{{ t("Loading...") }}</span>
             </span>
             <span v-else class="flex items-center gap-2">
               <span class="hidden md:inline">{{ t("Send") }}</span>
@@ -162,6 +208,8 @@ import { useRouter } from "vue-router";
 import RouteName from "@/router/name";
 import { FETCH_PERSON } from "@/graphql/actor";
 import { FETCH_GROUP_PUBLIC } from "@/graphql/group";
+import { inject } from "vue";
+import type { Notifier } from "@/plugins/notifier";
 
 const props = withDefaults(
   defineProps<{
@@ -175,11 +223,13 @@ provide(DefaultApolloClient, apolloClient);
 
 const router = useRouter();
 const { t } = useI18n();
+const notifier = inject<Notifier>("notifier");
 
 const emit = defineEmits(["close"]);
 
 const errors = ref<string[]>([]);
 const isLoading = ref(false);
+const isLoadingMentions = ref(false);
 
 const textPersonMentions = computed(() => props.personMentions);
 const textGroupMentions = computed(() => props.groupMentions);
@@ -191,20 +241,80 @@ const { load: fetchPerson } = provideApolloClient(apolloClient)(() =>
 const { load: fetchGroup } = provideApolloClient(apolloClient)(() =>
   useLazyQuery<{ group: IGroup }, { name: string }>(FETCH_GROUP_PUBLIC)
 );
-textPersonMentions.value.forEach(async (textPersonMention) => {
-  const result = await fetchPerson(FETCH_PERSON, {
-    username: textPersonMention,
-  });
-  if (!result) return;
-  actorMentions.value.push(result.fetchPerson);
-});
-textGroupMentions.value.forEach(async (textGroupMention) => {
-  const result = await fetchGroup(FETCH_GROUP_PUBLIC, {
-    name: textGroupMention,
-  });
-  if (!result) return;
-  actorMentions.value.push(result.group);
-});
+
+// Load initial mentions asynchronously with proper error handling
+const loadInitialMentions = async () => {
+  if (textPersonMentions.value.length === 0 && textGroupMentions.value.length === 0) {
+    return;
+  }
+
+  isLoadingMentions.value = true;
+  
+  try {
+    // Fetch person mentions
+    const personPromises = textPersonMentions.value.map(async (textPersonMention) => {
+      try {
+        const result = await Promise.race([
+          fetchPerson(FETCH_PERSON, { username: textPersonMention }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+        ]) as any;
+        
+        if (result?.fetchPerson) {
+          return result.fetchPerson;
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch person ${textPersonMention}:`, error);
+        // Don't add to errors array as this might be expected for invalid mentions
+      }
+      return null;
+    });
+
+    // Fetch group mentions  
+    const groupPromises = textGroupMentions.value.map(async (textGroupMention) => {
+      try {
+        const result = await Promise.race([
+          fetchGroup(FETCH_GROUP_PUBLIC, { name: textGroupMention }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout')), 10000)
+          )
+        ]) as any;
+        
+        if (result?.group) {
+          return result.group;
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch group ${textGroupMention}:`, error);
+        // Add a user-friendly error for group mentions that fail
+        errors.value.push(`Group "${textGroupMention}" not found or not accessible`);
+      }
+      return null;
+    });
+
+    // Wait for all promises to resolve
+    const [personResults, groupResults] = await Promise.all([
+      Promise.all(personPromises),
+      Promise.all(groupPromises)
+    ]);
+
+    // Add successful results to actor mentions
+    [...personResults, ...groupResults].forEach(actor => {
+      if (actor) {
+        actorMentions.value.push(actor);
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error loading initial mentions:', error);
+    errors.value.push('Failed to load some mentions');
+  } finally {
+    isLoadingMentions.value = false;
+  }
+};
+
+// Load mentions when component is created
+loadInitialMentions();
 
 // const { t } = useI18n({ useScope: "global" });
 
@@ -318,7 +428,9 @@ const sendForm = async (e: Event) => {
       return;
     }
 
-    // Success - navigate to the conversation
+    // Success - show notification and navigate to the conversation
+    notifier?.success(t("Message sent successfully"));
+    
     router.push({
       name: RouteName.CONVERSATION,
       params: { id: result.data.postPrivateMessage.conversationParticipantId },

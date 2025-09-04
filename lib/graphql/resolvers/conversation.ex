@@ -154,7 +154,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Conversation do
           Absinthe.Subscription.publish(
             Endpoint,
             Conversations.count_unread_conversation_participants_for_person(current_actor.id),
-            person_unread_conversations_count: current_actor.id
+            person_unread_conversations_count: [current_actor.id]
           )
 
           conversation_participant_actor =
@@ -201,7 +201,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Conversation do
       Absinthe.Subscription.publish(
         Endpoint,
         Conversations.count_unread_conversation_participants_for_person(actor_id),
-        person_unread_conversations_count: actor_id
+        person_unread_conversations_count: [actor_id]
       )
 
       {:ok, conversation_participant_to_view(conversation_participant)}

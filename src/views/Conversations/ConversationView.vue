@@ -462,6 +462,7 @@ import {
   computed,
   onMounted,
   onUnmounted,
+  inject,
 } from "vue";
 import { useHead } from "@/utils/head";
 import { useRouter } from "vue-router";
@@ -475,6 +476,7 @@ import throttle from "lodash/throttle";
 import Calendar from "vue-material-design-icons/Calendar.vue";
 import { ActorType } from "@/types/enums";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
+import type { Notifier } from "@/plugins/notifier";
 
 const props = defineProps<{ id: string }>();
 
@@ -484,6 +486,7 @@ const page = ref(1);
 const COMMENTS_PER_PAGE = 10;
 
 const { currentActor } = useCurrentActorClient();
+const notifier = inject<Notifier>("notifier");
 
 const {
   result: conversationResult,
@@ -517,19 +520,27 @@ subscribeToMore({
     const previousConversation = previousResult.conversation;
     const lastComment =
       subscriptionData.data.conversationCommentChanged.lastComment;
-    hasMoreComments.value = !previousConversation.comments.elements.some(
+    
+    // Check if this comment is already in our current elements
+    const commentExists = previousConversation.comments.elements.some(
       (comment: IComment) => comment.id === lastComment.id
     );
-    if (hasMoreComments.value) {
+    
+    // Only add the comment if it's not already there
+    if (!commentExists) {
+      // Update hasMoreComments based on whether we have the latest comment
+      // Only set to true if we're missing comments (current elements don't include the latest)
+      hasMoreComments.value = !previousConversation.comments.elements.some(
+        (comment: IComment) => comment.id === previousConversation.lastComment?.id
+      );
+      
       return {
         conversation: {
           ...previousConversation,
           lastComment: lastComment,
           comments: {
             elements: [
-              ...previousConversation.comments.elements.filter(
-                ({ id }: { id: string }) => id !== lastComment.id
-              ),
+              ...previousConversation.comments.elements,
               lastComment,
             ],
             total: previousConversation.comments.total + 1,
@@ -538,7 +549,14 @@ subscribeToMore({
       };
     }
 
-    return previousConversation;
+    // Comment already exists, just update the lastComment reference but don't change elements
+    return {
+      ...previousResult,
+      conversation: {
+        ...previousConversation,
+        lastComment: lastComment,
+      },
+    };
   },
 });
 
@@ -597,7 +615,7 @@ const newComment = ref("");
 const hasMoreComments = ref(true);
 const error = ref<string | null>(null);
 
-const { mutate: replyToConversationMutation } = useMutation<
+const { mutate: replyToConversationMutation, onDone: onReplyDone } = useMutation<
   {
     postPrivateMessage: IConversation;
   },
@@ -612,41 +630,91 @@ const { mutate: replyToConversationMutation } = useMutation<
 >(REPLY_TO_PRIVATE_MESSAGE_MUTATION, () => ({
   update: (store: ApolloCache<InMemoryCache>, { data }) => {
     console.debug("update after reply to", [conversationId.value, page.value]);
+    console.debug("mutation response data:", data);
+    
     const conversationData = store.readQuery<{
       conversation: IConversation;
     }>({
       query: GET_CONVERSATION,
       variables: {
         id: conversationId.value,
+        page: page.value,
+        limit: COMMENTS_PER_PAGE,
       },
     });
-    console.debug("update after reply to", conversationData);
-    if (!conversationData) return;
+    console.debug("cached conversation data:", conversationData);
+    
+    if (!conversationData || !data?.postPrivateMessage) {
+      console.warn("Missing conversation data or reply data");
+      return;
+    }
+    
     const { conversation: conversationCached } = conversationData;
+    const newConversation = data.postPrivateMessage;
+    
+    // The lastComment from the mutation is the new comment we just sent
+    const newComment = newConversation.lastComment;
+    
+    if (!newComment) {
+      console.warn("No lastComment in mutation response");
+      return;
+    }
+    
+    console.debug("Adding new comment to cache:", newComment);
 
-    console.debug("got cache", conversationCached);
+    // Check if the comment already exists to avoid duplicates
+    const commentExists = conversationCached.comments.elements.some(
+      (comment) => comment.id === newComment.id
+    );
+    
+    if (commentExists) {
+      console.debug("Comment already exists in cache, skipping update");
+      return;
+    }
 
     store.writeQuery({
       query: GET_CONVERSATION,
       variables: {
         id: conversationId.value,
+        page: page.value,
+        limit: COMMENTS_PER_PAGE,
       },
       data: {
         conversation: {
           ...conversationCached,
-          lastComment: data?.postPrivateMessage.lastComment,
+          lastComment: newComment,
           comments: {
             elements: [
               ...conversationCached.comments.elements,
-              data?.postPrivateMessage.lastComment,
+              newComment,
             ],
             total: conversationCached.comments.total + 1,
           },
         },
       },
     });
+    
+    console.debug("Cache updated successfully with new comment");
   },
 }));
+
+// Add success notification for replies
+onReplyDone(({ data }) => {
+  console.debug("Reply completed successfully", data);
+  notifier?.success(t("Reply sent successfully"));
+  
+  // Clear the input field
+  newComment.value = "";
+  
+  // If we added a new comment, check if we now have the latest comment
+  if (data?.postPrivateMessage?.lastComment) {
+    const isLatestComment = conversation.value?.lastComment?.id === data.postPrivateMessage.lastComment.id;
+    if (isLatestComment) {
+      hasMoreComments.value = false;
+      console.debug("Updated hasMoreComments to false - we have the latest comment");
+    }
+  }
+});
 
 const reply = () => {
   if (
@@ -668,16 +736,19 @@ const reply = () => {
         ? conversation.value?.actor.id
         : undefined,
   });
-
-  newComment.value = "";
 };
 
 const loadMoreComments = async (): Promise<void> => {
-  if (!hasMoreComments.value) return;
+  if (!hasMoreComments.value) {
+    console.debug("No more comments to load, skipping");
+    return;
+  }
+  
   console.debug("Loading more comments");
   page.value++;
+  
   try {
-    await fetchMore({
+    const result = await fetchMore({
       // New variables
       variables: () => ({
         id: conversationId.value,
@@ -685,11 +756,31 @@ const loadMoreComments = async (): Promise<void> => {
         limit: COMMENTS_PER_PAGE,
       }),
     });
-    hasMoreComments.value = !conversation.value?.comments.elements
-      .map(({ id }) => id)
-      .includes(conversation.value?.lastComment?.id);
+    
+    // Update hasMoreComments based on the fetched result
+    const currentConversation = result?.data?.conversation;
+    if (currentConversation) {
+      // Check if we have the last comment loaded
+      const hasLatestComment = currentConversation.comments.elements.some(
+        (comment: IComment) => comment.id === currentConversation.lastComment?.id
+      );
+      
+      // Also check if we loaded fewer comments than requested (indicates no more pages)
+      const loadedCommentsCount = currentConversation.comments.elements.length - 
+        (conversation.value?.comments.elements.length || 0);
+      const isLastPage = loadedCommentsCount < COMMENTS_PER_PAGE;
+      
+      hasMoreComments.value = !hasLatestComment && !isLastPage;
+      
+      console.debug("Load more comments result:", {
+        hasLatestComment,
+        isLastPage,
+        loadedCommentsCount,
+        hasMoreComments: hasMoreComments.value
+      });
+    }
   } catch (e) {
-    console.error(e);
+    console.error("Error loading more comments:", e);
   }
 };
 
@@ -700,12 +791,29 @@ onConversationError((discussionError) =>
 );
 
 onConversationResult(({ data }) => {
-  if (
-    page.value === 1 &&
-    data?.conversation?.comments?.total &&
-    data?.conversation?.comments?.total < COMMENTS_PER_PAGE
-  ) {
-    markConversationAsRead();
+  if (data?.conversation && page.value === 1) {
+    const conversation = data.conversation;
+    
+    // Initialize hasMoreComments correctly based on initial load
+    const hasLatestComment = conversation.comments.elements.some(
+      (comment: IComment) => comment.id === conversation.lastComment?.id
+    );
+    const isInitialPageFull = conversation.comments.elements.length >= COMMENTS_PER_PAGE;
+    
+    // We have more comments if we don't have the latest comment AND we have a full page
+    hasMoreComments.value = !hasLatestComment && isInitialPageFull;
+    
+    console.debug("Initial conversation load:", {
+      hasLatestComment,
+      isInitialPageFull,
+      commentsCount: conversation.comments.elements.length,
+      hasMoreComments: hasMoreComments.value
+    });
+    
+    // Mark as read if we have a small conversation that fits on first page
+    if (conversation.comments.total && conversation.comments.total < COMMENTS_PER_PAGE) {
+      markConversationAsRead();
+    }
   }
 });
 
@@ -742,10 +850,22 @@ const { mutate: markConversationAsRead } = useMutation<
 });
 
 const loadMoreCommentsThrottled = throttle(async () => {
-  console.log("Throttled");
+  if (!hasMoreComments.value) {
+    console.debug("Throttled: No more comments to load, skipping");
+    // Mark as read if conversation is unread and we have all comments
+    if (conversation.value?.unread) {
+      console.debug("marking as read");
+      markConversationAsRead();
+    }
+    return;
+  }
+  
+  console.debug("Throttled: Loading more comments");
   await loadMoreComments();
+  
+  // Mark as read after loading if we now have all comments and conversation is unread
   if (!hasMoreComments.value && conversation.value?.unread) {
-    console.debug("marking as read");
+    console.debug("marking as read after loading");
     markConversationAsRead();
   }
 }, 1000);
