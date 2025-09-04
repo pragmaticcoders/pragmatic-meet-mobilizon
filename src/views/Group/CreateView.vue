@@ -107,34 +107,6 @@
       </div>
 
       <div class="space-y-1.5">
-        <label
-          for="group-marketing-url"
-          class="block text-xs font-bold text-[#1c1b1f]"
-        >
-          {{ t("Marketing Banner Location URL") }} <span class="text-red-600">*</span>
-        </label>
-        <o-field :message="customUrlErrors[0]" :type="customUrlErrors[1]">
-          <o-input
-            expanded
-            v-model="group.customUrl"
-            id="group-marketing-url"
-            type="url"
-            required
-            aria-required="true"
-            :placeholder="t('https://example.com')"
-            class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
-          />
-        </o-field>
-        <p class="text-[13px] text-[#666666] leading-[20px]">
-          {{
-            t(
-              "Required: Add a marketing banner location URL for your group (e.g., your website or social media)"
-            )
-          }}
-        </p>
-      </div>
-
-      <div class="space-y-1.5">
         <label class="block text-xs font-bold text-[#1c1b1f]">
           {{ t("Group address") }}
         </label>
@@ -255,6 +227,34 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label
+          for="group-marketing-url"
+          class="block text-xs font-bold text-[#1c1b1f]"
+        >
+          {{ t("Marketing Banner Location URL") }} <span class="text-red-600">*</span>
+        </label>
+        <o-field :message="customUrlErrors[0]" :type="customUrlErrors[1]">
+          <o-input
+            expanded
+            v-model="group.customUrl"
+            id="group-marketing-url"
+            type="url"
+            required
+            aria-required="true"
+            :placeholder="t('https://example.com')"
+            class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
+          />
+        </o-field>
+        <p class="text-[13px] text-[#666666] leading-[20px]">
+          {{
+            t(
+              "Required: Add a marketing banner location URL for your group (e.g., your website or social media)"
+            )
+          }}
+        </p>
       </div>
 
       <fieldset class="space-y-4">
