@@ -73,6 +73,7 @@
     class="max-w-screen-xl mx-auto px-6 md:px-16 py-6 flex flex-col lg:flex-row gap-6"
   >
     <aside
+      v-show="contentType !== ContentType.GROUPS"
       class="flex-none lg:block lg:sticky top-8 w-full lg:w-80 flex-col justify-between bg-white border border-gray-200 rounded-lg p-6 shadow-sm"
     >
       <o-button
