@@ -613,8 +613,12 @@
                 tag="router-link"
                 :to="{
                   name: RouteName.CREATE_EVENT,
-                  query: { actorId: group?.id },
+                  query: { 
+                    actorId: group?.id,
+                    groupUsername: group?.preferredUsername 
+                  },
                 }"
+                @click="console.log('Create Event clicked - Group data:', { id: group?.id, preferredUsername: group?.preferredUsername, name: group?.name, type: group?.type })"
                 :disabled="isGroupPendingApproval"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',

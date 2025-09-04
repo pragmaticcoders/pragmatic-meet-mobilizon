@@ -463,6 +463,7 @@ import {
   onBeforeRouteLeave,
   RouteLocationNormalized,
   useRouter,
+  useRoute,
 } from "vue-router";
 import { formatList } from "@/utils/i18n";
 import {
@@ -546,6 +547,7 @@ import { escapeHtml } from "@/utils/html";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
 import { CONFIG } from "@/graphql/config";
 import { IConfig } from "@/types/config.model";
+import { FETCH_GROUP_PUBLIC } from "@/graphql/group";
 
 const DEFAULT_LIMIT_NUMBER_OF_PLACES = 10;
 
@@ -611,7 +613,6 @@ const initializeNewEvent = () => {
   setEventTimezoneToUserTimezoneIfUnset();
 
   // Default values for beginsOn and endsOn
-
   const roundUpTo15Minutes = (time: Date) => {
     time.setUTCMilliseconds(
       Math.round(time.getUTCMilliseconds() / 1000) * 1000
@@ -730,6 +731,69 @@ const createOrUpdatePublish = (e: Event): void => {
 const form = ref<HTMLFormElement | null>(null);
 
 const router = useRouter();
+const route = useRoute();
+
+// Watch for query params to set up group attribution
+const actorId = computed(() => {
+  const id = route.query.actorId as string | undefined;
+  console.log("actorId from route:", id);
+  return id;
+});
+
+const groupUsername = computed(() => {
+  const username = route.query.groupUsername as string | undefined;
+  console.log("groupUsername from route:", username);
+  return username;
+});
+
+// Fetch group data using groupUsername (same as group pages for proper permissions)
+const { result: groupResult, loading: groupLoading, error: groupError } = useQuery<{ group: IGroup }>(
+  FETCH_GROUP_PUBLIC,
+  () => ({ name: groupUsername.value }),
+  () => ({ 
+    enabled: !!groupUsername.value,
+    fetchPolicy: "cache-and-network" 
+  })
+);
+
+// Watch for group data and set up event attribution
+watch([groupResult, groupError], ([newGroupResult, error]) => {
+  console.log("EditView - groupResult watcher:", {
+    hasGroup: !!newGroupResult?.group,
+    groupData: newGroupResult?.group,
+    groupId: newGroupResult?.group?.id,
+    groupName: newGroupResult?.group?.name,
+    groupType: newGroupResult?.group?.type,
+    groupPreferredUsername: newGroupResult?.group?.preferredUsername,
+    actorId: actorId.value,
+    groupUsername: groupUsername.value,
+    error: error,
+    isUpdate: props.isUpdate,
+    isDuplicate: props.isDuplicate,
+    shouldSetup: !!(newGroupResult?.group && actorId.value && !(props.isUpdate || props.isDuplicate))
+  });
+  
+  if (error) {
+    console.error("Group query error:", error);
+    return;
+  }
+  
+  if (newGroupResult?.group && actorId.value && !(props.isUpdate || props.isDuplicate)) {
+    const group = newGroupResult.group;
+    console.log("Setting up group attribution for:", group.name, "with ID:", group.id);
+    
+    // Ensure we have the group ID set properly (should match actorId from route)
+    if (!group.id) {
+      console.warn("Group object missing ID, using actorId from route:", actorId.value);
+      group.id = actorId.value;
+    }
+    
+    event.value.attributedTo = group;
+    event.value.organizerActor = currentActor.value;
+    console.log("After setting - event.attributedTo:", event.value.attributedTo);
+    console.log("After setting - event.organizerActor:", event.value.organizerActor);
+  }
+}, { immediate: true });
 
 const validateForm = () => {
   if (!form.value) return;
@@ -1053,10 +1117,18 @@ const organizerActorEqualToCurrentActor = computed((): boolean => {
  * Build variables for Event GraphQL creation query
  */
 const buildVariables = async () => {
-  // Check if we have a valid organizer actor before proceeding
+  // Debug: Log current event state
+  console.log("buildVariables - event.attributedTo:", event.value?.attributedTo);
+  console.log("buildVariables - event.organizerActor:", event.value?.organizerActor);
+  console.log("buildVariables - currentActor:", currentActor.value);
+  
+  // For group events: organizer should be the USER (who creates on behalf of group)
+  // For personal events: organizer should be the user
   const localOrganizerActor = event.value?.organizerActor?.id
-    ? event.value.organizerActor
-    : organizerActor.value;
+    ? event.value.organizerActor  // Use the user as organizer (they create on behalf of group)
+    : (currentActor.value || organizerActor.value);
+
+  console.log("buildVariables - selected localOrganizerActor:", localOrganizerActor);
 
   if (!localOrganizerActor?.id) {
     // No organizer actor found - this can happen with LinkedIn login issues
@@ -1110,6 +1182,16 @@ const buildVariables = async () => {
   } catch (e) {
     console.error(e);
   }
+  
+  console.log("buildVariables - final result:", {
+    organizerActorId: res.organizerActorId,
+    attributedToId: res.attributedToId,
+    organizer: res.attributedToId ? "GROUP" : "USER",
+    explanation: res.attributedToId 
+      ? `User ${res.organizerActorId} creates event on behalf of group ${res.attributedToId}`
+      : `User ${res.organizerActorId} creates personal event`
+  });
+  
   return res;
 };
 
