@@ -255,6 +255,7 @@
         </filter-section>
 
         <filter-section
+          v-if="false"
           v-model:opened="searchFilterSectionsOpenStatus.eventLanguage"
           :title="t('Languages')"
         >

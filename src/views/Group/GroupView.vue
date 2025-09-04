@@ -472,11 +472,12 @@
             </div>
 
             <!-- Content area that grows -->
-            <div class="flex-grow flex flex-col justify-center min-h-[160px]">
+            <div class="flex-grow flex flex-col justify-center min-h-[160px] overflow-hidden">
               <div
                 v-if="group?.summary"
                 dir="auto"
-                class="prose prose-sm dark:prose-invert text-gray-600 dark:text-gray-300"
+                class="prose prose-sm dark:prose-invert text-gray-600 dark:text-gray-300 overflow-y-auto max-h-full"
+                style="word-wrap: break-word; overflow-wrap: break-word;"
                 v-html="group.summary"
               ></div>
               <div
@@ -1648,6 +1649,55 @@ address {
   .prose h2,
   .prose h3 {
     color: #f9fafb;
+  }
+}
+
+// Information section content styling
+:deep(.prose) {
+  img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    max-height: 200px; // Limit image height
+    border-radius: 0.375rem; // Rounded corners for images
+  }
+  
+  p, div, span {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+  
+  // Ensure all nested elements don't overflow
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  // Handle tables
+  table {
+    max-width: 100%;
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  td, th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  // Handle pre/code blocks
+  pre, code {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+  
+  // Handle iframes and embedded content
+  iframe, embed, object, video {
+    max-width: 100%;
+    height: auto;
   }
 }
 </style>
