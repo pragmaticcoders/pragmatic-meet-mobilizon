@@ -111,7 +111,7 @@
           for="group-marketing-url"
           class="block text-xs font-bold text-[#1c1b1f]"
         >
-          {{ t("Marketing URL") }} <span class="text-red-600">*</span>
+          {{ t("Marketing Banner Location URL") }} <span class="text-red-600">*</span>
         </label>
         <o-field :message="customUrlErrors[0]" :type="customUrlErrors[1]">
           <o-input
@@ -128,7 +128,7 @@
         <p class="text-[13px] text-[#666666] leading-[20px]">
           {{
             t(
-              "Required: Add a marketing URL for your group (e.g., your website or social media)"
+              "Required: Add a marketing banner location URL for your group (e.g., your website or social media)"
             )
           }}
         </p>
@@ -664,9 +664,9 @@ const createGroup = async (): Promise<void> => {
   fieldErrors.summary = undefined;
   fieldErrors.custom_url = undefined;
 
-  // Client-side validation for required marketing URL
+  // Client-side validation for required marketing banner location URL
   if (!group.value.customUrl || group.value.customUrl.trim() === '') {
-    fieldErrors.custom_url = t("Marketing URL is required") as string;
+    fieldErrors.custom_url = t("Marketing Banner Location URL is required") as string;
     return;
   }
 

@@ -51,7 +51,6 @@ interface IEventEditJSON {
   organizerActorId?: string;
   onlineAddress?: string;
   phoneAddress?: string;
-  customUrl?: string;
   physicalAddress?: IAddress;
   tags: string[];
   options: IEventOptions;
@@ -92,7 +91,6 @@ export interface IEvent {
 
   onlineAddress?: string;
   phoneAddress?: string;
-  customUrl?: string;
   physicalAddress: IAddress | null;
 
   tags: ITag[];
@@ -130,8 +128,6 @@ export class EventModel implements IEvent {
   onlineAddress: string | undefined = "";
 
   phoneAddress: string | undefined = "";
-
-  customUrl: string | undefined = "";
 
   physicalAddress: IAddress | null = null;
 

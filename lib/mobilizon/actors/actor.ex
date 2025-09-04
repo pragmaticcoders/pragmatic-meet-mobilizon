@@ -438,7 +438,7 @@ defmodule Mobilizon.Actors.Actor do
         add_error(
           changeset,
           :custom_url,
-          dgettext("errors", "Only groups can have marketing URLs")
+          dgettext("errors", "Only groups can have marketing banner location URLs")
         )
     end
   end
