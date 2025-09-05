@@ -75,7 +75,9 @@ defmodule Mobilizon.GraphQL.API.Search do
   """
   @spec search_events(map(), integer | nil, integer | nil) ::
           {:ok, Page.t(Event.t())}
-  def search_events(%{term: term} = args, page \\ 1, limit \\ 10) do
+  def search_events(args, page \\ 1, limit \\ 10)
+  
+  def search_events(%{term: term} = args, page, limit) do
     term = String.trim(term)
 
     if url?(term) do
@@ -105,6 +107,23 @@ defmodule Mobilizon.GraphQL.API.Search do
 
         {:ok, results}
       end
+    end
+  end
+
+  # Handle calendar searches without a term (date-based filtering only)
+  def search_events(args, page, limit) do
+    if global_search?(args) do
+      service = GlobalSearch.service()
+
+      {:ok, service.search_events(Keyword.new(args, fn {k, v} -> {k, v} end))}
+    else
+      results =
+        args
+        |> Map.put(:term, "")
+        |> Map.put(:local_only, Map.get(args, :search_target, :internal) == :self)
+        |> Events.build_events_for_search(page, limit)
+
+      {:ok, results}
     end
   end
 

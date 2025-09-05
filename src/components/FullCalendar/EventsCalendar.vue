@@ -18,7 +18,7 @@
 <script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { locale } from "@/utils/i18n";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import { useLazyQuery } from "@vue/apollo-composable";
 import { IEvent } from "@/types/event.model";
 import { Paginate } from "@/types/paginate";
@@ -31,9 +31,43 @@ const calendarRef = ref();
 
 const { t } = useI18n({ useScope: "global" });
 
+// Flag to force fresh data on next load
+const forceRefresh = ref(false);
+
 const { load: searchEventsLoad, refetch: searchEventsRefetch } = useLazyQuery<{
   searchEvents: Paginate<IEvent>;
-}>(SEARCH_CALENDAR_EVENTS);
+}>(SEARCH_CALENDAR_EVENTS, undefined, () => ({
+  fetchPolicy: forceRefresh.value ? 'network-only' : 'cache-first'
+}));
+
+// Expose refresh method for external components to trigger calendar refresh
+const refreshCalendar = () => {
+  if (calendarRef.value) {
+    forceRefresh.value = true; // Set flag to force fresh data
+    const calendarApi = calendarRef.value.getApi();
+    calendarApi.refetchEvents();
+  }
+};
+
+// Listen for global calendar refresh events
+onMounted(() => {
+  window.addEventListener('calendar-refresh', refreshCalendar);
+  
+  // Check if we need to force refresh due to recent event updates
+  const lastEventUpdate = localStorage.getItem('lastEventUpdate');
+  const lastCalendarRefresh = localStorage.getItem('lastCalendarRefresh');
+  
+  if (lastEventUpdate && (!lastCalendarRefresh || parseInt(lastEventUpdate) > parseInt(lastCalendarRefresh))) {
+    console.log('Calendar: Detected recent event update, forcing refresh');
+    forceRefresh.value = true;
+    localStorage.setItem('lastCalendarRefresh', Date.now().toString());
+  }
+});
+
+// Cleanup event listener on unmount
+onUnmounted(() => {
+  window.removeEventListener('calendar-refresh', refreshCalendar);
+});
 
 const calendarOptions = computed((): object => {
   return {
@@ -50,9 +84,19 @@ const calendarOptions = computed((): object => {
         endsOn: info.end,
       };
 
-      const result =
-        (await searchEventsLoad(undefined, queryVars)) ||
-        (await searchEventsRefetch(queryVars))?.data;
+      let result;
+      if (forceRefresh.value) {
+        // Force fresh data from server, bypassing cache completely
+        console.log('Calendar: Forcing fresh data fetch for', queryVars);
+        result = (await searchEventsRefetch(queryVars))?.data;
+        forceRefresh.value = false; // Reset flag after refresh
+        console.log('Calendar: Fresh data fetched, events:', result?.searchEvents?.elements?.length);
+      } else {
+        // Normal flow with cache
+        result =
+          (await searchEventsLoad(undefined, queryVars)) ||
+          (await searchEventsRefetch(queryVars))?.data;
+      }
 
       if (!result) {
         failureCallback("failed to fetch calendar events");
@@ -61,13 +105,32 @@ const calendarOptions = computed((): object => {
 
       successCallback(
         (result.searchEvents.elements ?? []).map((event: IEvent) => {
+          // Fix FullCalendar exclusive end date issue
+          let adjustedEndDate = event.endsOn;
+          
+          if (event.endsOn && event.beginsOn) {
+            const startDate = new Date(event.beginsOn);
+            const endDate = new Date(event.endsOn);
+            
+            // Check if event spans multiple days by comparing dates only (not times)
+            const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+            const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+            
+            if (endDay.getTime() > startDay.getTime()) {
+              // Multi-day event: Add 1 day to end date for FullCalendar (which treats end dates as exclusive)
+              const adjustedEnd = new Date(endDate);
+              adjustedEnd.setDate(adjustedEnd.getDate() + 1);
+              adjustedEndDate = adjustedEnd.toISOString();
+            }
+          }
+          
           return {
             id: event.id,
             title: event.title,
             start: event.beginsOn,
-            end: event.endsOn,
+            end: adjustedEndDate,
             startStr: event.beginsOn,
-            endStr: event.endsOn,
+            endStr: adjustedEndDate,
             url: `/events/${event.uuid}`,
             extendedProps: {
               event: event,

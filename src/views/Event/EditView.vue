@@ -483,6 +483,7 @@ import {
   EVENT_PERSON_PARTICIPATION,
 } from "@/graphql/event";
 import { HOME_USER_QUERIES } from "@/graphql/home";
+import { SEARCH_CALENDAR_EVENTS } from "@/graphql/search";
 import {
   EventModel,
   IEditableEvent,
@@ -831,6 +832,13 @@ onCreateEventMutationDone(async ({ data }) => {
     position: "bottom-right",
     duration: 5000,
   });
+  
+  // Mark that events were updated for later calendar refresh
+  localStorage.setItem('lastEventUpdate', Date.now().toString());
+  
+  // Trigger calendar refresh to show new events immediately
+  window.dispatchEvent(new CustomEvent('calendar-refresh'));
+  
   if (data?.createEvent) {
     await router.push({
       name: "Event",
@@ -872,6 +880,13 @@ onEditEventMutationDone(() => {
     position: "bottom-right",
     duration: 5000,
   });
+  
+  // Mark that events were updated for later calendar refresh
+  localStorage.setItem('lastEventUpdate', Date.now().toString());
+  
+  // Trigger calendar refresh to show updated events immediately
+  window.dispatchEvent(new CustomEvent('calendar-refresh'));
+  
   return router.push({
     name: "Event",
     params: { uuid: props.eventId as string },
@@ -1090,6 +1105,15 @@ const postRefetchQueries = (
   todayStart.setHours(0, 0, 0, 0);
   const afterDateTime = todayStart.toISOString();
 
+  // Get calendar date range - refetch for current month and next month to cover updated events
+  const calendarStart = new Date();
+  calendarStart.setDate(1); // First day of current month
+  calendarStart.setHours(0, 0, 0, 0);
+  
+  const calendarEnd = new Date(calendarStart);
+  calendarEnd.setMonth(calendarEnd.getMonth() + 2); // End of next month
+  calendarEnd.setHours(23, 59, 59, 999);
+
   return [
     {
       query: LOGGED_USER_PARTICIPATIONS,
@@ -1101,6 +1125,14 @@ const postRefetchQueries = (
       query: HOME_USER_QUERIES,
       variables: {
         afterDateTime,
+      },
+    },
+    {
+      query: SEARCH_CALENDAR_EVENTS,
+      variables: {
+        beginsOn: calendarStart.toISOString(),
+        endsOn: calendarEnd.toISOString(),
+        limit: 999,
       },
     },
   ];
