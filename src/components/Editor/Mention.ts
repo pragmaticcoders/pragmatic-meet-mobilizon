@@ -29,23 +29,35 @@ const fetchItems = async (query: string): Promise<IPerson[]> => {
 
 const debouncedFetchItems = pDebounce(fetchItems, 200);
 
+// Helper function to get a safe label, avoiding "undefined" strings
+const getSafeLabel = (node: any): string => {
+  if (node.attrs.label && 
+      node.attrs.label !== "undefined" && 
+      node.attrs.label.trim() !== "") {
+    return node.attrs.label;
+  }
+  return node.attrs.id || "";
+};
+
 const mentionOptions: MentionOptions = {
   HTMLAttributes: {
     class: "mention",
     dir: "ltr",
   },
   renderLabel({ options, node }) {
-    const label = node.attrs.label || node.attrs.id || "";
+    const label = getSafeLabel(node);
     return `${options.suggestion.char}${label}`;
   },
   renderText({ options, node }) {
-    return `${options.suggestion.char}${node.attrs.label || node.attrs.id}`;
+    const label = getSafeLabel(node);
+    return `${options.suggestion.char}${label}`;
   },
   renderHTML({ options, node }) {
+    const label = getSafeLabel(node);
     return [
       "span",
       { class: "mention", "data-id": node.attrs.id },
-      `${options.suggestion.char}${node.attrs.label || node.attrs.id}`,
+      `${options.suggestion.char}${label}`,
     ];
   },
   suggestion: {
