@@ -343,6 +343,7 @@
   "The event organiser has chosen to validate manually participations. Do you want to add a little note to explain why you want to participate to this event?": "The event organiser has chosen to validate manually participations. Do you want to add a little note to explain why you want to participate to this event?",
   "The event organizer didn't add any description.": "The event organizer didn't add any description.",
   "The event organizer manually approves participations. Since you've chosen to participate without an account, please explain why you want to participate to this event.": "The event organizer manually approves participations. Since you've chosen to participate without an account, please explain why you want to participate to this event.",
+  "The event title must be at least 3 characters long.": "The event title must be at least 3 characters long.",
   "The event title will be ellipsed.": "The event title will be ellipsed.",
   "The page you're looking for doesn't exist.": "The page you're looking for doesn't exist.",
   "The password was successfully changed": "The password was successfully changed",

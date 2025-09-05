@@ -42,7 +42,12 @@
             dir="auto"
             expanded
           />
-          <p v-if="checkTitleLength[1]" class="text-sm text-blue-600 mt-1">
+          <p v-if="checkTitleLength[1]" 
+             :class="{
+               'text-sm mt-1': true,
+               'text-blue-600': checkTitleLength[0] === 'info',
+               'text-red-600': checkTitleLength[0] === 'danger'
+             }">
             {{ checkTitleLength[1] }}
           </p>
         </div>
@@ -799,7 +804,16 @@ watch([groupResult, groupError], ([newGroupResult, error]) => {
 const validateForm = () => {
   if (!form.value) return;
 
-
+  // Check title length validation
+  if (event.value.title.length < 3) {
+    notification.open({
+      message: t("The event title must be at least 3 characters long.") as string,
+      variant: "danger",
+      position: "bottom-right",
+      duration: 5000,
+    });
+    return false;
+  }
 
   if (form.value.checkValidity()) {
     return true;
@@ -976,10 +990,20 @@ const handleError = (err: any) => {
             t("Error while adding tag: {error}", { error: finalMsg?.slug?.[0] })
           );
         } else if (typeof message === "string") {
-          notifier?.error(message);
+          // Handle specific validation errors with user-friendly messages
+          if (message.includes("title") && message.includes("should be at least 3")) {
+            notifier?.error(t("The event title must be at least 3 characters long."));
+          } else if (message.includes("title") && (message.includes("too short") || message.includes("min: 3"))) {
+            notifier?.error(t("The event title must be at least 3 characters long."));
+          } else {
+            notifier?.error(message);
+          }
         }
       }
     );
+  } else {
+    // Handle generic errors
+    notifier?.error(t("An error occurred while saving the event. Please check your input and try again."));
   }
 };
 
@@ -1262,9 +1286,12 @@ const hideParticipants = computed({
 });
 
 const checkTitleLength = computed((): Array<string | undefined> => {
-  return event.value.title.length > 80
-    ? ["info", t("The event title will be ellipsed.")]
-    : [undefined, undefined];
+  if (event.value.title.length < 3 && event.value.title.length > 0) {
+    return ["danger", t("The event title must be at least 3 characters long.")];
+  } else if (event.value.title.length > 80) {
+    return ["info", t("The event title will be ellipsed.")];
+  }
+  return [undefined, undefined];
 });
 
 const dialog = inject<Dialog>("dialog");
