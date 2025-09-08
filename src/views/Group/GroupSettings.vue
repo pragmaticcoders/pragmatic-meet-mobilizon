@@ -64,18 +64,6 @@
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
-              {{ t("Marketing URL") }}
-            </label>
-            <o-input
-              v-model="editableGroup.customUrl"
-              type="url"
-              :placeholder="t('https://example.com')"
-              expanded
-              class="w-full"
-            />
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-medium text-gray-700">
               {{ t("Avatar") }}
             </label>
             <picture-upload
@@ -184,6 +172,25 @@
               </div>
             </div>
           </div>
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">
+              {{ t("Marketing URL") }}
+            </label>
+            <p class="text-sm text-gray-600">
+              {{
+                t(
+                  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification."
+                )
+              }}
+            </p>
+            <o-input
+              v-model="editableGroup.customUrl"
+              type="url"
+              :placeholder="t('https://example.com')"
+              expanded
+              class="w-full"
+            />
+          </div>
           <div class="space-y-3">
             <h3 class="text-lg font-semibold text-gray-900">
               {{ t("Group visibility") }}
@@ -210,6 +217,7 @@
                 </div>
               </label>
             </div>
+
             <div class="space-y-3">
               <label class="flex items-start">
                 <o-radio

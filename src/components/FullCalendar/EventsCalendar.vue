@@ -37,7 +37,7 @@ const forceRefresh = ref(false);
 const { load: searchEventsLoad, refetch: searchEventsRefetch } = useLazyQuery<{
   searchEvents: Paginate<IEvent>;
 }>(SEARCH_CALENDAR_EVENTS, undefined, () => ({
-  fetchPolicy: forceRefresh.value ? 'network-only' : 'cache-first'
+  fetchPolicy: forceRefresh.value ? "network-only" : "cache-first",
 }));
 
 // Expose refresh method for external components to trigger calendar refresh
@@ -51,22 +51,26 @@ const refreshCalendar = () => {
 
 // Listen for global calendar refresh events
 onMounted(() => {
-  window.addEventListener('calendar-refresh', refreshCalendar);
-  
+  window.addEventListener("calendar-refresh", refreshCalendar);
+
   // Check if we need to force refresh due to recent event updates
-  const lastEventUpdate = localStorage.getItem('lastEventUpdate');
-  const lastCalendarRefresh = localStorage.getItem('lastCalendarRefresh');
-  
-  if (lastEventUpdate && (!lastCalendarRefresh || parseInt(lastEventUpdate) > parseInt(lastCalendarRefresh))) {
-    console.log('Calendar: Detected recent event update, forcing refresh');
+  const lastEventUpdate = localStorage.getItem("lastEventUpdate");
+  const lastCalendarRefresh = localStorage.getItem("lastCalendarRefresh");
+
+  if (
+    lastEventUpdate &&
+    (!lastCalendarRefresh ||
+      parseInt(lastEventUpdate) > parseInt(lastCalendarRefresh))
+  ) {
+    console.log("Calendar: Detected recent event update, forcing refresh");
     forceRefresh.value = true;
-    localStorage.setItem('lastCalendarRefresh', Date.now().toString());
+    localStorage.setItem("lastCalendarRefresh", Date.now().toString());
   }
 });
 
 // Cleanup event listener on unmount
 onUnmounted(() => {
-  window.removeEventListener('calendar-refresh', refreshCalendar);
+  window.removeEventListener("calendar-refresh", refreshCalendar);
 });
 
 const calendarOptions = computed((): object => {
@@ -87,10 +91,13 @@ const calendarOptions = computed((): object => {
       let result;
       if (forceRefresh.value) {
         // Force fresh data from server, bypassing cache completely
-        console.log('Calendar: Forcing fresh data fetch for', queryVars);
+        console.log("Calendar: Forcing fresh data fetch for", queryVars);
         result = (await searchEventsRefetch(queryVars))?.data;
         forceRefresh.value = false; // Reset flag after refresh
-        console.log('Calendar: Fresh data fetched, events:', result?.searchEvents?.elements?.length);
+        console.log(
+          "Calendar: Fresh data fetched, events:",
+          result?.searchEvents?.elements?.length
+        );
       } else {
         // Normal flow with cache
         result =
@@ -107,15 +114,23 @@ const calendarOptions = computed((): object => {
         (result.searchEvents.elements ?? []).map((event: IEvent) => {
           // Fix FullCalendar exclusive end date issue
           let adjustedEndDate = event.endsOn;
-          
+
           if (event.endsOn && event.beginsOn) {
             const startDate = new Date(event.beginsOn);
             const endDate = new Date(event.endsOn);
-            
+
             // Check if event spans multiple days by comparing dates only (not times)
-            const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-            
+            const startDay = new Date(
+              startDate.getFullYear(),
+              startDate.getMonth(),
+              startDate.getDate()
+            );
+            const endDay = new Date(
+              endDate.getFullYear(),
+              endDate.getMonth(),
+              endDate.getDate()
+            );
+
             if (endDay.getTime() > startDay.getTime()) {
               // Multi-day event: Add 1 day to end date for FullCalendar (which treats end dates as exclusive)
               const adjustedEnd = new Date(endDate);
@@ -123,7 +138,7 @@ const calendarOptions = computed((): object => {
               adjustedEndDate = adjustedEnd.toISOString();
             }
           }
-          
+
           return {
             id: event.id,
             title: event.title,
@@ -221,6 +236,7 @@ const calendarOptions = computed((): object => {
   font-size: 12px !important;
   min-height: 44px !important;
   min-width: 44px !important;
+  border-radius: 0 !important;
 }
 
 @media (min-width: 768px) {
