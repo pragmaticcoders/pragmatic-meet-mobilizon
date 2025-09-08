@@ -8,7 +8,16 @@ defmodule Mobilizon.Actors.Actor do
   import Ecto.Changeset
 
   alias Mobilizon.{Actors, Addresses, Config, Crypto, Mention, Share}
-  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, ApprovalStatus, Follower, Member}
+
+  alias Mobilizon.Actors.{
+    ActorOpenness,
+    ActorType,
+    ActorVisibility,
+    ApprovalStatus,
+    Follower,
+    Member
+  }
+
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.Comment
@@ -265,28 +274,66 @@ defmodule Mobilizon.Actors.Actor do
   a distant actor.
   """
   @spec preferred_username_and_domain(t) :: String.t()
-  def preferred_username_and_domain(%__MODULE__{
-        preferred_username: preferred_username,
-        domain: domain
-      })
+  def preferred_username_and_domain(
+        %__MODULE__{
+          preferred_username: preferred_username,
+          domain: domain
+        } = actor
+      )
       when domain in [nil, ""] do
+    Logger.debug("[Actor preferred_username_and_domain] Local actor case")
+    Logger.debug("[Actor preferred_username_and_domain] Actor: #{inspect(actor)}")
+
+    Logger.debug(
+      "[Actor preferred_username_and_domain] Preferred username: #{preferred_username}"
+    )
+
+    Logger.debug("[Actor preferred_username_and_domain] Domain: #{inspect(domain)}")
+    Logger.debug("[Actor preferred_username_and_domain] Returning: #{preferred_username}")
     preferred_username
   end
 
-  def preferred_username_and_domain(%__MODULE__{
-        type: :Application,
-        preferred_username: preferred_username,
-        domain: domain
-      })
+  def preferred_username_and_domain(
+        %__MODULE__{
+          type: :Application,
+          preferred_username: preferred_username,
+          domain: domain
+        } = actor
+      )
       when not is_nil(domain) and preferred_username == domain do
+    Logger.debug("[Actor preferred_username_and_domain] Application actor case")
+    Logger.debug("[Actor preferred_username_and_domain] Actor: #{inspect(actor)}")
+
+    Logger.debug(
+      "[Actor preferred_username_and_domain] Preferred username: #{preferred_username}"
+    )
+
+    Logger.debug("[Actor preferred_username_and_domain] Domain: #{domain}")
+
+    Logger.debug(
+      "[Actor preferred_username_and_domain] Username equals domain, returning: #{preferred_username}"
+    )
+
     preferred_username
   end
 
-  def preferred_username_and_domain(%__MODULE__{
-        preferred_username: preferred_username,
-        domain: domain
-      }) do
-    "#{preferred_username}@#{domain}"
+  def preferred_username_and_domain(
+        %__MODULE__{
+          preferred_username: preferred_username,
+          domain: domain
+        } = actor
+      ) do
+    Logger.debug("[Actor preferred_username_and_domain] Remote actor case")
+    Logger.debug("[Actor preferred_username_and_domain] Actor: #{inspect(actor)}")
+
+    Logger.debug(
+      "[Actor preferred_username_and_domain] Preferred username: #{preferred_username}"
+    )
+
+    Logger.debug("[Actor preferred_username_and_domain] Domain: #{domain}")
+    result = "#{preferred_username}@#{domain}"
+    Logger.debug("[Actor preferred_username_and_domain] Returning: #{result}")
+    result
   end
 
   @doc false

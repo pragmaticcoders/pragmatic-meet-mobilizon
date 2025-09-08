@@ -5,6 +5,8 @@ defmodule Mobilizon.Conversations do
 
   import Ecto.Query
 
+  require Logger
+
   alias Ecto.Changeset
   alias Ecto.Multi
   alias Mobilizon.Actors.{Actor, Member}
@@ -260,6 +262,11 @@ defmodule Mobilizon.Conversations do
   @spec reply_to_conversation(Conversation.t(), map()) ::
           {:ok, Conversation.t()} | {:error, atom(), Ecto.Changeset.t(), map()}
   def reply_to_conversation(%Conversation{id: conversation_id} = conversation, attrs \\ %{}) do
+    Logger.debug("[Conversations reply_to_conversation] Starting conversation reply")
+    Logger.debug("[Conversations reply_to_conversation] Conversation: #{inspect(conversation)}")
+    Logger.debug("[Conversations reply_to_conversation] Conversation ID: #{conversation_id}")
+    Logger.debug("[Conversations reply_to_conversation] Input attrs: #{inspect(attrs)}")
+
     attrs =
       Map.merge(attrs, %{
         conversation_id: conversation_id,
@@ -269,11 +276,26 @@ defmodule Mobilizon.Conversations do
         visibility: :private
       })
 
+    Logger.debug("[Conversations reply_to_conversation] Merged attrs: #{inspect(attrs)}")
+
+    Logger.debug(
+      "[Conversations reply_to_conversation] Mentions in attrs: #{inspect(Map.get(attrs, :mentions))}"
+    )
+
     changeset =
       Comment.changeset(
         %Comment{},
         attrs
       )
+
+    Logger.debug("[Conversations reply_to_conversation] Comment changeset: #{inspect(changeset)}")
+    Logger.debug("[Conversations reply_to_conversation] Changeset valid?: #{changeset.valid?}")
+
+    if not changeset.valid? do
+      Logger.debug(
+        "[Conversations reply_to_conversation] Changeset errors: #{inspect(changeset.errors)}"
+      )
+    end
 
     with {:ok, %{comment: %Comment{} = comment, conversation: %Conversation{} = conversation}} <-
            Multi.new()
@@ -319,10 +341,42 @@ defmodule Mobilizon.Conversations do
              end,
              []
            )
-           |> Repo.transaction(),
-         # Conversation is not updated
-         %Comment{} = comment <- Repo.preload(comment, @comment_preloads) do
-      {:ok, %Conversation{conversation | last_comment: comment}}
+           |> Repo.transaction() do
+      Logger.debug("[Conversations reply_to_conversation] Transaction successful")
+      Logger.debug("[Conversations reply_to_conversation] Created comment: #{inspect(comment)}")
+
+      Logger.debug(
+        "[Conversations reply_to_conversation] Updated conversation: #{inspect(conversation)}"
+      )
+
+      # Conversation is not updated
+      preloaded_comment = Repo.preload(comment, @comment_preloads)
+
+      Logger.debug(
+        "[Conversations reply_to_conversation] Preloaded comment: #{inspect(preloaded_comment)}"
+      )
+
+      Logger.debug(
+        "[Conversations reply_to_conversation] Comment mentions: #{inspect(preloaded_comment.mentions)}"
+      )
+
+      result_conversation = %Conversation{conversation | last_comment: preloaded_comment}
+
+      Logger.debug(
+        "[Conversations reply_to_conversation] Final result conversation: #{inspect(result_conversation)}"
+      )
+
+      {:ok, result_conversation}
+    else
+      {:error, step, changeset, changes} ->
+        Logger.debug("[Conversations reply_to_conversation] Transaction failed at step: #{step}")
+        Logger.debug("[Conversations reply_to_conversation] Changeset: #{inspect(changeset)}")
+        Logger.debug("[Conversations reply_to_conversation] Changes: #{inspect(changes)}")
+        {:error, step, changeset, changes}
+
+      error ->
+        Logger.debug("[Conversations reply_to_conversation] Unexpected error: #{inspect(error)}")
+        error
     end
   end
 

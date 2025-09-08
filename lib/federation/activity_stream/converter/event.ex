@@ -64,10 +64,22 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Event do
   def as_to_model_data(object) do
     case maybe_fetch_actor_and_attributed_to_id(object) do
       {:ok, %Actor{id: actor_id}, attributed_to} ->
+        Logger.debug("[Event as_to_model_data] Processing actor: #{actor_id}")
+        Logger.debug("[Event as_to_model_data] Attributed to: #{inspect(attributed_to)}")
+        Logger.debug("[Event as_to_model_data] Tag object: #{inspect(object["tag"])}")
+
         address = get_address(object["location"])
+        Logger.debug("[Event as_to_model_data] Address: #{inspect(address)}")
+
         tags = fetch_tags(object["tag"])
+        Logger.debug("[Event as_to_model_data] Fetched tags: #{inspect(tags)}")
+
         mentions = fetch_mentions(object["tag"])
+        Logger.debug("[Event as_to_model_data] Fetched mentions: #{inspect(mentions)}")
+
         visibility = get_visibility(object)
+        Logger.debug("[Event as_to_model_data] Visibility: #{visibility}")
+
         options = get_options(object, address)
         metadata = get_metdata(object)
         contacts = get_contacts(object)

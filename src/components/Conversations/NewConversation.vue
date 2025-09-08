@@ -27,7 +27,10 @@
               {{ t("To:") }}
             </label>
             <div class="flex-1">
-              <div v-if="isLoadingMentions" class="flex items-center gap-2 p-2 text-gray-600">
+              <div
+                v-if="isLoadingMentions"
+                class="flex items-center gap-2 p-2 text-gray-600"
+              >
                 <svg
                   class="animate-spin h-4 w-4"
                   xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +53,10 @@
                 </svg>
                 <span class="text-sm">{{ t("Loading mentions...") }}</span>
               </div>
-              <ActorAutoComplete v-model="actorMentions" :disabled="isLoadingMentions" />
+              <ActorAutoComplete
+                v-model="actorMentions"
+                :disabled="isLoadingMentions"
+              />
             </div>
           </div>
         </div>
@@ -244,70 +250,78 @@ const { load: fetchGroup } = provideApolloClient(apolloClient)(() =>
 
 // Load initial mentions asynchronously with proper error handling
 const loadInitialMentions = async () => {
-  if (textPersonMentions.value.length === 0 && textGroupMentions.value.length === 0) {
+  if (
+    textPersonMentions.value.length === 0 &&
+    textGroupMentions.value.length === 0
+  ) {
     return;
   }
 
   isLoadingMentions.value = true;
-  
+
   try {
     // Fetch person mentions
-    const personPromises = textPersonMentions.value.map(async (textPersonMention) => {
-      try {
-        const result = await Promise.race([
-          fetchPerson(FETCH_PERSON, { username: textPersonMention }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-        ]) as any;
-        
-        if (result?.fetchPerson) {
-          return result.fetchPerson;
-        }
-      } catch (error) {
-        console.warn(`Failed to fetch person ${textPersonMention}:`, error);
-        // Don't add to errors array as this might be expected for invalid mentions
-      }
-      return null;
-    });
+    const personPromises = textPersonMentions.value.map(
+      async (textPersonMention) => {
+        try {
+          const result = (await Promise.race([
+            fetchPerson(FETCH_PERSON, { username: textPersonMention }),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 10000)
+            ),
+          ])) as any;
 
-    // Fetch group mentions  
-    const groupPromises = textGroupMentions.value.map(async (textGroupMention) => {
-      try {
-        const result = await Promise.race([
-          fetchGroup(FETCH_GROUP_PUBLIC, { name: textGroupMention }),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 10000)
-          )
-        ]) as any;
-        
-        if (result?.group) {
-          return result.group;
+          if (result?.fetchPerson) {
+            return result.fetchPerson;
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch person ${textPersonMention}:`, error);
+          // Don't add to errors array as this might be expected for invalid mentions
         }
-      } catch (error) {
-        console.warn(`Failed to fetch group ${textGroupMention}:`, error);
-        // Add a user-friendly error for group mentions that fail
-        errors.value.push(`Group "${textGroupMention}" not found or not accessible`);
+        return null;
       }
-      return null;
-    });
+    );
+
+    // Fetch group mentions
+    const groupPromises = textGroupMentions.value.map(
+      async (textGroupMention) => {
+        try {
+          const result = (await Promise.race([
+            fetchGroup(FETCH_GROUP_PUBLIC, { name: textGroupMention }),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 10000)
+            ),
+          ])) as any;
+
+          if (result?.group) {
+            return result.group;
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch group ${textGroupMention}:`, error);
+          // Add a user-friendly error for group mentions that fail
+          errors.value.push(
+            `Group "${textGroupMention}" not found or not accessible`
+          );
+        }
+        return null;
+      }
+    );
 
     // Wait for all promises to resolve
     const [personResults, groupResults] = await Promise.all([
       Promise.all(personPromises),
-      Promise.all(groupPromises)
+      Promise.all(groupPromises),
     ]);
 
     // Add successful results to actor mentions
-    [...personResults, ...groupResults].forEach(actor => {
+    [...personResults, ...groupResults].forEach((actor) => {
       if (actor) {
         actorMentions.value.push(actor);
       }
     });
-    
   } catch (error) {
-    console.error('Error loading initial mentions:', error);
-    errors.value.push('Failed to load some mentions');
+    console.error("Error loading initial mentions:", error);
+    errors.value.push("Failed to load some mentions");
   } finally {
     isLoadingMentions.value = false;
   }
@@ -430,7 +444,7 @@ const sendForm = async (e: Event) => {
 
     // Success - show notification and navigate to the conversation
     notifier?.success(t("Message sent successfully"));
-    
+
     router.push({
       name: RouteName.CONVERSATION,
       params: { id: result.data.postPrivateMessage.conversationParticipantId },

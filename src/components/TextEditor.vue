@@ -336,12 +336,25 @@ uploadMediaError((error) => {
  * We use this to programatically insert an actor mention when creating a reply to comment
  */
 const replyToComment = async (actor: IActor): Promise<void> => {
-  if (!editor.value || !actor) return;
+  console.log("[TextEditor replyToComment] Called with actor:", actor);
+
+  if (!editor.value || !actor) {
+    console.log(
+      "[TextEditor replyToComment] Early return - editor or actor missing",
+      { editor: !!editor.value, actor: !!actor }
+    );
+    return;
+  }
 
   // Wait for the next tick to ensure actor data is fully loaded
   await nextTick();
 
   const username = usernameWithDomain(actor);
+  console.log(
+    "[TextEditor replyToComment] usernameWithDomain result:",
+    username
+  );
+
   // Handle cases where name might be "undefined" string or empty
   const displayName =
     actor &&
@@ -350,6 +363,16 @@ const replyToComment = async (actor: IActor): Promise<void> => {
     actor.name.trim() !== ""
       ? actor.name
       : username;
+
+  console.log("[TextEditor replyToComment] Actor data:", {
+    actorExists: !!actor,
+    actorName: actor.name,
+    actorPreferredUsername: actor.preferredUsername,
+    actorDomain: actor.domain,
+    username: username,
+    displayName: displayName,
+    rawActor: actor,
+  });
 
   // Only insert if we have valid values
   if (
@@ -360,6 +383,11 @@ const replyToComment = async (actor: IActor): Promise<void> => {
     username !== "undefined" &&
     username.trim() !== ""
   ) {
+    console.log("[TextEditor replyToComment] Inserting mention with:", {
+      id: username,
+      label: displayName,
+    });
+
     editor.value
       .chain()
       .focus()
@@ -372,6 +400,22 @@ const replyToComment = async (actor: IActor): Promise<void> => {
       })
       .insertContent(" ")
       .run();
+
+    console.log("[TextEditor replyToComment] Mention inserted successfully");
+  } else {
+    console.log(
+      "[TextEditor replyToComment] Skipping mention insertion due to invalid values:",
+      {
+        usernameValid:
+          username && username !== "undefined" && username.trim() !== "",
+        displayNameValid:
+          displayName &&
+          displayName !== "undefined" &&
+          displayName.trim() !== "",
+        username: username,
+        displayName: displayName,
+      }
+    );
   }
 };
 

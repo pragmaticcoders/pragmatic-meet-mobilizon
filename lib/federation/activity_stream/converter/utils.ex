@@ -37,10 +37,21 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Utils do
 
   @spec fetch_mentions([map()]) :: [map()]
   def fetch_mentions(mentions) when is_list(mentions) do
-    Logger.debug("fetching mentions")
-    Logger.debug(inspect(mentions))
+    Logger.debug("[fetch_mentions] Starting mention processing")
+    Logger.debug("[fetch_mentions] Input mentions: #{inspect(mentions)}")
+    Logger.debug("[fetch_mentions] Mention count: #{length(mentions)}")
 
-    Enum.reduce(mentions, [], fn mention, acc -> create_mention(mention, acc) end)
+    result =
+      Enum.reduce(mentions, [], fn mention, acc ->
+        Logger.debug("[fetch_mentions] Processing mention: #{inspect(mention)}")
+        new_acc = create_mention(mention, acc)
+        Logger.debug("[fetch_mentions] Accumulator after processing: #{inspect(new_acc)}")
+        new_acc
+      end)
+
+    Logger.debug("[fetch_mentions] Final result: #{inspect(result)}")
+    Logger.debug("[fetch_mentions] Final result count: #{length(result)}")
+    result
   end
 
   def fetch_mentions(_), do: []
@@ -64,21 +75,56 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Utils do
   end
 
   def build_mentions(mentions) do
-    Enum.map(mentions, fn %Mention{} = mention ->
-      if Ecto.assoc_loaded?(mention.actor) do
-        build_mention(mention.actor)
-      else
-        build_mention(Repo.preload(mention, [:actor]).actor)
-      end
-    end)
+    Logger.debug("[build_mentions] Starting mention building")
+    Logger.debug("[build_mentions] Input mentions: #{inspect(mentions)}")
+    Logger.debug("[build_mentions] Mention count: #{length(mentions)}")
+
+    result =
+      Enum.map(mentions, fn %Mention{} = mention ->
+        Logger.debug("[build_mentions] Processing mention: #{inspect(mention)}")
+
+        Logger.debug(
+          "[build_mentions] Mention actor loaded?: #{Ecto.assoc_loaded?(mention.actor)}"
+        )
+
+        actor =
+          if Ecto.assoc_loaded?(mention.actor) do
+            Logger.debug("[build_mentions] Using preloaded actor: #{inspect(mention.actor)}")
+            mention.actor
+          else
+            Logger.debug("[build_mentions] Loading actor from database")
+            preloaded_mention = Repo.preload(mention, [:actor])
+            Logger.debug("[build_mentions] Preloaded mention: #{inspect(preloaded_mention)}")
+            preloaded_mention.actor
+          end
+
+        Logger.debug("[build_mentions] Final actor for mention: #{inspect(actor)}")
+        built_mention = build_mention(actor)
+        Logger.debug("[build_mentions] Built mention result: #{inspect(built_mention)}")
+        built_mention
+      end)
+
+    Logger.debug("[build_mentions] Final result: #{inspect(result)}")
+    result
   end
 
   defp build_mention(%Actor{} = actor) do
-    %{
+    Logger.debug("[build_mention] Building mention for actor: #{inspect(actor)}")
+    Logger.debug("[build_mention] Actor URL: #{actor.url}")
+    Logger.debug("[build_mention] Actor preferred_username: #{actor.preferred_username}")
+    Logger.debug("[build_mention] Actor domain: #{actor.domain}")
+
+    username_and_domain = Actor.preferred_username_and_domain(actor)
+    Logger.debug("[build_mention] Generated username_and_domain: #{username_and_domain}")
+
+    result = %{
       "href" => actor.url,
-      "name" => "@#{Actor.preferred_username_and_domain(actor)}",
+      "name" => "@#{username_and_domain}",
       "type" => "Mention"
     }
+
+    Logger.debug("[build_mention] Final mention result: #{inspect(result)}")
+    result
   end
 
   defp fetch_tag(%{title: title}), do: [title]
@@ -106,27 +152,64 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Utils do
   end
 
   @spec create_mention(map(), list()) :: list()
-  defp create_mention(%Actor{id: actor_id} = _mention, acc) do
-    acc ++ [%{actor_id: actor_id}]
+  defp create_mention(%Actor{id: actor_id} = mention, acc) do
+    Logger.debug("[create_mention] Processing Actor mention: #{inspect(mention)}")
+    Logger.debug("[create_mention] Actor ID: #{actor_id}")
+    Logger.debug("[create_mention] Current accumulator: #{inspect(acc)}")
+
+    result = acc ++ [%{actor_id: actor_id}]
+    Logger.debug("[create_mention] New accumulator: #{inspect(result)}")
+    result
   end
 
   defp create_mention(mention, acc) when is_map(mention) do
-    with true <- mention["type"] == "Mention",
-         {:ok, %Actor{id: actor_id}} <-
-           ActivityPubActor.get_or_fetch_actor_by_url(mention["href"]) do
-      acc ++ [%{actor_id: actor_id}]
+    Logger.debug("[create_mention] Processing map mention: #{inspect(mention)}")
+    Logger.debug("[create_mention] Mention type: #{mention["type"]}")
+    Logger.debug("[create_mention] Mention href: #{mention["href"]}")
+    Logger.debug("[create_mention] Current accumulator: #{inspect(acc)}")
+
+    with true <- mention["type"] == "Mention" do
+      Logger.debug("[create_mention] Type is Mention, fetching actor")
+
+      case ActivityPubActor.get_or_fetch_actor_by_url(mention["href"]) do
+        {:ok, %Actor{id: actor_id} = actor} ->
+          Logger.debug("[create_mention] Successfully fetched actor: #{inspect(actor)}")
+          Logger.debug("[create_mention] Actor ID: #{actor_id}")
+          result = acc ++ [%{actor_id: actor_id}]
+          Logger.debug("[create_mention] New accumulator: #{inspect(result)}")
+          result
+
+        {:error, err} ->
+          Logger.debug("[create_mention] Failed to fetch actor: #{inspect(err)}")
+          acc
+
+        other ->
+          Logger.debug("[create_mention] Unexpected result from actor fetch: #{inspect(other)}")
+          acc
+      end
     else
-      _err ->
+      false ->
+        Logger.debug("[create_mention] Type is not Mention, skipping")
+        acc
+
+      other ->
+        Logger.debug("[create_mention] Unexpected type check result: #{inspect(other)}")
         acc
     end
   end
 
   @spec create_mention({String.t(), map()}, list()) :: list()
-  defp create_mention({_, mention}, acc) when is_map(mention) do
+  defp create_mention({key, mention}, acc) when is_map(mention) do
+    Logger.debug("[create_mention] Processing tuple mention with key: #{key}")
+    Logger.debug("[create_mention] Mention data: #{inspect(mention)}")
     create_mention(mention, acc)
   end
 
-  defp create_mention(_, acc), do: acc
+  defp create_mention(mention, acc) do
+    Logger.debug("[create_mention] Fallback clause - unhandled mention type: #{inspect(mention)}")
+    Logger.debug("[create_mention] Returning unchanged accumulator: #{inspect(acc)}")
+    acc
+  end
 
   @spec maybe_fetch_actor_and_attributed_to_id(map()) ::
           {:ok, Actor.t(), Actor.t() | nil} | {:error, atom()}

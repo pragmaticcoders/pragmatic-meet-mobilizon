@@ -10,6 +10,8 @@ defmodule Mobilizon.Service.Activity.Discussion do
 
   import Mobilizon.Service.Activity.Utils, only: [maybe_inserted_at: 0]
 
+  require Logger
+
   @behaviour Activity
 
   @impl Activity
@@ -26,6 +28,12 @@ defmodule Mobilizon.Service.Activity.Discussion do
     author = Keyword.get(options, :moderator, creator)
     author_id = Keyword.get(options, :actor_id, author.id)
     old_discussion = Keyword.get(options, :old_discussion)
+
+    Logger.debug("[Discussion insert_activity] Calling send_mention_notifications")
+    Logger.debug("[Discussion insert_activity] Subject: #{subject}")
+    Logger.debug("[Discussion insert_activity] Discussion: #{inspect(discussion)}")
+    Logger.debug("[Discussion insert_activity] Last comment: #{inspect(discussion.last_comment)}")
+    Logger.debug("[Discussion insert_activity] Options: #{inspect(options)}")
 
     send_mention_notifications(subject, discussion, discussion.last_comment, options)
 
@@ -73,30 +81,110 @@ defmodule Mobilizon.Service.Activity.Discussion do
            title: title,
            slug: slug,
            actor: %Actor{id: group_id, type: :Group}
-         },
-         %Comment{actor_id: actor_id, mentions: mentions},
-         _options
+         } = discussion,
+         %Comment{actor_id: actor_id, mentions: mentions} = comment,
+         options
        )
        when subject in ["discussion_created", "discussion_replied"] and length(mentions) > 0 do
-    LegacyNotifierBuilder.enqueue(
-      :legacy_notify,
-      %{
-        "subject" => :discussion_mention,
-        "subject_params" => %{
-          discussion_slug: slug,
-          discussion_title: title
-        },
-        "type" => :discussion,
-        "object_type" => :discussion,
-        "author_id" => actor_id,
-        "group_id" => group_id,
-        "object_id" => to_string(discussion_id),
-        "mentions" => Enum.map(mentions, & &1.actor_id)
-      }
+    Logger.debug("[Discussion send_mention_notifications] Processing mention notifications")
+    Logger.debug("[Discussion send_mention_notifications] Subject: #{subject}")
+    Logger.debug("[Discussion send_mention_notifications] Discussion: #{inspect(discussion)}")
+    Logger.debug("[Discussion send_mention_notifications] Discussion ID: #{discussion_id}")
+    Logger.debug("[Discussion send_mention_notifications] Discussion title: #{title}")
+    Logger.debug("[Discussion send_mention_notifications] Discussion slug: #{slug}")
+    Logger.debug("[Discussion send_mention_notifications] Group ID: #{group_id}")
+    Logger.debug("[Discussion send_mention_notifications] Comment: #{inspect(comment)}")
+    Logger.debug("[Discussion send_mention_notifications] Comment actor ID: #{actor_id}")
+    Logger.debug("[Discussion send_mention_notifications] Mentions: #{inspect(mentions)}")
+    Logger.debug("[Discussion send_mention_notifications] Mention count: #{length(mentions)}")
+    Logger.debug("[Discussion send_mention_notifications] Options: #{inspect(options)}")
+
+    # Log individual mentions
+    Enum.each(mentions, fn mention ->
+      Logger.debug(
+        "[Discussion send_mention_notifications] Processing mention: #{inspect(mention)}"
+      )
+
+      Logger.debug(
+        "[Discussion send_mention_notifications] Mention actor_id: #{mention.actor_id}"
+      )
+
+      if mention.actor do
+        Logger.debug(
+          "[Discussion send_mention_notifications] Mention actor: #{inspect(mention.actor)}"
+        )
+      else
+        Logger.debug("[Discussion send_mention_notifications] Mention actor not loaded")
+      end
+    end)
+
+    mention_actor_ids = Enum.map(mentions, & &1.actor_id)
+
+    Logger.debug(
+      "[Discussion send_mention_notifications] Extracted actor IDs: #{inspect(mention_actor_ids)}"
     )
+
+    notification_params = %{
+      "subject" => :discussion_mention,
+      "subject_params" => %{
+        discussion_slug: slug,
+        discussion_title: title
+      },
+      "type" => :discussion,
+      "object_type" => :discussion,
+      "author_id" => actor_id,
+      "group_id" => group_id,
+      "object_id" => to_string(discussion_id),
+      "mentions" => mention_actor_ids
+    }
+
+    Logger.debug(
+      "[Discussion send_mention_notifications] Notification params: #{inspect(notification_params)}"
+    )
+
+    result = LegacyNotifierBuilder.enqueue(:legacy_notify, notification_params)
+    Logger.debug("[Discussion send_mention_notifications] Enqueue result: #{inspect(result)}")
 
     {:ok, :enqueued}
   end
 
-  defp send_mention_notifications(_, _, _, _), do: {:ok, :skipped}
+  defp send_mention_notifications(subject, discussion, comment, options) do
+    Logger.debug(
+      "[Discussion send_mention_notifications] Fallback clause - skipping notifications"
+    )
+
+    Logger.debug("[Discussion send_mention_notifications] Subject: #{subject}")
+    Logger.debug("[Discussion send_mention_notifications] Discussion: #{inspect(discussion)}")
+    Logger.debug("[Discussion send_mention_notifications] Comment: #{inspect(comment)}")
+    Logger.debug("[Discussion send_mention_notifications] Options: #{inspect(options)}")
+
+    # Log specific reasons for skipping
+    cond do
+      subject not in ["discussion_created", "discussion_replied"] ->
+        Logger.debug(
+          "[Discussion send_mention_notifications] Skipping: subject '#{subject}' not in allowed subjects"
+        )
+
+      is_nil(comment) ->
+        Logger.debug("[Discussion send_mention_notifications] Skipping: comment is nil")
+
+      !Map.has_key?(comment, :mentions) ->
+        Logger.debug(
+          "[Discussion send_mention_notifications] Skipping: comment has no mentions field"
+        )
+
+      is_nil(comment.mentions) ->
+        Logger.debug("[Discussion send_mention_notifications] Skipping: comment mentions is nil")
+
+      length(comment.mentions) == 0 ->
+        Logger.debug("[Discussion send_mention_notifications] Skipping: no mentions in comment")
+
+      true ->
+        Logger.debug(
+          "[Discussion send_mention_notifications] Skipping: other pattern matching issue"
+        )
+    end
+
+    {:ok, :skipped}
+  end
 end

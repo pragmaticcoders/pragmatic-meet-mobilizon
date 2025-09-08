@@ -289,16 +289,42 @@ onMounted(() => {
 });
 
 const createReplyToComment = async (): Promise<void> => {
+  console.log(
+    "[EventComment createReplyToComment] Called with replyTo.value:",
+    replyTo.value
+  );
+  console.log(
+    "[EventComment createReplyToComment] Comment actor:",
+    props.comment.actor
+  );
+
   if (replyTo.value) {
+    console.log(
+      "[EventComment createReplyToComment] Closing reply, resetting values"
+    );
     replyTo.value = false;
     newComment.value = new CommentModel();
     return;
   }
+
+  console.log("[EventComment createReplyToComment] Opening reply mode");
   replyTo.value = true;
+
   if (props.comment.actor) {
+    console.log(
+      "[EventComment createReplyToComment] Calling commentEditor.replyToComment with actor:",
+      props.comment.actor
+    );
     commentEditor.value?.replyToComment(props.comment.actor);
     await nextTick(); // wait for the mention to be injected
+    console.log(
+      "[EventComment createReplyToComment] Setting focus on comment editor"
+    );
     commentEditor.value?.focus();
+  } else {
+    console.log(
+      "[EventComment createReplyToComment] No actor found on comment, skipping mention insertion"
+    );
   }
 };
 
