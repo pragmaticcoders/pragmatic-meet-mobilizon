@@ -90,11 +90,15 @@ defmodule Mobilizon.GraphQL.Resolvers.Conversation do
           current_user: %User{} = user
         }
       }) do
+    Logger.debug("Resolving unread_conversations_count for actor #{actor_id}, user #{user.id}")
     case User.owns_actor(user, actor_id) do
       {:is_owned, %Actor{}} ->
-        {:ok, Conversations.count_unread_conversation_participants_for_person(actor_id)}
+        count = Conversations.count_unread_conversation_participants_for_person(actor_id)
+        Logger.debug("Resolved unread_conversations_count for actor #{actor_id}: #{count}")
+        {:ok, count}
 
       _ ->
+        Logger.debug("Unauthorized access to unread_conversations_count for actor #{actor_id}, user #{user.id}")
         {:error, :unauthorized}
     end
   end
@@ -198,9 +202,12 @@ defmodule Mobilizon.GraphQL.Resolvers.Conversation do
            Conversations.update_conversation_participant(conversation_participant, %{
              unread: !read
            }) do
+      new_count = Conversations.count_unread_conversation_participants_for_person(actor_id)
+      Logger.debug("Updated conversation participant for actor #{actor_id}, read: #{read}, new unread count: #{new_count}")
+      
       Absinthe.Subscription.publish(
         Endpoint,
-        Conversations.count_unread_conversation_participants_for_person(actor_id),
+        new_count,
         person_unread_conversations_count: [actor_id]
       )
 

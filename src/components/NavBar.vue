@@ -402,11 +402,18 @@ const canRegister = computed(() => {
 
 const { t } = useI18n({ useScope: "global" });
 
-const unreadConversationsCount = computed(
-  () =>
-    unreadActorConversationsResult.value?.loggedUser.defaultActor
-      ?.unreadConversationsCount ?? 0
-);
+const unreadConversationsCount = computed(() => {
+  const count = unreadActorConversationsResult.value?.loggedUser.defaultActor
+    ?.unreadConversationsCount ?? 0;
+  console.debug("NavBar: unreadConversationsCount computed", {
+    count,
+    hasResult: !!unreadActorConversationsResult.value,
+    hasLoggedUser: !!unreadActorConversationsResult.value?.loggedUser,
+    hasDefaultActor: !!unreadActorConversationsResult.value?.loggedUser?.defaultActor,
+    rawCount: unreadActorConversationsResult.value?.loggedUser?.defaultActor?.unreadConversationsCount
+  });
+  return count;
+});
 
 const {
   result: unreadActorConversationsResult,
@@ -417,12 +424,33 @@ const {
 }>(UNREAD_ACTOR_CONVERSATIONS);
 
 watch(currentActor, async (currentActorValue, previousActorValue) => {
+  console.debug("NavBar: currentActor changed", {
+    currentActorId: currentActorValue?.id,
+    currentActorUsername: currentActorValue?.preferredUsername,
+    previousActorId: previousActorValue?.id,
+    previousActorUsername: previousActorValue?.preferredUsername,
+    conditionMet: !!(
+      currentActorValue?.id &&
+      (currentActorValue.preferredUsername !==
+        previousActorValue?.preferredUsername ||
+        previousActorValue === null ||
+        previousActorValue === undefined)
+    )
+  });
+  
   if (
     currentActorValue?.id &&
-    currentActorValue.preferredUsername !==
-      previousActorValue?.preferredUsername
+    (currentActorValue.preferredUsername !==
+      previousActorValue?.preferredUsername ||
+      previousActorValue === null ||
+      previousActorValue === undefined)
   ) {
-    await loadUnreadConversations();
+    console.debug("NavBar: Setting up unread conversations subscription for actor", currentActorValue.id);
+    const result = await loadUnreadConversations();
+    console.debug("NavBar: Initial unread conversations loaded", {
+      result,
+      count: result && typeof result === 'object' ? result.loggedUser?.defaultActor?.unreadConversationsCount : null
+    });
 
     subscribeToMore<
       { personId: string },
@@ -433,20 +461,25 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
         personId: currentActor.value?.id as string,
       },
       updateQuery: (previousResult, { subscriptionData }) => {
+        const newCount = subscriptionData?.data?.personUnreadConversationsCount;
+        const previousCount = previousResult.loggedUser.defaultActor?.unreadConversationsCount;
+        
         console.debug(
-          "Updating actor unread conversations count query after subscribe to more update",
-          subscriptionData?.data?.personUnreadConversationsCount
+          "NavBar: Updating actor unread conversations count via subscription",
+          {
+            newCount,
+            previousCount,
+            subscriptionData: subscriptionData?.data
+          }
         );
+        
         return {
           ...previousResult,
           loggedUser: {
             id: previousResult.loggedUser.id,
             defaultActor: {
               ...previousResult.loggedUser.defaultActor,
-              unreadConversationsCount:
-                subscriptionData?.data?.personUnreadConversationsCount ??
-                previousResult.loggedUser.defaultActor
-                  ?.unreadConversationsCount,
+              unreadConversationsCount: newCount ?? previousCount,
             } as IPerson, // no idea why,
           },
         };

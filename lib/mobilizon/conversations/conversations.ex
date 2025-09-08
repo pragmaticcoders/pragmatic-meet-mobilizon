@@ -4,6 +4,7 @@ defmodule Mobilizon.Conversations do
   """
 
   import Ecto.Query
+  require Logger
 
   alias Ecto.Changeset
   alias Ecto.Multi
@@ -178,15 +179,18 @@ defmodule Mobilizon.Conversations do
       ConversationParticipant
       |> distinct([cp], cp.conversation_id)
       |> join(:left, [cp], m in Member, on: cp.actor_id == m.parent_id)
-      |> where([cp], cp.actor_id == ^actor_id and cp.unread == true)
-      |> or_where(
-        [_cp, m],
-        m.actor_id == ^actor_id and m.role in [:creator, :administrator, :moderator]
+      |> where(
+        [cp, m],
+        (cp.actor_id == ^actor_id and cp.unread == true) or
+        (m.actor_id == ^actor_id and m.role in [:creator, :administrator, :moderator] and cp.unread == true)
       )
 
-    subquery
+    count = subquery
     |> subquery()
     |> Repo.aggregate(:count)
+    
+    Logger.debug("Counting unread conversations for actor #{actor_id}: #{count}")
+    count
   end
 
   @doc """

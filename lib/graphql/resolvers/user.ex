@@ -43,6 +43,12 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   @spec get_current_user(any, map(), Absinthe.Resolution.t()) ::
           {:error, :unauthenticated} | {:ok, Mobilizon.Users.User.t()}
   def get_current_user(_parent, _args, %{context: %{current_user: %User{} = user}}) do
+    Logger.debug("Resolving current user", %{
+      user_id: user.id,
+      user_email: user.email,
+      default_actor_id: user.default_actor_id,
+      default_actor_loaded: user.default_actor != %Ecto.Association.NotLoaded{}
+    })
     {:ok, user}
   end
 

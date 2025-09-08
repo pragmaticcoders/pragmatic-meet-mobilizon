@@ -810,9 +810,20 @@ onConversationResult(({ data }) => {
       hasMoreComments: hasMoreComments.value
     });
     
-    // Mark as read if we have a small conversation that fits on first page
-    if (conversation.comments.total && conversation.comments.total < COMMENTS_PER_PAGE) {
+    // Mark conversation as read when opened - user has engaged with it
+    if (conversation.unread) {
+      console.debug("Conversation is unread, marking as read", {
+        conversationId: conversationId.value,
+        unread: conversation.unread,
+        conversationParticipantId: conversation.conversationParticipantId
+      });
       markConversationAsRead();
+    } else {
+      console.debug("Conversation already read", {
+        conversationId: conversationId.value,
+        unread: conversation.unread,
+        conversationParticipantId: conversation.conversationParticipantId
+      });
     }
   }
 });
@@ -834,7 +845,7 @@ onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
 });
 
-const { mutate: markConversationAsRead } = useMutation<
+const { mutate: markConversationAsRead, onDone: onMarkAsReadDone, onError: onMarkAsReadError } = useMutation<
   {
     updateConversation: IConversation;
   },
@@ -849,25 +860,30 @@ const { mutate: markConversationAsRead } = useMutation<
   },
 });
 
+onMarkAsReadDone((result) => {
+  console.debug("Successfully marked conversation as read", {
+    conversationId: conversationId.value,
+    conversationParticipantId: conversation.value?.conversationParticipantId,
+    result: result.data
+  });
+});
+
+onMarkAsReadError((error) => {
+  console.error("Failed to mark conversation as read", {
+    conversationId: conversationId.value,
+    conversationParticipantId: conversation.value?.conversationParticipantId,
+    error
+  });
+});
+
 const loadMoreCommentsThrottled = throttle(async () => {
   if (!hasMoreComments.value) {
     console.debug("Throttled: No more comments to load, skipping");
-    // Mark as read if conversation is unread and we have all comments
-    if (conversation.value?.unread) {
-      console.debug("marking as read");
-      markConversationAsRead();
-    }
     return;
   }
   
   console.debug("Throttled: Loading more comments");
   await loadMoreComments();
-  
-  // Mark as read after loading if we now have all comments and conversation is unread
-  if (!hasMoreComments.value && conversation.value?.unread) {
-    console.debug("marking as read after loading");
-    markConversationAsRead();
-  }
 }, 1000);
 
 const handleScroll = (): void => {
