@@ -8,8 +8,6 @@ defmodule Mobilizon.Discussions.Comment do
   import Ecto.Changeset
   import Mobilizon.Storage.Ecto, only: [maybe_add_published_at: 1]
 
-  require Logger
-
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.{Comment, CommentVisibility, Discussion}
@@ -129,37 +127,15 @@ defmodule Mobilizon.Discussions.Comment do
   def can_be_managed_by?(_comment, _actor), do: false
 
   defp common_changeset(%__MODULE__{} = comment, attrs) do
-    Logger.debug("[Comment common_changeset] Starting changeset creation")
-    Logger.debug("[Comment common_changeset] Comment: #{inspect(comment)}")
-    Logger.debug("[Comment common_changeset] Attrs: #{inspect(attrs)}")
-
-    Logger.debug(
-      "[Comment common_changeset] Mentions in attrs: #{inspect(Map.get(attrs, :mentions))}"
-    )
-
-    Logger.debug(
-      "[Comment common_changeset] Mentions with string key: #{inspect(Map.get(attrs, "mentions"))}"
-    )
-
-    result =
-      comment
-      |> cast(attrs, @attrs)
-      |> maybe_add_published_at()
-      |> maybe_generate_uuid()
-      |> maybe_generate_url()
-      |> put_assoc(:media, Map.get(attrs, :media, []))
-      |> put_tags(attrs)
-      |> put_mentions(attrs)
-      |> unique_constraint(:url, name: :comments_url_index)
-
-    Logger.debug("[Comment common_changeset] Final changeset: #{inspect(result)}")
-    Logger.debug("[Comment common_changeset] Changeset valid?: #{result.valid?}")
-
-    if not result.valid? do
-      Logger.debug("[Comment common_changeset] Changeset errors: #{inspect(result.errors)}")
-    end
-
-    result
+    comment
+    |> cast(attrs, @attrs)
+    |> maybe_add_published_at()
+    |> maybe_generate_uuid()
+    |> maybe_generate_url()
+    |> put_assoc(:media, Map.get(attrs, :media, []))
+    |> put_tags(attrs)
+    |> put_mentions(attrs)
+    |> unique_constraint(:url, name: :comments_url_index)
   end
 
   @spec maybe_generate_uuid(Ecto.Changeset.t()) :: Ecto.Changeset.t()
@@ -195,49 +171,13 @@ defmodule Mobilizon.Discussions.Comment do
   defp put_tags(changeset, _), do: changeset
 
   @spec put_mentions(Ecto.Changeset.t(), map) :: Ecto.Changeset.t()
-  defp put_mentions(changeset, %{"mentions" => mentions}) do
-    Logger.debug("[Comment put_mentions] Processing mentions with string key")
-    Logger.debug("[Comment put_mentions] Mentions: #{inspect(mentions)}")
-    Logger.debug("[Comment put_mentions] Mention count: #{length(mentions)}")
+  defp put_mentions(changeset, %{"mentions" => mentions}),
+    do: put_assoc(changeset, :mentions, Enum.map(mentions, &process_mention/1))
 
-    processed_mentions =
-      Enum.map(mentions, fn mention ->
-        Logger.debug("[Comment put_mentions] Processing mention: #{inspect(mention)}")
-        processed = process_mention(mention)
-        Logger.debug("[Comment put_mentions] Processed mention result: #{inspect(processed)}")
-        processed
-      end)
+  defp put_mentions(changeset, %{mentions: mentions}),
+    do: put_assoc(changeset, :mentions, Enum.map(mentions, &process_mention/1))
 
-    Logger.debug("[Comment put_mentions] All processed mentions: #{inspect(processed_mentions)}")
-    result = put_assoc(changeset, :mentions, processed_mentions)
-    Logger.debug("[Comment put_mentions] Final changeset with mentions: #{inspect(result)}")
-    result
-  end
-
-  defp put_mentions(changeset, %{mentions: mentions}) do
-    Logger.debug("[Comment put_mentions] Processing mentions with atom key")
-    Logger.debug("[Comment put_mentions] Mentions: #{inspect(mentions)}")
-    Logger.debug("[Comment put_mentions] Mention count: #{length(mentions)}")
-
-    processed_mentions =
-      Enum.map(mentions, fn mention ->
-        Logger.debug("[Comment put_mentions] Processing mention: #{inspect(mention)}")
-        processed = process_mention(mention)
-        Logger.debug("[Comment put_mentions] Processed mention result: #{inspect(processed)}")
-        processed
-      end)
-
-    Logger.debug("[Comment put_mentions] All processed mentions: #{inspect(processed_mentions)}")
-    result = put_assoc(changeset, :mentions, processed_mentions)
-    Logger.debug("[Comment put_mentions] Final changeset with mentions: #{inspect(result)}")
-    result
-  end
-
-  defp put_mentions(changeset, attrs) do
-    Logger.debug("[Comment put_mentions] No mentions found in attrs")
-    Logger.debug("[Comment put_mentions] Attrs: #{inspect(attrs)}")
-    changeset
-  end
+  defp put_mentions(changeset, _), do: changeset
 
   # We need a changeset instead of a raw struct because of slug which is generated in changeset
   defp process_tag(tag) do
@@ -245,17 +185,6 @@ defmodule Mobilizon.Discussions.Comment do
   end
 
   defp process_mention(mention) do
-    Logger.debug("[Comment process_mention] Processing mention changeset")
-    Logger.debug("[Comment process_mention] Mention data: #{inspect(mention)}")
-
-    result = Mention.changeset(%Mention{}, mention)
-    Logger.debug("[Comment process_mention] Mention changeset result: #{inspect(result)}")
-    Logger.debug("[Comment process_mention] Changeset valid?: #{result.valid?}")
-
-    if not result.valid? do
-      Logger.debug("[Comment process_mention] Changeset errors: #{inspect(result.errors)}")
-    end
-
-    result
+    Mention.changeset(%Mention{}, mention)
   end
 end

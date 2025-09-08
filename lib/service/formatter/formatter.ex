@@ -15,65 +15,35 @@ defmodule Mobilizon.Service.Formatter do
 
   alias Mobilizon.Web.Endpoint
 
-  require Logger
-
   # https://github.com/rrrene/credo/issues/912
   # credo:disable-for-next-line Credo.Check.Readability.MaxLineLength
   @link_regex ~r"((?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~%:/?#[\]@!\$&'\(\)\*\+,;=.]+)|[0-9a-z+\-\.]+:[0-9a-z$-_.+!*'(),]+"ui
   @markdown_characters_regex ~r/(`|\*|_|{|}|[|]|\(|\)|#|\+|-|\.|!)/
 
   @spec escape_mention_handler(String.t(), String.t(), any(), any()) :: String.t()
-  defp escape_mention_handler("@" <> nickname = mention, buffer, opts, context) do
-    Logger.debug("[Formatter escape_mention_handler] Escaping mention")
-    Logger.debug("[Formatter escape_mention_handler] Nickname: #{nickname}")
-    Logger.debug("[Formatter escape_mention_handler] Mention: #{mention}")
-    Logger.debug("[Formatter escape_mention_handler] Buffer: #{buffer}")
-    Logger.debug("[Formatter escape_mention_handler] Options: #{inspect(opts)}")
-    Logger.debug("[Formatter escape_mention_handler] Context: #{inspect(context)}")
-
+  defp escape_mention_handler("@" <> nickname = mention, buffer, _, _) do
     case ActivityPubActor.find_or_make_actor_from_nickname(nickname) do
-      {:ok, %Actor{} = actor} ->
-        Logger.debug("[Formatter escape_mention_handler] Found actor: #{inspect(actor)}")
-        Logger.debug("[Formatter escape_mention_handler] Actor type: #{actor.type}")
-
-        Logger.debug(
-          "[Formatter escape_mention_handler] Actor preferred_username: #{actor.preferred_username}"
-        )
-
-        Logger.debug("[Formatter escape_mention_handler] Actor domain: #{actor.domain}")
-
+      {:ok, %Actor{}} ->
         # escape markdown characters with `\\`
         # (we don't want something like @user__name to be parsed by markdown)
-        escaped = String.replace(mention, @markdown_characters_regex, "\\\\\\1")
-        Logger.debug("[Formatter escape_mention_handler] Escaped mention: #{escaped}")
-        escaped
+        String.replace(mention, @markdown_characters_regex, "\\\\\\1")
 
-      {:error, err} ->
-        Logger.debug("[Formatter escape_mention_handler] Failed to find actor: #{inspect(err)}")
-        Logger.debug("[Formatter escape_mention_handler] Returning buffer: #{buffer}")
-        buffer
-
-      other ->
-        Logger.debug("[Formatter escape_mention_handler] Unexpected result: #{inspect(other)}")
+      {:error, _err} ->
         buffer
     end
   end
 
   @spec mention_handler(String.t(), String.t(), any(), map()) :: {String.t(), map()}
-  def mention_handler("@" <> nickname, buffer, opts, acc) do
-    Logger.debug("[Formatter mention_handler] Processing mention")
-    Logger.debug("[Formatter mention_handler] Nickname: #{nickname}")
-    Logger.debug("[Formatter mention_handler] Buffer: #{buffer}")
-    Logger.debug("[Formatter mention_handler] Options: #{inspect(opts)}")
-    Logger.debug("[Formatter mention_handler] Accumulator: #{inspect(acc)}")
-
+  def mention_handler("@" <> nickname, buffer, _opts, acc) do
     case ActivityPubActor.find_or_make_actor_from_nickname(nickname) do
+      #      %Actor{preferred_username: preferred_username} = actor ->
+      #        link = "<span class='h-card mention'>@<span>#{preferred_username}</span></span>"
+      #
+      #        {link, %{acc | mentions: MapSet.put(acc.mentions, {"@" <> nickname, actor})}}
+
       {:ok, %Actor{type: :Person, id: id, preferred_username: preferred_username} = actor} ->
-        Logger.debug("[Formatter mention_handler] Found Person actor: #{inspect(actor)}")
-        Logger.debug("[Formatter mention_handler] Actor ID: #{id}")
-        Logger.debug("[Formatter mention_handler] Preferred username: #{preferred_username}")
-        Logger.debug("[Formatter mention_handler] Actor type: #{actor.type}")
-        Logger.debug("[Formatter mention_handler] Actor domain: #{actor.domain}")
+        # link =
+        #   "<span class='h-card mention' data-user='#{id}'>@<span>#{preferred_username}</span></span>"
 
         link =
           Tag.content_tag(
@@ -90,27 +60,13 @@ defmodule Mobilizon.Service.Formatter do
           )
           |> Phoenix.HTML.safe_to_string()
 
-        Logger.debug("[Formatter mention_handler] Generated link: #{link}")
+        {link, %{acc | mentions: MapSet.put(acc.mentions, {"@" <> nickname, actor})}}
 
-        new_acc = %{acc | mentions: MapSet.put(acc.mentions, {"@" <> nickname, actor})}
-        Logger.debug("[Formatter mention_handler] Updated accumulator: #{inspect(new_acc)}")
-
-        {link, new_acc}
-
-      {:ok, %Actor{} = actor} ->
-        Logger.debug(
-          "[Formatter mention_handler] Found non-Person actor, ignoring: #{inspect(actor)}"
-        )
-
-        Logger.debug("[Formatter mention_handler] Actor type: #{actor.type}")
+      # Ignore every other actor type mentions for now
+      {:ok, %Actor{}} ->
         {buffer, acc}
 
-      {:error, err} ->
-        Logger.debug("[Formatter mention_handler] Failed to find actor: #{inspect(err)}")
-        {buffer, acc}
-
-      other ->
-        Logger.debug("[Formatter mention_handler] Unexpected result: #{inspect(other)}")
+      {:error, _} ->
         {buffer, acc}
     end
   end
@@ -139,45 +95,12 @@ defmodule Mobilizon.Service.Formatter do
   @spec linkify(String.t(), keyword()) ::
           {String.t(), [{String.t(), Actor.t()}], [{String.t(), String.t()}]}
   def linkify(text, options \\ []) do
-    Logger.debug("[Formatter linkify] Starting text linkification")
-    Logger.debug("[Formatter linkify] Input text: #{text}")
-    Logger.debug("[Formatter linkify] Input options: #{inspect(options)}")
-
-    merged_options = linkify_opts() ++ options
-    Logger.debug("[Formatter linkify] Merged options: #{inspect(merged_options)}")
+    options = linkify_opts() ++ options
 
     acc = %{mentions: MapSet.new(), tags: MapSet.new()}
-    Logger.debug("[Formatter linkify] Initial accumulator: #{inspect(acc)}")
+    {text, %{mentions: mentions, tags: tags}} = Linkify.link_map(text, acc, options)
 
-    {processed_text, %{mentions: mentions, tags: tags}} =
-      Linkify.link_map(text, acc, merged_options)
-
-    Logger.debug("[Formatter linkify] Processed text: #{processed_text}")
-    Logger.debug("[Formatter linkify] Found mentions MapSet: #{inspect(mentions)}")
-    Logger.debug("[Formatter linkify] Found tags MapSet: #{inspect(tags)}")
-
-    mentions_list = MapSet.to_list(mentions)
-    tags_list = MapSet.to_list(tags)
-
-    Logger.debug("[Formatter linkify] Final mentions list: #{inspect(mentions_list)}")
-    Logger.debug("[Formatter linkify] Final tags list: #{inspect(tags_list)}")
-
-    # Log individual mentions
-    Enum.each(mentions_list, fn {mention_text, actor} ->
-      Logger.debug("[Formatter linkify] Mention: #{mention_text}")
-      Logger.debug("[Formatter linkify] Mention actor: #{inspect(actor)}")
-      Logger.debug("[Formatter linkify] Mention actor ID: #{actor.id}")
-
-      Logger.debug(
-        "[Formatter linkify] Mention actor preferred_username: #{actor.preferred_username}"
-      )
-
-      Logger.debug("[Formatter linkify] Mention actor domain: #{actor.domain}")
-    end)
-
-    result = {processed_text, mentions_list, tags_list}
-    Logger.debug("[Formatter linkify] Final result: #{inspect(result)}")
-    result
+    {text, MapSet.to_list(mentions), MapSet.to_list(tags)}
   end
 
   @doc """

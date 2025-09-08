@@ -129,7 +129,7 @@ const { result: commentsResult, loading: commentsLoading } = useQuery<{
 }>(
   COMMENTS_THREADS_WITH_REPLIES,
   () => ({ eventUUID: event.value?.uuid }),
-  () => ({ enabled: event.value?.uuid !== undefined })
+  () => ({ enabled: event.value?.uuid !== undefined }),
 );
 
 const comments = computed(() => commentsResult.value?.event.comments ?? []);
@@ -220,6 +220,7 @@ const {
       },
     });
   },
+
 }));
 
 createCommentForEventMutationDone(() => {

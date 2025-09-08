@@ -44,22 +44,9 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Comment do
     Logger.debug(inspect(object))
 
     tag_object = Map.get(object, "tag", [])
-    Logger.debug("[Comment as_to_model_data] Tag object: #{inspect(tag_object)}")
 
     case maybe_fetch_actor_and_attributed_to_id(object) do
       {:ok, %Actor{id: actor_id, domain: actor_domain}, attributed_to} ->
-        Logger.debug(
-          "[Comment as_to_model_data] Processing actor: #{actor_id}, domain: #{actor_domain}"
-        )
-
-        Logger.debug("[Comment as_to_model_data] Attributed to: #{inspect(attributed_to)}")
-
-        tags = fetch_tags(tag_object)
-        Logger.debug("[Comment as_to_model_data] Fetched tags: #{inspect(tags)}")
-
-        mentions = fetch_mentions(tag_object)
-        Logger.debug("[Comment as_to_model_data] Fetched mentions: #{inspect(mentions)}")
-
         data = %{
           text: object["content"],
           url: object["id"],
@@ -72,15 +59,13 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Comment do
           event_id: nil,
           uuid: object["uuid"],
           discussion_id: get_discussion_id(object),
-          tags: tags,
-          mentions: mentions,
+          tags: fetch_tags(tag_object),
+          mentions: fetch_mentions(tag_object),
           local: is_nil(actor_domain),
           visibility: if(Visibility.public?(object), do: :public, else: :private),
           published_at: object["published"],
           is_announcement: Map.get(object, "isAnnouncement", false)
         }
-
-        Logger.debug("[Comment as_to_model_data] Final comment data: #{inspect(data)}")
 
         maybe_fetch_parent_object(object, data)
 
@@ -152,22 +137,8 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.Comment do
   end
 
   @spec determine_to(CommentModel.t()) :: [String.t()]
-  defp determine_to(%CommentModel{visibility: :private, mentions: mentions} = comment) do
-    Logger.debug("[Comment determine_to] Processing private comment mentions")
-    Logger.debug("[Comment determine_to] Comment: #{inspect(comment)}")
-    Logger.debug("[Comment determine_to] Mentions: #{inspect(mentions)}")
-
-    urls =
-      Enum.map(mentions, fn mention ->
-        Logger.debug("[Comment determine_to] Processing mention: #{inspect(mention)}")
-        Logger.debug("[Comment determine_to] Mention actor: #{inspect(mention.actor)}")
-        url = mention.actor.url
-        Logger.debug("[Comment determine_to] Actor URL: #{url}")
-        url
-      end)
-
-    Logger.debug("[Comment determine_to] Final URLs: #{inspect(urls)}")
-    urls
+  defp determine_to(%CommentModel{visibility: :private, mentions: mentions} = _comment) do
+    Enum.map(mentions, fn mention -> mention.actor.url end)
   end
 
   defp determine_to(%CommentModel{visibility: :public} = comment) do

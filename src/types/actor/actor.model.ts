@@ -70,61 +70,23 @@ export function usernameWithDomain(
   actor: IMinimalActor | undefined,
   force = false
 ): string {
-  console.log(
-    "[usernameWithDomain] Called with actor:",
-    actor,
-    "force:",
-    force
-  );
-
-  if (!actor || !actor.preferredUsername) {
-    console.log(
-      "[usernameWithDomain] No actor or preferredUsername, returning empty string"
-    );
-    return "";
-  }
-
+  if (!actor || !actor.preferredUsername) return "";
   if (actor?.domain) {
-    const result = `${actor.preferredUsername}@${actor.domain}`;
-    console.log("[usernameWithDomain] Using domain, returning:", result);
-    return result;
+    return `${actor.preferredUsername}@${actor.domain}`;
   }
-
   if (force) {
-    const result = `${actor.preferredUsername}@${window.location.hostname}`;
-    console.log("[usernameWithDomain] Force mode, returning:", result);
-    return result;
+    return `${actor.preferredUsername}@${window.location.hostname}`;
   }
-
-  console.log(
-    "[usernameWithDomain] Using preferredUsername only:",
-    actor.preferredUsername
-  );
   return actor.preferredUsername;
 }
 
 export function displayName(actor: IMinimalActorWithName | undefined): string {
-  console.log("[displayName] Called with actor:", actor);
-
-  const hasValidName =
-    actor &&
+  return actor &&
     actor.name != null &&
     actor.name !== "" &&
-    actor.name !== "undefined";
-
-  console.log("[displayName] Actor name validation:", {
-    actorExists: !!actor,
-    nameExists: actor?.name != null,
-    nameNotEmpty: actor?.name !== "",
-    nameNotUndefined: actor?.name !== "undefined",
-    hasValidName: hasValidName,
-    actualName: actor?.name,
-  });
-
-  const result = hasValidName ? actor.name : usernameWithDomain(actor);
-  console.log("[displayName] Returning:", result);
-
-  return result;
+    actor.name !== "undefined"
+    ? actor.name
+    : usernameWithDomain(actor);
 }
 
 export function displayNameAndUsername(actor: IMinimalActorWithName): string {
