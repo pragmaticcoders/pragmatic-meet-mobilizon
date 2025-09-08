@@ -52,6 +52,7 @@
     <footer v-if="canCancel" class="flex justify-end gap-3">
       <o-button
         ref="cancelButton"
+        variant="cancel"
         @click="cancel('button')"
         class="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
         >{{ cancelText ?? t("Cancel") }}</o-button

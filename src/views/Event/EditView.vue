@@ -42,12 +42,14 @@
             dir="auto"
             expanded
           />
-          <p v-if="checkTitleLength[1]" 
-             :class="{
-               'text-sm mt-1': true,
-               'text-blue-600': checkTitleLength[0] === 'info',
-               'text-red-600': checkTitleLength[0] === 'danger'
-             }">
+          <p
+            v-if="checkTitleLength[1]"
+            :class="{
+              'text-sm mt-1': true,
+              'text-blue-600': checkTitleLength[0] === 'info',
+              'text-red-600': checkTitleLength[0] === 'danger',
+            }"
+          >
             {{ checkTitleLength[1] }}
           </p>
         </div>
@@ -116,24 +118,39 @@
         </div>
       </div>
 
-      <p
-        v-if="
-          configResult?.config.longEvents &&
-          configResult?.config.durationOfLongEvent > 0
-        "
-      >
-        {{
-          t(
-            "Activities are disabled on this instance.|An event with a duration of more than one day will be categorized as an activity.|An event with a duration of more than {number} days will be categorized as an activity.",
-            { number: configResult.config.durationOfLongEvent },
-            configResult.config.durationOfLongEvent
-          )
-        }}
-      </p>
-
-      <o-button class="mb-6" variant="text" @click="dateSettingsIsOpen = true">
-        {{ t("Timezone parameters") }}
-      </o-button>
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{
+          t("Timezone")
+        }}</label>
+        <div
+          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 shadow-sm"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md"
+            >
+              <o-icon icon="earth" size="small" class="text-white" />
+            </div>
+            <div>
+              <span class="text-sm font-medium text-gray-800">
+                {{ currentTimezoneDisplay }}
+              </span>
+              <p class="text-xs text-gray-500 mt-0.5">
+                {{ t("Current event timezone") }}
+              </p>
+            </div>
+          </div>
+          <o-button
+            variant="primary"
+            size="small"
+            outlined
+            @click="dateSettingsIsOpen = true"
+            class="!px-4 !py-2 hover:scale-105 transition-transform duration-200"
+          >
+            {{ t("Change") }}
+          </o-button>
+        </div>
+      </div>
 
       <div class="mb-6 gap-2">
         <label class="block text-sm font-medium text-gray-700 mb-4">{{
@@ -317,8 +334,6 @@
           </label>
         </div>
       </section>
-
-
     </form>
   </div>
   <div
@@ -412,7 +427,6 @@
       <div
         class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
       >
-
         <div
           class="flex flex-col sm:flex-row gap-3 sm:items-center sm:ml-auto order-1 sm:order-2"
         >
@@ -588,7 +602,11 @@ useHead({
   ),
 });
 
-const { result: configResult } = useQuery<{ config: IConfig }>(CONFIG, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+const { result: configResult } = useQuery<{ config: IConfig }>(
+  CONFIG,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
+);
 
 const event = ref<IEditableEvent>(new EventModel());
 const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
@@ -753,53 +771,83 @@ const groupUsername = computed(() => {
 });
 
 // Fetch group data using groupUsername (same as group pages for proper permissions)
-const { result: groupResult, loading: groupLoading, error: groupError } = useQuery<{ group: IGroup }>(
+const {
+  result: groupResult,
+  loading: groupLoading,
+  error: groupError,
+} = useQuery<{ group: IGroup }>(
   FETCH_GROUP_PUBLIC,
   () => ({ name: groupUsername.value }),
-  () => ({ 
+  () => ({
     enabled: !!groupUsername.value,
-    fetchPolicy: "cache-and-network" 
+    fetchPolicy: "cache-and-network",
   })
 );
 
 // Watch for group data and set up event attribution
-watch([groupResult, groupError], ([newGroupResult, error]) => {
-  console.log("EditView - groupResult watcher:", {
-    hasGroup: !!newGroupResult?.group,
-    groupData: newGroupResult?.group,
-    groupId: newGroupResult?.group?.id,
-    groupName: newGroupResult?.group?.name,
-    groupType: newGroupResult?.group?.type,
-    groupPreferredUsername: newGroupResult?.group?.preferredUsername,
-    actorId: actorId.value,
-    groupUsername: groupUsername.value,
-    error: error,
-    isUpdate: props.isUpdate,
-    isDuplicate: props.isDuplicate,
-    shouldSetup: !!(newGroupResult?.group && actorId.value && !(props.isUpdate || props.isDuplicate))
-  });
-  
-  if (error) {
-    console.error("Group query error:", error);
-    return;
-  }
-  
-  if (newGroupResult?.group && actorId.value && !(props.isUpdate || props.isDuplicate)) {
-    const group = newGroupResult.group;
-    console.log("Setting up group attribution for:", group.name, "with ID:", group.id);
-    
-    // Ensure we have the group ID set properly (should match actorId from route)
-    if (!group.id) {
-      console.warn("Group object missing ID, using actorId from route:", actorId.value);
-      group.id = actorId.value;
+watch(
+  [groupResult, groupError],
+  ([newGroupResult, error]) => {
+    console.log("EditView - groupResult watcher:", {
+      hasGroup: !!newGroupResult?.group,
+      groupData: newGroupResult?.group,
+      groupId: newGroupResult?.group?.id,
+      groupName: newGroupResult?.group?.name,
+      groupType: newGroupResult?.group?.type,
+      groupPreferredUsername: newGroupResult?.group?.preferredUsername,
+      actorId: actorId.value,
+      groupUsername: groupUsername.value,
+      error: error,
+      isUpdate: props.isUpdate,
+      isDuplicate: props.isDuplicate,
+      shouldSetup: !!(
+        newGroupResult?.group &&
+        actorId.value &&
+        !(props.isUpdate || props.isDuplicate)
+      ),
+    });
+
+    if (error) {
+      console.error("Group query error:", error);
+      return;
     }
-    
-    event.value.attributedTo = group;
-    event.value.organizerActor = currentActor.value;
-    console.log("After setting - event.attributedTo:", event.value.attributedTo);
-    console.log("After setting - event.organizerActor:", event.value.organizerActor);
-  }
-}, { immediate: true });
+
+    if (
+      newGroupResult?.group &&
+      actorId.value &&
+      !(props.isUpdate || props.isDuplicate)
+    ) {
+      const group = newGroupResult.group;
+      console.log(
+        "Setting up group attribution for:",
+        group.name,
+        "with ID:",
+        group.id
+      );
+
+      // Ensure we have the group ID set properly (should match actorId from route)
+      if (!group.id) {
+        console.warn(
+          "Group object missing ID, using actorId from route:",
+          actorId.value
+        );
+        group.id = actorId.value;
+      }
+
+      event.value.attributedTo = group;
+      event.value.organizerActor = currentActor.value;
+      console.log(
+        "After setting - event.attributedTo:",
+        event.value.attributedTo
+      );
+      console.log(
+        "After setting - event.organizerActor:",
+        event.value.organizerActor
+      );
+    }
+  },
+  { immediate: true }
+);
 
 const validateForm = () => {
   if (!form.value) return;
@@ -807,7 +855,9 @@ const validateForm = () => {
   // Check title length validation
   if (event.value.title.length < 3) {
     notification.open({
-      message: t("The event title must be at least 3 characters long.") as string,
+      message: t(
+        "The event title must be at least 3 characters long."
+      ) as string,
       variant: "danger",
       position: "bottom-right",
       duration: 5000,
@@ -846,13 +896,13 @@ onCreateEventMutationDone(async ({ data }) => {
     position: "bottom-right",
     duration: 5000,
   });
-  
+
   // Mark that events were updated for later calendar refresh
-  localStorage.setItem('lastEventUpdate', Date.now().toString());
-  
+  localStorage.setItem("lastEventUpdate", Date.now().toString());
+
   // Trigger calendar refresh to show new events immediately
-  window.dispatchEvent(new CustomEvent('calendar-refresh'));
-  
+  window.dispatchEvent(new CustomEvent("calendar-refresh"));
+
   if (data?.createEvent) {
     await router.push({
       name: "Event",
@@ -894,13 +944,13 @@ onEditEventMutationDone(() => {
     position: "bottom-right",
     duration: 5000,
   });
-  
+
   // Mark that events were updated for later calendar refresh
-  localStorage.setItem('lastEventUpdate', Date.now().toString());
-  
+  localStorage.setItem("lastEventUpdate", Date.now().toString());
+
   // Trigger calendar refresh to show updated events immediately
-  window.dispatchEvent(new CustomEvent('calendar-refresh'));
-  
+  window.dispatchEvent(new CustomEvent("calendar-refresh"));
+
   return router.push({
     name: "Event",
     params: { uuid: props.eventId as string },
@@ -991,10 +1041,20 @@ const handleError = (err: any) => {
           );
         } else if (typeof message === "string") {
           // Handle specific validation errors with user-friendly messages
-          if (message.includes("title") && message.includes("should be at least 3")) {
-            notifier?.error(t("The event title must be at least 3 characters long."));
-          } else if (message.includes("title") && (message.includes("too short") || message.includes("min: 3"))) {
-            notifier?.error(t("The event title must be at least 3 characters long."));
+          if (
+            message.includes("title") &&
+            message.includes("should be at least 3")
+          ) {
+            notifier?.error(
+              t("The event title must be at least 3 characters long.")
+            );
+          } else if (
+            message.includes("title") &&
+            (message.includes("too short") || message.includes("min: 3"))
+          ) {
+            notifier?.error(
+              t("The event title must be at least 3 characters long.")
+            );
           } else {
             notifier?.error(message);
           }
@@ -1003,7 +1063,11 @@ const handleError = (err: any) => {
     );
   } else {
     // Handle generic errors
-    notifier?.error(t("An error occurred while saving the event. Please check your input and try again."));
+    notifier?.error(
+      t(
+        "An error occurred while saving the event. Please check your input and try again."
+      )
+    );
   }
 };
 
@@ -1133,7 +1197,7 @@ const postRefetchQueries = (
   const calendarStart = new Date();
   calendarStart.setDate(1); // First day of current month
   calendarStart.setHours(0, 0, 0, 0);
-  
+
   const calendarEnd = new Date(calendarStart);
   calendarEnd.setMonth(calendarEnd.getMonth() + 2); // End of next month
   calendarEnd.setHours(23, 59, 59, 999);
@@ -1174,17 +1238,26 @@ const organizerActorEqualToCurrentActor = computed((): boolean => {
  */
 const buildVariables = async () => {
   // Debug: Log current event state
-  console.log("buildVariables - event.attributedTo:", event.value?.attributedTo);
-  console.log("buildVariables - event.organizerActor:", event.value?.organizerActor);
+  console.log(
+    "buildVariables - event.attributedTo:",
+    event.value?.attributedTo
+  );
+  console.log(
+    "buildVariables - event.organizerActor:",
+    event.value?.organizerActor
+  );
   console.log("buildVariables - currentActor:", currentActor.value);
-  
+
   // For group events: organizer should be the USER (who creates on behalf of group)
   // For personal events: organizer should be the user
   const localOrganizerActor = event.value?.organizerActor?.id
-    ? event.value.organizerActor  // Use the user as organizer (they create on behalf of group)
-    : (currentActor.value || organizerActor.value);
+    ? event.value.organizerActor // Use the user as organizer (they create on behalf of group)
+    : currentActor.value || organizerActor.value;
 
-  console.log("buildVariables - selected localOrganizerActor:", localOrganizerActor);
+  console.log(
+    "buildVariables - selected localOrganizerActor:",
+    localOrganizerActor
+  );
 
   if (!localOrganizerActor?.id) {
     // No organizer actor found - this can happen with LinkedIn login issues
@@ -1238,16 +1311,16 @@ const buildVariables = async () => {
   } catch (e) {
     console.error(e);
   }
-  
+
   console.log("buildVariables - final result:", {
     organizerActorId: res.organizerActorId,
     attributedToId: res.attributedToId,
     organizer: res.attributedToId ? "GROUP" : "USER",
-    explanation: res.attributedToId 
+    explanation: res.attributedToId
       ? `User ${res.organizerActorId} creates event on behalf of group ${res.attributedToId}`
-      : `User ${res.organizerActorId} creates personal event`
+      : `User ${res.organizerActorId} creates personal event`,
   });
-  
+
   return res;
 };
 
@@ -1517,6 +1590,15 @@ const userActualTimezone = computed((): string => {
   return browserTimeZone;
 });
 
+// Display current timezone in a user-friendly format
+const currentTimezoneDisplay = computed((): string => {
+  const currentTz = timezone.value || userActualTimezone.value;
+  if (currentTz) {
+    return sanitizeTimezone(currentTz.split("/").pop() || currentTz);
+  }
+  return t("Default timezone") as string;
+});
+
 const tzOffset = computed((): number => {
   if (!timezone.value) {
     return 0;
@@ -1602,16 +1684,20 @@ watch(event, () => {
 
 watch(
   fetchedEvent,
-  () => {
+  async () => {
     if (!fetchedEvent.value) return;
     event.value = { ...fetchedEvent.value };
+    // Update pictureFile when event data is loaded
+    pictureFile.value = await buildFileFromIMedia(fetchedEvent.value.picture);
   },
   { immediate: true }
 );
 
-onFetchEventResult((result) => {
+onFetchEventResult(async (result) => {
   if (!result.loading && result.data?.event) {
     event.value = { ...result.data?.event };
+    // Update pictureFile when event data is loaded
+    pictureFile.value = await buildFileFromIMedia(result.data.event.picture);
   }
 });
 

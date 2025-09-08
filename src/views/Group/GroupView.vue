@@ -472,12 +472,14 @@
             </div>
 
             <!-- Content area that grows -->
-            <div class="flex-grow flex flex-col justify-center min-h-[160px] overflow-hidden">
+            <div
+              class="flex-grow flex flex-col justify-center min-h-[160px] overflow-hidden"
+            >
               <div
                 v-if="group?.summary"
                 dir="auto"
                 class="prose prose-sm dark:prose-invert text-gray-600 dark:text-gray-300 overflow-y-auto max-h-full"
-                style="word-wrap: break-word; overflow-wrap: break-word;"
+                style="word-wrap: break-word; overflow-wrap: break-word"
                 v-html="group.summary"
               ></div>
               <div
@@ -614,12 +616,19 @@
                 tag="router-link"
                 :to="{
                   name: RouteName.CREATE_EVENT,
-                  query: { 
+                  query: {
                     actorId: group?.id,
-                    groupUsername: group?.preferredUsername 
+                    groupUsername: group?.preferredUsername,
                   },
                 }"
-                @click="console.log('Create Event clicked - Group data:', { id: group?.id, preferredUsername: group?.preferredUsername, name: group?.name, type: group?.type })"
+                @click="
+                  console.log('Create Event clicked - Group data:', {
+                    id: group?.id,
+                    preferredUsername: group?.preferredUsername,
+                    name: group?.name,
+                    type: group?.type,
+                  })
+                "
                 :disabled="isGroupPendingApproval"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',
@@ -1661,41 +1670,48 @@ address {
     max-height: 200px; // Limit image height
     border-radius: 0.375rem; // Rounded corners for images
   }
-  
-  p, div, span {
+
+  p,
+  div,
+  span {
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
   }
-  
+
   // Ensure all nested elements don't overflow
   * {
     max-width: 100%;
     box-sizing: border-box;
   }
-  
+
   // Handle tables
   table {
     max-width: 100%;
     table-layout: fixed;
     width: 100%;
   }
-  
-  td, th {
+
+  td,
+  th {
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
-  
+
   // Handle pre/code blocks
-  pre, code {
+  pre,
+  code {
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
     max-width: 100%;
   }
-  
+
   // Handle iframes and embedded content
-  iframe, embed, object, video {
+  iframe,
+  embed,
+  object,
+  video {
     max-width: 100%;
     height: auto;
   }

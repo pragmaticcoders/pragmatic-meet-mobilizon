@@ -319,6 +319,7 @@
   "Created by {name}": "Utworzono przez {name}",
   "Created by {username}": "Utworzono przez {username}",
   "Creating...": "Tworzenie...",
+  "Current event timezone": "Obecna strefa czasowa wydarzenia",
   "Current identity has been changed to {identityName} in order to manage this event.": "Obecna tożsamość została zmieniona na {identityName}, aby móc zarządzać tym wydarzeniem.",
   "Current page": "Obecna strona",
   "Custom": "Niestandardowe",

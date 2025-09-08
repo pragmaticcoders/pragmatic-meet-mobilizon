@@ -428,9 +428,9 @@ const loginAction = async (e: Event) => {
       console.debug("Has localstorage, setting welcome back");
       window.localStorage.setItem("welcome-back", "yes");
     }
-    
+
     // Add a small delay to ensure cache updates are fully processed
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     router.replace({ name: RouteName.HOME });
 
     // Hard redirect

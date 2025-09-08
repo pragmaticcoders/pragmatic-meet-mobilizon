@@ -232,6 +232,7 @@
       :on-confirm="reportEvent"
       :title="t('Report this event')"
       :outside-domain="organizerDomain"
+      @close="isReportModalActive = false"
     />
   </o-modal>
   <o-modal
@@ -256,8 +257,8 @@
       <template #footer>
         <footer class="flex gap-2">
           <o-button
-            outlined
             ref="cancelButton"
+            variant="cancel"
             @click="isJoinModalActive = false"
             @keyup.enter="isJoinModalActive = false"
           >

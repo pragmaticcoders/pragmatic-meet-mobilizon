@@ -36,7 +36,7 @@
             <AccountCircle v-else :size="48" />
           </div>
           <div class="prose dark:prose-invert">
-            <strong>{{ comment?.actor?.name || t('[Unknown]') }}</strong>
+            <strong>{{ comment?.actor?.name || t("[Unknown]") }}</strong>
             <small v-if="comment.actor"
               >@{{ usernameWithDomain(comment?.actor) }}</small
             >
@@ -74,8 +74,8 @@
       </div>
     </section>
 
-    <footer class="flex gap-2 py-3">
-      <o-button ref="cancelButton" outlined @click="close">
+    <footer class="flex py-3 justify-between">
+      <o-button ref="cancelButton" variant="cancel" @click="close">
         {{ translatedCancelText }}
       </o-button>
       <o-button
