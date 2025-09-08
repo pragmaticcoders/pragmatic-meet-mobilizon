@@ -80,7 +80,8 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
             refresh_token: _refresh_token,
             user: %User{} = user
           } = user_and_tokens} <- Authenticator.authenticate(email, password),
-         {:ok, %User{} = user} <- update_user_login_information(user, context) do
+         {:ok, %User{} = user} <- update_user_login_information(user, context),
+         {:ok, %User{} = user} <- ensure_user_has_default_actor(user) do
       {:ok, %{user_and_tokens | user: user}}
     else
       {:error, :user_not_found} ->
@@ -752,5 +753,103 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
       current_sign_in_ip: current_ip,
       current_sign_in_at: now
     })
+  end
+
+  @doc """
+  Ensures that a user has a default actor. If not, uses existing actor or creates one.
+  This is particularly important for email/password users who don't get a default actor
+  set during registration, unlike OAuth users.
+  """
+  @spec ensure_user_has_default_actor(User.t()) :: {:ok, User.t()} | {:error, any()}
+  defp ensure_user_has_default_actor(%User{default_actor_id: nil, provider: nil} = user) do
+    # User registered with email/password and has no default actor
+    # First, check if user already has existing actors
+    case Users.get_actors_for_user(user) do
+      [%Actor{} = first_actor | _] ->
+        # User has existing actors - use the first one as default
+        Logger.info("Setting existing actor #{first_actor.id} as default for user #{user.email}")
+        
+        updated_user = Users.update_user_default_actor(user, first_actor)
+        {:ok, updated_user}
+      
+      [] ->
+        # User has no actors - create one
+        Logger.info("Creating default actor for email/password user #{user.email}")
+        
+        # Generate a unique username from email
+        username = generate_unique_username_from_email(user.email)
+        
+        case Actors.new_person(%{
+          user_id: user.id,
+          preferred_username: username,
+          name: username,
+          summary: ""
+        }, true) do  # true = set as default actor
+          {:ok, _actor} ->
+            # Reload user to get the updated default_actor_id
+            case Users.get_user_with_actors(user.id) do
+              {:ok, updated_user} ->
+                Logger.info("Successfully created default actor for user #{user.email}")
+                {:ok, updated_user}
+              
+              {:error, error} ->
+                Logger.error("Failed to reload user after actor creation: #{inspect(error)}")
+                {:error, error}
+            end
+          
+          {:error, error} ->
+            Logger.error("Failed to create default actor for user #{user.email}: #{inspect(error)}")
+            {:error, error}
+        end
+    end
+  end
+
+  defp ensure_user_has_default_actor(%User{} = user) do
+    # User already has a default actor or is from external provider
+    {:ok, user}
+  end
+
+  @spec generate_unique_username_from_email(String.t()) :: String.t()
+  defp generate_unique_username_from_email(email) do
+    base_username = generate_username_from_email(email)
+    
+    # Try the base username first
+    case Actors.get_local_actor_by_name(base_username) do
+      nil -> base_username
+      _actor -> 
+        # Username is taken, try with random suffix
+        generate_unique_username_with_suffix(base_username, 1)
+    end
+  end
+
+  @spec generate_unique_username_with_suffix(String.t(), integer()) :: String.t()
+  defp generate_unique_username_with_suffix(base_username, attempt) when attempt <= 100 do
+    # Generate a random 4-digit suffix
+    suffix = :rand.uniform(9999) |> Integer.to_string() |> String.pad_leading(4, "0")
+    candidate = "#{base_username}_#{suffix}"
+    
+    case Actors.get_local_actor_by_name(candidate) do
+      nil -> candidate
+      _actor -> generate_unique_username_with_suffix(base_username, attempt + 1)
+    end
+  end
+
+  defp generate_unique_username_with_suffix(_base_username, _attempt) do
+    # Fallback after 100 attempts - use timestamp
+    "user_#{System.system_time(:second)}"
+  end
+
+  @spec generate_username_from_email(String.t()) :: String.t()
+  defp generate_username_from_email(email) do
+    email
+    |> String.split("@")
+    |> List.first()
+    |> String.downcase()
+    |> String.replace(~r/[^a-z0-9_]/, "")
+    |> String.slice(0, 16)  # Leave room for suffix
+    |> case do
+      "" -> "user"
+      username -> username
+    end
   end
 end

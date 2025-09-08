@@ -868,6 +868,86 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       assert hd(res["errors"])["message"] == "User not found"
     end
+
+    test "test login_user/3 uses existing actor as default for email/password users", %{conn: conn} do
+      {:ok, %User{} = user} = Users.register(%{email: "test@example.com", password: "p4ssw0rd"})
+
+      # Confirm the user
+      {:ok, %User{} = _user} =
+        Users.update_user(user, %{
+          "confirmed_at" => DateTime.utc_now() |> DateTime.truncate(:second),
+          "confirmation_sent_at" => nil,
+          "confirmation_token" => nil
+        })
+
+      # Create an existing actor for the user (simulating manual profile creation)
+      {:ok, existing_actor} = Actors.new_person(%{
+        user_id: user.id,
+        preferred_username: "existing_profile",
+        name: "Existing Profile",
+        summary: "My existing profile"
+      }, false)  # false = don't set as default yet
+
+      # Verify user has no default actor initially but has the existing actor
+      user_with_actors = Users.get_user!(user.id) |> Mobilizon.Storage.Repo.preload([:default_actor])
+      assert user_with_actors.default_actor_id == nil
+      assert length(Users.get_actors_for_user(user)) == 1
+
+      # Login should set the existing actor as default, not create a new one
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @login_mutation,
+          variables: %{email: user.email, password: user.password}
+        )
+
+      assert login = res["data"]["login"]
+      assert Map.has_key?(login, "accessToken") && not is_nil(login["accessToken"])
+
+      # Verify user now has the existing actor as default
+      updated_user = Users.get_user!(user.id) |> Mobilizon.Storage.Repo.preload([:default_actor])
+      assert updated_user.default_actor_id == existing_actor.id
+      assert updated_user.default_actor.preferred_username == "existing_profile"
+      
+      # Verify no additional actors were created
+      assert length(Users.get_actors_for_user(updated_user)) == 1
+    end
+
+    test "test login_user/3 creates default actor when user has no existing actors", %{conn: conn} do
+      {:ok, %User{} = user} = Users.register(%{email: "newuser@example.com", password: "p4ssw0rd"})
+
+      # Confirm the user
+      {:ok, %User{} = _user} =
+        Users.update_user(user, %{
+          "confirmed_at" => DateTime.utc_now() |> DateTime.truncate(:second),
+          "confirmation_sent_at" => nil,
+          "confirmation_token" => nil
+        })
+
+      # Verify user has no actors initially
+      assert user.default_actor_id == nil
+      assert length(Users.get_actors_for_user(user)) == 0
+
+      # Login should create a default actor
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @login_mutation,
+          variables: %{email: user.email, password: user.password}
+        )
+
+      assert login = res["data"]["login"]
+      assert Map.has_key?(login, "accessToken") && not is_nil(login["accessToken"])
+
+      # Verify user now has a default actor created from email
+      updated_user = Users.get_user!(user.id) |> Mobilizon.Storage.Repo.preload([:default_actor])
+      assert updated_user.default_actor_id != nil
+      assert updated_user.default_actor != nil
+      assert String.contains?(updated_user.default_actor.preferred_username, "newuser")
+      
+      # Verify exactly one actor was created
+      assert length(Users.get_actors_for_user(updated_user)) == 1
+    end
   end
 
   describe "Resolver: Refresh a token" do
