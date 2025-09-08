@@ -1,7 +1,7 @@
 <template>
   <div
     class="bg-white p-6 w-full"
-    :class="size === 'wide' ? 'max-w-2xl' : 'max-w-lg'"
+    :class="size === 'wide' ? 'max-w-4xl' : 'max-w-xl'"
   >
     <div class="flex justify-between items-start mb-4">
       <h2 class="text-xl font-bold text-gray-900" v-if="title">{{ title }}</h2>
@@ -49,7 +49,7 @@
       </div>
     </section>
 
-    <footer v-if="canCancel" class="flex justify-between">
+    <footer v-if="canCancel" class="flex justify-end gap-3">
       <o-button
         ref="cancelButton"
         @click="cancel('button')"

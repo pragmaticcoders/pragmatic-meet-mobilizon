@@ -62,12 +62,7 @@
           class="w-full"
         >
           <o-field :label="t('Title')" label-for="discussion-title">
-            <o-input
-              :value="discussion.title"
-              v-model="newTitle"
-              expanded
-              id="discussion-title"
-            />
+            <o-input v-model="newTitle" expanded id="discussion-title" />
           </o-field>
           <div class="flex gap-2 mt-2">
             <o-button
@@ -116,11 +111,9 @@
             })
         "
       />
-      <o-button
-        v-if="discussion.comments.elements.length < discussion.comments.total"
-        @click="loadMoreComments"
-        >{{ t("Fetch more") }}</o-button
-      >
+      <o-button v-if="hasMoreComments" @click="loadMoreComments">{{
+        t("Fetch more")
+      }}</o-button>
       <form @submit.prevent="reply" v-if="!error">
         <o-field :label="t('Text')">
           <Editor
@@ -225,9 +218,9 @@ watch(slug, (newSlug: string | undefined | null) => {
       const previousDiscussion = previousResult.discussion;
       const lastComment =
         subscriptionData.data.discussionCommentChanged.lastComment;
-      hasMoreComments.value = !previousDiscussion.comments.elements.some(
-        (comment: IComment) => comment.id === lastComment.id
-      );
+      hasMoreComments.value =
+        previousDiscussion.comments.elements.length <
+        previousDiscussion.comments.total;
       if (hasMoreComments.value) {
         return {
           discussion: {
@@ -252,6 +245,18 @@ watch(slug, (newSlug: string | undefined | null) => {
 });
 
 const discussion = computed(() => discussionResult.value?.discussion);
+
+// Watch for changes in discussion to update hasMoreComments
+watch(
+  discussion,
+  (newDiscussion) => {
+    if (newDiscussion) {
+      hasMoreComments.value =
+        newDiscussion.comments.elements.length < newDiscussion.comments.total;
+    }
+  },
+  { immediate: true }
+);
 
 const group = computed(() => discussion.value?.actor);
 
@@ -390,10 +395,28 @@ const loadMoreComments = async (): Promise<void> => {
         page: page.value,
         limit: COMMENTS_PER_PAGE,
       },
+      updateQuery: (previousResult: any, { fetchMoreResult }: any) => {
+        if (!fetchMoreResult) return previousResult;
+
+        const newComments = fetchMoreResult.discussion.comments.elements;
+        const existingComments = previousResult.discussion.comments.elements;
+
+        return {
+          discussion: {
+            ...previousResult.discussion,
+            comments: {
+              ...fetchMoreResult.discussion.comments,
+              elements: [...existingComments, ...newComments],
+            },
+          },
+        };
+      },
     });
-    hasMoreComments.value = !discussion.value?.comments.elements
-      .map(({ id }) => id)
-      .includes(discussion.value?.lastComment?.id);
+
+    // Update hasMoreComments based on total vs loaded count
+    hasMoreComments.value =
+      (discussion.value?.comments.elements.length ?? 0) <
+      (discussion.value?.comments.total ?? 0);
   } catch (e) {
     console.error(e);
   }
@@ -403,16 +426,45 @@ const { mutate: updateDiscussionMutation } = useMutation<{
   updateDiscussion: IDiscussion;
 }>(UPDATE_DISCUSSION, {
   fetchPolicy: "no-cache",
+  update: (store: ApolloCache<InMemoryCache>, { data }: FetchResult) => {
+    if (!data?.updateDiscussion) return;
+
+    const discussionData = store.readQuery<{
+      discussion: IDiscussion;
+    }>({
+      query: GET_DISCUSSION,
+      variables: {
+        slug: slug.value,
+        page: page.value,
+      },
+    });
+
+    if (!discussionData) return;
+
+    store.writeQuery({
+      query: GET_DISCUSSION,
+      variables: { slug: slug.value, page: page.value },
+      data: {
+        discussion: {
+          ...discussionData.discussion,
+          title: data.updateDiscussion.title,
+        },
+      },
+    });
+  },
 });
 
 const updateDiscussion = async (): Promise<void> => {
-  updateDiscussionMutation({
-    discussionId: discussion.value?.id,
-    title: newTitle.value,
-    
-  });
+  try {
+    await updateDiscussionMutation({
+      discussionId: discussion.value?.id,
+      title: newTitle.value,
+    });
 
-  editTitleMode.value = false;
+    editTitleMode.value = false;
+  } catch (updateError) {
+    console.error("Failed to update discussion title:", updateError);
+  }
 };
 
 const { t } = useI18n({ useScope: "global" });
