@@ -90,21 +90,7 @@ const mentionOptions: MentionOptions = {
       node
     );
     const label = getSafeLabel(node);
-
-    // Get the mention character from node attributes or fallback to @
-    const mentionChar =
-      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
-    console.log("[Mention renderLabel] Mention char:", mentionChar);
-    console.log(
-      "[Mention renderLabel] Options suggestion char:",
-      options.suggestion?.char
-    );
-    console.log(
-      "[Mention renderLabel] Node mention char:",
-      node.attrs.mentionSuggestionChar
-    );
-
-    const result = `${mentionChar}${label}`;
+    const result = `${options.suggestion.char}${label}`;
     console.log("[Mention renderLabel] Returning:", result);
     return result;
   },
@@ -116,13 +102,7 @@ const mentionOptions: MentionOptions = {
       node
     );
     const label = getSafeLabel(node);
-
-    // Get the mention character from node attributes or fallback to @
-    const mentionChar =
-      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
-    console.log("[Mention renderText] Mention char:", mentionChar);
-
-    const result = `${mentionChar}${label}`;
+    const result = `${options.suggestion.char}${label}`;
     console.log("[Mention renderText] Returning:", result);
     return result;
   },
@@ -134,16 +114,10 @@ const mentionOptions: MentionOptions = {
       node
     );
     const label = getSafeLabel(node);
-
-    // Get the mention character from node attributes or fallback to @
-    const mentionChar =
-      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
-    console.log("[Mention renderHTML] Mention char:", mentionChar);
-
     const result = [
       "span",
       { class: "mention", "data-id": node.attrs.id },
-      `${mentionChar}${label}`,
+      `${options.suggestion.char}${label}`,
     ] as const;
     console.log("[Mention renderHTML] Returning:", result);
     return result;
