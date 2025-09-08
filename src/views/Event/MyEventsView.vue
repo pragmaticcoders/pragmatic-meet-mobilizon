@@ -266,9 +266,7 @@
               {{ t("You have no upcoming events.") }}
             </p>
             <p class="text-gray-500 dark:text-gray-500 text-sm">
-              {{
-                t("Would you like to create an event or browse events?")
-              }}
+              {{ t("Would you like to create an event or browse events?") }}
             </p>
           </div>
         </section>
@@ -443,7 +441,10 @@ const { result: draftsResult } = useQuery<{
 }>(
   LOGGED_USER_DRAFTS,
   () => ({ page: draftsPage.value, limit: LOGGED_USER_DRAFTS_LIMIT }),
-  () => ({ fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false })
+  () => ({
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
 );
 const drafts = computed(() => draftsResult.value?.loggedUser.drafts);
 

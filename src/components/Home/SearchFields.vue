@@ -48,7 +48,8 @@
         >
           <template #trigger="{ active }">
             <o-button
-              class="h-11 sm:h-10 w-full sm:w-auto px-3 text-sm"
+              class="w-full sm:w-auto px-3 text-sm"
+              style="height: 48px"
               :title="t('Select distance')"
               :icon-right="active ? 'menu-up' : 'menu-down'"
             >
@@ -79,7 +80,6 @@ import { computed, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import RouteName from "@/router/name";
-import { useIsLongEvents } from "@/composition/apollo/config";
 
 const FullAddressAutoComplete = defineAsyncComponent(
   () => import("@/components/Event/FullAddressAutoComplete.vue")
@@ -96,7 +96,6 @@ const props = defineProps<{
 
 const router = useRouter();
 const route = useRoute();
-const { isLongEvents } = useIsLongEvents();
 
 const emit = defineEmits<{
   (event: "update:address", address: IAddress | null): void;
@@ -126,7 +125,7 @@ const address = computed({
 
 const search = computed({
   get(): string {
-    return props.search;
+    return props.search ?? "";
   },
   set(newSearch: string) {
     emit("update:search", newSearch);
@@ -135,7 +134,7 @@ const search = computed({
 
 const distance = computed({
   get(): number {
-    return props.distance;
+    return props.distance ?? 0;
   },
   set(newDistance: number) {
     emit("update:distance", newDistance);
@@ -147,7 +146,7 @@ const distanceText = computed(() => {
 });
 
 const distanceList = computed(() => {
-  const distances = [];
+  const distances: { distance: number; label: string }[] = [];
   [5, 10, 25, 50, 100, 150].forEach((value) => {
     distances.push({
       distance: value,
@@ -169,25 +168,28 @@ const modelValueUpdate = (newaddress: IAddress | null) => {
   emit("update:address", newaddress);
 };
 
-const submit = (event) => {
+const submit = (event: Event) => {
   emit("submit");
-  const btn_classes = event.submitter.getAttribute("class").split(" ");
-  const search_query = {
-    locationName: undefined,
-    lat: undefined,
-    lon: undefined,
-    search: undefined,
-    distance: undefined,
-    contentType: undefined,
-  };
+  const btn_classes =
+    (event as SubmitEvent).submitter?.getAttribute("class")?.split(" ") || [];
+  const search_query: {
+    locationName?: string;
+    lat?: number;
+    lon?: number;
+    search?: string;
+    distance?: string;
+    contentType?: string;
+  } = {};
   if (search.value != "") {
     search_query.search = search.value;
   }
   if (address.value) {
-    const { lat, lon } = addressToLocation(address.value);
+    const location = addressToLocation(address.value);
     search_query.locationName = address.value.locality ?? address.value.region;
-    search_query.lat = lat;
-    search_query.lon = lon;
+    if (location) {
+      search_query.lat = location.lat;
+      search_query.lon = location.lon;
+    }
     if (distance.value != null) {
       search_query.distance = distance.value.toString() + "_km";
     }

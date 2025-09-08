@@ -108,15 +108,20 @@
                 alt=""
               />
             </figure>
-            <div
+            <figure
               v-else
-              class="w-6 h-6 bg-gray-200 flex items-center justify-center rounded-full"
+              class="w-6 h-6 bg-gray-200 flex items-center justify-center overflow-hidden shrink-0"
+              style="border-radius: 50% !important"
             >
-              <svg class="w-3 h-3 text-gray-500" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="8" r="3"/>
-                <path d="M12 14c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"/>
+              <svg
+                class="w-5 h-5 text-gray-500"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <circle cx="12" cy="8" r="3" />
+                <path d="M12 14c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z" />
               </svg>
-            </div>
+            </figure>
             <span
               class="text-[15px] font-bold text-[#1c1b1f] leading-[23px] flex-1"
               >{{ organizerDisplayName(participation.event) }}</span
@@ -137,7 +142,12 @@
                   participation.event.physicalAddress?.street
                 }}</span>
               </template>
-              <template v-else-if="participation.event.options && participation.event.options.isOnline">
+              <template
+                v-else-if="
+                  participation.event.options &&
+                  participation.event.options.isOnline
+                "
+              >
                 <Video class="w-6 h-6" />
                 <span>{{ t("Online") }}</span>
               </template>
