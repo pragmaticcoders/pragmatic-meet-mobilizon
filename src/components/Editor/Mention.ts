@@ -31,9 +31,11 @@ const debouncedFetchItems = pDebounce(fetchItems, 200);
 
 // Helper function to get a safe label, avoiding "undefined" strings
 const getSafeLabel = (node: any): string => {
-  if (node.attrs.label && 
-      node.attrs.label !== "undefined" && 
-      node.attrs.label.trim() !== "") {
+  if (
+    node.attrs.label &&
+    node.attrs.label !== "undefined" &&
+    node.attrs.label.trim() !== ""
+  ) {
     return node.attrs.label;
   }
   return node.attrs.id || "";
@@ -46,19 +48,36 @@ const mentionOptions: MentionOptions = {
   },
   renderLabel({ options, node }) {
     const label = getSafeLabel(node);
-    return `${options.suggestion.char}${label}`;
+
+    // Get the mention character from node attributes or fallback to @
+    const mentionChar =
+      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
+
+    const result = `${mentionChar}${label}`;
+    return result;
   },
   renderText({ options, node }) {
     const label = getSafeLabel(node);
-    return `${options.suggestion.char}${label}`;
+
+    // Get the mention character from node attributes or fallback to @
+    const mentionChar =
+      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
+    const result = `${mentionChar}${label}`;
+    return result;
   },
   renderHTML({ options, node }) {
     const label = getSafeLabel(node);
-    return [
+
+    // Get the mention character from node attributes or fallback to @
+    const mentionChar =
+      node.attrs.mentionSuggestionChar || options.suggestion?.char || "@";
+
+    const result = [
       "span",
       { class: "mention", "data-id": node.attrs.id },
-      `${options.suggestion.char}${label}`,
-    ];
+      `${mentionChar}${label}`,
+    ] as const;
+    return result;
   },
   suggestion: {
     items: async ({
