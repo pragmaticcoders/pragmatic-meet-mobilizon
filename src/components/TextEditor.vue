@@ -238,7 +238,11 @@ const editor = useEditor({
   injectCSS: false,
   content: value.value,
   onUpdate: () => {
-    emit("update:modelValue", editor.value?.getHTML());
+    const html = editor.value?.getHTML();
+    if (html && shouldLimitContent(html)) {
+      return; // Don't emit if content exceeds limit
+    }
+    emit("update:modelValue", html);
   },
   onBlur: () => {
     checkEditorEmpty();
@@ -258,6 +262,33 @@ watch(value, (val: string) => {
     editor.value.commands.setContent(val, false);
   }
 });
+
+// Watch for editor creation to attach event listeners
+watch(
+  editor,
+  (newEditor) => {
+    if (newEditor && props.maxSize && props.maxSize < 100_000_000) {
+      // Attach beforeInput event listener to the editor DOM element
+      const editorElement = newEditor.view.dom;
+      editorElement.addEventListener("beforeinput", handleBeforeInput);
+
+      // Also watch for paste events
+      editorElement.addEventListener("paste", () => {
+        setTimeout(() => {
+          const currentContent = newEditor.getHTML();
+          if (shouldLimitContent(currentContent)) {
+            editorErrorStatus.value = true;
+            editorErrorMessage.value = t(
+              "Description cannot be longer than {maxSize} characters",
+              { maxSize: props.maxSize }
+            );
+          }
+        }, 10);
+      });
+    }
+  },
+  { immediate: true }
+);
 
 const {
   mutate: uploadMediaMutation,
@@ -364,6 +395,48 @@ const isEmpty = computed(
 const checkEditorEmpty = () => {
   editorErrorStatus.value = isEmpty.value;
   editorErrorMessage.value = isEmpty.value ? t("You need to enter a text") : "";
+};
+
+// Function to get text content length without HTML tags
+const getTextLength = (html: string): number => {
+  if (!html) return 0;
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html;
+  return (tempDiv.textContent || tempDiv.innerText || "").length;
+};
+
+// Function to check if content should be limited
+const shouldLimitContent = (html: string): boolean => {
+  if (!props.maxSize || props.maxSize >= 100_000_000) return false;
+  return getTextLength(html) > props.maxSize;
+};
+
+// Add beforeInput event to prevent typing when limit is reached
+const handleBeforeInput = (event: InputEvent) => {
+  if (!editor.value || !props.maxSize || props.maxSize >= 100_000_000) return;
+
+  const currentContent = editor.value.getHTML();
+  const currentLength = getTextLength(currentContent);
+
+  // Allow deletion and backspace
+  if (
+    event.inputType === "deleteContentBackward" ||
+    event.inputType === "deleteContentForward" ||
+    event.inputType === "deleteByDrag" ||
+    event.inputType === "deleteByCut"
+  ) {
+    return;
+  }
+
+  // Prevent input if we're at or over the limit
+  if (currentLength >= props.maxSize) {
+    event.preventDefault();
+    editorErrorStatus.value = true;
+    editorErrorMessage.value = t(
+      "Description cannot be longer than {maxSize} characters",
+      { maxSize: props.maxSize }
+    );
+  }
 };
 </script>
 <style lang="scss">

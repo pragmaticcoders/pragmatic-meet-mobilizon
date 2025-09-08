@@ -144,9 +144,17 @@
         <AccountCircle v-else :size="48" />
         <div class="flex-1">
           <div class="flex gap-1 items-center">
-            <strong>{{ currentActor && currentActor.name ? currentActor.name : t("[Unknown]") }}</strong>
+            <strong>{{
+              currentActor && currentActor.name
+                ? currentActor.name
+                : t("[Unknown]")
+            }}</strong>
             <small dir="ltr"
-              >@{{ currentActor && currentActor.preferredUsername ? currentActor.preferredUsername : "unknown" }}</small
+              >@{{
+                currentActor && currentActor.preferredUsername
+                  ? currentActor.preferredUsername
+                  : "unknown"
+              }}</small
             >
           </div>
           <div class="flex flex-col gap-2">
@@ -201,7 +209,9 @@
       <ReportModal
         :on-confirm="reportComment"
         :title="t('Report this comment')"
+        :comment="comment"
         :outside-domain="comment.actor?.domain"
+        @close="isReportModalActive = false"
       />
     </o-modal>
   </li>
@@ -333,24 +343,6 @@ const commentURL = computed((): string => {
     }).href + `#${commentId.value}`
   );
 });
-
-const reportModal = (): void => {
-  if (!props.comment.actor) return;
-  emit("report-comment", props.comment);
-  // this.$buefy.modal.open({
-  //   component: ReportModal,
-  //   props: {
-  //     title: t("Report this comment"),
-  //     comment: props.comment,
-  //     onConfirm: reportComment,
-  //     outsideDomain: props.comment.actor?.domain,
-  //   },
-  //   // https://github.com/buefy/buefy/pull/3589
-  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //   // @ts-ignore
-  //   closeButtonAriaLabel: this.t("Close"),
-  // });
-};
 
 const {
   mutate: createReportMutation,

@@ -176,13 +176,6 @@
             <label class="block text-sm font-medium text-gray-700">
               {{ t("Marketing URL") }}
             </label>
-            <p class="text-sm text-gray-600">
-              {{
-                t(
-                  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification."
-                )
-              }}
-            </p>
             <o-input
               v-model="editableGroup.customUrl"
               type="url"

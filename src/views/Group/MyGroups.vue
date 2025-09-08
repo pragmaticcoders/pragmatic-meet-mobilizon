@@ -1,5 +1,5 @@
 <template>
-  <section class="max-w-screen-xl mx-auto px-4 md:px-16 py-6">
+  <section class="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-16 py-6">
     <div class="mb-6">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
         {{ t("My groups") }}
@@ -31,7 +31,9 @@
       @reject-invitation="rejectInvitation"
     />
     <section v-if="memberships && memberships.length > 0" class="space-y-6">
-      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div
+        class="grid gap-2 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+      >
         <GroupMemberCard
           v-for="member in memberships"
           :key="member.id"

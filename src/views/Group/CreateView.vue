@@ -22,14 +22,20 @@
         >
           {{ t("Group display name") }}
         </label>
-        <o-input
-          aria-required="true"
-          required
-          expanded
-          v-model="group.name"
-          id="group-display-name"
-          class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
-        />
+        <o-field :message="nameErrors[0]" :type="nameErrors[1]">
+          <o-input
+            aria-required="true"
+            required
+            expanded
+            v-model="group.name"
+            id="group-display-name"
+            maxlength="100"
+            class="w-full [&_.o-input__wrapper]:border-[#cac9cb] [&_.o-input__wrapper]:p-[18px]"
+          />
+        </o-field>
+        <p class="text-xs text-gray-500 text-right">
+          {{ group.name.length }}/100
+        </p>
       </div>
 
       <div class="space-y-2">
@@ -98,12 +104,15 @@
             id="group-summary"
             mode="basic"
             v-model="group.summary"
-            :maxSize="500"
+            :maxSize="100"
             :aria-label="$t('Group description body')"
             :current-actor="currentActor"
             class="w-full [&_.editor-wrapper]:min-h-[128px] [&_.editor-wrapper]:border-[#cac9cb] [&_.editor-wrapper]:p-[18px]"
           />
         </o-field>
+        <p class="text-xs text-gray-500 text-right">
+          {{ summaryTextLength }}/100
+        </p>
       </div>
 
       <div class="space-y-1.5">
@@ -234,7 +243,8 @@
           for="group-marketing-url"
           class="block text-xs font-bold text-[#1c1b1f]"
         >
-          {{ t("Marketing Banner Location URL") }} <span class="text-red-600">*</span>
+          {{ t("Marketing Banner Location URL") }}
+          <span class="text-red-600">*</span>
         </label>
         <o-field :message="customUrlErrors[0]" :type="customUrlErrors[1]">
           <o-input
@@ -463,6 +473,7 @@ const errors = ref<string[]>([]);
 
 const fieldErrors = reactive<Record<string, string | undefined>>({
   preferred_username: undefined,
+  name: undefined,
   summary: undefined,
   custom_url: undefined,
 });
@@ -520,6 +531,15 @@ const iframeCodeDark = computed(() => {
 
 const canShowCopyButton = computed((): boolean => {
   return window.isSecureContext;
+});
+
+// Function to strip HTML tags and get plain text length
+const summaryTextLength = computed(() => {
+  if (!group.value.summary) return 0;
+  // Create a temporary div element to strip HTML tags
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = group.value.summary;
+  return (tempDiv.textContent || tempDiv.innerText || "").length;
 });
 
 const copyIframeCodeLight = async (): Promise<void> => {
@@ -619,6 +639,12 @@ const handleError = (err: ErrorResponse) => {
   });
 };
 
+const nameErrors = computed(() => {
+  const message = fieldErrors.name ? fieldErrors.name : undefined;
+  const type = fieldErrors.name ? "danger" : undefined;
+  return [message, type];
+});
+
 const summaryErrors = computed(() => {
   const message = fieldErrors.summary ? fieldErrors.summary : undefined;
   const type = fieldErrors.summary ? "danger" : undefined;
@@ -661,12 +687,31 @@ onError((err) => handleError(err as unknown as ErrorResponse));
 const createGroup = async (): Promise<void> => {
   errors.value = [];
   fieldErrors.preferred_username = undefined;
+  fieldErrors.name = undefined;
   fieldErrors.summary = undefined;
   fieldErrors.custom_url = undefined;
 
+  // Client-side validation for group name length
+  if (group.value.name && group.value.name.length > 100) {
+    fieldErrors.name = t(
+      "Group name cannot be longer than 100 characters"
+    ) as string;
+    return;
+  }
+
+  // Client-side validation for description length (strip HTML tags)
+  if (group.value.summary && summaryTextLength.value > 100) {
+    fieldErrors.summary = t(
+      "Description cannot be longer than 100 characters"
+    ) as string;
+    return;
+  }
+
   // Client-side validation for required marketing banner location URL
-  if (!group.value.customUrl || group.value.customUrl.trim() === '') {
-    fieldErrors.custom_url = t("Marketing Banner Location URL is required") as string;
+  if (!group.value.customUrl || group.value.customUrl.trim() === "") {
+    fieldErrors.custom_url = t(
+      "Marketing Banner Location URL is required"
+    ) as string;
     return;
   }
 

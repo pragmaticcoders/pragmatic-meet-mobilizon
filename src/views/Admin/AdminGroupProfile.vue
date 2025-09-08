@@ -47,7 +47,13 @@
             <router-link v-if="typeof link === 'object'" :to="link">
               {{ value }}
             </router-link>
-            <a v-else :href="link" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">
+            <a
+              v-else
+              :href="link"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-blue-600 hover:text-blue-800 underline"
+            >
               {{ value }}
             </a>
           </td>
@@ -70,7 +76,7 @@
         outlined
         >{{ t("Reject Group") }}</o-button
       >
-      
+
       <!-- Suspend/Unsuspend buttons -->
       <o-button
         @click="confirmSuspendProfile"
@@ -88,7 +94,7 @@
         variant="primary"
         >{{ t("Unsuspend") }}</o-button
       >
-      
+
       <!-- Refresh button -->
       <o-button
         @click="
@@ -341,7 +347,12 @@
   </empty-content>
 </template>
 <script lang="ts" setup>
-import { GET_GROUP, REFRESH_PROFILE, APPROVE_GROUP, REJECT_GROUP } from "@/graphql/group";
+import {
+  GET_GROUP,
+  REFRESH_PROFILE,
+  APPROVE_GROUP,
+  REJECT_GROUP,
+} from "@/graphql/group";
 import { formatBytes } from "@/utils/datetime";
 import { MemberRole } from "@/types/enums";
 import { SUSPEND_PROFILE, UNSUSPEND_PROFILE } from "../../graphql/actor";
@@ -414,7 +425,7 @@ useHead({
 
 const metadata = computed((): Array<Record<string, string>> => {
   if (!group.value) return [];
-  
+
   // Determine status based on suspended and approval status
   let statusText = "";
   if (group.value.suspended) {
@@ -426,7 +437,7 @@ const metadata = computed((): Array<Record<string, string>> => {
   } else {
     statusText = t("Active") as string;
   }
-  
+
   const res: Record<string, string>[] = [
     {
       key: t("Status") as string,
@@ -558,18 +569,19 @@ onRefreshProfileError((e) => {
 });
 
 // Approve group mutation
-const { mutate: approveGroupMutation, onError: onApproveGroupError } = useMutation<{
-  approveGroup: IGroup;
-}>(APPROVE_GROUP, () => ({
-  refetchQueries: [
-    {
-      query: GET_GROUP,
-      variables: {
-        id: props.id,
+const { mutate: approveGroupMutation, onError: onApproveGroupError } =
+  useMutation<{
+    approveGroup: IGroup;
+  }>(APPROVE_GROUP, () => ({
+    refetchQueries: [
+      {
+        query: GET_GROUP,
+        variables: {
+          id: props.id,
+        },
       },
-    },
-  ],
-}));
+    ],
+  }));
 
 onApproveGroupError((e) => {
   console.error(e);
@@ -582,18 +594,19 @@ const approveGroup = () => {
 };
 
 // Reject group mutation
-const { mutate: rejectGroupMutation, onError: onRejectGroupError } = useMutation<{
-  rejectGroup: IGroup;
-}>(REJECT_GROUP, () => ({
-  refetchQueries: [
-    {
-      query: GET_GROUP,
-      variables: {
-        id: props.id,
+const { mutate: rejectGroupMutation, onError: onRejectGroupError } =
+  useMutation<{
+    rejectGroup: IGroup;
+  }>(REJECT_GROUP, () => ({
+    refetchQueries: [
+      {
+        query: GET_GROUP,
+        variables: {
+          id: props.id,
+        },
       },
-    },
-  ],
-}));
+    ],
+  }));
 
 onRejectGroupError((e) => {
   console.error(e);

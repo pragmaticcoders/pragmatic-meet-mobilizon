@@ -136,7 +136,14 @@
               >{{ organizerDisplayName(participation.event) }}</span
             >
           </div>
-          <div class="flex items-center gap-2">
+          <div
+            v-if="
+              participation.event.physicalAddress ||
+              (participation.event.options &&
+                participation.event.options.isOnline)
+            "
+            class="flex items-center gap-2"
+          >
             <div class="w-6 h-6 flex items-center justify-center">
               <MapMarker class="w-6 h-6 text-gray-500" />
             </div>

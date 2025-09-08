@@ -1857,5 +1857,8 @@
   "Code copied to clipboard": "Kod skopiowany do schowka",
   "You have no upcoming events.": "Nie masz żadnych nadchodzących wydarzeń.",
   "Would you like to create an event or browse events?": "Czy chcesz utworzyć wydarzenie lub przejrzeć wydarzenia?",
-  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification.": "Ten URL jest wymagany do weryfikacji grupy. Pragmatic Meet nie pobiera opłat - jedynym wymogiem jest udostępnienie informacji o partnerze/sponsorze Pragmatic Coders podczas wydarzeń. Ten URL powinien wyświetlać osadzony iframe do weryfikacji."
+  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification.": "Ten URL jest wymagany do weryfikacji grupy. Pragmatic Meet nie pobiera opłat - jedynym wymogiem jest udostępnienie informacji o partnerze/sponsorze Pragmatic Coders podczas wydarzeń. Ten URL powinien wyświetlać osadzony iframe do weryfikacji.",
+  "Group name cannot be longer than 100 characters": "Nazwa grupy nie może być dłuższa niż 100 znaków",
+  "Description cannot be longer than 100 characters": "Opis nie może być dłuższy niż 100 znaków",
+  "Description cannot be longer than {maxSize} characters": "Opis nie może być dłuższy niż {maxSize} znaków"
 }

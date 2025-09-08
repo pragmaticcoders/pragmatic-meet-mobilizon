@@ -120,7 +120,17 @@
           <span
             class="text-[15px] font-medium text-black leading-[23px] truncate"
           >
-            {{ getMemberCount }} {{ t("members") }}
+            {{ getMemberCount }} {{ t("Members") }}
+          </span>
+        </div>
+        <div v-if="getFollowerCount > 0" class="flex items-center gap-2">
+          <div class="w-6 h-6 flex items-center justify-center">
+            <EyeOutline class="w-5 h-5 text-gray-500" />
+          </div>
+          <span
+            class="text-[15px] font-medium text-black leading-[23px] truncate"
+          >
+            {{ getFollowerCount }} {{ t("Followers") }}
           </span>
         </div>
         <div v-if="group.physicalAddress" class="flex items-center gap-2">
@@ -144,6 +154,7 @@ import RouteName from "../../router/name";
 import { useI18n } from "vue-i18n";
 
 import AccountMultiple from "vue-material-design-icons/AccountMultiple.vue";
+import EyeOutline from "vue-material-design-icons/EyeOutline.vue";
 import MapMarker from "vue-material-design-icons/MapMarker.vue";
 import { computed } from "vue";
 import LinkOrRouterLink from "../core/LinkOrRouterLink.vue";
@@ -181,13 +192,17 @@ const to = computed(() => {
 });
 
 const getMemberCount = computed(() => {
-  if (
-    props.group?.members?.total !== undefined &&
-    props.group?.followers?.total !== undefined
-  ) {
-    return props.group.members.total + props.group.followers.total;
+  if (props.group?.members?.total !== undefined) {
+    return props.group.members.total;
   }
-  return (props.group.membersCount ?? 0) + (props.group.followersCount ?? 0);
+  return props.group.membersCount ?? 0;
+});
+
+const getFollowerCount = computed(() => {
+  if (props.group?.followers?.total !== undefined) {
+    return props.group.followers.total;
+  }
+  return props.group.followersCount ?? 0;
 });
 
 // Helper function to strip HTML tags

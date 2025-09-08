@@ -1759,5 +1759,8 @@
   "Code copied to clipboard": "Code copied to clipboard",
   "You have no upcoming events.": "You have no upcoming events.",
   "Would you like to create an event or browse events?": "Would you like to create an event or browse events?",
-  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification.": "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is sharing information about Pragmatic Coders partner/sponsor during events. This URL should display an embedded iframe for verification."
+  "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification.": "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is sharing information about Pragmatic Coders partner/sponsor during events. This URL should display an embedded iframe for verification.",
+  "Group name cannot be longer than 100 characters": "Group name cannot be longer than 100 characters",
+  "Description cannot be longer than 100 characters": "Description cannot be longer than 100 characters",
+  "Description cannot be longer than {maxSize} characters": "Description cannot be longer than {maxSize} characters"
 }
