@@ -320,7 +320,7 @@ import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import { computed, inject, ref, nextTick, watch } from "vue";
+import { computed, inject, ref, nextTick } from "vue";
 import {
   enumTransformer,
   integerTransformer,
@@ -358,7 +358,6 @@ const notifier = inject<Notifier>("notifier");
 // Per-member loading states
 const approveLoadingMembers = ref<Set<string>>(new Set());
 const removeLoadingMembers = ref<Set<string>>(new Set());
-const updateLoadingMembers = ref<Set<string>>(new Set());
 
 // Helper functions for loading states
 const setApproveLoading = (memberId: string, loading: boolean) => {
@@ -390,12 +389,10 @@ const tableRefreshKey = ref(0);
 const forceTableRefresh = async () => {
   tableRefreshKey.value++;
   await nextTick();
-  console.log("Table refresh triggered:", tableRefreshKey.value);
 };
 
 // Fallback refresh function - use only when cache updates fail
 const refreshMembersData = async () => {
-  console.log("FALLBACK: Refreshing members data with refetch...");
   try {
     await refetchGroupMembers();
     forceTableRefresh();
@@ -435,18 +432,6 @@ const members = computed(
   () => group.value?.members ?? { total: 0, elements: [] }
 );
 
-// Simplified watcher - just for debugging, no actions
-watch(
-  members,
-  (newMembers, oldMembers) => {
-    console.log("Members data changed:", {
-      count: newMembers.elements?.length || 0,
-      total: newMembers.total || 0,
-    });
-  },
-  { deep: false } // Shallow watch to avoid excessive triggers
-);
-
 const {
   mutate: inviteMemberMutation,
   onDone: onInviteMemberDone,
@@ -454,8 +439,6 @@ const {
 } = useMutation<{ inviteMember: IMember }>(INVITE_MEMBER, () => ({
   update: (cache, { data }) => {
     if (data?.inviteMember) {
-      console.log("Updating cache after member invitation", data.inviteMember);
-
       const invitedMember = data.inviteMember;
 
       // Update cache for current filter (if it matches the invited member's role)
@@ -475,8 +458,6 @@ const {
           });
 
           if (existingData?.group?.members?.elements) {
-            console.log("Adding invited member to current filter cache");
-
             // Add the invited member to the beginning of the list
             const updatedElements = [
               invitedMember,
@@ -501,10 +482,7 @@ const {
           }
         }
       } catch (error) {
-        console.debug(
-          "Current filter cache update not needed or failed:",
-          error
-        );
+        // Current filter cache update not needed or failed
       }
 
       // Always update cache for "INVITED" filter
@@ -522,8 +500,6 @@ const {
         });
 
         if (invitedData?.group?.members?.elements) {
-          console.log("Adding invited member to INVITED filter cache");
-
           const updatedInvitedElements = [
             invitedMember,
             ...invitedData.group.members.elements,
@@ -546,7 +522,7 @@ const {
           });
         }
       } catch (error) {
-        console.debug("INVITED filter cache update not needed:", error);
+        // INVITED filter cache update not needed
       }
 
       // Update cache for "all members" (no filter)
@@ -564,8 +540,6 @@ const {
         });
 
         if (allMembersData?.group?.members?.elements) {
-          console.log("Adding invited member to all members cache");
-
           const updatedAllElements = [
             invitedMember,
             ...allMembersData.group.members.elements,
@@ -588,7 +562,7 @@ const {
           });
         }
       } catch (error) {
-        console.debug("All members cache update not needed:", error);
+        // All members cache update not needed
       }
     }
   },
@@ -704,15 +678,7 @@ const {
 } = useMutation(REMOVE_MEMBER, () => ({
   errorPolicy: "all", // Allow cache updates even if there are GraphQL errors
   update: (cache, { data }, { context }) => {
-    console.log("removeMember cache update called", { data, context });
     if (data?.removeMember && context?.oldMember) {
-      console.log(
-        "Updating cache after member removal",
-        context.oldMember.id,
-        "role:",
-        context.oldMember.role
-      );
-
       // Try to update cache for current query with filters
       try {
         const currentVariables = {
@@ -728,17 +694,10 @@ const {
         });
 
         if (existingData?.group?.members?.elements) {
-          console.log(
-            "Found existing data, removing member from cache",
-            existingData.group.members.elements.length
-          );
-
           // Filter out the removed member
           const updatedElements = existingData.group.members.elements.filter(
             (member) => member.id !== context.oldMember.id
           );
-
-          console.log("Updated elements count", updatedElements.length);
 
           // Write back to cache
           cache.writeQuery({
@@ -756,10 +715,6 @@ const {
               },
             },
           });
-
-          console.log("Cache updated successfully");
-        } else {
-          console.warn("No existing data found in cache");
         }
       } catch (error) {
         console.warn("Failed to update cache:", error);
@@ -802,14 +757,13 @@ const {
           });
         }
       } catch (error) {
-        console.debug("No cache entry for all members query (this is ok)");
+        // No cache entry for all members query (this is ok)
       }
     }
   },
 }));
 
 onRemoveMemberDone((result: any) => {
-  console.log("removeMember onDone called", result);
   const context = result.context;
 
   // Clear loading state
@@ -885,10 +839,9 @@ const {
 } = useMutation<{ approveMember: IMember }, { memberId: string }>(
   APPROVE_MEMBER,
   {
-    update: (cache, { data }, { context }) => {
+    update: (cache, { data }) => {
       if (data?.approveMember) {
         const approvedMember = data.approveMember; // Now has role: MEMBER
-        const memberId = approvedMember.id;
         try {
           const notApprovedVariables = {
             groupName: props.preferredUsername,
@@ -903,12 +856,10 @@ const {
           });
 
           if (notApprovedData?.group?.members?.elements) {
-            console.log(
-              "Removing approved member from NOT_APPROVED filter cache"
-            );
+            // Member removed from NOT_APPROVED filter
           }
         } catch (error) {
-          console.debug("NOT_APPROVED filter cache update not needed:", error);
+          // NOT_APPROVED filter cache update not needed
         }
 
         // Add to "MEMBER" filter cache (if exists)
@@ -926,8 +877,6 @@ const {
           });
 
           if (memberData?.group?.members?.elements) {
-            console.log("Adding approved member to MEMBER filter cache");
-
             const updatedMemberElements = [
               approvedMember,
               ...memberData.group.members.elements,
@@ -950,7 +899,7 @@ const {
             });
           }
         } catch (error) {
-          console.debug("MEMBER filter cache update not needed:", error);
+          // MEMBER filter cache update not needed
         }
       }
     },
@@ -959,7 +908,6 @@ const {
 );
 
 onApproveMemberDone((result: any) => {
-  console.log("approveMember onDone called", result);
   const context = result.context;
   if (context?.oldMember?.id) {
     setApproveLoading(context.oldMember.id, false);
@@ -993,7 +941,6 @@ const approveMember = (member: IMember) => {
 
 const rejectMember = (member: IMember): void => {
   if (!member.id) return;
-  console.log("Rejecting member:", member.id, member.role);
   removeMember(member);
 };
 
@@ -1007,20 +954,9 @@ const {
 >(UPDATE_MEMBER, () => ({
   errorPolicy: "all",
   update: (cache, { data }, { context }) => {
-    console.log("updateMember cache update called", { data, context });
     if (data && context?.oldMember) {
-      console.log(
-        "Updating cache after role change",
-        context.oldMember.id,
-        "from",
-        context.oldMember.role,
-        "to",
-        data.role
-      );
-
       // For role changes, we need to update all relevant caches
       const memberId = context.oldMember.id;
-      const oldRole = context.oldMember.role;
       const newRole = data.role;
 
       // Update current filter cache
@@ -1059,7 +995,7 @@ const {
           });
         }
       } catch (error) {
-        console.debug("Current filter cache update failed:", error);
+        // Current filter cache update failed
       }
 
       // Update "all members" cache (no filter)
@@ -1098,7 +1034,7 @@ const {
           });
         }
       } catch (error) {
-        console.debug("All members cache update failed:", error);
+        // All members cache update failed
       }
     }
   },
@@ -1109,7 +1045,6 @@ onUpdateMutationDone((result: any) => {
   const { data } = result;
   const context = result.context;
   let successMessage;
-  console.debug("onUpdateMutationDone", context);
   switch (data?.role) {
     case MemberRole.MODERATOR:
       successMessage = "The member role was updated to moderator";

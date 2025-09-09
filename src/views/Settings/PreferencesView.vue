@@ -15,12 +15,8 @@
           id="setting-language"
           class="w-full"
         >
-          <option value="en" key="en">
-            🇬🇧 English
-          </option>
-          <option value="pl" key="pl">
-            🇵🇱 Polski
-          </option>
+          <option value="en" key="en">🇬🇧 English</option>
+          <option value="pl" key="pl">🇵🇱 Polski</option>
         </o-select>
       </div>
     </section>
@@ -153,7 +149,6 @@
 <script lang="ts" setup>
 import ngeohash from "ngeohash";
 import { USER_SETTINGS, SET_USER_SETTINGS } from "../../graphql/user";
-import RouteName from "../../router/name";
 import { AddressSearchType } from "@/types/enums";
 import { Address, IAddress } from "@/types/address.model";
 import { useTimezones } from "@/composition/apollo/config";

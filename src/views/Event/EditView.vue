@@ -484,7 +484,6 @@ import {
   useRouter,
   useRoute,
 } from "vue-router";
-import { formatList } from "@/utils/i18n";
 import {
   ActorType,
   CommentModeration,
@@ -495,7 +494,6 @@ import {
   MemberRole,
   ParticipantRole,
 } from "@/types/enums";
-import OrganizerPickerWrapper from "@/components/Event/OrganizerPickerWrapper.vue";
 import {
   CREATE_EVENT,
   EDIT_EVENT,
@@ -512,13 +510,7 @@ import {
 } from "@/types/event.model";
 import { LOGGED_USER_DRAFTS } from "@/graphql/actor";
 import { LOGGED_USER_PARTICIPATIONS } from "@/graphql/participant";
-import {
-  IActor,
-  IGroup,
-  IPerson,
-  usernameWithDomain,
-  displayNameAndUsername,
-} from "@/types/actor";
+import { IActor, IGroup, IPerson, usernameWithDomain } from "@/types/actor";
 import {
   buildFileFromIMedia,
   buildFileVariable,
@@ -551,33 +543,22 @@ import {
 import { useFetchEvent } from "@/composition/apollo/event";
 import { useI18n } from "vue-i18n";
 import { useGroup } from "@/composition/apollo/group";
-import {
-  useAnonymousParticipationConfig,
-  useEventCategories,
-  useFeatures,
-  useTimezones,
-} from "@/composition/apollo/config";
+import { useEventCategories, useTimezones } from "@/composition/apollo/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { Dialog } from "@/plugins/dialog";
 import { Notifier } from "@/plugins/notifier";
 import { useHead } from "@/utils/head";
 import { useOruga } from "@oruga-ui/oruga-next";
 import sortBy from "lodash/sortBy";
-import { escapeHtml } from "@/utils/html";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
-import { CONFIG } from "@/graphql/config";
-import { IConfig } from "@/types/config.model";
 import { FETCH_GROUP_PUBLIC } from "@/graphql/group";
 
 const DEFAULT_LIMIT_NUMBER_OF_PLACES = 10;
 
 const { eventCategories } = useEventCategories();
-const { anonymousParticipationConfig } = useAnonymousParticipationConfig();
 const { currentActor } = useCurrentActorClient();
 const { loggedUser } = useLoggedUser();
 const { identities } = useCurrentUserIdentities();
-
-const { features } = useFeatures();
 
 const FullAddressAutoComplete = defineAsyncComponent(
   () => import("@/components/Event/FullAddressAutoComplete.vue")
@@ -601,12 +582,6 @@ useHead({
     props.isUpdate ? t("Event edition") : t("Event creation")
   ),
 });
-
-const { result: configResult } = useQuery<{ config: IConfig }>(
-  CONFIG,
-  undefined,
-  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
-);
 
 const event = ref<IEditableEvent>(new EventModel());
 const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
@@ -688,10 +663,6 @@ const organizerActor = computed({
   },
 });
 
-const attributedToAGroup = computed((): boolean => {
-  return event.value.attributedTo?.id !== undefined;
-});
-
 const eventOptions = computed({
   get(): IEventOptions {
     return removeTypeName(cloneDeep(event.value.options));
@@ -760,22 +731,16 @@ const route = useRoute();
 // Watch for query params to set up group attribution
 const actorId = computed(() => {
   const id = route.query.actorId as string | undefined;
-  console.log("actorId from route:", id);
   return id;
 });
 
 const groupUsername = computed(() => {
   const username = route.query.groupUsername as string | undefined;
-  console.log("groupUsername from route:", username);
   return username;
 });
 
 // Fetch group data using groupUsername (same as group pages for proper permissions)
-const {
-  result: groupResult,
-  loading: groupLoading,
-  error: groupError,
-} = useQuery<{ group: IGroup }>(
+const { result: groupResult, error: groupError } = useQuery<{ group: IGroup }>(
   FETCH_GROUP_PUBLIC,
   () => ({ name: groupUsername.value }),
   () => ({
@@ -788,25 +753,6 @@ const {
 watch(
   [groupResult, groupError],
   ([newGroupResult, error]) => {
-    console.log("EditView - groupResult watcher:", {
-      hasGroup: !!newGroupResult?.group,
-      groupData: newGroupResult?.group,
-      groupId: newGroupResult?.group?.id,
-      groupName: newGroupResult?.group?.name,
-      groupType: newGroupResult?.group?.type,
-      groupPreferredUsername: newGroupResult?.group?.preferredUsername,
-      actorId: actorId.value,
-      groupUsername: groupUsername.value,
-      error: error,
-      isUpdate: props.isUpdate,
-      isDuplicate: props.isDuplicate,
-      shouldSetup: !!(
-        newGroupResult?.group &&
-        actorId.value &&
-        !(props.isUpdate || props.isDuplicate)
-      ),
-    });
-
     if (error) {
       console.error("Group query error:", error);
       return;
@@ -818,32 +764,14 @@ watch(
       !(props.isUpdate || props.isDuplicate)
     ) {
       const group = newGroupResult.group;
-      console.log(
-        "Setting up group attribution for:",
-        group.name,
-        "with ID:",
-        group.id
-      );
 
       // Ensure we have the group ID set properly (should match actorId from route)
       if (!group.id) {
-        console.warn(
-          "Group object missing ID, using actorId from route:",
-          actorId.value
-        );
         group.id = actorId.value;
       }
 
       event.value.attributedTo = group;
       event.value.organizerActor = currentActor.value;
-      console.log(
-        "After setting - event.attributedTo:",
-        event.value.attributedTo
-      );
-      console.log(
-        "After setting - event.organizerActor:",
-        event.value.organizerActor
-      );
     }
   },
   { immediate: true }
@@ -965,7 +893,6 @@ onEditEventMutationError((err) => {
 const updateEvent = async (): Promise<void> => {
   saving.value = true;
   const variables = await buildVariables();
-  console.debug("update event", variables);
   editEventMutation(variables);
 };
 
@@ -1226,38 +1153,15 @@ const postRefetchQueries = (
   ];
 };
 
-const organizerActorEqualToCurrentActor = computed((): boolean => {
-  return (
-    currentActor.value?.id !== undefined &&
-    organizerActor.value?.id === currentActor.value?.id
-  );
-});
-
 /**
  * Build variables for Event GraphQL creation query
  */
 const buildVariables = async () => {
-  // Debug: Log current event state
-  console.log(
-    "buildVariables - event.attributedTo:",
-    event.value?.attributedTo
-  );
-  console.log(
-    "buildVariables - event.organizerActor:",
-    event.value?.organizerActor
-  );
-  console.log("buildVariables - currentActor:", currentActor.value);
-
   // For group events: organizer should be the USER (who creates on behalf of group)
   // For personal events: organizer should be the user
   const localOrganizerActor = event.value?.organizerActor?.id
     ? event.value.organizerActor // Use the user as organizer (they create on behalf of group)
     : currentActor.value || organizerActor.value;
-
-  console.log(
-    "buildVariables - selected localOrganizerActor:",
-    localOrganizerActor
-  );
 
   if (!localOrganizerActor?.id) {
     // No organizer actor found - this can happen with LinkedIn login issues
@@ -1307,19 +1211,9 @@ const buildVariables = async () => {
         res.picture = { mediaId: event.value?.picture?.uuid };
       }
     }
-    console.debug("builded variables", res);
   } catch (e) {
     console.error(e);
   }
-
-  console.log("buildVariables - final result:", {
-    organizerActorId: res.organizerActorId,
-    attributedToId: res.attributedToId,
-    organizer: res.attributedToId ? "GROUP" : "USER",
-    explanation: res.attributedToId
-      ? `User ${res.organizerActorId} creates event on behalf of group ${res.attributedToId}`
-      : `User ${res.organizerActorId} creates personal event`,
-  });
 
   return res;
 };
@@ -1336,6 +1230,7 @@ watch(limitedPlaces, () => {
   }
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const needsApproval = computed({
   get(): boolean {
     return event.value?.joinOptions == EventJoinOptions.RESTRICTED;
@@ -1408,6 +1303,7 @@ const confirmGoElsewhere = (): Promise<boolean> => {
 /**
  * Download the Pragmatic Coders logo zip file
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const downloadLogo = (): void => {
   const link = document.createElement("a");
   link.href = "/Logo-Pragmatic-Coders.zip";
@@ -1653,6 +1549,7 @@ watch(isOnline, (newIsOnline) => {
   }
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const maximumAttendeeCapacity = computed({
   get(): string {
     return eventOptions.value.maximumAttendeeCapacity.toString();
@@ -1728,6 +1625,7 @@ const RegisterOption = {
   EXTERNAL: "external",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const registerOption = computed({
   get() {
     return event.value?.joinOptions === EventJoinOptions.EXTERNAL

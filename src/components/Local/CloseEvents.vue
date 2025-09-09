@@ -66,7 +66,6 @@ import SkeletonEventResult from "../Event/SkeletonEventResult.vue";
 import EmptyContent from "../Utils/EmptyContent.vue";
 import { useI18n } from "vue-i18n";
 import { coordsToGeoHash } from "@/utils/location";
-import RouteName from "@/router/name";
 import { EventSortField, SortDirection } from "@/types/enums";
 
 const props = defineProps<{
