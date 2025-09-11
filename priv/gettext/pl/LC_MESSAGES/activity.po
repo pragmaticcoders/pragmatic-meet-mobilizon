@@ -131,15 +131,13 @@ msgstr "Nazwę dyskusji została zmieniona na %{discussion} przez %{profile}."
 #: lib/web/templates/email/activity/_resource_activity_item.text.eex:14
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the folder from %{old_resource_title} to %{resource}."
-msgstr ""
-"Nazwę katalogu została zmieniona z %{old_resource_title} na %{resource} "
-"przez %{profile}."
+msgstr "Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na %{resource}."
 
 #: lib/web/templates/email/activity/_resource_activity_item.html.heex:39
 #: lib/web/templates/email/activity/_resource_activity_item.text.eex:21
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the resource from %{old_resource_title} to %{resource}."
-msgstr ""
+msgstr "Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource}."
 "Nazwę zasobu została zmieniona z %{old_resource_title} na %{resource} przez "
 "%{profile}."
 
@@ -223,7 +221,7 @@ msgstr "Profil %{profile} odpowiedział na komentarz do wydarzenia %{event}."
 #: lib/web/templates/email/email_direct_activity.text.eex:27
 #, elixir-autogen, elixir-format
 msgid "Don't want to receive activity notifications? You may change frequency or disable them in your settings."
-msgstr ""
+msgstr "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość lub wyłączyć je w ustawieniach."
 "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość "
 "lub wyłączyć je w ustawieniach."
 
@@ -264,13 +262,13 @@ msgstr "Profil %{profile} opublikował ogłoszenie w wydarzeniu %{event}."
 #: lib/web/templates/email/activity/_comment_activity_item.text.eex:1
 #, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in a comment under event %{event}."
-msgstr ""
+msgstr "Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 "Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/web/templates/email/email_direct_activity.html.heex:260
 #, elixir-autogen, elixir-format
 msgid "Don't want to receive activity notifications? You may change frequency or disable them in %{tag_start}your settings%{tag_end}."
-msgstr ""
+msgstr "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość lub wyłączyć je w %{tag_start}ustawieniach%{tag_end}."
 "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość "
 "lub wyłączyć je w %{tag_start}ustawieniach%{tag_end}."
 
@@ -307,7 +305,7 @@ msgstr "Tygodniowe podsumowanie aktywności dla %{instance}"
 #: lib/web/templates/email/activity/_comment_activity_item.text.eex:19
 #, elixir-autogen, elixir-format
 msgid "%{profile} has posted a new comment under your event %{event}."
-msgstr ""
+msgstr "Profil %{profile} zamieścił nowy komentarz pod Twoim wydarzeniem %{event}."
 "Profil %{profile} zamieścił nowy komentarz pod Twoim wydarzeniem %{event}."
 
 #: lib/service/activity/renderer/comment.ex:52
@@ -345,7 +343,7 @@ msgstr "Wpis %{post} z grupy %{group} został zaktualizowany przez %{profile}."
 #: lib/service/activity/renderer/member.ex:38
 #, elixir-autogen, elixir-format
 msgid "%{member} accepted the invitation to join the group %{group}."
-msgstr ""
+msgstr "Członek %{member} zaakceptował(a) zaproszenie do dołączenia do grupy %{group}."
 "Twoje zaproszenie do dołączenia do grupy %{group} zostało zaakceptowane "
 "przez %{member}."
 
@@ -357,7 +355,7 @@ msgstr "%{member} dołączył(a)(o) do grupy %{group}."
 #: lib/service/activity/renderer/member.ex:42
 #, elixir-autogen, elixir-format
 msgid "%{member} rejected the invitation to join the group %{group}."
-msgstr ""
+msgstr "Członek %{member} odrzucił(a) zaproszenie do dołączenia do grupy %{group}."
 "Twoje zaproszenie do dołączenia do grupy %{group} zostało odrzucone przez "
 "%{member}."
 
@@ -379,7 +377,7 @@ msgstr "Profil %{profile} dodał %{member} do grupy %{group}."
 #: lib/service/activity/renderer/member.ex:54
 #, elixir-autogen, elixir-format
 msgid "%{profile} approved the membership request from %{member} for group %{group}."
-msgstr ""
+msgstr "Profil %{profile} zatwierdził prośbę o członkostwo od %{member} w grupie %{group}."
 "Profil %{profile} zatwierdził prośbę o dołączenie %{member} do grupy "
 "%{group}."
 
@@ -421,20 +419,20 @@ msgstr "Profil %{profile} opuścił grupę %{group}."
 #: lib/service/activity/renderer/member.ex:62
 #, elixir-autogen, elixir-format
 msgid "%{profile} rejected the membership request from %{member} for group %{group}."
-msgstr ""
+msgstr "Profil %{profile} odrzucił prośbę o członkostwo od %{member} w grupie %{group}."
 "Profil %{profile} odrzucił prośbę %{member} o dołączenie do grupy %{group}."
 
 #: lib/service/activity/renderer/resource.ex:44
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the folder from %{old_resource_title} to %{resource} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na %{resource} w grupie %{group}."
 "Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na "
 "%{resource} w grupie %{group}."
 
 #: lib/service/activity/renderer/resource.ex:50
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the resource from %{old_resource_title} to %{resource} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource} w grupie %{group}."
 "Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource}"
 " w grupie %{group}."
 
@@ -451,7 +449,7 @@ msgstr "Profil %{profile} utworzył zasób %{resource} w grupie %{group}."
 #: lib/service/activity/renderer/discussion.ex:85
 #, elixir-autogen, elixir-format
 msgid "%{profile} archived the discussion %{discussion} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} zarchiwizował dyskusję %{discussion} w grupie %{group}."
 "Profil %{profile} zarchiwizował dyskusję %{discussion} w grupie %{group}."
 
 #: lib/service/activity/renderer/discussion.ex:25
@@ -467,20 +465,20 @@ msgstr "Profil %{profile} usunął dyskusję %{discussion} w grupie %{group}."
 #: lib/service/activity/renderer/discussion.ex:55
 #, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in the discussion %{discussion} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} wspomniał o Tobie w dyskusji %{discussion} w grupie %{group}."
 "Profil %{profile} wspomniał o Tobie w dyskusji %{discussion} w grupie "
 "%{group}."
 
 #: lib/service/activity/renderer/discussion.ex:70
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the discussion %{discussion} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} zmienił nazwę dyskusji %{discussion} w grupie %{group}."
 "Profil %{profile} zmienił nazwę dyskusji %{discussion} w grupie %{group}."
 
 #: lib/service/activity/renderer/discussion.ex:40
 #, elixir-autogen, elixir-format
 msgid "%{profile} replied to the discussion %{discussion} in group %{group}."
-msgstr ""
+msgstr "Profil %{profile} odpowiedział na dyskusję %{discussion} w grupie %{group}."
 "Profil %{profile} odpowiedział na dyskusję %{discussion} w grupie %{group}."
 
 #: lib/web/templates/email/activity/_member_activity_item.html.heex:36
@@ -516,19 +514,19 @@ msgstr "Profil %{profile} opublikował ogłoszenie w wydarzeniu %{event}."
 #: lib/web/templates/email/activity/_conversation_activity_item.html.heex:3
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{profile} mentionned you in a %{conversation}."
-msgstr ""
+msgstr "Profil %{profile} wspomniał o Tobie w %{conversation}."
 "Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/web/templates/email/activity/_conversation_activity_item.text.eex:1
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{profile} mentionned you in a conversation."
-msgstr ""
+msgstr "Profil %{profile} wspomniał o Tobie w rozmowie."
 "Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/service/activity/renderer/conversation.ex:36
 #, elixir-autogen, elixir-format
 msgid "%{profile} replied to your message"
-msgstr ""
+msgstr "Profil %{profile} odpowiedział na Twoją wiadomość"
 
 #: lib/web/templates/email/activity/_conversation_activity_item.html.heex:10
 #, elixir-autogen, elixir-format, fuzzy
@@ -538,31 +536,31 @@ msgstr "Profil %{profile} odpowiedział na dyskusję %{discussion}."
 #: lib/web/templates/email/activity/_conversation_activity_item.text.eex:6
 #, elixir-autogen, elixir-format
 msgid "%{profile} replied you in a conversation."
-msgstr ""
+msgstr "Profil %{profile} odpowiedział Ci w rozmowie."
 
 #: lib/service/activity/renderer/conversation.ex:49
 #, elixir-autogen, elixir-format
 msgid "%{profile} sent a private message about event %{event}"
-msgstr ""
+msgstr "Profil %{profile} wysłał prywatną wiadomość o wydarzeniu %{event}"
 
 #: lib/service/activity/renderer/conversation.ex:23
 #, elixir-autogen, elixir-format
 msgid "%{profile} sent you a message"
-msgstr ""
+msgstr "Profil %{profile} wysłał Ci wiadomość"
 
 #: lib/web/email/activity.ex:52
 #, elixir-autogen, elixir-format
 msgid "Informations about your event %{event}"
-msgstr ""
+msgstr "Informacje o Twoim wydarzeniu %{event}"
 
 #: lib/web/templates/email/email_anonymous_activity.html.heex:118
 #: lib/web/templates/email/email_anonymous_activity.text.eex:20
 #, elixir-autogen, elixir-format
 msgid "It might give details on how to join the event, so make sure to read it appropriately."
-msgstr ""
+msgstr "Może zawierać szczegóły dotyczące dołączenia do wydarzenia, więc przeczytaj to uważnie."
 
 #: lib/web/templates/email/email_anonymous_activity.html.heex:156
 #: lib/web/templates/email/email_anonymous_activity.text.eex:28
 #, elixir-autogen, elixir-format
 msgid "This information is sent privately to you as a person who registered for this event. Share the informations above with other people with caution."
-msgstr ""
+msgstr "Te informacje są wysyłane prywatnie do Ciebie jako osoby zarejestrowanej na to wydarzenie. Udostępniaj powyższe informacje innym osobom ostrożnie."
