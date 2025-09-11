@@ -15,14 +15,22 @@
         },
       ]"
     />
-    <h1 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">{{ t("Participants") }}</h1>
+    <h1 class="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">
+      {{ t("Participants") }}
+    </h1>
     <div class="mb-4 sm:mb-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+      <div
+        class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
+      >
         <div class="flex items-center gap-2">
           <label for="role-select" class="text-sm font-medium whitespace-nowrap"
             >{{ t("Status") }}:</label
           >
-          <o-select v-model="role" id="role-select" class="min-w-[150px] flex-1 sm:flex-initial">
+          <o-select
+            v-model="role"
+            id="role-select"
+            class="min-w-[150px] flex-1 sm:flex-initial"
+          >
             <option value="EVERYTHING">
               {{ t("Everything") }}
             </option>
@@ -106,9 +114,14 @@
     <!-- Mobile Card Layout -->
     <div class="block md:hidden">
       <div v-if="participantsLoading" class="text-center py-8">
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div
+          class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+        ></div>
       </div>
-      <div v-else-if="event.participants.elements.length === 0" class="text-center py-8">
+      <div
+        v-else-if="event.participants.elements.length === 0"
+        class="text-center py-8"
+      >
         <EmptyContent icon="account-circle" :inline="true">
           {{ t("No participant matches the filters") }}
         </EmptyContent>
@@ -144,9 +157,15 @@
               <div class="min-w-0 flex-1">
                 <div v-if="participant.actor.preferredUsername !== 'anonymous'">
                   <div class="font-medium text-sm truncate">
-                    {{ participant.actor.name || usernameWithDomain(participant.actor) }}
+                    {{
+                      participant.actor.name ||
+                      usernameWithDomain(participant.actor)
+                    }}
                   </div>
-                  <div class="text-xs text-gray-500 truncate" v-if="participant.actor.name">
+                  <div
+                    class="text-xs text-gray-500 truncate"
+                    v-if="participant.actor.name"
+                  >
                     @{{ usernameWithDomain(participant.actor) }}
                   </div>
                 </div>
@@ -158,32 +177,43 @@
             <span
               class="inline-block px-2 py-1 text-xs font-medium rounded-sm flex-shrink-0"
               :class="{
-                'bg-blue-500 text-white': participant.role === ParticipantRole.CREATOR,
-                'bg-green-100 text-green-800': participant.role === ParticipantRole.PARTICIPANT,
-                'bg-gray-100 text-gray-800': 
+                'bg-blue-500 text-white':
+                  participant.role === ParticipantRole.CREATOR,
+                'bg-green-100 text-green-800':
+                  participant.role === ParticipantRole.PARTICIPANT,
+                'bg-gray-100 text-gray-800':
                   participant.role === ParticipantRole.NOT_CONFIRMED ||
                   participant.role === ParticipantRole.NOT_APPROVED,
-                'bg-red-100 text-red-800': participant.role === ParticipantRole.REJECTED,
+                'bg-red-100 text-red-800':
+                  participant.role === ParticipantRole.REJECTED,
               }"
             >
               <template v-if="participant.role === ParticipantRole.CREATOR">
                 {{ t("Organizer") }}
               </template>
-              <template v-else-if="participant.role === ParticipantRole.PARTICIPANT">
+              <template
+                v-else-if="participant.role === ParticipantRole.PARTICIPANT"
+              >
                 {{ t("Participant") }}
               </template>
-              <template v-else-if="participant.role === ParticipantRole.NOT_CONFIRMED">
+              <template
+                v-else-if="participant.role === ParticipantRole.NOT_CONFIRMED"
+              >
                 {{ t("Not confirmed") }}
               </template>
-              <template v-else-if="participant.role === ParticipantRole.NOT_APPROVED">
+              <template
+                v-else-if="participant.role === ParticipantRole.NOT_APPROVED"
+              >
                 {{ t("Not approved") }}
               </template>
-              <template v-else-if="participant.role === ParticipantRole.REJECTED">
+              <template
+                v-else-if="participant.role === ParticipantRole.REJECTED"
+              >
                 {{ t("Rejected") }}
               </template>
             </span>
           </div>
-          
+
           <div class="space-y-2 text-sm">
             <div v-if="participant.metadata && participant.metadata.message">
               <div class="font-medium text-gray-700">{{ t("Message") }}:</div>
@@ -191,20 +221,43 @@
                 {{ participant.metadata.message }}
               </div>
             </div>
-            
-            <div class="flex justify-between items-center text-xs text-gray-500">
+
+            <div
+              class="flex justify-between items-center text-xs text-gray-500"
+            >
               <div>
-                <div>{{ participant.insertedAt ? formatDateString(participant.insertedAt.toString()) : '' }}</div>
-                <div>{{ participant.insertedAt ? formatTimeString(participant.insertedAt.toString()) : '' }}</div>
+                <div>
+                  {{
+                    participant.insertedAt
+                      ? formatDateString(participant.insertedAt.toString())
+                      : ""
+                  }}
+                </div>
+                <div>
+                  {{
+                    participant.insertedAt
+                      ? formatTimeString(participant.insertedAt.toString())
+                      : ""
+                  }}
+                </div>
               </div>
-              
-              <div class="flex gap-1" v-if="participant.role !== ParticipantRole.CREATOR">
+
+              <div
+                class="flex gap-1"
+                v-if="participant.role !== ParticipantRole.CREATOR"
+              >
                 <o-button
                   v-if="
                     participant.role === ParticipantRole.NOT_APPROVED ||
                     participant.role === ParticipantRole.REJECTED
                   "
-                  @click="participant.id && updateSingleParticipant(participant.id, ParticipantRole.PARTICIPANT)"
+                  @click="
+                    participant.id &&
+                      updateSingleParticipant(
+                        participant.id,
+                        ParticipantRole.PARTICIPANT
+                      )
+                  "
                   size="small"
                   variant="success"
                   icon-left="check"
@@ -212,7 +265,13 @@
                 />
                 <o-button
                   v-if="participant.role !== ParticipantRole.REJECTED"
-                  @click="participant.id && updateSingleParticipant(participant.id, ParticipantRole.REJECTED)"
+                  @click="
+                    participant.id &&
+                      updateSingleParticipant(
+                        participant.id,
+                        ParticipantRole.REJECTED
+                      )
+                  "
                   size="small"
                   variant="danger"
                   icon-left="close"
@@ -223,7 +282,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Mobile Pagination -->
       <div v-if="event.participants.total > PARTICIPANTS_PER_PAGE" class="mt-6">
         <div class="flex justify-between items-center">
@@ -234,19 +293,23 @@
             outlined
             size="small"
           >
-            {{ t('Previous page') }}
+            {{ t("Previous page") }}
           </o-button>
           <span class="text-sm text-gray-600">
-            {{ t('Page') }} {{ page }} {{ t('of') }} {{ Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE) }}
+            {{ t("Page") }} {{ page }} {{ t("of") }}
+            {{ Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE) }}
           </span>
           <o-button
             @click="page = page + 1"
-            :disabled="page >= Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE)"
+            :disabled="
+              page >=
+              Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE)
+            "
             variant="primary"
             outlined
             size="small"
           >
-            {{ t('Next page') }}
+            {{ t("Next page") }}
           </o-button>
         </div>
       </div>
@@ -283,160 +346,174 @@
         @page-change="(newPage: number) => (page = newPage)"
         @sort="(field: string, order: string) => emit('sort', field, order)"
       >
-      <o-table-column
-        field="actor.preferredUsername"
-        :label="t('Participant')"
-        v-slot="props"
-      >
-        <div class="flex items-center gap-2 sm:gap-3">
-          <figure v-if="props.row.actor.avatar" class="flex-shrink-0">
-            <img
-              class="rounded-full w-8 h-8 sm:w-10 sm:h-10 object-cover"
-              :src="props.row.actor.avatar.url"
-              alt=""
-              :height="32"
-              :width="32"
+        <o-table-column
+          field="actor.preferredUsername"
+          :label="t('Participant')"
+          v-slot="props"
+        >
+          <div class="flex items-center gap-2 sm:gap-3">
+            <figure v-if="props.row.actor.avatar" class="flex-shrink-0">
+              <img
+                class="rounded-full w-8 h-8 sm:w-10 sm:h-10 object-cover"
+                :src="props.row.actor.avatar.url"
+                alt=""
+                :height="32"
+                :width="32"
+              />
+            </figure>
+            <Incognito
+              v-else-if="props.row.actor.preferredUsername === 'anonymous'"
+              :size="32"
+              class="flex-shrink-0"
             />
-          </figure>
-          <Incognito
-            v-else-if="props.row.actor.preferredUsername === 'anonymous'"
-            :size="32"
-            class="flex-shrink-0"
-          />
-          <AccountCircle v-else :size="32" class="flex-shrink-0" />
-          <div class="min-w-0 flex-1">
-            <div v-if="props.row.actor.preferredUsername !== 'anonymous'">
-              <div class="font-medium text-xs sm:text-sm truncate">
-                {{
-                  props.row.actor.name || usernameWithDomain(props.row.actor)
-                }}
+            <AccountCircle v-else :size="32" class="flex-shrink-0" />
+            <div class="min-w-0 flex-1">
+              <div v-if="props.row.actor.preferredUsername !== 'anonymous'">
+                <div class="font-medium text-xs sm:text-sm truncate">
+                  {{
+                    props.row.actor.name || usernameWithDomain(props.row.actor)
+                  }}
+                </div>
+                <div
+                  class="text-xs text-gray-500 truncate"
+                  v-if="props.row.actor.name"
+                >
+                  @{{ usernameWithDomain(props.row.actor) }}
+                </div>
               </div>
-              <div class="text-xs text-gray-500 truncate" v-if="props.row.actor.name">
-                @{{ usernameWithDomain(props.row.actor) }}
-              </div>
+              <span v-else class="text-xs sm:text-sm text-gray-500">
+                {{ t("Anonymous participant") }}
+              </span>
             </div>
-            <span v-else class="text-xs sm:text-sm text-gray-500">
-              {{ t("Anonymous participant") }}
-            </span>
           </div>
-        </div>
-      </o-table-column>
-      <o-table-column field="role" :label="t('Role')" v-slot="props">
-        <span
-          class="inline-block px-2 sm:px-3 py-1 text-xs font-medium rounded-sm"
-          :class="{
-            'bg-blue-500 text-white':
-              props.row.role === ParticipantRole.CREATOR,
-            'bg-green-100 text-green-800':
-              props.row.role === ParticipantRole.PARTICIPANT,
-            'bg-gray-100 text-gray-800':
-              props.row.role === ParticipantRole.NOT_CONFIRMED ||
-              props.row.role === ParticipantRole.NOT_APPROVED,
-            'bg-red-100 text-red-800':
-              props.row.role === ParticipantRole.REJECTED,
-          }"
-        >
-          <template v-if="props.row.role === ParticipantRole.CREATOR">
-            {{ t("Organizer") }}
-          </template>
-          <template v-else-if="props.row.role === ParticipantRole.PARTICIPANT">
-            {{ t("Participant") }}
-          </template>
-          <template
-            v-else-if="props.row.role === ParticipantRole.NOT_CONFIRMED"
+        </o-table-column>
+        <o-table-column field="role" :label="t('Role')" v-slot="props">
+          <span
+            class="inline-block px-2 sm:px-3 py-1 text-xs font-medium rounded-sm"
+            :class="{
+              'bg-blue-500 text-white':
+                props.row.role === ParticipantRole.CREATOR,
+              'bg-green-100 text-green-800':
+                props.row.role === ParticipantRole.PARTICIPANT,
+              'bg-gray-100 text-gray-800':
+                props.row.role === ParticipantRole.NOT_CONFIRMED ||
+                props.row.role === ParticipantRole.NOT_APPROVED,
+              'bg-red-100 text-red-800':
+                props.row.role === ParticipantRole.REJECTED,
+            }"
           >
-            {{ t("Not confirmed") }}
-          </template>
-          <template v-else-if="props.row.role === ParticipantRole.NOT_APPROVED">
-            {{ t("Not approved") }}
-          </template>
-          <template v-else-if="props.row.role === ParticipantRole.REJECTED">
-            {{ t("Rejected") }}
-          </template>
-        </span>
-      </o-table-column>
-      <o-table-column
-        field="metadata.message"
-        class="column-message"
-        :label="t('Message')"
-        v-slot="props"
-      >
-        <div
-          @click="toggleQueueDetails(props.row)"
-          :class="{
-            'ellipsed-message':
-              props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH,
-          }"
-          v-if="props.row.metadata && props.row.metadata.message"
+            <template v-if="props.row.role === ParticipantRole.CREATOR">
+              {{ t("Organizer") }}
+            </template>
+            <template
+              v-else-if="props.row.role === ParticipantRole.PARTICIPANT"
+            >
+              {{ t("Participant") }}
+            </template>
+            <template
+              v-else-if="props.row.role === ParticipantRole.NOT_CONFIRMED"
+            >
+              {{ t("Not confirmed") }}
+            </template>
+            <template
+              v-else-if="props.row.role === ParticipantRole.NOT_APPROVED"
+            >
+              {{ t("Not approved") }}
+            </template>
+            <template v-else-if="props.row.role === ParticipantRole.REJECTED">
+              {{ t("Rejected") }}
+            </template>
+          </span>
+        </o-table-column>
+        <o-table-column
+          field="metadata.message"
+          class="column-message"
+          :label="t('Message')"
+          v-slot="props"
         >
-          <p v-if="props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH">
-            {{ ellipsize(props.row.metadata.message) }}
+          <div
+            @click="toggleQueueDetails(props.row)"
+            :class="{
+              'ellipsed-message':
+                props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH,
+            }"
+            v-if="props.row.metadata && props.row.metadata.message"
+          >
+            <p
+              v-if="props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH"
+            >
+              {{ ellipsize(props.row.metadata.message) }}
+            </p>
+            <p v-else>
+              {{ props.row.metadata.message }}
+            </p>
+            <o-button
+              variant="primary"
+              v-if="props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH"
+              @click.stop="toggleQueueDetails(props.row)"
+            >
+              {{
+                openDetailedRows[props.row.id] ? t("View less") : t("View more")
+              }}
+            </o-button>
+          </div>
+          <p v-else class="text-sm text-gray-500">
+            {{ t("No message") }}
           </p>
-          <p v-else>
+        </o-table-column>
+        <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
+          <div class="text-xs sm:text-sm">
+            <div class="truncate">
+              {{ formatDateString(props.row.insertedAt) }}
+            </div>
+            <div class="text-gray-500 truncate">
+              {{ formatTimeString(props.row.insertedAt) }}
+            </div>
+          </div>
+        </o-table-column>
+        <o-table-column :label="t('Actions')" v-slot="props">
+          <div
+            class="flex gap-1 justify-center sm:justify-start"
+            v-if="props.row.role !== ParticipantRole.CREATOR"
+          >
+            <o-button
+              v-if="
+                props.row.role === ParticipantRole.NOT_APPROVED ||
+                props.row.role === ParticipantRole.REJECTED
+              "
+              @click="
+                updateSingleParticipant(
+                  props.row.id,
+                  ParticipantRole.PARTICIPANT
+                )
+              "
+              size="small"
+              variant="success"
+              icon-left="check"
+              :title="t('Approve')"
+            />
+            <o-button
+              v-if="props.row.role !== ParticipantRole.REJECTED"
+              @click="
+                updateSingleParticipant(props.row.id, ParticipantRole.REJECTED)
+              "
+              size="small"
+              variant="danger"
+              icon-left="close"
+              :title="t('Reject')"
+            />
+          </div>
+        </o-table-column>
+        <template #detail="props">
+          <p>
             {{ props.row.metadata.message }}
           </p>
-          <o-button
-            variant="primary"
-            v-if="props.row.metadata.message.length > MESSAGE_ELLIPSIS_LENGTH"
-            @click.stop="toggleQueueDetails(props.row)"
-          >
-            {{
-              openDetailedRows[props.row.id] ? t("View less") : t("View more")
-            }}
-          </o-button>
-        </div>
-        <p v-else class="text-sm text-gray-500">
-          {{ t("No message") }}
-        </p>
-      </o-table-column>
-      <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
-        <div class="text-xs sm:text-sm">
-          <div class="truncate">{{ formatDateString(props.row.insertedAt) }}</div>
-          <div class="text-gray-500 truncate">
-            {{ formatTimeString(props.row.insertedAt) }}
-          </div>
-        </div>
-      </o-table-column>
-      <o-table-column :label="t('Actions')" v-slot="props">
-        <div
-          class="flex gap-1 justify-center sm:justify-start"
-          v-if="props.row.role !== ParticipantRole.CREATOR"
-        >
-          <o-button
-            v-if="
-              props.row.role === ParticipantRole.NOT_APPROVED ||
-              props.row.role === ParticipantRole.REJECTED
-            "
-            @click="
-              updateSingleParticipant(props.row.id, ParticipantRole.PARTICIPANT)
-            "
-            size="small"
-            variant="success"
-            icon-left="check"
-            :title="t('Approve')"
-          />
-          <o-button
-            v-if="props.row.role !== ParticipantRole.REJECTED"
-            @click="
-              updateSingleParticipant(props.row.id, ParticipantRole.REJECTED)
-            "
-            size="small"
-            variant="danger"
-            icon-left="close"
-            :title="t('Reject')"
-          />
-        </div>
-      </o-table-column>
-      <template #detail="props">
-        <p>
-          {{ props.row.metadata.message }}
-        </p>
-      </template>
-      <template #empty>
-        <EmptyContent icon="account-circle" :inline="true">
-          {{ t("No participant matches the filters") }}
-        </EmptyContent>
-      </template>
+        </template>
+        <template #empty>
+          <EmptyContent icon="account-circle" :inline="true">
+            {{ t("No participant matches the filters") }}
+          </EmptyContent>
+        </template>
       </o-table>
     </div>
   </section>

@@ -19,6 +19,7 @@ defmodule Mobilizon.Events do
   alias Mobilizon.Actors.{Actor, Follower}
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Config
+  alias Mobilizon.Users.User
 
   alias Mobilizon.Events.{
     Event,
@@ -1757,7 +1758,8 @@ defmodule Mobilizon.Events do
     id
     |> participants_for_event_query(roles)
     |> join(:inner, [p], a in Actor, on: p.actor_id == a.id)
-    |> select([p, a], {p, a})
+    |> join(:left, [p, a], u in User, on: a.user_id == u.id)
+    |> select([p, a, u], {p, a, u})
   end
 
   @doc """

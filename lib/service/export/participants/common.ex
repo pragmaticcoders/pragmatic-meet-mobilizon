@@ -8,6 +8,7 @@ defmodule Mobilizon.Service.Export.Participants.Common do
   alias Mobilizon.Events.Participant
   alias Mobilizon.Events.Participant.Metadata
   alias Mobilizon.Storage.Repo
+  alias Mobilizon.Users.User
   import Mobilizon.Web.Gettext, only: [gettext: 1]
   import Mobilizon.Service.DateTime, only: [datetime_to_string: 2]
 
@@ -61,6 +62,7 @@ defmodule Mobilizon.Service.Export.Participants.Common do
   def columns do
     [
       gettext("Participant name"),
+      gettext("Participant email"),
       gettext("Participant status"),
       gettext("Participant registration date"),
       gettext("Participant message")
@@ -86,13 +88,14 @@ defmodule Mobilizon.Service.Export.Participants.Common do
     Repo.delete!(export)
   end
 
-  @spec to_list({Participant.t(), Actor.t()}) :: list(String.t())
+  @spec to_list({Participant.t(), Actor.t(), User.t() | nil}) :: list(String.t())
   def to_list(
         {%Participant{role: role, metadata: metadata, inserted_at: inserted_at},
-         %Actor{domain: nil, preferred_username: "anonymous"}}
+         %Actor{domain: nil, preferred_username: "anonymous"}, _user}
       ) do
     [
       gettext("Anonymous participant"),
+      get_participant_email(metadata, nil),
       translate_role(role),
       datetime_to_string(inserted_at, Gettext.get_locale()),
       convert_metadata(metadata)
@@ -100,10 +103,12 @@ defmodule Mobilizon.Service.Export.Participants.Common do
   end
 
   def to_list(
-        {%Participant{role: role, metadata: metadata, inserted_at: inserted_at}, %Actor{} = actor}
+        {%Participant{role: role, metadata: metadata, inserted_at: inserted_at}, %Actor{} = actor,
+         user}
       ) do
     [
       Actor.display_name_and_username(actor),
+      get_participant_email(metadata, user),
       translate_role(role),
       datetime_to_string(inserted_at, Gettext.get_locale()),
       convert_metadata(metadata)
@@ -116,6 +121,17 @@ defmodule Mobilizon.Service.Export.Participants.Common do
   end
 
   defp convert_metadata(_), do: ""
+
+  @spec get_participant_email(Metadata.t() | nil, User.t() | nil) :: String.t()
+  defp get_participant_email(%Metadata{email: email}, nil) when is_binary(email) do
+    email
+  end
+
+  defp get_participant_email(_metadata, %User{email: email}) when is_binary(email) do
+    email
+  end
+
+  defp get_participant_email(_metadata, _user), do: ""
 
   @spec export_modules :: list(module())
   def export_modules do
