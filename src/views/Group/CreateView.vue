@@ -104,14 +104,15 @@
             id="group-summary"
             mode="basic"
             v-model="group.summary"
-            :maxSize="100"
+            :maxSize="2000"
             :aria-label="$t('Group description body')"
             :current-actor="currentActor"
             class="w-full [&_.editor-wrapper]:min-h-[128px] [&_.editor-wrapper]:border-[#cac9cb] [&_.editor-wrapper]:p-[18px]"
+            @update:modelValue="onSummaryUpdate"
           />
         </o-field>
         <p class="text-xs text-gray-500 text-right">
-          {{ summaryTextLength }}/100
+          {{ currentSummaryLength }}/2000
         </p>
       </div>
 
@@ -489,6 +490,39 @@ const notifier = inject<Notifier>("notifier");
 const showCopiedTooltipLight = ref(false);
 const showCopiedTooltipDark = ref(false);
 
+// Reactive character counter for immediate updates
+const currentSummaryLength = ref(0);
+
+// Handler for editor content updates (including paste)
+const onSummaryUpdate = (newValue: string) => {
+  group.value.summary = newValue;
+  updateCharacterCount(newValue);
+};
+
+// Helper function to update character count
+const updateCharacterCount = (htmlContent: string) => {
+  if (!htmlContent) {
+    currentSummaryLength.value = 0;
+  } else {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+    currentSummaryLength.value = (
+      tempDiv.textContent ||
+      tempDiv.innerText ||
+      ""
+    ).length;
+  }
+};
+
+// Initialize character counter and watch for changes
+watch(
+  () => group.value.summary,
+  (newSummary) => {
+    updateCharacterCount(newSummary || "");
+  },
+  { immediate: true }
+);
+
 watch(
   () => group.value.name,
   (newGroupName) => {
@@ -533,14 +567,7 @@ const canShowCopyButton = computed((): boolean => {
   return window.isSecureContext;
 });
 
-// Function to strip HTML tags and get plain text length
-const summaryTextLength = computed(() => {
-  if (!group.value.summary) return 0;
-  // Create a temporary div element to strip HTML tags
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = group.value.summary;
-  return (tempDiv.textContent || tempDiv.innerText || "").length;
-});
+// Note: summaryTextLength has been replaced by currentSummaryLength for better reactivity
 
 const copyIframeCodeLight = async (): Promise<void> => {
   await window.navigator.clipboard.writeText(iframeCodeLight.value);
@@ -700,9 +727,9 @@ const createGroup = async (): Promise<void> => {
   }
 
   // Client-side validation for description length (strip HTML tags)
-  if (group.value.summary && summaryTextLength.value > 100) {
+  if (group.value.summary && currentSummaryLength.value > 1000) {
     fieldErrors.summary = t(
-      "Description cannot be longer than 100 characters"
+      "Description cannot be longer than 1000 characters"
     ) as string;
     return;
   }

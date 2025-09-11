@@ -54,13 +54,17 @@
             <Editor
               mode="basic"
               v-model="editableGroup.summary"
-              :maxSize="500"
+              :maxSize="2000"
               :aria-label="t('Group description body')"
               v-if="currentActor"
               :currentActor="currentActor"
               :placeholder="t('A few lines about your group')"
               class="w-full"
+              @update:modelValue="onSummaryUpdate"
             />
+            <p class="text-xs text-gray-500 text-right">
+              {{ currentSummaryLength }}/2000
+            </p>
           </div>
           <div class="space-y-2">
             <label class="block text-sm font-medium text-gray-700">
@@ -398,7 +402,7 @@ import {
   useHost,
 } from "@/composition/config";
 import { useI18n } from "vue-i18n";
-import { computed, ref, defineAsyncComponent, inject } from "vue";
+import { computed, ref, defineAsyncComponent, inject, watch } from "vue";
 import { useGroup, useUpdateGroup } from "@/composition/apollo/group";
 import {
   useCurrentActorClient,
@@ -443,7 +447,42 @@ const showCopiedTooltip = ref(false);
 const showCopiedTooltipLight = ref(false);
 const showCopiedTooltipDark = ref(false);
 
+// Reactive character counter for immediate updates
+const currentSummaryLength = ref(0);
+
+// Handler for editor content updates (including paste)
+const onSummaryUpdate = (newValue: string) => {
+  if (editableGroup.value) {
+    editableGroup.value.summary = newValue;
+  }
+  updateCharacterCount(newValue);
+};
+
+// Helper function to update character count
+const updateCharacterCount = (htmlContent: string) => {
+  if (!htmlContent) {
+    currentSummaryLength.value = 0;
+  } else {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+    currentSummaryLength.value = (
+      tempDiv.textContent ||
+      tempDiv.innerText ||
+      ""
+    ).length;
+  }
+};
+
 const editableGroup = ref<IGroup>();
+
+// Initialize character counter when editableGroup changes
+watch(
+  () => editableGroup.value?.summary,
+  (newSummary: string | undefined) => {
+    updateCharacterCount(newSummary || "");
+  },
+  { immediate: true }
+);
 
 const {
   onDone,
