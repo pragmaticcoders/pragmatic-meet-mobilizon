@@ -274,9 +274,18 @@ config :mobilizon, :http_security,
     style_src: [],
     connect_src: [],
     font_src: [],
-    img_src: ["*.tile.openstreetmap.org", "meetup.pragmaticcoders.com", "pragmaticmeet.com"],
+    img_src: [
+      "*.tile.openstreetmap.org",
+      "meetup.pragmaticcoders.com",
+      "pragmaticmeet.com",
+      "dev.pragmaticmeet.com"
+    ],
     manifest_src: [],
-    media_src: ["meetup.pragmaticcoders.com", "pragmaticmeet.com"],
+    media_src: [
+      "meetup.pragmaticcoders.com",
+      "pragmaticmeet.com",
+      "dev.pragmaticmeet.com"
+    ],
     object_src: [],
     frame_src: [],
     frame_ancestors: []

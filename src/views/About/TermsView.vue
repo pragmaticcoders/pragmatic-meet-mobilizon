@@ -63,9 +63,9 @@
             }}
             <span class="font-bold"> Pragmatic Meet </span>
             (<a
-              href="https://pragmaticmeet.com/"
+              :href="siteUrl"
               class="font-bold underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-              >pragmaticmeet.com</a
+              >{{ siteDomain }}</a
             >)
             {{
               t(
@@ -486,9 +486,13 @@
 <script lang="ts" setup>
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 import RouteName from "@/router/name";
 
 const { t } = useI18n({ useScope: "global" });
+
+const siteUrl = computed(() => window.location.origin);
+const siteDomain = computed(() => window.location.host);
 
 useHead({
   title: t("Terms of Service"),

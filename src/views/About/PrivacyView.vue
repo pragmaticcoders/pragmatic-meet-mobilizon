@@ -11,9 +11,7 @@
         <p class="text-[17px] leading-[26px] text-[#1c1b1f]">
           Niektóre terminy, techniczne lub inne, użyte w poniższym tekście mogą
           obejmować pojęcia, które są trudne do zrozumienia. Udostępniliśmy
-          <a
-            href="https://pragmaticmeet.com/glossary"
-            class="font-bold underline"
+          <a :href="`${siteUrl}/glossary`" class="font-bold underline"
             >słowniczek</a
           >, aby pomóc w ich lepszym zrozumieniu.
         </p>
@@ -84,9 +82,10 @@
           class="list-disc ml-6 text-[17px] leading-[26px] text-[#1c1b1f] space-y-2"
         >
           <li>
-            Aby zapewnić podstawową funkcjonalność Pragmatic Meet. Zgodnie z polityką
-            tej instancji, możliwe będzie wchodzenie w interakcje z treściami
-            innych osób i publikowanie własnych treści wyłącznie po zalogowaniu.
+            Aby zapewnić podstawową funkcjonalność Pragmatic Meet. Zgodnie z
+            polityką tej instancji, możliwe będzie wchodzenie w interakcje z
+            treściami innych osób i publikowanie własnych treści wyłącznie po
+            zalogowaniu.
           </li>
           <li>
             Aby pomóc w moderowaniu społeczności, na przykład porównując adres
@@ -276,6 +275,9 @@
 
 <script lang="ts" setup>
 import { useHead } from "@/utils/head";
+import { computed } from "vue";
+
+const siteUrl = computed(() => window.location.origin);
 
 useHead({
   title: "Polityka prywatności",
