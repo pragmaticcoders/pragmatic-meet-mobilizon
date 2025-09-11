@@ -5,6 +5,7 @@ on:
     branches: [main, test]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 env:
   REGISTRY: docker.io
@@ -54,26 +55,55 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  deploy:
+  deploy-dev:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    if: github.ref == 'refs/heads/test'
 
     steps:
-      - name: Deploy to server
+      - name: Deploy to development server
         run: |
           # Set up SSH key
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          
+
           # Add SSH key to agent
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
-          
+
+          # Add server to known hosts to avoid host key verification
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST_DEV }} >> ~/.ssh/known_hosts
+
+          # Connect and run deployment commands
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << 'EOF'
+            cd /root/mobilizon
+            git pull
+            cd /root/mobilizon/docker/production
+            docker compose down
+            docker compose up -d
+          EOF
+
+  deploy-prod:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Deploy to production server
+        run: |
+          # Set up SSH key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Add SSH key to agent
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_rsa
+
           # Add server to known hosts to avoid host key verification
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
-          
+
           # Connect and run deployment commands
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << 'EOF'
             cd /root/mobilizon
