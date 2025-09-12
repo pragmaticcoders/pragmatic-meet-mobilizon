@@ -250,6 +250,75 @@
       </section>
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-6">
+          {{ t("Participation") }}
+        </h2>
+
+        <div class="space-y-6">
+          <div>
+            <o-switch v-model="limitedPlaces">
+              {{ t("Limit the number of participants") }}
+            </o-switch>
+          </div>
+
+          <div v-if="limitedPlaces" class="space-y-4 ml-6">
+            <div>
+              <label
+                for="maximumAttendeeCapacity"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {{ t("Maximum number of participants") }}
+              </label>
+              <o-input
+                id="maximumAttendeeCapacity"
+                v-model="maximumAttendeeCapacity"
+                type="number"
+                :min="(currentParticipantCount || 1).toString()"
+                class="w-32"
+              />
+              <p
+                v-if="currentParticipantCount > 0"
+                class="text-sm text-gray-500 mt-1"
+              >
+                {{
+                  t(
+                    "Current participants: {count}. Limit cannot be lower than current participants.",
+                    { count: currentParticipantCount }
+                  )
+                }}
+              </p>
+            </div>
+
+            <div>
+              <o-switch v-model="enableWaitlist">
+                {{ t("Enable waitlist when event is full") }}
+              </o-switch>
+              <p class="text-sm text-gray-500 mt-1">
+                {{
+                  t(
+                    "When enabled, participants can join a waitlist if the event reaches capacity. They'll be notified if spots become available."
+                  )
+                }}
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <o-switch v-model="blockNewRegistrations">
+              {{ t("Block new registrations") }}
+            </o-switch>
+            <p class="text-sm text-gray-500 mt-1">
+              {{
+                t(
+                  "When enabled, new participants cannot join this event. Existing participants remain unaffected."
+                )
+              }}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">
           {{ t("Public comment moderation") }}
         </h2>
 
@@ -1253,6 +1322,34 @@ const hideParticipants = computed({
   },
 });
 
+const enableWaitlist = computed({
+  get(): boolean {
+    return event.value?.options.enableWaitlist || false;
+  },
+  set(value: boolean) {
+    event.value.options = {
+      ...event.value.options,
+      enableWaitlist: value,
+    };
+  },
+});
+
+const blockNewRegistrations = computed({
+  get(): boolean {
+    return event.value?.options.blockNewRegistrations || false;
+  },
+  set(value: boolean) {
+    event.value.options = {
+      ...event.value.options,
+      blockNewRegistrations: value,
+    };
+  },
+});
+
+const currentParticipantCount = computed((): number => {
+  return event.value?.participantStats?.participant || 0;
+});
+
 const checkTitleLength = computed((): Array<string | undefined> => {
   if (event.value.title.length < 3 && event.value.title.length > 0) {
     return ["danger", t("The event title must be at least 3 characters long.")];
@@ -1298,19 +1395,6 @@ const confirmGoElsewhere = (): Promise<boolean> => {
       onCancel: () => resolve(false),
     });
   });
-};
-
-/**
- * Download the Pragmatic Coders logo zip file
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const downloadLogo = (): void => {
-  const link = document.createElement("a");
-  link.href = "/Logo-Pragmatic-Coders.zip";
-  link.download = "Logo-Pragmatic-Coders.zip";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 /**
@@ -1559,6 +1643,28 @@ const maximumAttendeeCapacity = computed({
       newMaximumAttendeeCapacity
     );
   },
+});
+
+// Watcher to ensure capacity is not set below current participants
+watch(maximumAttendeeCapacity, (newValue: string) => {
+  const currentCount = currentParticipantCount.value;
+  const newValueNum = parseInt(newValue, 10);
+  if (
+    newValue &&
+    currentCount > 0 &&
+    !isNaN(newValueNum) &&
+    newValueNum < currentCount
+  ) {
+    maximumAttendeeCapacity.value = currentCount.toString();
+    notifier?.error(
+      t(
+        "Cannot set participant limit below current participant count ({count})",
+        {
+          count: currentCount,
+        }
+      )
+    );
+  }
 });
 
 const { event: fetchedEvent, onResult: onFetchEventResult } = useFetchEvent(

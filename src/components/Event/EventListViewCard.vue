@@ -37,12 +37,20 @@
       </span>
       <span>
         <span v-if="event.options.maximumAttendeeCapacity !== 0">
-          {{
-            $t("{approved} / {total} seats", {
-              approved: event.participantStats.participant,
-              total: event.options.maximumAttendeeCapacity,
-            })
-          }}
+          <span v-if="event.participantStats.participant < event.options.maximumAttendeeCapacity">
+            {{
+              $t("{approved} / {total} seats", {
+                approved: event.participantStats.participant,
+                total: event.options.maximumAttendeeCapacity,
+              })
+            }}
+          </span>
+          <span v-else class="flex items-center gap-1">
+            <span class="text-red-600 font-medium">{{ $t("Full") }}</span>
+            <span v-if="event.options.enableWaitlist" class="text-xs text-gray-500">
+              ({{ $t("waitlist available") }})
+            </span>
+          </span>
         </span>
         <span v-else>
           {{

@@ -67,19 +67,37 @@
         </router-link>
         <span v-else>
           <span v-if="maximumAttendeeCapacity">
-            {{
-              t(
-                "{available}/{capacity} available places",
-                {
-                  available:
-                    maximumAttendeeCapacity -
-                    (event?.participantStats.participant ?? 0),
-                  capacity: maximumAttendeeCapacity,
-                },
-                maximumAttendeeCapacity -
-                  (event?.participantStats.participant ?? 0)
-              )
-            }}
+            <span v-if="eventCapacityOK">
+              {{
+                t(
+                  "{available}/{capacity} available places",
+                  {
+                    available:
+                      maximumAttendeeCapacity -
+                      (event?.participantStats.participant ?? 0),
+                    capacity: maximumAttendeeCapacity,
+                  },
+                  maximumAttendeeCapacity -
+                    (event?.participantStats.participant ?? 0)
+                )
+              }}
+            </span>
+            <span v-else-if="event?.options?.blockNewRegistrations" class="flex items-center gap-2">
+              <span class="text-red-600 font-medium">
+                {{ t("Registrations blocked") }}
+              </span>
+            </span>
+            <span v-else class="flex items-center gap-2">
+              <span class="text-red-600 font-medium">
+                {{ t("Event full") }}
+              </span>
+              <span
+                v-if="event?.options?.enableWaitlist"
+                class="text-sm text-gray-600"
+              >
+                ({{ t("waitlist available") }})
+              </span>
+            </span>
           </span>
           <span v-else>
             {{

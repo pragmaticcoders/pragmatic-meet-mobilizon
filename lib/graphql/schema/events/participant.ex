@@ -78,6 +78,7 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     value(:administrator, description: "The participant is an event administrator")
     value(:creator, description: "The participant is an event creator")
     value(:rejected, description: "The participant has been rejected from this event")
+    value(:waitlist, description: "The participant is on the waitlist for this event")
   end
 
   enum :export_format_enum do

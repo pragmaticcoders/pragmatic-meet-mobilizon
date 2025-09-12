@@ -67,7 +67,8 @@ defmodule Mobilizon.Events do
     :participant,
     :moderator,
     :administrator,
-    :creator
+    :creator,
+    :waitlist
   ])
 
   @public_visibility [:public, :unlisted]

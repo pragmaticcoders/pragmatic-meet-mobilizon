@@ -18,7 +18,10 @@ defmodule Mobilizon.Federation.ActivityPub.Actions.Join do
   Join an entity (an event or a group), using an activity of type `Join`
   """
   @spec join(Event.t(), Actor.t(), boolean, map) ::
-          {:ok, Activity.t(), Participant.t()} | {:error, :maximum_attendee_capacity}
+          {:ok, Activity.t(), Participant.t()}
+          | {:ok, Activity.t(), Participant.t(), :waitlist}
+          | {:error, :maximum_attendee_capacity}
+          | {:error, :registrations_blocked}
   @spec join(Actor.t(), Actor.t(), boolean, map) :: {:ok, Activity.t(), Member.t()}
   def join(entity_to_join, actor_joining, local \\ true, additional \\ %{})
 
@@ -29,8 +32,16 @@ defmodule Mobilizon.Federation.ActivityPub.Actions.Join do
         maybe_federate(activity)
         {:ok, activity, participant}
 
+      {:ok, activity_data, participant, :waitlist} ->
+        {:ok, activity} = create_activity(activity_data, local)
+        maybe_federate(activity)
+        {:ok, activity, participant, :waitlist}
+
       {:error, :maximum_attendee_capacity_reached} ->
         {:error, :maximum_attendee_capacity_reached}
+
+      {:error, :registrations_blocked} ->
+        {:error, :registrations_blocked}
 
       {:accept, accept} ->
         accept

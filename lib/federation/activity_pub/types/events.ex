@@ -143,39 +143,97 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
           {:ok, ActivityStreams.t(), Participant.t()}
           | {:accept, any()}
           | {:error, :maximum_attendee_capacity_reached}
+          | {:error, :registrations_blocked}
+          | {:ok, ActivityStreams.t(), Participant.t(), :waitlist}
   def join(%Event{} = event, %Actor{} = actor, _local, additional) do
-    if check_attendee_capacity?(event) do
-      role =
-        additional
-        |> Map.get(:metadata, %{})
-        |> Map.get(:role, Mobilizon.Events.get_default_participant_role(event))
+    case check_attendee_capacity_or_waitlist(event) do
+      :ok ->
+        role =
+          additional
+          |> Map.get(:metadata, %{})
+          |> Map.get(:role, Mobilizon.Events.get_default_participant_role(event))
 
-      case Mobilizon.Events.create_participant(%{
-             role: role,
-             event_id: event.id,
-             actor_id: actor.id,
-             url: Map.get(additional, :url),
-             metadata:
-               additional
-               |> Map.get(:metadata, %{})
-               |> Map.update(:message, nil, &String.trim(HTML.strip_tags(&1)))
-           }) do
-        {:ok, %Participant{} = participant} ->
-          join_data = Convertible.model_to_as(participant)
-          audience = Audience.get_audience(participant)
+        case Mobilizon.Events.create_participant(%{
+               role: role,
+               event_id: event.id,
+               actor_id: actor.id,
+               url: Map.get(additional, :url),
+               metadata:
+                 additional
+                 |> Map.get(:metadata, %{})
+                 |> Map.update(:message, nil, &String.trim(HTML.strip_tags(&1)))
+             }) do
+          {:ok, %Participant{} = participant} ->
+            join_data = Convertible.model_to_as(participant)
+            audience = Audience.get_audience(participant)
 
-          approve_if_default_role_is_participant(
-            event,
-            Map.merge(join_data, audience),
-            participant,
-            role
-          )
+            approve_if_default_role_is_participant(
+              event,
+              Map.merge(join_data, audience),
+              participant,
+              role
+            )
 
-        {:error, _, %Ecto.Changeset{} = err, _} ->
-          {:error, err}
-      end
-    else
-      {:error, :maximum_attendee_capacity_reached}
+          {:error, _, %Ecto.Changeset{} = err, _} ->
+            {:error, err}
+        end
+
+      :waitlist ->
+        case Mobilizon.Events.create_participant(%{
+               role: :waitlist,
+               event_id: event.id,
+               actor_id: actor.id,
+               url: Map.get(additional, :url),
+               metadata:
+                 additional
+                 |> Map.get(:metadata, %{})
+                 |> Map.update(:message, nil, &String.trim(HTML.strip_tags(&1)))
+             }) do
+          {:ok, %Participant{} = participant} ->
+            join_data = Convertible.model_to_as(participant)
+            audience = Audience.get_audience(participant)
+
+            {:ok, Map.merge(join_data, audience), participant, :waitlist}
+
+          {:error, _, %Ecto.Changeset{} = err, _} ->
+            {:error, err}
+        end
+
+      :capacity_reached ->
+        {:error, :maximum_attendee_capacity_reached}
+
+      :registrations_blocked ->
+        {:error, :registrations_blocked}
+    end
+  end
+
+  @spec check_attendee_capacity_or_waitlist(Event.t()) ::
+          :ok | :waitlist | :capacity_reached | :registrations_blocked
+  defp check_attendee_capacity_or_waitlist(%Event{options: options} = event) do
+    maximum_attendee_capacity = Map.get(options, :maximum_attendee_capacity) || 0
+    enable_waitlist = Map.get(options, :enable_waitlist) || false
+    block_new_registrations = Map.get(options, :block_new_registrations) || false
+
+    cond do
+      # New registrations are blocked
+      block_new_registrations ->
+        :registrations_blocked
+
+      # No capacity limit set
+      maximum_attendee_capacity == 0 ->
+        :ok
+
+      # Within capacity
+      Mobilizon.Events.count_participant_participants(event.id) < maximum_attendee_capacity ->
+        :ok
+
+      # At capacity but waitlist enabled
+      enable_waitlist ->
+        :waitlist
+
+      # At capacity and no waitlist
+      true ->
+        :capacity_reached
     end
   end
 

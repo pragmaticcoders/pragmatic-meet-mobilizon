@@ -7,6 +7,7 @@ defmodule Mobilizon.Events.EventOptions do
 
   import Ecto.Changeset
   alias Mobilizon.Discussions.CommentModeration
+
   alias Mobilizon.Events.{
     EventOffer,
     EventParticipationCondition
@@ -28,7 +29,9 @@ defmodule Mobilizon.Events.EventOptions do
           show_end_time: boolean,
           timezone: String.t() | nil,
           hide_organizer_when_group_event: boolean,
-          is_online: boolean()
+          is_online: boolean(),
+          enable_waitlist: boolean(),
+          block_new_registrations: boolean()
         }
 
   @attrs [
@@ -45,7 +48,9 @@ defmodule Mobilizon.Events.EventOptions do
     :show_end_time,
     :timezone,
     :hide_organizer_when_group_event,
-    :is_online
+    :is_online,
+    :enable_waitlist,
+    :block_new_registrations
   ]
 
   @primary_key false
@@ -65,6 +70,8 @@ defmodule Mobilizon.Events.EventOptions do
     field(:timezone, :string)
     field(:hide_organizer_when_group_event, :boolean, default: false)
     field(:is_online, :boolean, default: false)
+    field(:enable_waitlist, :boolean, default: false)
+    field(:block_new_registrations, :boolean, default: false)
 
     embeds_many(:offers, EventOffer)
     embeds_many(:participation_condition, EventParticipationCondition)

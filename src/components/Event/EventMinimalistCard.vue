@@ -87,19 +87,27 @@
       <p class="flex gap-1">
         <AccountMultiple />
         <span v-if="event.options.maximumAttendeeCapacity !== 0">
-          {{
-            $t(
-              "{available}/{capacity} available places",
-              {
-                available:
-                  event.options.maximumAttendeeCapacity -
-                  event.participantStats.participant,
-                capacity: event.options.maximumAttendeeCapacity,
-              },
-              event.options.maximumAttendeeCapacity -
-                event.participantStats.participant
-            )
-          }}
+          <span v-if="event.participantStats.participant < event.options.maximumAttendeeCapacity">
+            {{
+              $t(
+                "{available}/{capacity} available places",
+                {
+                  available:
+                    event.options.maximumAttendeeCapacity -
+                    event.participantStats.participant,
+                  capacity: event.options.maximumAttendeeCapacity,
+                },
+                event.options.maximumAttendeeCapacity -
+                  event.participantStats.participant
+              )
+            }}
+          </span>
+          <span v-else class="flex items-center gap-1">
+            <span class="text-red-600 font-medium">{{ $t("Full") }}</span>
+            <span v-if="event.options.enableWaitlist" class="text-xs text-gray-500">
+              ({{ $t("waitlist") }})
+            </span>
+          </span>
         </span>
         <span v-else>
           {{

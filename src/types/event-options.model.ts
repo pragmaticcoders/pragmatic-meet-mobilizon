@@ -29,6 +29,8 @@ export interface IEventOptions {
   showEndTime: boolean;
   timezone: string | null;
   isOnline: boolean;
+  enableWaitlist: boolean;
+  blockNewRegistrations: boolean;
 }
 
 export class EventOptions implements IEventOptions {
@@ -63,4 +65,8 @@ export class EventOptions implements IEventOptions {
   timezone = null;
 
   isOnline = false;
+
+  enableWaitlist = false;
+
+  blockNewRegistrations = false;
 }

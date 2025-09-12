@@ -95,6 +95,75 @@
 
     <div
       v-else-if="
+        participation && participation.role === ParticipantRole.WAITLIST
+      "
+      class="flex flex-col"
+    >
+      <o-dropdown>
+        <template #trigger>
+          <o-button variant="warning" size="large" type="button">
+            <template class="flex items-center">
+              <TimerSandEmpty />
+              <span>{{ t("On waitlist") }}</span>
+              <MenuDown />
+            </template>
+          </o-button>
+        </template>
+
+        <o-dropdown-item
+          :value="false"
+          aria-role="listitem"
+          @click="confirmLeave"
+          @keyup.enter="confirmLeave"
+          class=""
+          >{{ t("Leave waitlist") }}</o-dropdown-item
+        >
+      </o-dropdown>
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              class="text-blue-500"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+                fill="currentColor"
+                fill-opacity="0.1"
+              />
+              <path
+                d="M12 6v6l4 2"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+          <div class="min-w-[200px]">
+            <h3 class="font-medium text-blue-800 text-sm mb-1">
+              {{ t("You're on the waitlist") }}
+            </h3>
+            <p class="text-blue-700 text-sm leading-relaxed">
+              {{
+                t(
+                  "You'll be notified if a spot becomes available for this event."
+                )
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-else-if="
         participation && participation.role === ParticipantRole.REJECTED
       "
       class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4"
@@ -146,8 +215,20 @@
           variant="primary"
           size="large"
           :icon-right="active ? 'menu-up' : 'menu-down'"
+          :disabled="isEventFull && !event.options.enableWaitlist || event.options.blockNewRegistrations"
         >
-          {{ t("Participate") }}
+          <span v-if="event.options.blockNewRegistrations">
+            {{ t("Registrations blocked") }}
+          </span>
+          <span v-else-if="isEventFull && event.options.enableWaitlist">
+            {{ t("Join waitlist") }}
+          </span>
+          <span v-else-if="isEventFull">
+            {{ t("Event full") }}
+          </span>
+          <span v-else>
+            {{ t("Participate") }}
+          </span>
         </o-button>
       </template>
 
@@ -156,6 +237,7 @@
         aria-role="listitem"
         @click="joinEvent(currentActor)"
         @keyup.enter="joinEvent(currentActor)"
+        v-if="!isEventFull || event.options.enableWaitlist"
       >
         <div class="flex gap-2 items-center">
           <figure
@@ -265,5 +347,12 @@ const confirmLeave = (): void => {
 
 const hasAnonymousParticipationMethods = computed((): boolean => {
   return props.event.options.anonymousParticipation;
+});
+
+const isEventFull = computed((): boolean => {
+  const maxCapacity = props.event.options.maximumAttendeeCapacity;
+  if (!maxCapacity || maxCapacity === 0) return false;
+
+  return props.event.participantStats.participant >= maxCapacity;
 });
 </script>

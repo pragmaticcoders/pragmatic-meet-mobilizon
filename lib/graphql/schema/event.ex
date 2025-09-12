@@ -85,9 +85,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       resolve: &Event.stats_participants/3
     )
 
-    field(:participants, :paginated_participant_list,
-      description: "The event's participants"
-    ) do
+    field(:participants, :paginated_participant_list, description: "The event's participants") do
       arg(:page, :integer,
         default_value: 1,
         description: "The page in the paginated participants list"
@@ -282,6 +280,14 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
     )
 
     field(:is_online, :boolean, description: "Whether the event is fully online")
+
+    field(:enable_waitlist, :boolean,
+      description: "Whether to enable a waitlist when the event reaches maximum capacity"
+    )
+
+    field(:block_new_registrations, :boolean,
+      description: "Whether to block new participants from joining this event"
+    )
   end
 
   @desc """
@@ -339,6 +345,14 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
     )
 
     field(:is_online, :boolean, description: "Whether the event is fully online")
+
+    field(:enable_waitlist, :boolean,
+      description: "Whether to enable a waitlist when the event reaches maximum capacity"
+    )
+
+    field(:block_new_registrations, :boolean,
+      description: "Whether to block new participants from joining this event"
+    )
   end
 
   enum :event_metadata_type do

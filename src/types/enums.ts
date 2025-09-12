@@ -99,6 +99,7 @@ export enum ParticipantRole {
   MODERATOR = "MODERATOR",
   ADMINISTRATOR = "ADMINISTRATOR",
   CREATOR = "CREATOR",
+  WAITLIST = "WAITLIST",
 }
 
 export enum PostVisibility {
