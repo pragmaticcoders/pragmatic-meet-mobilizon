@@ -1688,6 +1688,17 @@ defmodule Mobilizon.Events do
     from(p in Participant, where: p.event_id == ^event_id)
   end
 
+  @doc """
+  Count participants for an event by specific roles
+  """
+  @spec count_participants_by_role(integer, list(atom())) :: integer()
+  def count_participants_by_role(event_id, roles) do
+    from(p in Participant, 
+         where: p.event_id == ^event_id and p.role in ^roles,
+         select: count(p.id))
+    |> Repo.one()
+  end
+
   @spec event_participations_for_actor_query(integer, DateTime.t() | nil) :: Ecto.Query.t()
   defp event_participations_for_actor_query(actor_id, after_date \\ nil)
 

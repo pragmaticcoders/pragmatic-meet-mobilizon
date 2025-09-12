@@ -46,6 +46,9 @@
             <option :value="ParticipantRole.REJECTED">
               {{ t("Rejected") }}
             </option>
+            <option :value="ParticipantRole.WAITLIST">
+              {{ t("Waitlist") }}
+            </option>
           </o-select>
         </div>
         <div class="flex flex-wrap items-center gap-2">
@@ -186,6 +189,8 @@
                   participant.role === ParticipantRole.NOT_APPROVED,
                 'bg-red-100 text-red-800':
                   participant.role === ParticipantRole.REJECTED,
+                'bg-blue-100 text-blue-800':
+                  participant.role === ParticipantRole.WAITLIST,
               }"
             >
               <template v-if="participant.role === ParticipantRole.CREATOR">
@@ -210,6 +215,11 @@
                 v-else-if="participant.role === ParticipantRole.REJECTED"
               >
                 {{ t("Rejected") }}
+              </template>
+              <template
+                v-else-if="participant.role === ParticipantRole.WAITLIST"
+              >
+                {{ t("Waitlist") }}
               </template>
             </span>
           </div>
@@ -249,7 +259,8 @@
                 <o-button
                   v-if="
                     participant.role === ParticipantRole.NOT_APPROVED ||
-                    participant.role === ParticipantRole.REJECTED
+                    participant.role === ParticipantRole.REJECTED ||
+                    participant.role === ParticipantRole.WAITLIST
                   "
                   @click="
                     participant.id &&
@@ -400,6 +411,8 @@
                 props.row.role === ParticipantRole.NOT_APPROVED,
               'bg-red-100 text-red-800':
                 props.row.role === ParticipantRole.REJECTED,
+              'bg-blue-100 text-blue-800':
+                props.row.role === ParticipantRole.WAITLIST,
             }"
           >
             <template v-if="props.row.role === ParticipantRole.CREATOR">
@@ -422,6 +435,9 @@
             </template>
             <template v-else-if="props.row.role === ParticipantRole.REJECTED">
               {{ t("Rejected") }}
+            </template>
+            <template v-else-if="props.row.role === ParticipantRole.WAITLIST">
+              {{ t("Waitlist") }}
             </template>
           </span>
         </o-table-column>
@@ -479,7 +495,8 @@
             <o-button
               v-if="
                 props.row.role === ParticipantRole.NOT_APPROVED ||
-                props.row.role === ParticipantRole.REJECTED
+                props.row.role === ParticipantRole.REJECTED ||
+                props.row.role === ParticipantRole.WAITLIST
               "
               @click="
                 updateSingleParticipant(
@@ -799,9 +816,11 @@ const formatToIcon = (format: exportFormat): string => {
  */
 const canAcceptParticipants = (): boolean => {
   return checkedRows.value.some((participant: IParticipant) =>
-    [ParticipantRole.NOT_APPROVED, ParticipantRole.REJECTED].includes(
-      participant.role
-    )
+    [
+      ParticipantRole.NOT_APPROVED,
+      ParticipantRole.REJECTED,
+      ParticipantRole.WAITLIST,
+    ].includes(participant.role)
   );
 };
 

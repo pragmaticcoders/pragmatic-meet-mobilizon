@@ -45,6 +45,12 @@ defmodule Mobilizon.Federation.ActivityPub.Actions.Leave do
         {:ok, %Participant{} = participant} ->
           case Events.delete_participant(participant) do
             {:ok, %{participant: %Participant{} = participant}} ->
+              # Check if we need to promote someone from waitlist
+              Task.start(fn ->
+                alias Mobilizon.GraphQL.API.Participations
+                Participations.promote_from_waitlist_if_needed(event_id)
+              end)
+
               leave_data = %{
                 "type" => "Leave",
                 # If it's an exclusion it should be something else
