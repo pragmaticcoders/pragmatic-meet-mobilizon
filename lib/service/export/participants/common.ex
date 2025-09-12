@@ -8,7 +8,6 @@ defmodule Mobilizon.Service.Export.Participants.Common do
   alias Mobilizon.Events.Participant
   alias Mobilizon.Events.Participant.Metadata
   alias Mobilizon.Storage.Repo
-  alias Mobilizon.Users.User
   import Mobilizon.Web.Gettext, only: [gettext: 1]
   import Mobilizon.Service.DateTime, only: [datetime_to_string: 2]
 
@@ -88,7 +87,7 @@ defmodule Mobilizon.Service.Export.Participants.Common do
     Repo.delete!(export)
   end
 
-  @spec to_list({Participant.t(), Actor.t(), User.t() | nil}) :: list(String.t())
+  @spec to_list({Participant.t(), Actor.t(), map() | nil}) :: list(String.t())
   def to_list(
         {%Participant{role: role, metadata: metadata, inserted_at: inserted_at},
          %Actor{domain: nil, preferred_username: "anonymous"}, _user}
@@ -122,12 +121,12 @@ defmodule Mobilizon.Service.Export.Participants.Common do
 
   defp convert_metadata(_), do: ""
 
-  @spec get_participant_email(Metadata.t() | nil, User.t() | nil) :: String.t()
+  @spec get_participant_email(Metadata.t() | nil, map() | nil) :: String.t()
   defp get_participant_email(%Metadata{email: email}, nil) when is_binary(email) do
     email
   end
 
-  defp get_participant_email(_metadata, %User{email: email}) when is_binary(email) do
+  defp get_participant_email(_metadata, %{email: email}) when is_binary(email) do
     email
   end
 
