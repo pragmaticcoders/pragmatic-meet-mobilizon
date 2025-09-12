@@ -326,7 +326,7 @@
           <legend>{{ t("Who can post a comment?") }}</legend>
           <o-field>
             <o-radio
-              v-model="eventOptions.commentModeration"
+              v-model="event.options.commentModeration"
               name="commentModeration"
               :native-value="CommentModeration.ALLOW_ALL"
               >{{ t("Allow all comments from users with accounts") }}</o-radio
@@ -343,7 +343,7 @@
 
           <o-field>
             <o-radio
-              v-model="eventOptions.commentModeration"
+              v-model="event.options.commentModeration"
               name="commentModeration"
               :native-value="CommentModeration.CLOSED"
               >{{ t("Close comments for all (except for admins)") }}</o-radio
@@ -657,7 +657,22 @@ const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
 
 const pictureFile = ref<File | null>(null);
 
-const limitedPlaces = ref(false);
+const limitedPlaces = computed({
+  get(): boolean {
+    return (event.value?.options?.maximumAttendeeCapacity || 0) > 0;
+  },
+  set(value: boolean) {
+    if (!value) {
+      event.value.options.maximumAttendeeCapacity = 0;
+      event.value.options.remainingAttendeeCapacity = 0;
+      event.value.options.showRemainingAttendeeCapacity = false;
+    } else {
+      event.value.options.maximumAttendeeCapacity =
+        event.value.options.maximumAttendeeCapacity ||
+        DEFAULT_LIMIT_NUMBER_OF_PLACES;
+    }
+  },
+});
 const showFixedNavbar = ref(true);
 
 const observer = ref<IntersectionObserver | null>(null);
@@ -1245,9 +1260,13 @@ const buildVariables = async () => {
     throw new Error("No organizer actor found");
   }
 
+  // Clean the options object to remove Apollo Client metadata like __typename
+  const cleanOptions = { ...event.value.options };
+  delete (cleanOptions as any).__typename;
+
   let res = {
     ...toEditJSON(new EventModel(event.value)),
-    options: eventOptions.value,
+    options: cleanOptions,
   };
 
   // Ensure category is always set to a valid value
@@ -1286,18 +1305,6 @@ const buildVariables = async () => {
 
   return res;
 };
-
-watch(limitedPlaces, () => {
-  if (!limitedPlaces.value) {
-    eventOptions.value.maximumAttendeeCapacity = 0;
-    eventOptions.value.remainingAttendeeCapacity = 0;
-    eventOptions.value.showRemainingAttendeeCapacity = false;
-  } else {
-    eventOptions.value.maximumAttendeeCapacity =
-      eventOptions.value.maximumAttendeeCapacity ||
-      DEFAULT_LIMIT_NUMBER_OF_PLACES;
-  }
-});
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const needsApproval = computed({
@@ -1636,10 +1643,10 @@ watch(isOnline, (newIsOnline) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const maximumAttendeeCapacity = computed({
   get(): string {
-    return eventOptions.value.maximumAttendeeCapacity.toString();
+    return event.value.options.maximumAttendeeCapacity.toString();
   },
   set(newMaximumAttendeeCapacity: string) {
-    eventOptions.value.maximumAttendeeCapacity = parseInt(
+    event.value.options.maximumAttendeeCapacity = parseInt(
       newMaximumAttendeeCapacity
     );
   },

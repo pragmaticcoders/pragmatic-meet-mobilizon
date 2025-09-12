@@ -124,7 +124,7 @@ import {
   removeAnonymousParticipation,
 } from "@/services/AnonymousParticipationStorage";
 import ParticipationButton from "../Event/ParticipationButton.vue";
-import { computed, ref } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import InformationOutline from "vue-material-design-icons/InformationOutline.vue";
 import HelpCircleOutline from "vue-material-design-icons/HelpCircleOutline.vue";
 import { useI18n } from "vue-i18n";
@@ -140,7 +140,7 @@ const props = withDefaults(
     anonymousParticipation?: boolean | null;
     currentActor: IPerson | undefined;
     identities: IPerson[] | undefined;
-    anonymousParticipationConfig: IAnonymousParticipationConfig;
+    anonymousParticipationConfig?: IAnonymousParticipationConfig | null;
   }>(),
   {
     anonymousParticipation: null,
@@ -148,6 +148,26 @@ const props = withDefaults(
 );
 
 const isAnonymousParticipationModalOpen = ref(false);
+
+// Logging function
+const logParticipationSectionState = () => {
+  console.log("🔍 ParticipationSection Debug:", {
+    eventTitle: props.event.title,
+    participation: props.participation,
+    currentActor: props.currentActor,
+    anonymousParticipation: props.anonymousParticipation,
+    anonymousParticipationConfig: props.anonymousParticipationConfig,
+    actorIsParticipant: actorIsParticipant.value,
+    actorIsOrganizer: actorIsOrganizer.value,
+    shouldShowParticipationButton: shouldShowParticipationButton.value,
+    eventCapacityOK: eventCapacityOK.value,
+    isEventNotAlreadyPassed: isEventNotAlreadyPassed.value,
+    eventStatus: props.event.status,
+    eventDraft: props.event.draft,
+    maxCapacity: props.event.options.maximumAttendeeCapacity,
+    currentParticipants: props.event.participantStats.participant,
+  });
+};
 
 const actorIsParticipant = computed((): boolean => {
   if (actorIsOrganizer.value) return true;
@@ -160,25 +180,55 @@ const actorIsOrganizer = computed((): boolean => {
 });
 
 const shouldShowParticipationButton = computed((): boolean => {
+  console.log("🔍 shouldShowParticipationButton logic:", {
+    anonymousConfigAllowed: props.anonymousParticipationConfig?.allowed,
+    anonymousParticipation: props.anonymousParticipation,
+    actorIsParticipant: actorIsParticipant.value,
+    eventDraft: props.event.draft,
+    eventStatus: props.event.status,
+    eventCapacityOK: eventCapacityOK.value,
+    enableWaitlist: props.event.options.enableWaitlist,
+    isEventFull: !eventCapacityOK.value,
+  });
+
   // If we have an anonymous participation, don't show the participation button
   if (
     props.anonymousParticipationConfig?.allowed &&
     props.anonymousParticipation
   ) {
+    console.log("❌ Hidden: Anonymous participation active");
     return false;
   }
 
-  // So that people can cancel their participation
-  if (actorIsParticipant.value) return true;
+  // So that people can cancel their participation (including waitlist)
+  if (
+    actorIsParticipant.value ||
+    props.participation?.role === ParticipantRole.WAITLIST
+  ) {
+    console.log("✅ Shown: User is participant or on waitlist");
+    return true;
+  }
 
-  // You can participate to draft or cancelled events
-  if (props.event.draft || props.event.status === EventStatus.CANCELLED)
+  // You can't participate to draft or cancelled events
+  if (props.event.draft || props.event.status === EventStatus.CANCELLED) {
+    console.log("❌ Hidden: Event is draft or cancelled");
     return false;
+  }
 
-  // If capacity is OK
-  if (eventCapacityOK.value) return true;
+  // If capacity is OK, show button
+  if (eventCapacityOK.value) {
+    console.log("✅ Shown: Event has capacity");
+    return true;
+  }
 
-  // Else
+  // If event is full but waitlist is enabled, show button
+  if (!eventCapacityOK.value && props.event.options.enableWaitlist) {
+    console.log("✅ Shown: Event full but waitlist enabled");
+    return true;
+  }
+
+  // Event is full and no waitlist
+  console.log("❌ Hidden: Event full and no waitlist");
   return false;
 });
 
@@ -215,4 +265,17 @@ const clearAllParticipationData = (): void => {
   removeAllAnonymousParticipations();
   window.location.reload();
 };
+
+// Debug watchers
+onMounted(() => {
+  logParticipationSectionState();
+});
+
+watch(
+  () => [props.event.options, props.participation, props.currentActor],
+  () => {
+    logParticipationSectionState();
+  },
+  { deep: true }
+);
 </script>

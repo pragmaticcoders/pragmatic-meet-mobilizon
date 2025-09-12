@@ -215,7 +215,10 @@
           variant="primary"
           size="large"
           :icon-right="active ? 'menu-up' : 'menu-down'"
-          :disabled="isEventFull && !event.options.enableWaitlist || event.options.blockNewRegistrations"
+          :disabled="
+            event.options.blockNewRegistrations ||
+            (isEventFull && !event.options.enableWaitlist)
+          "
         >
           <span v-if="event.options.blockNewRegistrations">
             {{ t("Registrations blocked") }}
@@ -237,7 +240,10 @@
         aria-role="listitem"
         @click="joinEvent(currentActor)"
         @keyup.enter="joinEvent(currentActor)"
-        v-if="!isEventFull || event.options.enableWaitlist"
+        v-if="
+          !event.options.blockNewRegistrations &&
+          (!isEventFull || event.options.enableWaitlist)
+        "
       >
         <div class="flex gap-2 items-center">
           <figure
@@ -268,7 +274,11 @@
         aria-role="listitem"
         @click="joinModal"
         @keyup.enter="joinModal"
-        v-if="(identities ?? []).length > 1"
+        v-if="
+          !event.options.blockNewRegistrations &&
+          (!isEventFull || event.options.enableWaitlist) &&
+          (identities ?? []).length > 1
+        "
         >{{ t("with another identity…") }}</o-dropdown-item
       >
     </o-dropdown>
@@ -279,11 +289,36 @@
         name: RouteName.EVENT_PARTICIPATE_LOGGED_OUT,
         params: { uuid: event.uuid },
       }"
-      v-else-if="!participation && hasAnonymousParticipationMethods"
+      v-else-if="
+        !participation &&
+        hasAnonymousParticipationMethods &&
+        !event.options.blockNewRegistrations &&
+        (!isEventFull || event.options.enableWaitlist)
+      "
       variant="primary"
       size="large"
       native-type="button"
-      >{{ t("Participate") }}</o-button
+      >{{
+        isEventFull && event.options.enableWaitlist
+          ? t("Join waitlist")
+          : t("Participate")
+      }}</o-button
+    >
+    <o-button
+      v-else-if="
+        !participation &&
+        hasAnonymousParticipationMethods &&
+        (event.options.blockNewRegistrations ||
+          (isEventFull && !event.options.enableWaitlist))
+      "
+      variant="secondary"
+      size="large"
+      disabled
+      >{{
+        event.options.blockNewRegistrations
+          ? t("Registrations blocked")
+          : t("Event full")
+      }}</o-button
     >
     <o-button
       tag="router-link"
@@ -307,7 +342,7 @@ import { IParticipant } from "../../types/participant.model";
 import { IEvent } from "../../types/event.model";
 import { IPerson, displayName } from "../../types/actor";
 import RouteName from "../../router/name";
-import { computed } from "vue";
+import { computed, watch, onMounted } from "vue";
 import MenuDown from "vue-material-design-icons/MenuDown.vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
@@ -333,6 +368,8 @@ const joinEvent = (actor: IPerson | undefined): void => {
   if (props.event.joinOptions === EventJoinOptions.RESTRICTED) {
     emit("join-event-with-confirmation", actor);
   } else {
+    // For waitlist or regular participation, just emit join-event
+    // The backend will handle whether to add to participants or waitlist
     emit("join-event", actor);
   }
 };
@@ -349,10 +386,63 @@ const hasAnonymousParticipationMethods = computed((): boolean => {
   return props.event.options.anonymousParticipation;
 });
 
+// Logging function
+const logParticipationButtonState = () => {
+  console.log("🔍 ParticipationButton Debug:", {
+    eventTitle: props.event.title,
+    participation: props.participation,
+    currentActor: props.currentActor,
+    isEventFull: isEventFull.value,
+    enableWaitlist: props.event.options.enableWaitlist,
+    blockNewRegistrations: props.event.options.blockNewRegistrations,
+    maxCapacity: props.event.options.maximumAttendeeCapacity,
+    currentParticipants: props.event.participantStats.participant,
+    conditions: {
+      "has currentActor": !!props.currentActor?.id,
+      "no participation": !props.participation,
+      "event is full": isEventFull.value,
+      "waitlist enabled": props.event.options.enableWaitlist,
+      "registrations blocked": props.event.options.blockNewRegistrations,
+      "should show dropdown": !props.participation && !!props.currentActor?.id,
+      "button enabled":
+        !props.event.options.blockNewRegistrations &&
+        (!isEventFull.value || props.event.options.enableWaitlist),
+    },
+  });
+};
+
 const isEventFull = computed((): boolean => {
   const maxCapacity = props.event.options.maximumAttendeeCapacity;
-  if (!maxCapacity || maxCapacity === 0) return false;
+  const currentParticipants = props.event.participantStats.participant;
 
-  return props.event.participantStats.participant >= maxCapacity;
+  console.log("🔍 isEventFull calculation:", {
+    maxCapacity,
+    currentParticipants,
+    isFull: currentParticipants >= maxCapacity,
+  });
+
+  if (!maxCapacity || maxCapacity === 0) {
+    console.log("❌ No capacity limit set");
+    return false;
+  }
+
+  const isFull = currentParticipants >= maxCapacity;
+  console.log(
+    `${isFull ? "🚫" : "✅"} Event is ${isFull ? "FULL" : "NOT FULL"}`
+  );
+  return isFull;
 });
+
+// Debug watchers
+onMounted(() => {
+  logParticipationButtonState();
+});
+
+watch(
+  () => [props.event.options, props.participation, props.currentActor],
+  () => {
+    logParticipationButtonState();
+  },
+  { deep: true }
+);
 </script>

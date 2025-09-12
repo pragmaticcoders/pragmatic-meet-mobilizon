@@ -7,7 +7,7 @@
     />
 
     <participation-section
-      v-else-if="event && anonymousParticipationConfig"
+      v-else-if="event"
       :participation="participations[0]"
       :event="event"
       :anonymousParticipation="anonymousParticipation"
@@ -82,7 +82,10 @@
                 )
               }}
             </span>
-            <span v-else-if="event?.options?.blockNewRegistrations" class="flex items-center gap-2">
+            <span
+              v-else-if="event?.options?.blockNewRegistrations"
+              class="flex items-center gap-2"
+            >
               <span class="text-red-600 font-medium">
                 {{ t("Registrations blocked") }}
               </span>
@@ -591,6 +594,9 @@ const {
 
     if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
       participantStats.notApproved += 1;
+    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+      // Waitlist participants don't count toward the participant count
+      // They will be moved to participants when spots become available
     } else {
       participantStats.going += 1;
       participantStats.participant += 1;
@@ -630,10 +636,16 @@ const participationConfirmedMessage = () => {
   notifier?.success(t("Your participation has been confirmed"));
 };
 
+const participationWaitlistMessage = () => {
+  notifier?.info(t("You have been added to the waitlist"));
+};
+
 onJoinEventMutationDone(({ data }) => {
   if (data) {
     if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
       participationRequestedMessage();
+    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+      participationWaitlistMessage();
     } else {
       participationConfirmedMessage();
     }

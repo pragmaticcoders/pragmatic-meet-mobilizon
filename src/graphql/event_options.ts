@@ -26,5 +26,7 @@ export const EVENT_OPTIONS_FRAGMENT = gql`
     showParticipationPrice
     hideOrganizerWhenGroupEvent
     isOnline
+    enableWaitlist
+    blockNewRegistrations
   }
 `;

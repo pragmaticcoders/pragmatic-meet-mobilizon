@@ -110,12 +110,24 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     {:error, dgettext("errors", "You need to be logged-in to join an event")}
   end
 
+  # Helper function to handle both regular and waitlist join results
+  @spec handle_join_result(
+          {:ok, any, Participant.t()}
+          | {:ok, any, Participant.t(), :waitlist}
+          | {:error, any}
+        ) ::
+          {:ok, Participant.t()} | {:error, any}
+  defp handle_join_result({:ok, _activity, participant}), do: {:ok, participant}
+  defp handle_join_result({:ok, _activity, participant, :waitlist}), do: {:ok, participant}
+  defp handle_join_result({:error, reason}), do: {:error, reason}
+
   @spec do_actor_join_event(Actor.t(), integer | String.t(), map()) ::
           {:ok, Participant.t()} | {:error, String.t()}
   defp do_actor_join_event(actor, event_id, args) do
     with {:has_event, {:ok, %Event{} = event}} <-
            {:has_event, Events.get_event_with_preload(event_id)},
-         {:ok, _activity, participant} <- Participations.join(event, actor, args),
+         join_result <- Participations.join(event, actor, args),
+         {:ok, participant} <- handle_join_result(join_result),
          %Participant{} = participant <-
            participant
            |> Map.put(:event, event)
