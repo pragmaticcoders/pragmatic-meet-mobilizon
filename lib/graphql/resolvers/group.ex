@@ -39,16 +39,20 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
       {:ok, %Actor{id: group_id, suspended: false, approval_status: approval_status} = group} ->
         cond do
           # Moderators can see all groups
-          is_moderator(role) -> {:ok, group}
-          
+          is_moderator(role) ->
+            {:ok, group}
+
           # Group members (including creator) can see their group even if pending approval
-          Actors.member?(actor_id, group_id) -> {:ok, group}
-          
-          # Other users can only see approved groups  
-          approval_status == :approved -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
-          
+          Actors.member?(actor_id, group_id) ->
+            {:ok, group}
+
+          # Other users can only see approved groups
+          approval_status == :approved ->
+            {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+
           # Group not found for all other cases
-          true -> {:error, :group_not_found}
+          true ->
+            {:error, :group_not_found}
         end
 
       {:ok, %Actor{}} ->
@@ -73,13 +77,16 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
       {:ok, %Actor{suspended: false, approval_status: approval_status} = group} ->
         cond do
           # Moderators can see all groups
-          is_moderator(role) -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
-          
+          is_moderator(role) ->
+            {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+
           # Other users can only see approved groups
-          approval_status == :approved -> {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
-          
+          approval_status == :approved ->
+            {:ok, %Actor{} = restrict_fields_for_non_member_request(group)}
+
           # Group not found for all other cases
-          true -> {:error, :group_not_found}
+          true ->
+            {:error, :group_not_found}
         end
 
       {:ok, %Actor{}} ->
@@ -129,19 +136,18 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   """
   @spec get_group(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, Actor.t()} | {:error, String.t()}
-  def get_group(_parent, %{id: id}, %{context: %{current_user: %User{role: role}, current_actor: %Actor{id: actor_id}}}) do
+  def get_group(_parent, %{id: id}, %{
+        context: %{current_user: %User{role: role}, current_actor: %Actor{id: actor_id}}
+      }) do
     case Actors.get_actor_with_preload(id, true) do
       %Actor{type: :Group, suspended: suspended, approval_status: approval_status} = actor ->
         cond do
           # Moderators can see all groups
           is_moderator(role) -> {:ok, actor}
-          
           # Group owners can see their own groups even if pending approval
           Actors.member?(actor_id, id) -> {:ok, actor}
-          
           # Other users can only see approved, non-suspended groups
           suspended == false and approval_status == :approved -> {:ok, actor}
-          
           # Group not found for all other cases
           true -> {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
         end
@@ -157,10 +163,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
         cond do
           # Moderators can see all groups
           is_moderator(role) -> {:ok, actor}
-          
           # Other users can only see approved, non-suspended groups
           suspended == false and approval_status == :approved -> {:ok, actor}
-          
           # Group not found for all other cases
           true -> {:error, dgettext("errors", "Group with ID %{id} not found", id: id)}
         end
@@ -193,8 +197,19 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
       when is_moderator(role) do
     # Moderators can see all groups including those pending approval
     approval_status = Map.get(args, :approval_status)
+
     {:ok,
-     Actors.list_actors(:Group, preferred_username, name, domain, local, suspended, approval_status, page, limit)}
+     Actors.list_actors(
+       :Group,
+       preferred_username,
+       name,
+       domain,
+       local,
+       suspended,
+       approval_status,
+       page,
+       limit
+     )}
   end
 
   def list_groups(
@@ -212,24 +227,43 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
       ) do
     # Regular users can only see approved groups
     {:ok,
-     Actors.list_actors(:Group, preferred_username, name, domain, local, suspended, :approved, page, limit)}
+     Actors.list_actors(
+       :Group,
+       preferred_username,
+       name,
+       domain,
+       local,
+       suspended,
+       :approved,
+       page,
+       limit
+     )}
   end
 
   # TODO Move me to somewhere cleaner
   @spec save_attached_pictures(map()) :: map()
   defp save_attached_pictures(args) do
     Enum.reduce([:avatar, :banner], args, fn key, args ->
-      if is_map(args) && Map.has_key?(args, key) && !is_nil(args[key][:media]) do
-        pic = args[key][:media]
+      cond do
+        # Explicit null to clear existing image
+        is_map(args) && Map.has_key?(args, key) && args[key] == nil ->
+          Logger.debug("Clearing #{key}")
+          Map.put(args, key, nil)
 
-        with {:ok, %{name: name, url: url, content_type: content_type, size: _size}} <-
-               Upload.store(pic.file, type: key, description: pic.alt) do
-          Logger.debug("Uploaded #{name} to #{url}")
-          Map.put(args, key, %{name: name, url: url, content_type: content_type})
-        end
-      else
-        Logger.debug("No picture upload")
-        args
+        # Upload new image
+        is_map(args) && Map.has_key?(args, key) && !is_nil(args[key][:media]) ->
+          pic = args[key][:media]
+
+          with {:ok, %{name: name, url: url, content_type: content_type, size: _size}} <-
+                 Upload.store(pic.file, type: key, description: pic.alt) do
+            Logger.debug("Uploaded #{name} to #{url}")
+            Map.put(args, key, %{name: name, url: url, content_type: content_type})
+          end
+
+        # No change
+        true ->
+          Logger.debug("No #{key} change")
+          args
       end
     end)
   end
@@ -587,7 +621,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   @doc """
   Approve a group (admin only)
   """
-  @spec approve_group(any(), map(), Absinthe.Resolution.t()) :: {:ok, Actor.t()} | {:error, String.t()}
+  @spec approve_group(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, Actor.t()} | {:error, String.t()}
   def approve_group(_parent, %{group_id: group_id}, %{
         context: %{
           current_user: %User{role: role} = _user
@@ -620,7 +655,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   @doc """
   Reject a group (admin only)
   """
-  @spec reject_group(any(), map(), Absinthe.Resolution.t()) :: {:ok, Actor.t()} | {:error, String.t()}
+  @spec reject_group(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, Actor.t()} | {:error, String.t()}
   def reject_group(_parent, %{group_id: group_id}, %{
         context: %{
           current_user: %User{role: role} = _user
@@ -649,6 +685,4 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   def reject_group(_parent, _args, _resolution) do
     {:error, dgettext("errors", "Only moderators and administrators can reject groups")}
   end
-
-
 end

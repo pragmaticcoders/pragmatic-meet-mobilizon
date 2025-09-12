@@ -548,7 +548,10 @@ const buildVariables = computed(() => {
   delete variables.avatar;
   delete variables.banner;
 
-  if (avatarFile.value) {
+  // Handle avatar - if null, explicitly clear it; if file, upload it
+  if (avatarFile.value === null) {
+    avatarObj = { avatar: null };
+  } else if (avatarFile.value) {
     avatarObj = {
       avatar: {
         media: {
@@ -560,7 +563,10 @@ const buildVariables = computed(() => {
     };
   }
 
-  if (bannerFile.value) {
+  // Handle banner - if null, explicitly clear it; if file, upload it
+  if (bannerFile.value === null) {
+    bannerObj = { banner: null };
+  } else if (bannerFile.value) {
     bannerObj = {
       banner: {
         media: {
@@ -571,6 +577,7 @@ const buildVariables = computed(() => {
       },
     };
   }
+
   return {
     id: group.value?.id ?? "",
     name: editableGroup.value?.name,
