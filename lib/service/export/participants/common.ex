@@ -133,6 +133,18 @@ defmodule Mobilizon.Service.Export.Participants.Common do
 
   defp get_participant_email(_metadata, _user), do: ""
 
+  @spec export_modules :: list(module())
+  def export_modules do
+    export_config = Application.get_env(:mobilizon, :exports)
+    Keyword.get(export_config, :formats, [])
+  end
+
+  @spec enabled_formats :: list(String.t())
+  def enabled_formats do
+    export_modules()
+    |> Enum.map(& &1.extension())
+  end
+
   @spec export_enabled?(module()) :: boolean
   def export_enabled?(type) do
     export_config = Application.get_env(:mobilizon, :exports)

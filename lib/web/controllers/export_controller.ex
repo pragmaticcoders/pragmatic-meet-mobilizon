@@ -5,14 +5,14 @@ defmodule Mobilizon.Web.ExportController do
   use Mobilizon.Web, :controller
   plug(:put_layout, false)
   action_fallback(Mobilizon.Web.FallbackController)
-  alias Mobilizon.{Config, Export}
-  import Mobilizon.Service.Export.Participants.Common, only: [export_path: 1]
+  alias Mobilizon.Export
+  import Mobilizon.Service.Export.Participants.Common, only: [enabled_formats: 0, export_path: 1]
   import Mobilizon.Web.Gettext, only: [dgettext: 3]
 
   # sobelow_skip ["Traversal.SendDownload"]
   @spec export(Plug.Conn.t(), map) :: {:error, :not_found} | Plug.Conn.t()
   def export(conn, %{"format" => format, "file" => file}) do
-    if format in Config.instance_export_formats().event_participants do
+    if format in enabled_formats() do
       case Export.get_export(file, "event_participants", format) do
         %Export{file_name: file_name, file_path: file_path} ->
           local_path = Path.join(export_path(format), file_path)

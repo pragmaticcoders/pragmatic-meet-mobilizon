@@ -8,6 +8,7 @@ defmodule Mobilizon.Config do
   alias Mobilizon.Medias.Media
   alias Mobilizon.Service.GitStatus
   require Logger
+  import Mobilizon.Service.Export.Participants.Common, only: [enabled_formats: 0]
 
   @type mobilizon_config :: [
           name: String.t(),
@@ -347,18 +348,6 @@ defmodule Mobilizon.Config do
     %{
       event_participants: enabled_formats()
     }
-  end
-
-  @spec enabled_formats :: list(String.t())
-  defp enabled_formats do
-    export_modules()
-    |> Enum.map(& &1.extension())
-  end
-
-  @spec export_modules :: list(module())
-  defp export_modules do
-    export_config = Application.get_env(:mobilizon, :exports)
-    Keyword.get(export_config, :formats, [])
   end
 
   @spec only_admin_can_create_groups? :: boolean
