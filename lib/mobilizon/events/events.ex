@@ -1693,9 +1693,10 @@ defmodule Mobilizon.Events do
   """
   @spec count_participants_by_role(integer, list(atom())) :: integer()
   def count_participants_by_role(event_id, roles) do
-    from(p in Participant, 
-         where: p.event_id == ^event_id and p.role in ^roles,
-         select: count(p.id))
+    from(p in Participant,
+      where: p.event_id == ^event_id and p.role in ^roles,
+      select: count(p.id)
+    )
     |> Repo.one()
   end
 
