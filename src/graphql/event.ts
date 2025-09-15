@@ -30,6 +30,7 @@ const FULL_EVENT_FRAGMENT = gql`
       uuid
       url
       name
+      alt
       metadata {
         width
         height

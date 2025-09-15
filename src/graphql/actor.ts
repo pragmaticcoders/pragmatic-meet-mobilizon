@@ -6,6 +6,7 @@ export const ACTOR_FRAGMENT = gql`
     avatar {
       uuid
       url
+      alt
     }
     type
     preferredUsername
@@ -32,6 +33,7 @@ export const FETCH_PERSON = gql`
         uuid
         name
         url
+        alt
       }
       banner {
         uuid
@@ -52,6 +54,7 @@ export const FETCH_PERSON_OWNED = gql`
         uuid
         name
         url
+        alt
       }
       banner {
         uuid
@@ -84,6 +87,7 @@ export const GET_PERSON = gql`
         uuid
         name
         url
+        alt
       }
       banner {
         uuid
@@ -144,6 +148,7 @@ export const PERSON_FRAGMENT = gql`
     avatar {
       uuid
       url
+      alt
     }
     type
     preferredUsername

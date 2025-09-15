@@ -272,8 +272,9 @@
                 id="maximumAttendeeCapacity"
                 v-model="maximumAttendeeCapacity"
                 type="number"
-                :min="(currentParticipantCount || 1).toString()"
+                min="1"
                 class="w-32"
+                placeholder="Enter limit"
               />
               <p
                 v-if="currentParticipantCount > 0"
@@ -574,7 +575,6 @@ import {
   EventModel,
   IEditableEvent,
   IEvent,
-  removeTypeName,
   toEditJSON,
 } from "@/types/event.model";
 import { LOGGED_USER_DRAFTS } from "@/graphql/actor";
@@ -593,7 +593,6 @@ import {
   InternalRefetchQueriesInclude,
 } from "@apollo/client/core";
 import cloneDeep from "lodash/cloneDeep";
-import { IEventOptions } from "@/types/event-options.model";
 import { IAddress } from "@/types/address.model";
 import {
   useCurrentActorClient,
@@ -657,19 +656,28 @@ const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
 
 const pictureFile = ref<File | null>(null);
 
+// Separate state to track if user wants to limit places (independent of current capacity value)
+const limitedPlacesEnabled = ref(false);
+
 const limitedPlaces = computed({
   get(): boolean {
-    return (event.value?.options?.maximumAttendeeCapacity || 0) > 0;
+    return limitedPlacesEnabled.value;
   },
   set(value: boolean) {
+    limitedPlacesEnabled.value = value;
     if (!value) {
-      event.value.options.maximumAttendeeCapacity = 0;
-      event.value.options.remainingAttendeeCapacity = 0;
-      event.value.options.showRemainingAttendeeCapacity = false;
-    } else {
-      event.value.options.maximumAttendeeCapacity =
-        event.value.options.maximumAttendeeCapacity ||
-        DEFAULT_LIMIT_NUMBER_OF_PLACES;
+      event.value.options = {
+        ...event.value.options,
+        maximumAttendeeCapacity: 0,
+        remainingAttendeeCapacity: 0,
+        showRemainingAttendeeCapacity: false,
+      };
+    } else if (event.value.options.maximumAttendeeCapacity === 0) {
+      // Only set default if capacity is currently 0
+      event.value.options = {
+        ...event.value.options,
+        maximumAttendeeCapacity: DEFAULT_LIMIT_NUMBER_OF_PLACES,
+      };
     }
   },
 });
@@ -747,15 +755,6 @@ const organizerActor = computed({
   },
 });
 
-const eventOptions = computed({
-  get(): IEventOptions {
-    return removeTypeName(cloneDeep(event.value.options));
-  },
-  set(options: IEventOptions) {
-    event.value.options = options;
-  },
-});
-
 onMounted(async () => {
   observer.value = new IntersectionObserver(
     (entries) => {
@@ -775,7 +774,8 @@ onMounted(async () => {
   }
 
   pictureFile.value = await buildFileFromIMedia(event.value.picture);
-  limitedPlaces.value = eventOptions.value.maximumAttendeeCapacity > 0;
+  limitedPlacesEnabled.value =
+    (event.value?.options?.maximumAttendeeCapacity || 0) > 0;
   if (!(props.isUpdate || props.isDuplicate)) {
     initializeNewEvent();
   } else {
@@ -875,6 +875,37 @@ const validateForm = () => {
       duration: 5000,
     });
     return false;
+  }
+
+  // Check participant capacity validation
+  if (limitedPlaces.value) {
+    const currentCount = currentParticipantCount.value;
+    const maxCapacity = event.value.options.maximumAttendeeCapacity;
+
+    if (maxCapacity < 1) {
+      notification.open({
+        message: t(
+          "Maximum number of participants must be at least 1"
+        ) as string,
+        variant: "danger",
+        position: "bottom-right",
+        duration: 5000,
+      });
+      return false;
+    }
+
+    if (currentCount > 0 && maxCapacity < currentCount) {
+      notification.open({
+        message: t(
+          "Cannot set participant limit below current participant count ({count})",
+          { count: currentCount }
+        ) as string,
+        variant: "danger",
+        position: "bottom-right",
+        duration: 5000,
+      });
+      return false;
+    }
   }
 
   if (form.value.checkValidity()) {
@@ -1643,35 +1674,16 @@ watch(isOnline, (newIsOnline) => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const maximumAttendeeCapacity = computed({
   get(): string {
-    return event.value.options.maximumAttendeeCapacity.toString();
+    const capacity = event.value.options.maximumAttendeeCapacity;
+    return capacity > 0 ? capacity.toString() : "";
   },
   set(newMaximumAttendeeCapacity: string) {
-    event.value.options.maximumAttendeeCapacity = parseInt(
-      newMaximumAttendeeCapacity
-    );
+    const parsedValue = parseInt(newMaximumAttendeeCapacity) || 0;
+    event.value.options = {
+      ...event.value.options,
+      maximumAttendeeCapacity: parsedValue,
+    };
   },
-});
-
-// Watcher to ensure capacity is not set below current participants
-watch(maximumAttendeeCapacity, (newValue: string) => {
-  const currentCount = currentParticipantCount.value;
-  const newValueNum = parseInt(newValue, 10);
-  if (
-    newValue &&
-    currentCount > 0 &&
-    !isNaN(newValueNum) &&
-    newValueNum < currentCount
-  ) {
-    maximumAttendeeCapacity.value = currentCount.toString();
-    notifier?.error(
-      t(
-        "Cannot set participant limit below current participant count ({count})",
-        {
-          count: currentCount,
-        }
-      )
-    );
-  }
 });
 
 const { event: fetchedEvent, onResult: onFetchEventResult } = useFetchEvent(
@@ -1699,6 +1711,9 @@ watch(
     event.value = { ...fetchedEvent.value };
     // Update pictureFile when event data is loaded
     pictureFile.value = await buildFileFromIMedia(fetchedEvent.value.picture);
+    // Update limitedPlacesEnabled based on loaded event data
+    limitedPlacesEnabled.value =
+      (fetchedEvent.value?.options?.maximumAttendeeCapacity || 0) > 0;
   },
   { immediate: true }
 );
@@ -1708,6 +1723,9 @@ onFetchEventResult(async (result) => {
     event.value = { ...result.data?.event };
     // Update pictureFile when event data is loaded
     pictureFile.value = await buildFileFromIMedia(result.data.event.picture);
+    // Update limitedPlacesEnabled based on loaded event data
+    limitedPlacesEnabled.value =
+      (result.data.event?.options?.maximumAttendeeCapacity || 0) > 0;
   }
 });
 
