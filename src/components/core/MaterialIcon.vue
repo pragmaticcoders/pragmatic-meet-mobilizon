@@ -106,6 +106,8 @@ const icons: Record<string, () => Promise<any>> = {
     import(`../../../node_modules/vue-material-design-icons/MenuUp.vue`),
   Check: () =>
     import(`../../../node_modules/vue-material-design-icons/Check.vue`),
+  Clock: () =>
+    import(`../../../node_modules/vue-material-design-icons/Clock.vue`),
   TimerSandEmpty: () =>
     import(
       `../../../node_modules/vue-material-design-icons/TimerSandEmpty.vue`

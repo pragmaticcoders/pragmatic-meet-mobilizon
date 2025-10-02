@@ -129,6 +129,30 @@ defmodule Mobilizon.Web.Email.Participation do
     })
   end
 
+  def participation_updated(
+        email,
+        %Participant{event: event, role: :waitlist} = participant,
+        locale
+      ) do
+    Gettext.put_locale(locale)
+
+    subject =
+      gettext(
+        "You have been moved to the waitlist for event %{title}",
+        title: event.title
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:event_participation_waitlist, %{
+      locale: locale,
+      event: event,
+      jsonLDMetadata: json_ld(participant),
+      participant: participant,
+      subject: subject
+    })
+  end
+
   @spec anonymous_participation_confirmation(String.t(), Participant.t(), String.t()) ::
           Swoosh.Email.t()
   def anonymous_participation_confirmation(

@@ -65,6 +65,18 @@
             <span class="xs:hidden">{{ t("Approve") }}</span>
           </o-button>
           <o-button
+            @click="moveToWaitlistParticipants(checkedRows)"
+            variant="info"
+            :disabled="!canMoveToWaitlist() || bulkActionLoading"
+            :loading="bulkActionLoading"
+            icon-left="clock"
+            size="small"
+            class="text-xs sm:text-sm"
+          >
+            <span class="hidden xs:inline">{{ t("Move to waitlist") }}</span>
+            <span class="xs:hidden">{{ t("Waitlist") }}</span>
+          </o-button>
+          <o-button
             @click="refuseParticipants(checkedRows)"
             variant="danger"
             :disabled="!canRefuseParticipants() || bulkActionLoading"
@@ -273,6 +285,20 @@
                   variant="success"
                   icon-left="check"
                   :title="t('Approve')"
+                />
+                <o-button
+                  v-if="participant.role !== ParticipantRole.WAITLIST"
+                  @click="
+                    participant.id &&
+                      updateSingleParticipant(
+                        participant.id,
+                        ParticipantRole.WAITLIST
+                      )
+                  "
+                  size="small"
+                  variant="info"
+                  icon-left="clock"
+                  :title="t('Move to waitlist')"
                 />
                 <o-button
                   v-if="participant.role !== ParticipantRole.REJECTED"
@@ -510,6 +536,16 @@
               :title="t('Approve')"
             />
             <o-button
+              v-if="props.row.role !== ParticipantRole.WAITLIST"
+              @click="
+                updateSingleParticipant(props.row.id, ParticipantRole.WAITLIST)
+              "
+              size="small"
+              variant="info"
+              icon-left="clock"
+              :title="t('Move to waitlist')"
+            />
+            <o-button
               v-if="props.row.role !== ParticipantRole.REJECTED"
               @click="
                 updateSingleParticipant(props.row.id, ParticipantRole.REJECTED)
@@ -733,6 +769,59 @@ const refuseParticipants = async (
   }
 };
 
+const moveToWaitlistParticipants = async (
+  participants: IParticipant[]
+): Promise<void> => {
+  if (bulkActionLoading.value) return;
+
+  bulkActionLoading.value = true;
+  let successCount = 0;
+  let errorCount = 0;
+
+  try {
+    await asyncForEach(participants, async (participant: IParticipant) => {
+      try {
+        await updateParticipant({
+          id: participant.id,
+          role: ParticipantRole.WAITLIST,
+        });
+        successCount++;
+      } catch (error) {
+        console.error(
+          `Failed to move participant ${participant.id} to waitlist:`,
+          error
+        );
+        errorCount++;
+      }
+    });
+
+    // Refetch data to ensure UI is up to date
+    await refetchParticipants();
+    checkedRows.value = [];
+
+    // Show success/error notifications
+    if (successCount > 0) {
+      notifier?.success(
+        t("Successfully moved {count} participant(s) to waitlist", {
+          count: successCount,
+        })
+      );
+    }
+    if (errorCount > 0) {
+      notifier?.error(
+        t("Failed to move {count} participant(s) to waitlist", {
+          count: errorCount,
+        })
+      );
+    }
+  } catch (error) {
+    console.error("Bulk move to waitlist operation failed:", error);
+    notifier?.error(t("An error occurred while moving participants to waitlist"));
+  } finally {
+    bulkActionLoading.value = false;
+  }
+};
+
 const updateSingleParticipant = async (
   participantId: string,
   newRole: ParticipantRole
@@ -747,14 +836,22 @@ const updateSingleParticipant = async (
     await refetchParticipants();
 
     const actionName =
-      newRole === ParticipantRole.PARTICIPANT ? t("approved") : t("rejected");
+      newRole === ParticipantRole.PARTICIPANT
+        ? t("approved")
+        : newRole === ParticipantRole.WAITLIST
+        ? t("moved to waitlist")
+        : t("rejected");
     notifier?.success(
       t("Participant {action} successfully", { action: actionName })
     );
   } catch (error) {
     console.error(`Failed to update participant ${participantId}:`, error);
     const actionName =
-      newRole === ParticipantRole.PARTICIPANT ? t("approve") : t("reject");
+      newRole === ParticipantRole.PARTICIPANT
+        ? t("approve")
+        : newRole === ParticipantRole.WAITLIST
+        ? t("move to waitlist")
+        : t("reject");
     notifier?.error(
       t("Failed to {action} participant", { action: actionName })
     );
@@ -825,11 +922,20 @@ const canAcceptParticipants = (): boolean => {
 };
 
 /**
- * We can refuse participants if at least one of them is something different than not approved
+ * We can refuse participants if at least one of them is something different than rejected
  */
 const canRefuseParticipants = (): boolean => {
   return checkedRows.value.some(
     (participant: IParticipant) => participant.role !== ParticipantRole.REJECTED
+  );
+};
+
+/**
+ * We can move participants to waitlist if at least one of them is not already on the waitlist
+ */
+const canMoveToWaitlist = (): boolean => {
+  return checkedRows.value.some(
+    (participant: IParticipant) => participant.role !== ParticipantRole.WAITLIST
   );
 };
 

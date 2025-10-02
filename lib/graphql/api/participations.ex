@@ -77,6 +77,40 @@ defmodule Mobilizon.GraphQL.API.Participations do
     end
   end
 
+  def update(%Participant{role: old_role} = participation, %Actor{} = _moderator, :waitlist) do
+    Logger.info(
+      "Moving participant #{participation.id} (role: #{old_role}) to waitlist for event #{participation.event_id}"
+    )
+
+    with {:ok, %Participant{} = participant} <-
+           Events.update_participant(participation, %{role: :waitlist}),
+         {:ok, event} <- Events.get_event_with_preload(participation.event_id) do
+      # Ensure event is loaded on participant for email template
+      participant_with_event = Map.put(participant, :event, event)
+
+      Logger.info(
+        "Sending waitlist email to participant #{participant.id}, event: #{event.title}, role: #{participant_with_event.role}"
+      )
+
+      # Send notification email
+      result = Participation.send_emails_to_local_user(participant_with_event)
+
+      Logger.info("Email send result: #{inspect(result)}")
+
+      # If the participant was previously approved (:participant role), free up the spot
+      # and trigger auto-promotion if enabled
+      if old_role in [:participant, :moderator, :administrator] do
+        Task.start(fn ->
+          # Small delay to ensure database transaction is committed
+          Process.sleep(100)
+          promote_from_waitlist_if_needed(participation.event_id)
+        end)
+      end
+
+      {:ok, nil, participant}
+    end
+  end
+
   @spec accept(Participant.t(), Actor.t()) ::
           {:ok, Activity.t(), Participant.t()} | {:error, Ecto.Changeset.t()}
   defp accept(
@@ -150,8 +184,11 @@ defmodule Mobilizon.GraphQL.API.Participations do
           # Promote them to participant
           case Events.update_participant(waitlist_participant, %{role: :participant}) do
             {:ok, updated_participant} ->
+              # Ensure event is loaded on participant for email template
+              participant_with_event = Map.put(updated_participant, :event, event)
+
               # Send notification email
-              Participation.send_emails_to_local_user(updated_participant)
+              Participation.send_emails_to_local_user(participant_with_event)
 
               Logger.info(
                 "✅ Successfully promoted participant #{updated_participant.id} from waitlist to participant for event #{event_id}"
