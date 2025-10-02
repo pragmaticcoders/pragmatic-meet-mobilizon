@@ -10,6 +10,8 @@ defmodule Mobilizon.GraphQL.API.Participations do
   alias Mobilizon.Service.Notifications.Scheduler
   alias Mobilizon.Web.Email.Participation
 
+  require Logger
+
   @spec join(Event.t(), Actor.t(), map()) ::
           {:ok, Activity.t(), Participant.t()} | {:error, :already_participant}
   def join(%Event{id: event_id} = event, %Actor{id: actor_id} = actor, args \\ %{}) do
@@ -25,8 +27,17 @@ defmodule Mobilizon.GraphQL.API.Participations do
   @spec leave(Event.t(), Actor.t(), map()) ::
           {:ok, Activity.t(), Participant.t()}
           | {:error, :is_only_organizer | :participant_not_found | Ecto.Changeset.t()}
-  def leave(%Event{} = event, %Actor{} = actor, args \\ %{}),
-    do: Actions.Leave.leave(event, actor, Map.get(args, :local, true), %{metadata: args})
+  def leave(%Event{id: event_id} = event, %Actor{} = actor, args \\ %{}) do
+    case Actions.Leave.leave(event, actor, Map.get(args, :local, true), %{metadata: args}) do
+      {:ok, activity, participant} = result ->
+        # When someone leaves, check if we can promote someone from waitlist
+        Task.start(fn -> promote_from_waitlist_if_needed(event_id) end)
+        result
+
+      error ->
+        error
+    end
+  end
 
   @doc """
   Update participation status
@@ -45,10 +56,25 @@ defmodule Mobilizon.GraphQL.API.Participations do
   end
 
   def update(%Participant{} = participation, %Actor{} = moderator, :rejected) do
-    result = reject(participation, moderator)
-    # When we reject a participant, check if we can promote someone from waitlist
-    Task.start(fn -> promote_from_waitlist_if_needed(participation.event_id) end)
-    result
+    Logger.info(
+      "Rejecting participant #{participation.id} (role: #{participation.role}) from event #{participation.event_id}"
+    )
+
+    case reject(participation, moderator) do
+      {:ok, activity, %Participant{} = participant} = result ->
+        # When we reject a participant, check if we can promote someone from waitlist
+        # We do this AFTER the rejection is complete to ensure the database is updated
+        Task.start(fn ->
+          # Small delay to ensure database transaction is committed
+          Process.sleep(100)
+          promote_from_waitlist_if_needed(participation.event_id)
+        end)
+
+        result
+
+      error ->
+        error
+    end
   end
 
   @spec accept(Participant.t(), Actor.t()) ::
@@ -95,21 +121,32 @@ defmodule Mobilizon.GraphQL.API.Participations do
   """
   @spec promote_from_waitlist_if_needed(integer) :: :ok
   def promote_from_waitlist_if_needed(event_id) do
-    with {:ok, event} <- Events.get_event_with_preload(event_id),
-         true <- event.options.enable_waitlist,
-         true <- Map.get(event.options, :waitlist_auto_promote, true),
-         true <- event.options.maximum_attendee_capacity > 0,
+    Logger.info("promote_from_waitlist_if_needed called for event #{event_id}")
+
+    with {:event, {:ok, event}} <- {:event, Events.get_event_with_preload(event_id)},
+         {:waitlist_enabled, true} <- {:waitlist_enabled, event.options.enable_waitlist},
+         {:auto_promote, true} <-
+           {:auto_promote, Map.get(event.options, :waitlist_auto_promote, true)},
+         {:has_capacity, true} <-
+           {:has_capacity, event.options.maximum_attendee_capacity > 0},
          current_participant_count <-
            Events.count_participants_by_role(event_id, [
              :participant,
-             :creator,
              :administrator,
              :moderator
            ]),
-         true <- current_participant_count < event.options.maximum_attendee_capacity do
+         {:spot_available, true} <-
+           {:spot_available,
+            current_participant_count < event.options.maximum_attendee_capacity} do
+      Logger.info(
+        "Event #{event_id}: capacity=#{event.options.maximum_attendee_capacity}, current=#{current_participant_count}, checking waitlist..."
+      )
+
       # Get the first person from waitlist (ordered by insertion time)
       case Events.list_participants_for_event(event_id, [:waitlist], 1, 1) do
         %{elements: [waitlist_participant]} ->
+          Logger.info("Found waitlist participant #{waitlist_participant.id}, promoting...")
+
           # Promote them to participant
           case Events.update_participant(waitlist_participant, %{role: :participant}) do
             {:ok, updated_participant} ->
@@ -117,19 +154,41 @@ defmodule Mobilizon.GraphQL.API.Participations do
               Participation.send_emails_to_local_user(updated_participant)
 
               Logger.info(
-                "Promoted participant #{updated_participant.id} from waitlist to participant for event #{event_id}"
+                "✅ Successfully promoted participant #{updated_participant.id} from waitlist to participant for event #{event_id}"
               )
 
             {:error, reason} ->
-              Logger.warn("Failed to promote waitlist participant: #{inspect(reason)}")
+              Logger.error("❌ Failed to promote waitlist participant: #{inspect(reason)}")
           end
 
         _ ->
-          # No one on waitlist
+          Logger.info("No participants in waitlist for event #{event_id}")
           :ok
       end
     else
-      _ -> :ok
+      {:event, _} ->
+        Logger.warn("Event #{event_id} not found")
+        :ok
+
+      {:waitlist_enabled, false} ->
+        Logger.info("Event #{event_id}: waitlist not enabled")
+        :ok
+
+      {:auto_promote, false} ->
+        Logger.info("Event #{event_id}: auto-promote disabled (manual mode)")
+        :ok
+
+      {:has_capacity, false} ->
+        Logger.info("Event #{event_id}: no maximum capacity set")
+        :ok
+
+      {:spot_available, false} ->
+        Logger.info("Event #{event_id}: no available spots (still at capacity)")
+        :ok
+
+      other ->
+        Logger.warn("Event #{event_id}: unexpected condition #{inspect(other)}")
+        :ok
     end
   end
 end
