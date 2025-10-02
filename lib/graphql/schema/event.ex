@@ -285,6 +285,11 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       description: "Whether to enable a waitlist when the event reaches maximum capacity"
     )
 
+    field(:waitlist_auto_promote, :boolean,
+      description:
+        "Whether to automatically promote participants from the waitlist when spots become available"
+    )
+
     field(:block_new_registrations, :boolean,
       description: "Whether to block new participants from joining this event"
     )
@@ -348,6 +353,11 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
     field(:enable_waitlist, :boolean,
       description: "Whether to enable a waitlist when the event reaches maximum capacity"
+    )
+
+    field(:waitlist_auto_promote, :boolean,
+      description:
+        "Whether to automatically promote participants from the waitlist when spots become available"
     )
 
     field(:block_new_registrations, :boolean,

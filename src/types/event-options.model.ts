@@ -30,6 +30,7 @@ export interface IEventOptions {
   timezone: string | null;
   isOnline: boolean;
   enableWaitlist: boolean;
+  waitlistAutoPromote: boolean;
   blockNewRegistrations: boolean;
 }
 
@@ -67,6 +68,8 @@ export class EventOptions implements IEventOptions {
   isOnline = false;
 
   enableWaitlist = false;
+
+  waitlistAutoPromote = true;
 
   blockNewRegistrations = false;
 }

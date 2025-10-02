@@ -300,6 +300,50 @@
                   )
                 }}
               </p>
+
+              <div v-if="enableWaitlist" class="ml-6 mt-4 space-y-3">
+                <label class="flex items-start gap-3">
+                  <o-radio
+                    v-model="waitlistAutoPromote"
+                    name="waitlistMode"
+                    :native-value="true"
+                    class="mt-1"
+                  />
+                  <div>
+                    <span class="font-medium">{{
+                      t("Automatically promote from waitlist")
+                    }}</span>
+                    <p class="text-sm text-gray-500 mt-1">
+                      {{
+                        t(
+                          "Participants from the waitlist will automatically join the event when a spot becomes available (first-come, first-served)"
+                        )
+                      }}
+                    </p>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3">
+                  <o-radio
+                    v-model="waitlistAutoPromote"
+                    name="waitlistMode"
+                    :native-value="false"
+                    class="mt-1"
+                  />
+                  <div>
+                    <span class="font-medium">{{
+                      t("Require manual approval")
+                    }}</span>
+                    <p class="text-sm text-gray-500 mt-1">
+                      {{
+                        t(
+                          "You will need to manually approve participants from the waitlist, even when spots become available"
+                        )
+                      }}
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -1368,6 +1412,20 @@ const enableWaitlist = computed({
     event.value.options = {
       ...event.value.options,
       enableWaitlist: value,
+    };
+  },
+});
+
+const waitlistAutoPromote = computed({
+  get(): boolean {
+    return event.value?.options.waitlistAutoPromote !== undefined
+      ? event.value.options.waitlistAutoPromote
+      : true;
+  },
+  set(value: boolean) {
+    event.value.options = {
+      ...event.value.options,
+      waitlistAutoPromote: value,
     };
   },
 });

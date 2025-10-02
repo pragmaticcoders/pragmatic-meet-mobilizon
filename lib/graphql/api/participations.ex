@@ -90,12 +90,14 @@ defmodule Mobilizon.GraphQL.API.Participations do
   end
 
   @doc """
-  Automatically promote the next participant from waitlist if there's an available spot
+  Automatically promote the next participant from waitlist if there's an available spot.
+  Only promotes automatically if waitlist_auto_promote is enabled.
   """
   @spec promote_from_waitlist_if_needed(integer) :: :ok
   def promote_from_waitlist_if_needed(event_id) do
     with {:ok, event} <- Events.get_event_with_preload(event_id),
          true <- event.options.enable_waitlist,
+         true <- Map.get(event.options, :waitlist_auto_promote, true),
          true <- event.options.maximum_attendee_capacity > 0,
          current_participant_count <-
            Events.count_participants_by_role(event_id, [

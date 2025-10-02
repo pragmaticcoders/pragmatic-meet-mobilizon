@@ -31,6 +31,7 @@ defmodule Mobilizon.Events.EventOptions do
           hide_organizer_when_group_event: boolean,
           is_online: boolean(),
           enable_waitlist: boolean(),
+          waitlist_auto_promote: boolean(),
           block_new_registrations: boolean()
         }
 
@@ -50,6 +51,7 @@ defmodule Mobilizon.Events.EventOptions do
     :hide_organizer_when_group_event,
     :is_online,
     :enable_waitlist,
+    :waitlist_auto_promote,
     :block_new_registrations
   ]
 
@@ -71,6 +73,7 @@ defmodule Mobilizon.Events.EventOptions do
     field(:hide_organizer_when_group_event, :boolean, default: false)
     field(:is_online, :boolean, default: false)
     field(:enable_waitlist, :boolean, default: false)
+    field(:waitlist_auto_promote, :boolean, default: true)
     field(:block_new_registrations, :boolean, default: false)
 
     embeds_many(:offers, EventOffer)
