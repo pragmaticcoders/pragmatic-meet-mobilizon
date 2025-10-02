@@ -1,0 +1,9 @@
+<%= gettext "You're on the waitlist" %>
+
+==
+
+<%= gettext "You have been moved to the waitlist for %{title}.", title: @event.title %>
+
+<%= gettext "You're now on the waitlist for this event. If a spot becomes available, you will be notified by email." %>
+
+<%= ~p"/events/#{@event.uuid}" |> url() |> URI.decode() %>
