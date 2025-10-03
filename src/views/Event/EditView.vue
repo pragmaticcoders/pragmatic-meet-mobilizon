@@ -1443,7 +1443,15 @@ const blockNewRegistrations = computed({
 });
 
 const currentParticipantCount = computed((): number => {
-  return event.value?.participantStats?.participant || 0;
+  const stats = event.value?.participantStats;
+  if (!stats) return 0;
+
+  // Count participants, administrators, and moderators (but NOT creator)
+  return (
+    (stats.participant || 0) +
+    (stats.administrator || 0) +
+    (stats.moderator || 0)
+  );
 });
 
 const checkTitleLength = computed((): Array<string | undefined> => {

@@ -369,14 +369,27 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
     args = Map.put(args, :options, args[:options] || %{})
 
     with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
+         old_capacity <- get_in(event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0,
          {:ok, args} <- verify_profile_change(args, event, user, actor),
          args <- extract_timezone(args, user.id),
          {:event_can_be_managed, true} <-
            {:event_can_be_managed, can_event_be_updated_by?(event, actor)},
          {:event_external, true} <- edit_event_external_checker(args),
-         {:ok, %Activity{data: %{"object" => %{"type" => "Event"}}}, %Event{} = event} <-
+         {:ok, %Activity{data: %{"object" => %{"type" => "Event"}}}, %Event{} = updated_event} <-
            API.Events.update_event(args, event) do
-      {:ok, event}
+      # Check if capacity increased and trigger waitlist promotion if needed
+      new_capacity = get_in(updated_event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0
+
+      if new_capacity > old_capacity do
+        # Capacity increased, check if we should promote from waitlist
+        Task.start(fn ->
+          # Small delay to ensure database transaction is committed
+          Process.sleep(100)
+          Mobilizon.GraphQL.API.Participations.promote_from_waitlist_if_needed(event_id)
+        end)
+      end
+
+      {:ok, updated_event}
     else
       {:event_can_be_managed, false} ->
         {:error,
