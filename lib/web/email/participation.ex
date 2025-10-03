@@ -153,6 +153,44 @@ defmodule Mobilizon.Web.Email.Participation do
     })
   end
 
+  @doc """
+  Send email to user who joined the waitlist (event is full)
+  """
+  @spec participation_joined_waitlist(String.t() | User.t(), Participant.t(), String.t()) ::
+          Swoosh.Email.t()
+  def participation_joined_waitlist(user, participant, locale \\ "en")
+
+  def participation_joined_waitlist(
+        %User{email: email},
+        %Participant{} = participant,
+        locale
+      ),
+      do: participation_joined_waitlist(email, participant, locale)
+
+  def participation_joined_waitlist(
+        email,
+        %Participant{event: event, role: :waitlist} = participant,
+        locale
+      ) do
+    Gettext.put_locale(locale)
+
+    subject =
+      gettext(
+        "You're on the waitlist for event %{title}",
+        title: event.title
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:event_participation_joined_waitlist, %{
+      locale: locale,
+      event: event,
+      jsonLDMetadata: json_ld(participant),
+      participant: participant,
+      subject: subject
+    })
+  end
+
   @spec anonymous_participation_confirmation(String.t(), Participant.t(), String.t()) ::
           Swoosh.Email.t()
   def anonymous_participation_confirmation(

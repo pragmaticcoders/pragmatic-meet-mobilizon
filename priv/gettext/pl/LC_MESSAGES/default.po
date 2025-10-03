@@ -107,6 +107,16 @@ msgstr "Zostałeś przeniesiony na listę oczekujących dla wydarzenia %{title}.
 msgid "You're now on the waitlist for this event. If a spot becomes available, you will be notified by email."
 msgstr "Jesteś teraz na liście oczekujących dla tego wydarzenia. Jeśli pojawi się wolne miejsce, otrzymasz powiadomienie e-mailem."
 
+#: lib/web/templates/email/event_participation_joined_waitlist.text.eex:5
+#, elixir-autogen, elixir-format
+msgid "You requested to attend %{title}."
+msgstr "Zgłosiłeś chęć uczestnictwa w wydarzeniu %{title}."
+
+#: lib/web/templates/email/event_participation_joined_waitlist.text.eex:7
+#, elixir-autogen, elixir-format
+msgid "The event is currently full, but you've been added to the waitlist. If a spot becomes available, you will be notified by email."
+msgstr "Wydarzenie jest obecnie pełne, ale zostałeś dodany na listę oczekujących. Jeśli pojawi się wolne miejsce, otrzymasz powiadomienie e-mailem."
+
 #: lib/web/templates/email/password_reset.html.heex:18
 #: lib/web/templates/email/password_reset.text.eex:1
 #, elixir-autogen, elixir-format
@@ -142,6 +152,11 @@ msgstr "Twój udział w wydarzeniu %(title} został odrzucony"
 #, elixir-autogen, elixir-format
 msgid "You have been moved to the waitlist for event %{title}"
 msgstr "Zostałeś przeniesiony na listę oczekujących dla wydarzenia %{title}"
+
+#: lib/web/email/participation.ex:179
+#, elixir-autogen, elixir-format
+msgid "You're on the waitlist for event %{title}"
+msgstr "Jesteś na liście oczekujących dla wydarzenia %{title}"
 
 #: lib/web/email/event.ex:44
 #, elixir-autogen, elixir-format

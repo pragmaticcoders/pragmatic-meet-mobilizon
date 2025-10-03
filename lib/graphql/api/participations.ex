@@ -13,14 +13,50 @@ defmodule Mobilizon.GraphQL.API.Participations do
   require Logger
 
   @spec join(Event.t(), Actor.t(), map()) ::
-          {:ok, Activity.t(), Participant.t()} | {:error, :already_participant}
+          {:ok, Activity.t(), Participant.t()}
+          | {:ok, Activity.t(), Participant.t(), :waitlist}
+          | {:error, :already_participant}
   def join(%Event{id: event_id} = event, %Actor{id: actor_id} = actor, args \\ %{}) do
     case Mobilizon.Events.get_participant(event_id, actor_id, args) do
       {:ok, %Participant{}} ->
         {:error, :already_participant}
 
       {:error, :participant_not_found} ->
-        Actions.Join.join(event, actor, Map.get(args, :local, true), %{metadata: args})
+        case Actions.Join.join(event, actor, Map.get(args, :local, true), %{metadata: args}) do
+          {:ok, activity, participant, :waitlist} = result ->
+            # User joined the waitlist - send notification email
+            Logger.info(
+              "User #{actor_id} joined waitlist for event #{event_id}, sending notification email"
+            )
+
+            # Ensure event is loaded for email template
+            participant_with_event = Map.put(participant, :event, event)
+
+            # Send "joined waitlist" email (different from "moved to waitlist")
+            case participant_with_event do
+              %Participant{actor: %Actor{user_id: user_id}} when not is_nil(user_id) ->
+                with %Mobilizon.Users.User{locale: locale} = user <- Mobilizon.Users.get_user!(user_id) do
+                  user
+                  |> Participation.participation_joined_waitlist(participant_with_event, locale)
+                  |> Mobilizon.Web.Email.Mailer.send_email()
+                end
+
+              %Participant{actor: %Actor{user_id: nil, id: actor_id}} ->
+                if actor_id == Mobilizon.Config.anonymous_actor_id() do
+                  %{email: email, locale: locale} = Map.get(participant_with_event, :metadata)
+                  locale = locale || "en"
+
+                  email
+                  |> Participation.participation_joined_waitlist(participant_with_event, locale)
+                  |> Mobilizon.Web.Email.Mailer.send_email()
+                end
+            end
+
+            result
+
+          other_result ->
+            other_result
+        end
     end
   end
 
@@ -150,8 +186,9 @@ defmodule Mobilizon.GraphQL.API.Participations do
   end
 
   @doc """
-  Automatically promote the next participant from waitlist if there's an available spot.
+  Automatically promote participants from waitlist if there are available spots.
   Only promotes automatically if waitlist_auto_promote is enabled.
+  Promotes multiple participants if multiple spots are available.
   """
   @spec promote_from_waitlist_if_needed(integer) :: :ok
   def promote_from_waitlist_if_needed(event_id) do
@@ -169,34 +206,50 @@ defmodule Mobilizon.GraphQL.API.Participations do
              :administrator,
              :moderator
            ]),
-         {:spot_available, true} <-
-           {:spot_available,
-            current_participant_count < event.options.maximum_attendee_capacity} do
+         available_spots <- event.options.maximum_attendee_capacity - current_participant_count,
+         {:spots_available, true} <- {:spots_available, available_spots > 0} do
       Logger.info(
-        "Event #{event_id}: capacity=#{event.options.maximum_attendee_capacity}, current=#{current_participant_count}, checking waitlist..."
+        "Event #{event_id}: capacity=#{event.options.maximum_attendee_capacity}, current=#{current_participant_count}, available spots=#{available_spots}, checking waitlist..."
       )
 
-      # Get the first person from waitlist (ordered by insertion time)
-      case Events.list_participants_for_event(event_id, [:waitlist], 1, 1) do
-        %{elements: [waitlist_participant]} ->
-          Logger.info("Found waitlist participant #{waitlist_participant.id}, promoting...")
+      # Get waitlist participants up to the number of available spots (ordered by insertion time)
+      case Events.list_participants_for_event(event_id, [:waitlist], available_spots, 1) do
+        %{elements: waitlist_participants} when length(waitlist_participants) > 0 ->
+          Logger.info(
+            "Found #{length(waitlist_participants)} waitlist participant(s), promoting..."
+          )
 
-          # Promote them to participant
-          case Events.update_participant(waitlist_participant, %{role: :participant}) do
-            {:ok, updated_participant} ->
-              # Ensure event is loaded on participant for email template
-              participant_with_event = Map.put(updated_participant, :event, event)
+          # Promote all waitlist participants to fill available spots
+          promoted_count =
+            Enum.reduce(waitlist_participants, 0, fn waitlist_participant, count ->
+              Logger.info("Promoting participant #{waitlist_participant.id} from waitlist...")
 
-              # Send notification email
-              Participation.send_emails_to_local_user(participant_with_event)
+              case Events.update_participant(waitlist_participant, %{role: :participant}) do
+                {:ok, updated_participant} ->
+                  # Ensure event is loaded on participant for email template
+                  participant_with_event = Map.put(updated_participant, :event, event)
 
-              Logger.info(
-                "✅ Successfully promoted participant #{updated_participant.id} from waitlist to participant for event #{event_id}"
-              )
+                  # Send notification email
+                  Participation.send_emails_to_local_user(participant_with_event)
 
-            {:error, reason} ->
-              Logger.error("❌ Failed to promote waitlist participant: #{inspect(reason)}")
-          end
+                  Logger.info(
+                    "✅ Successfully promoted participant #{updated_participant.id} from waitlist"
+                  )
+
+                  count + 1
+
+                {:error, reason} ->
+                  Logger.error(
+                    "❌ Failed to promote participant #{waitlist_participant.id}: #{inspect(reason)}"
+                  )
+
+                  count
+              end
+            end)
+
+          Logger.info(
+            "✅ Promoted #{promoted_count}/#{available_spots} participant(s) from waitlist for event #{event_id}"
+          )
 
         _ ->
           Logger.info("No participants in waitlist for event #{event_id}")
@@ -219,8 +272,8 @@ defmodule Mobilizon.GraphQL.API.Participations do
         Logger.info("Event #{event_id}: no maximum capacity set")
         :ok
 
-      {:spot_available, false} ->
-        Logger.info("Event #{event_id}: no available spots (still at capacity)")
+      {:spots_available, false} ->
+        Logger.info("Event #{event_id}: no available spots (event at capacity)")
         :ok
 
       other ->
