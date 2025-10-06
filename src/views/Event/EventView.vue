@@ -309,7 +309,9 @@
                   style="display: flex; flex-direction: column; gap: 8px"
                 >
                   <div
-                    v-for="participant in eventParticipants.slice(0, 5)"
+                    v-for="participant in showAllAttendees
+                      ? eventParticipants
+                      : eventParticipants.slice(0, 5)"
                     :key="participant.id"
                     class="flex items-center"
                     style="gap: 12px"
@@ -390,11 +392,17 @@
                         font-weight: 700;
                         font-family: var(--font-family-primary);
                       "
+                      @click="showAllAttendees = !showAllAttendees"
                     >
-                      {{ t("Show all attendees") }}
+                      {{
+                        showAllAttendees
+                          ? t("Show less")
+                          : t("Show all attendees")
+                      }}
                       <svg
-                        class="ml-2"
+                        class="ml-2 transition-transform duration-200"
                         style="width: 16px; height: 16px"
+                        :class="{ 'rotate-180': showAllAttendees }"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -899,6 +907,7 @@ const integrations = computed((): Record<string, IEventMetadataDescription> => {
 });
 
 const showMap = ref(false);
+const showAllAttendees = ref(false);
 
 const { routingType } = useRoutingType();
 
