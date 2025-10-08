@@ -22,7 +22,7 @@
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2" v-if="canManageEvent">
           <label for="role-select" class="text-sm font-medium whitespace-nowrap"
             >{{ t("Status") }}:</label
           >
@@ -55,11 +55,14 @@
           <o-button
             @click="acceptParticipants(checkedRows)"
             variant="primary"
-            :disabled="!canAcceptParticipants() || bulkActionLoading"
+            :disabled="
+              !canAcceptParticipants() || bulkActionLoading || !canManageEvent
+            "
             :loading="bulkActionLoading"
             icon-left="check"
             size="small"
             class="text-xs sm:text-sm"
+            v-if="canManageEvent"
           >
             <span class="hidden xs:inline">{{ t("Approve") }}</span>
             <span class="xs:hidden">{{ t("Approve") }}</span>
@@ -67,11 +70,14 @@
           <o-button
             @click="moveToWaitlistParticipants(checkedRows)"
             variant="info"
-            :disabled="!canMoveToWaitlist() || bulkActionLoading"
+            :disabled="
+              !canMoveToWaitlist() || bulkActionLoading || !canManageEvent
+            "
             :loading="bulkActionLoading"
             icon-left="clock"
             size="small"
             class="text-xs sm:text-sm"
+            v-if="canManageEvent"
           >
             <span class="hidden xs:inline">{{ t("Move to waitlist") }}</span>
             <span class="xs:hidden">{{ t("Waitlist") }}</span>
@@ -79,16 +85,22 @@
           <o-button
             @click="refuseParticipants(checkedRows)"
             variant="danger"
-            :disabled="!canRefuseParticipants() || bulkActionLoading"
+            :disabled="
+              !canRefuseParticipants() || bulkActionLoading || !canManageEvent
+            "
             :loading="bulkActionLoading"
             icon-left="close"
             size="small"
             class="text-xs sm:text-sm"
+            v-if="canManageEvent"
           >
             <span class="hidden xs:inline">{{ t("Reject") }}</span>
             <span class="xs:hidden">{{ t("Reject") }}</span>
           </o-button>
-          <o-dropdown aria-role="list" v-if="exportFormats.length > 0">
+          <o-dropdown
+            aria-role="list"
+            v-if="exportFormats.length > 0 && canManageEvent"
+          >
             <template #trigger="{ active }">
               <o-button
                 :label="t('Export')"
@@ -150,7 +162,9 @@
           <div class="flex items-start justify-between mb-3">
             <div class="flex items-center gap-3 flex-1 min-w-0">
               <input
-                v-if="participant.role !== ParticipantRole.CREATOR"
+                v-if="
+                  participant.role !== ParticipantRole.CREATOR && canManageEvent
+                "
                 type="checkbox"
                 :value="participant"
                 v-model="checkedRows"
@@ -266,7 +280,9 @@
 
               <div
                 class="flex gap-1"
-                v-if="participant.role !== ParticipantRole.CREATOR"
+                v-if="
+                  participant.role !== ParticipantRole.CREATOR && canManageEvent
+                "
               >
                 <o-button
                   v-if="
@@ -362,7 +378,8 @@
         v-model:checked-rows="checkedRows"
         checkable
         :is-row-checkable="
-          (row: IParticipant) => row.role !== ParticipantRole.CREATOR
+          (row: IParticipant) =>
+            row.role !== ParticipantRole.CREATOR && canManageEvent
         "
         checkbox-position="left"
         :show-detail-icon="false"
@@ -513,7 +530,11 @@
             </div>
           </div>
         </o-table-column>
-        <o-table-column :label="t('Actions')" v-slot="props">
+        <o-table-column
+          :label="t('Actions')"
+          v-slot="props"
+          v-if="canManageEvent"
+        >
           <div
             class="flex gap-1 justify-center sm:justify-start"
             v-if="props.row.role !== ParticipantRole.CREATOR"
@@ -573,18 +594,23 @@
 </template>
 
 <script lang="ts" setup>
-import { ParticipantRole } from "@/types/enums";
+import { ParticipantRole, MemberRole } from "@/types/enums";
 import { IParticipant } from "@/types/participant.model";
 import { IEvent } from "@/types/event.model";
+import { IPerson } from "@/types/actor";
 import {
   EXPORT_EVENT_PARTICIPATIONS,
   PARTICIPANTS,
   UPDATE_PARTICIPANT,
+  EVENT_PERSON_PARTICIPATION,
 } from "@/graphql/event";
 import { usernameWithDomain } from "@/types/actor";
 import { asyncForEach } from "@/utils/asyncForEach";
 import RouteName from "@/router/name";
-import { useCurrentActorClient } from "@/composition/apollo/actor";
+import {
+  useCurrentActorClient,
+  usePersonStatusGroup,
+} from "@/composition/apollo/actor";
 import { useParticipantsExportFormats } from "@/composition/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import {
@@ -592,7 +618,7 @@ import {
   enumTransformer,
   useRouteQuery,
 } from "vue-use-route-query";
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
@@ -600,6 +626,7 @@ import Incognito from "vue-material-design-icons/Incognito.vue";
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import { Notifier } from "@/plugins/notifier";
 import { useHead } from "@/utils/head";
+import { useRouter } from "vue-router";
 
 const PARTICIPANTS_PER_PAGE = 10;
 const MESSAGE_ELLIPSIS_LENGTH = 130;
@@ -613,6 +640,7 @@ const props = defineProps<{
 const emit = defineEmits(["sort"]);
 
 const { t } = useI18n({ useScope: "global" });
+const router = useRouter();
 
 const { currentActor } = useCurrentActorClient();
 const participantsExportFormats = useParticipantsExportFormats();
@@ -659,6 +687,76 @@ const {
 );
 
 const event = computed(() => participantsResult.value?.event);
+
+// Authorization queries and computed properties
+const currentActorId = computed(() => currentActor.value?.id);
+
+const { result: participationsResult } = useQuery<{ person: IPerson }>(
+  EVENT_PERSON_PARTICIPATION,
+  () => ({
+    eventId: event.value?.id,
+    actorId: currentActorId.value,
+  }),
+  () => ({
+    enabled:
+      currentActorId.value !== undefined &&
+      currentActorId.value !== null &&
+      event.value?.id !== undefined,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
+);
+
+const participations = computed(
+  () => participationsResult.value?.person.participations?.elements ?? []
+);
+
+const groupFederatedUsername = computed(() =>
+  usernameWithDomain(event.value?.attributedTo)
+);
+
+const { person } = usePersonStatusGroup(groupFederatedUsername);
+
+const actorIsOrganizer = computed((): boolean => {
+  return (
+    participations.value.length > 0 &&
+    participations.value[0].role === ParticipantRole.CREATOR
+  );
+});
+
+const hasGroupPrivileges = computed((): boolean => {
+  return (
+    person.value?.memberships !== undefined &&
+    person.value?.memberships?.total > 0 &&
+    [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(
+      person.value?.memberships?.elements[0].role
+    )
+  );
+});
+
+const canManageEvent = computed((): boolean => {
+  return actorIsOrganizer.value || hasGroupPrivileges.value;
+});
+
+const notifier = inject<Notifier>("notifier");
+
+// Watch for event loading and authorization changes to redirect unauthorized users
+watch(
+  [event, canManageEvent],
+  ([eventValue, canManage]) => {
+    if (eventValue && canManage === false) {
+      // Show error notification and redirect to event page
+      notifier?.error(
+        t("You don't have permission to manage participants for this event")
+      );
+      router.replace({
+        name: RouteName.EVENT,
+        params: { uuid: eventValue.uuid },
+      });
+    }
+  },
+  { immediate: true }
+);
 
 // const participantStats = computed((): IEventParticipantStats | null => {
 //   if (!event.value) return null;
@@ -816,7 +914,9 @@ const moveToWaitlistParticipants = async (
     }
   } catch (error) {
     console.error("Bulk move to waitlist operation failed:", error);
-    notifier?.error(t("An error occurred while moving participants to waitlist"));
+    notifier?.error(
+      t("An error occurred while moving participants to waitlist")
+    );
   } finally {
     bulkActionLoading.value = false;
   }
@@ -839,8 +939,8 @@ const updateSingleParticipant = async (
       newRole === ParticipantRole.PARTICIPANT
         ? t("approved")
         : newRole === ParticipantRole.WAITLIST
-        ? t("moved to waitlist")
-        : t("rejected");
+          ? t("moved to waitlist")
+          : t("rejected");
     notifier?.success(
       t("Participant {action} successfully", { action: actionName })
     );
@@ -850,8 +950,8 @@ const updateSingleParticipant = async (
       newRole === ParticipantRole.PARTICIPANT
         ? t("approve")
         : newRole === ParticipantRole.WAITLIST
-        ? t("move to waitlist")
-        : t("reject");
+          ? t("move to waitlist")
+          : t("reject");
     notifier?.error(
       t("Failed to {action} participant", { action: actionName })
     );
@@ -881,8 +981,6 @@ onExportParticipantsMutationDone(({ data }) => {
   window.URL.revokeObjectURL(a.href);
   document.body.removeChild(a);
 });
-
-const notifier = inject<Notifier>("notifier");
 
 onExportParticipantsMutationError((e) => {
   console.error(e);

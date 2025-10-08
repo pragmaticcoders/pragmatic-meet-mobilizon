@@ -54,6 +54,9 @@ defmodule Mobilizon.Service.Export.Participants.Common do
 
       :creator ->
         gettext("Creator")
+
+      :waitlist ->
+        gettext("Waitlist")
     end
   end
 
