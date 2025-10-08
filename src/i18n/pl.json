@@ -1885,5 +1885,9 @@
   "This URL is required for group verification. Pragmatic Meet does not charge fees - the only requirement is promoting Pragmatic Coders during events. This URL should display an embedded iframe for verification.": "Ten URL jest wymagany do weryfikacji grupy. Pragmatic Meet nie pobiera opłat - jedynym wymogiem jest udostępnienie informacji o partnerze/sponsorze Pragmatic Coders podczas wydarzeń. Ten URL powinien wyświetlać osadzony iframe do weryfikacji.",
   "Group name cannot be longer than 100 characters": "Nazwa grupy nie może być dłuższa niż 100 znaków",
   "Description cannot be longer than 100 characters": "Opis nie może być dłuższy niż 100 znaków",
-  "Description cannot be longer than {maxSize} characters": "Opis nie może być dłuższy niż {maxSize} znaków"
+  "Description cannot be longer than {maxSize} characters": "Opis nie może być dłuższy niż {maxSize} znaków",
+  "Require manual approval": "Wymagaj ręcznego zatwierdzenia",
+  "You will need to manually approve participants from the waitlist, even when spots become available": "Będziesz musiał ręcznie zatwierdzać uczestników z listy oczekujących, nawet gdy miejsca staną się dostępne",
+  "Automatically promote from waitlist": "Automatycznie awansuj z listy oczekujących",
+  "Participants from the waitlist will automatically join the event when a spot becomes available (first-come, first-served)": "Uczestnicy z listy oczekujących automatycznie dołączą do wydarzenia, gdy miejsce stanie się dostępne (kto pierwszy, ten lepszy)"
 }
