@@ -15,7 +15,6 @@ How to add administator
 6. SELECT role, email FROM users;
 7. UPDATE users SET role = 'administrator' WHERE email = 'email@example.com';
 
-
 How to start application inside dev container
 1. run project in devcontainer (/.devcontainer)
 2. ./scripts/dev-start.sh
