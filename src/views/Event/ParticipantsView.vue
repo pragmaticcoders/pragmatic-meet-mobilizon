@@ -56,13 +56,16 @@
             @click="acceptParticipants(checkedRows)"
             variant="primary"
             :disabled="
-              !canAcceptParticipants() || bulkActionLoading || !canManageEvent
+              !canAcceptParticipants() ||
+              bulkActionLoading ||
+              !canManageEvent ||
+              authDataLoading
             "
-            :loading="bulkActionLoading"
+            :loading="bulkActionLoading || authDataLoading"
             icon-left="check"
             size="small"
             class="text-xs sm:text-sm"
-            v-if="canManageEvent"
+            v-if="canManageEvent || authDataLoading"
           >
             <span class="hidden xs:inline">{{ t("Approve") }}</span>
             <span class="xs:hidden">{{ t("Approve") }}</span>
@@ -71,13 +74,16 @@
             @click="moveToWaitlistParticipants(checkedRows)"
             variant="info"
             :disabled="
-              !canMoveToWaitlist() || bulkActionLoading || !canManageEvent
+              !canMoveToWaitlist() ||
+              bulkActionLoading ||
+              !canManageEvent ||
+              authDataLoading
             "
-            :loading="bulkActionLoading"
+            :loading="bulkActionLoading || authDataLoading"
             icon-left="clock"
             size="small"
             class="text-xs sm:text-sm"
-            v-if="canManageEvent"
+            v-if="canManageEvent || authDataLoading"
           >
             <span class="hidden xs:inline">{{ t("Move to waitlist") }}</span>
             <span class="xs:hidden">{{ t("Waitlist") }}</span>
@@ -86,20 +92,26 @@
             @click="refuseParticipants(checkedRows)"
             variant="danger"
             :disabled="
-              !canRefuseParticipants() || bulkActionLoading || !canManageEvent
+              !canRefuseParticipants() ||
+              bulkActionLoading ||
+              !canManageEvent ||
+              authDataLoading
             "
-            :loading="bulkActionLoading"
+            :loading="bulkActionLoading || authDataLoading"
             icon-left="close"
             size="small"
             class="text-xs sm:text-sm"
-            v-if="canManageEvent"
+            v-if="canManageEvent || authDataLoading"
           >
             <span class="hidden xs:inline">{{ t("Reject") }}</span>
             <span class="xs:hidden">{{ t("Reject") }}</span>
           </o-button>
           <o-dropdown
             aria-role="list"
-            v-if="exportFormats.length > 0 && canManageEvent"
+            v-if="
+              exportFormats.length > 0 && (canManageEvent || authDataLoading)
+            "
+            :disabled="authDataLoading"
           >
             <template #trigger="{ active }">
               <o-button
@@ -108,6 +120,8 @@
                 :icon-right="active ? 'menu-up' : 'menu-down'"
                 size="small"
                 class="text-xs sm:text-sm"
+                :disabled="authDataLoading"
+                :loading="authDataLoading"
               />
             </template>
 
@@ -683,10 +697,30 @@ const {
       currentActor.value?.id !== undefined &&
       page.value !== undefined &&
       role.value !== undefined,
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: true,
   })
 );
 
 const event = computed(() => participantsResult.value?.event);
+
+// Watch for page and role changes to refetch participants
+watch([page, role], async () => {
+  console.log("[DEBUG] Page or role changed, refetching participants...", {
+    page: page.value,
+    role: role.value,
+  });
+
+  // Explicitly refetch with new variables
+  await refetchParticipants({
+    uuid: eventId.value,
+    page: page.value,
+    limit: PARTICIPANTS_PER_PAGE,
+    roles: role.value === "EVERYTHING" ? undefined : role.value,
+  });
+
+  console.log("[DEBUG] Participants refetched successfully");
+});
 
 // Authorization queries and computed properties
 const currentActorId = computed(() => currentActor.value?.id);
@@ -776,7 +810,26 @@ const hasGroupPrivileges = computed((): boolean => {
   return hasPrivileges;
 });
 
+// Track if we're still loading authorization data
+const authDataLoading = computed((): boolean => {
+  // If event has a group, we need to wait for person data
+  if (event.value?.attributedTo && person.value === undefined) {
+    return true;
+  }
+  // If we're still loading participants, wait
+  if (participantsLoading.value) {
+    return true;
+  }
+  return false;
+});
+
 const canManageEvent = computed((): boolean => {
+  // While loading, return false but don't enforce it
+  if (authDataLoading.value) {
+    console.log("[DEBUG] Still loading authorization data");
+    return false;
+  }
+
   const result = actorIsOrganizer.value || hasGroupPrivileges.value;
   console.log("[DEBUG] actorIsOrganizer:", actorIsOrganizer.value);
   console.log("[DEBUG] hasGroupPrivileges:", hasGroupPrivileges.value);
@@ -797,13 +850,13 @@ watch(
 
     // If event is attributed to a group, wait for person data to load
     if (eventValue.attributedTo && personValue === undefined) {
-      console.log('[DEBUG] Waiting for person data to load...');
+      console.log("[DEBUG] Waiting for person data to load...");
       return;
     }
 
     // Now we can safely check permissions
     if (canManage === false) {
-      console.log('[DEBUG] Permission denied, redirecting...');
+      console.log("[DEBUG] Permission denied, redirecting...");
       // Show error notification and redirect to event page
       notifier?.error(
         t("You don't have permission to manage participants for this event")
@@ -813,7 +866,7 @@ watch(
         params: { uuid: eventValue.uuid },
       });
     } else {
-      console.log('[DEBUG] Permission granted!');
+      console.log("[DEBUG] Permission granted!");
     }
   },
   { immediate: true }
