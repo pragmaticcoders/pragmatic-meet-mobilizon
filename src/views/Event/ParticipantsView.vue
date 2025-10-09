@@ -738,27 +738,50 @@ const actorIsOrganizer = computed((): boolean => {
 const hasGroupPrivileges = computed((): boolean => {
   // If event is not attributed to a group, no group privileges apply
   if (!event.value?.attributedTo) {
+    console.log("[DEBUG] No attributedTo for event");
     return false;
   }
 
+  console.log("[DEBUG] Event attributedTo:", event.value.attributedTo);
+  console.log(
+    "[DEBUG] Group federated username:",
+    groupFederatedUsername.value
+  );
+  console.log("[DEBUG] Person data:", person.value);
+  console.log("[DEBUG] Memberships:", person.value?.memberships);
+
   // Check if person has memberships in the group
   if (!person.value?.memberships) {
+    console.log("[DEBUG] No memberships found");
     return false;
   }
 
   // Check if there are any memberships
   if (person.value.memberships.total === 0) {
+    console.log("[DEBUG] Memberships total is 0");
     return false;
   }
 
+  console.log(
+    "[DEBUG] Membership elements:",
+    person.value.memberships.elements
+  );
+
   // Check if any membership has moderator or administrator role
-  return person.value.memberships.elements.some((membership) =>
+  const hasPrivileges = person.value.memberships.elements.some((membership) =>
     [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
   );
+
+  console.log("[DEBUG] Has group privileges:", hasPrivileges);
+  return hasPrivileges;
 });
 
 const canManageEvent = computed((): boolean => {
-  return actorIsOrganizer.value || hasGroupPrivileges.value;
+  const result = actorIsOrganizer.value || hasGroupPrivileges.value;
+  console.log("[DEBUG] actorIsOrganizer:", actorIsOrganizer.value);
+  console.log("[DEBUG] hasGroupPrivileges:", hasGroupPrivileges.value);
+  console.log("[DEBUG] canManageEvent:", result);
+  return result;
 });
 
 const notifier = inject<Notifier>("notifier");
