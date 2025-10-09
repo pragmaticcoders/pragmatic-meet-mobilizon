@@ -711,9 +711,11 @@ const participations = computed(
   () => participationsResult.value?.person.participations?.elements ?? []
 );
 
-const groupFederatedUsername = computed(() =>
-  usernameWithDomain(event.value?.attributedTo)
-);
+const groupFederatedUsername = computed(() => {
+  const attributedTo = event.value?.attributedTo;
+  if (!attributedTo) return undefined;
+  return usernameWithDomain(attributedTo);
+});
 
 const { person } = usePersonStatusGroup(groupFederatedUsername);
 
@@ -734,12 +736,24 @@ const actorIsOrganizer = computed((): boolean => {
 });
 
 const hasGroupPrivileges = computed((): boolean => {
-  return (
-    person.value?.memberships !== undefined &&
-    person.value?.memberships?.total > 0 &&
-    [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(
-      person.value?.memberships?.elements[0].role
-    )
+  // If event is not attributed to a group, no group privileges apply
+  if (!event.value?.attributedTo) {
+    return false;
+  }
+
+  // Check if person has memberships in the group
+  if (!person.value?.memberships) {
+    return false;
+  }
+
+  // Check if there are any memberships
+  if (person.value.memberships.total === 0) {
+    return false;
+  }
+
+  // Check if any membership has moderator or administrator role
+  return person.value.memberships.elements.some((membership) =>
+    [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
   );
 });
 
