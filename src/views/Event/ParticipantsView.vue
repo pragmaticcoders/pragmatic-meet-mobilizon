@@ -788,9 +788,22 @@ const notifier = inject<Notifier>("notifier");
 
 // Watch for event loading and authorization changes to redirect unauthorized users
 watch(
-  [event, canManageEvent],
-  ([eventValue, canManage]) => {
-    if (eventValue && canManage === false) {
+  [event, canManageEvent, person, participantsLoading],
+  ([eventValue, canManage, personValue, loading]) => {
+    // Don't check authorization until data is loaded
+    if (!eventValue || loading) {
+      return;
+    }
+
+    // If event is attributed to a group, wait for person data to load
+    if (eventValue.attributedTo && personValue === undefined) {
+      console.log('[DEBUG] Waiting for person data to load...');
+      return;
+    }
+
+    // Now we can safely check permissions
+    if (canManage === false) {
+      console.log('[DEBUG] Permission denied, redirecting...');
       // Show error notification and redirect to event page
       notifier?.error(
         t("You don't have permission to manage participants for this event")
@@ -799,6 +812,8 @@ watch(
         name: RouteName.EVENT,
         params: { uuid: eventValue.uuid },
       });
+    } else {
+      console.log('[DEBUG] Permission granted!');
     }
   },
   { immediate: true }
