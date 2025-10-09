@@ -718,6 +718,15 @@ const groupFederatedUsername = computed(() =>
 const { person } = usePersonStatusGroup(groupFederatedUsername);
 
 const actorIsOrganizer = computed((): boolean => {
+  // Check if current actor is the organizerActor of the event
+  if (
+    currentActorId.value &&
+    event.value?.organizerActor?.id === currentActorId.value
+  ) {
+    return true;
+  }
+
+  // Also check if they have a CREATOR participation role
   return (
     participations.value.length > 0 &&
     participations.value[0].role === ParticipantRole.CREATOR
