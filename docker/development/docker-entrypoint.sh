@@ -15,11 +15,33 @@ while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5
    sleep 2s
 done
 
-echo "-- Fetching dependencies..."
-mix deps.get
+# Check if dependencies need to be installed
+if [ ! -d "deps" ] || [ ! -d "deps/phoenix" ]; then
+  echo "-- Fetching Elixir dependencies..."
+  mix deps.get
+else
+  echo "-- Elixir dependencies already present, skipping..."
+fi
 
-echo "-- Installing Node.js dependencies..."
-npm install
+# Check if node_modules needs to be installed
+if [ ! -d "node_modules" ] || [ ! -d "node_modules/vite" ]; then
+  echo "-- Installing Node.js dependencies..."
+  npm install
+else
+  echo "-- Node.js dependencies already present, skipping..."
+fi
+
+# Build picture assets if not already built
+if [ ! -d "priv/static/img/pics" ]; then
+  echo "-- Building picture assets..."
+  npm run build:pictures
+else
+  echo "-- Picture assets already built, skipping..."
+fi
+
+# Compile Elixir assets
+echo "-- Compiling Elixir assets..."
+mix compile
 
 echo "-- Creating database extensions..."
 PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
@@ -29,5 +51,7 @@ PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d 
 echo "-- Running migrations..."
 mix mobilizon.ecto.migrate
 
-echo "-- Starting Phoenix server!"
+echo "-- Starting Phoenix server with Vite!"
+echo "-- Phoenix will be available at http://localhost:4000"
+echo "-- Vite dev server will run on port 5173 (proxied by Phoenix)"
 exec mix phx.server 

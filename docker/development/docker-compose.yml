@@ -32,6 +32,10 @@ services:
       - ../../.env
     volumes:
       - "../../:/workspace:z"
+      - deps_cache:/workspace/deps
+      - build_cache:/workspace/_build
+      - node_modules_cache:/workspace/node_modules
+      - priv_static:/workspace/priv/static
     working_dir: /workspace
     ports:
       - 4000:4000
@@ -59,4 +63,7 @@ services:
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
 volumes:
   pgdata:
-  .:
+  deps_cache:
+  build_cache:
+  node_modules_cache:
+  priv_static:
