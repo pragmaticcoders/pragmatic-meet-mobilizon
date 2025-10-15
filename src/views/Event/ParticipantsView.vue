@@ -706,7 +706,8 @@ const {
       currentActor.value?.id !== undefined &&
       page.value !== undefined &&
       role.value !== undefined,
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
     notifyOnNetworkStatusChange: true,
   })
 );
@@ -723,20 +724,22 @@ const event = computed(() => {
   return eventData;
 });
 
-// Explicit pagination handlers
-const goToPreviousPage = async () => {
-  console.log("[DEBUG] goToPreviousPage clicked", {
+// Explicit pagination handlers with hard refresh
+const goToPreviousPage = () => {
+  console.log("[DEBUG] goToPreviousPage clicked - doing hard refresh", {
     currentPage: page.value,
     targetPage: page.value - 1,
   });
   if (page.value > 1) {
-    page.value = page.value - 1;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const newPage = page.value - 1;
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", newPage.toString());
+    window.location.href = url.toString();
   }
 };
 
-const goToNextPage = async () => {
-  console.log("[DEBUG] goToNextPage clicked", {
+const goToNextPage = () => {
+  console.log("[DEBUG] goToNextPage clicked - doing hard refresh", {
     currentPage: page.value,
     total: event.value?.participants?.total,
   });
@@ -746,23 +749,27 @@ const goToNextPage = async () => {
     );
     console.log("[DEBUG] Calculated maxPage:", maxPage);
     if (page.value < maxPage) {
-      page.value = page.value + 1;
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      const newPage = page.value + 1;
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", newPage.toString());
+      window.location.href = url.toString();
     }
   }
 };
 
 const onPageChange = (newPage: number) => {
-  console.log("[DEBUG] onPageChange called (desktop)", {
+  console.log("[DEBUG] onPageChange called (desktop) - doing hard refresh", {
     oldPage: page.value,
     newPage,
   });
-  page.value = newPage;
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const url = new URL(window.location.href);
+  url.searchParams.set("page", newPage.toString());
+  window.location.href = url.toString();
 };
 
-// Clear checked rows and refetch when pagination or filter changes
-watch([page, role], async (newValues, oldValues) => {
+// Clear checked rows when pagination or filter changes
+// Apollo will automatically refetch when reactive variables (page, role) change
+watch([page, role], (newValues, oldValues) => {
   // Skip initial trigger
   if (oldValues[0] === undefined && oldValues[1] === undefined) {
     console.log("[DEBUG] Watch initial trigger - skipping");
@@ -778,44 +785,10 @@ watch([page, role], async (newValues, oldValues) => {
     page: newValues[0],
     role: newValues[1],
   });
-  console.log("[DEBUG] Current participants before refetch:", {
-    total: event.value?.participants?.total,
-    count: event.value?.participants?.elements?.length,
-    firstParticipantId: event.value?.participants?.elements?.[0]?.id,
-  });
+  console.log("[DEBUG] Apollo will automatically refetch with new variables");
 
   checkedRows.value = [];
   console.log("[DEBUG] Cleared checked rows");
-
-  console.log("[DEBUG] Starting refetchParticipants with params:", {
-    uuid: eventId.value,
-    page: page.value,
-    limit: PARTICIPANTS_PER_PAGE,
-    roles: role.value === "EVERYTHING" ? undefined : role.value,
-  });
-
-  try {
-    const result = await refetchParticipants({
-      uuid: eventId.value,
-      page: page.value,
-      limit: PARTICIPANTS_PER_PAGE,
-      roles: role.value === "EVERYTHING" ? undefined : role.value,
-    });
-
-    console.log("[DEBUG] Refetch result:", {
-      hasData: !!result?.data,
-      participantsTotal: result?.data?.event?.participants?.total,
-      participantsCount: result?.data?.event?.participants?.elements?.length,
-      firstParticipantId: result?.data?.event?.participants?.elements?.[0]?.id,
-      participantIds: result?.data?.event?.participants?.elements?.map(
-        (p: IParticipant) => p.id
-      ),
-    });
-    console.log("[DEBUG] ========== REFETCH COMPLETED ==========");
-  } catch (error) {
-    console.error("[DEBUG] ========== REFETCH FAILED ==========");
-    console.error("[DEBUG] Error:", error);
-  }
 });
 
 // Watch loading state changes
