@@ -160,14 +160,14 @@
         ></div>
       </div>
       <div
-        v-else-if="event.participants.elements.length === 0"
+        v-else-if="event.participants?.elements?.length === 0"
         class="text-center py-8"
       >
         <EmptyContent icon="account-circle" :inline="true">
           {{ t("No participant matches the filters") }}
         </EmptyContent>
       </div>
-      <div v-else class="space-y-3">
+      <div v-else-if="event.participants?.elements" class="space-y-3">
         <div
           v-for="participant in event.participants.elements"
           :key="participant.id"
@@ -351,7 +351,13 @@
       </div>
 
       <!-- Mobile Pagination -->
-      <div v-if="event.participants.total > PARTICIPANTS_PER_PAGE" class="mt-6">
+      <div
+        v-if="
+          event.participants?.total &&
+          event.participants.total > PARTICIPANTS_PER_PAGE
+        "
+        class="mt-6"
+      >
         <div class="flex justify-between items-center">
           <o-button
             @click="page = page - 1"
@@ -385,7 +391,7 @@
     <!-- Desktop Table Layout -->
     <div class="hidden md:block">
       <o-table
-        :data="event.participants.elements"
+        :data="event.participants?.elements || []"
         ref="queueTable"
         detailed
         detail-key="id"
@@ -406,7 +412,7 @@
         :aria-previous-label="t('Previous page')"
         :aria-page-label="t('Page')"
         :aria-current-label="t('Current page')"
-        :total="event.participants.total"
+        :total="event.participants?.total || 0"
         :per-page="PARTICIPANTS_PER_PAGE"
         backend-sorting
         :default-sort-direction="'desc'"
@@ -703,24 +709,6 @@ const {
 );
 
 const event = computed(() => participantsResult.value?.event);
-
-// Watch for page and role changes to refetch participants
-watch([page, role], async () => {
-  console.log("[DEBUG] Page or role changed, refetching participants...", {
-    page: page.value,
-    role: role.value,
-  });
-
-  // Explicitly refetch with new variables
-  await refetchParticipants({
-    uuid: eventId.value,
-    page: page.value,
-    limit: PARTICIPANTS_PER_PAGE,
-    roles: role.value === "EVERYTHING" ? undefined : role.value,
-  });
-
-  console.log("[DEBUG] Participants refetched successfully");
-});
 
 // Authorization queries and computed properties
 const currentActorId = computed(() => currentActor.value?.id);
