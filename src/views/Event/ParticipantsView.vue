@@ -363,7 +363,7 @@
       >
         <div class="flex justify-between items-center">
           <o-button
-            @click="page = page - 1"
+            @click="goToPreviousPage"
             :disabled="page <= 1"
             variant="primary"
             outlined
@@ -376,7 +376,7 @@
             {{ Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE) }}
           </span>
           <o-button
-            @click="page = page + 1"
+            @click="goToNextPage"
             :disabled="
               page >=
               Math.ceil(event.participants.total / PARTICIPANTS_PER_PAGE)
@@ -420,7 +420,7 @@
         backend-sorting
         :default-sort-direction="'desc'"
         :default-sort="['insertedAt', 'desc']"
-        @page-change="(newPage: number) => (page = newPage)"
+        @page-change="onPageChange"
         @sort="(field: string, order: string) => emit('sort', field, order)"
       >
         <o-table-column
@@ -706,16 +706,58 @@ const {
       currentActor.value?.id !== undefined &&
       page.value !== undefined &&
       role.value !== undefined,
-    fetchPolicy: "cache-and-network",
+    fetchPolicy: "network-only",
     notifyOnNetworkStatusChange: true,
   })
 );
 
 const event = computed(() => participantsResult.value?.event);
 
-// Clear checked rows when pagination or filter changes
-watch([page, role], () => {
+// Explicit pagination handlers
+const goToPreviousPage = async () => {
+  if (page.value > 1) {
+    page.value = page.value - 1;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+};
+
+const goToNextPage = async () => {
+  if (event.value?.participants?.total) {
+    const maxPage = Math.ceil(
+      event.value.participants.total / PARTICIPANTS_PER_PAGE
+    );
+    if (page.value < maxPage) {
+      page.value = page.value + 1;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+};
+
+const onPageChange = (newPage: number) => {
+  page.value = newPage;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+// Clear checked rows and refetch when pagination or filter changes
+watch([page, role], async (newValues, oldValues) => {
+  // Skip initial trigger
+  if (oldValues[0] === undefined && oldValues[1] === undefined) return;
+
+  console.log("[DEBUG] Page/role changed, refetching...", {
+    page: newValues[0],
+    role: newValues[1],
+  });
+
   checkedRows.value = [];
+
+  await refetchParticipants({
+    uuid: eventId.value,
+    page: page.value,
+    limit: PARTICIPANTS_PER_PAGE,
+    roles: role.value === "EVERYTHING" ? undefined : role.value,
+  });
+
+  console.log("[DEBUG] Refetch completed");
 });
 
 // Authorization queries and computed properties
