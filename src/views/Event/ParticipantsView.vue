@@ -154,20 +154,23 @@
     </div>
     <!-- Mobile Card Layout -->
     <div class="block md:hidden">
-      <div v-if="participantsLoading" class="text-center py-8">
+      <div
+        v-if="participantsLoading || !event?.participants"
+        class="text-center py-8"
+      >
         <div
           class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
         ></div>
       </div>
       <div
-        v-else-if="event.participants?.elements?.length === 0"
+        v-else-if="event.participants.elements?.length === 0"
         class="text-center py-8"
       >
         <EmptyContent icon="account-circle" :inline="true">
           {{ t("No participant matches the filters") }}
         </EmptyContent>
       </div>
-      <div v-else-if="event.participants?.elements" class="space-y-3">
+      <div v-else-if="event.participants.elements?.length" class="space-y-3">
         <div
           v-for="participant in event.participants.elements"
           :key="participant.id"
@@ -709,6 +712,11 @@ const {
 );
 
 const event = computed(() => participantsResult.value?.event);
+
+// Clear checked rows when pagination or filter changes
+watch([page, role], () => {
+  checkedRows.value = [];
+});
 
 // Authorization queries and computed properties
 const currentActorId = computed(() => currentActor.value?.id);
