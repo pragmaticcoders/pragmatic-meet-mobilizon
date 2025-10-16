@@ -33,27 +33,70 @@ defmodule Mobilizon.Service.Workers.ActivityBuilder do
   end
 
   @spec notify_activity(Activity.t()) :: :ok
-  def notify_activity(%Activity{} = activity) do
-    activity
-    |> users_to_notify()
-    |> Enum.each(&Notifier.notify(&1, activity, single_activity: true))
+  def notify_activity(%Activity{subject: subject} = activity) do
+    require Logger
+    Logger.info("notify_activity called for subject: #{subject}")
+
+    users = users_to_notify(activity)
+    Logger.info("Found #{length(users)} users to notify for activity #{subject}")
+
+    users
+    |> Enum.each(fn user ->
+      Logger.info("Notifying user #{user.id} (#{user.email}) for activity #{subject}")
+      Notifier.notify(user, activity, single_activity: true)
+    end)
+
+    :ok
   end
 
   @spec users_to_notify(Activity.t()) :: list(User.t())
-  defp users_to_notify(%Activity{group: %Actor{type: :Group} = group, author_id: author_id}) do
-    group
-    |> Actors.list_internal_actors_members_for_group([
-      :creator,
-      :administrator,
-      :moderator,
-      :member
-    ])
-    |> Enum.filter(&(&1.id != author_id))
-    |> Enum.map(& &1.user_id)
-    |> Enum.filter(& &1)
-    |> Enum.uniq()
-    |> Enum.map(&Users.get_user_with_activity_settings!/1)
+  defp users_to_notify(%Activity{
+         group: %Actor{type: :Group, id: group_id} = group,
+         author_id: author_id,
+         subject: subject
+       }) do
+    require Logger
+
+    Logger.info(
+      "users_to_notify: Looking for members in group #{group_id} for subject #{subject}"
+    )
+
+    members =
+      Actors.list_internal_actors_members_for_group(group, [
+        :creator,
+        :administrator,
+        :moderator,
+        :member
+      ])
+
+    Logger.info("Found #{length(members)} members in group #{group_id}")
+
+    filtered_members = Enum.filter(members, &(&1.id != author_id))
+    Logger.info("After filtering author #{author_id}: #{length(filtered_members)} members")
+
+    user_ids =
+      filtered_members
+      |> Enum.map(& &1.user_id)
+      |> Enum.filter(& &1)
+      |> Enum.uniq()
+
+    Logger.info("Found #{length(user_ids)} unique user IDs: #{inspect(user_ids)}")
+
+    users = Enum.map(user_ids, &Users.get_user_with_activity_settings!/1)
+    Logger.info("Retrieved #{length(users)} users with activity settings")
+
+    users
   end
 
-  defp users_to_notify(_), do: []
+  defp users_to_notify(%Activity{} = activity),
+    do:
+      (
+        require Logger
+
+        Logger.info(
+          "users_to_notify: Activity doesn't have group or not matching pattern: #{inspect(activity, pretty: true)}"
+        )
+
+        []
+      )
 end

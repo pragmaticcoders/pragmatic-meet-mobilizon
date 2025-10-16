@@ -32,59 +32,97 @@ defmodule Mobilizon.Web.Email.Group do
 
   def notify_of_new_event(%Event{}), do: :ok
 
-  defp notify_follower(%Event{} = event, %Actor{type: :Group} = group, %User{
-         email: email,
-         locale: locale,
-         settings: %Setting{timezone: timezone},
-         activity_settings: activity_settings,
-         default_actor_id: default_actor_id
-       }) do
-    if default_actor_id != event.organizer_actor_id &&
-         accepts_new_events_notifications(activity_settings) do
-      Gettext.put_locale(locale)
-
-      subject =
-        gettext(
-          "📅 Just scheduled by %{group}: %{event}",
-          group: Actor.display_name(group),
-          event: event.title
-        )
-
-      [to: email, subject: subject]
-      |> Email.base_email()
-      |> render_body(:event_group_follower_notification, %{
-        locale: locale,
-        group: group,
-        event: event,
-        timezone: timezone,
-        subject: subject
-      })
-      |> Email.Mailer.send_email()
-
-      :ok
-    end
-  end
-
-  defp notify_follower(
-         %Event{uuid: event_uuid},
-         %Actor{type: :Group, preferred_username: group_username},
-         user
-       ) do
-    Logger.warning(
-      "Unable to notify group follower user #{user.email} for event #{event_uuid} from group #{group_username}"
+  defp notify_follower(%Event{} = event, %Actor{type: :Group} = group, %User{} = user) do
+    Logger.info(
+      "notify_follower called for user #{user.email}, event #{event.uuid}, organizer_actor_id: #{event.organizer_actor_id}"
     )
 
-    :ok
+    with %User{
+           email: email,
+           locale: locale,
+           settings: settings,
+           activity_settings: activity_settings,
+           default_actor_id: default_actor_id
+         } <- user do
+      Logger.info(
+        "User #{email}: default_actor_id=#{default_actor_id}, is_organizer?=#{default_actor_id == event.organizer_actor_id}"
+      )
+
+      Logger.info("User #{email}: activity_settings=#{inspect(activity_settings, pretty: true)}")
+
+      accepts_notifications = accepts_new_events_notifications(activity_settings)
+
+      Logger.info("User #{email}: accepts_new_events_notifications=#{accepts_notifications}")
+
+      if default_actor_id != event.organizer_actor_id && accepts_notifications do
+        timezone = if settings, do: settings.timezone, else: nil
+        Gettext.put_locale(locale || "en")
+
+        subject =
+          gettext(
+            "📅 Just scheduled by %{group}: %{event}",
+            group: Actor.display_name(group),
+            event: event.title
+          )
+
+        [to: email, subject: subject]
+        |> Email.base_email()
+        |> render_body(:event_group_follower_notification, %{
+          locale: locale || "en",
+          group: group,
+          event: event,
+          timezone: timezone,
+          subject: subject
+        })
+        |> Email.Mailer.send_email()
+
+        Logger.info("Successfully sent event notification to #{email} for event #{event.uuid}")
+        :ok
+      else
+        Logger.debug(
+          "Skipping notification for user #{email} - either they are the organizer or haven't enabled event notifications"
+        )
+
+        :ok
+      end
+    else
+      _ ->
+        Logger.warning(
+          "Unable to notify group follower user #{user.email} for event #{event.uuid} from group #{group.preferred_username} - missing required user data"
+        )
+
+        :ok
+    end
   end
 
   defp notify_follower(_, _, _), do: :ok
 
   @spec accepts_new_events_notifications(list()) :: boolean()
   defp accepts_new_events_notifications(activity_settings) do
-    case Enum.find(activity_settings, &(&1.key == "event_created" && &1.method == "email")) do
-      nil -> false
-      %{enabled: enabled} -> enabled
-    end
+    Logger.info(
+      "accepts_new_events_notifications: checking settings: #{inspect(activity_settings, pretty: true)}"
+    )
+
+    result =
+      case Enum.find(activity_settings, &(&1.key == "event_created" && &1.method == "email")) do
+        nil ->
+          Logger.info(
+            "accepts_new_events_notifications: No 'event_created' email setting found, using default (true)"
+          )
+
+          # Default to true when no setting exists (matches frontend default behavior)
+          true
+
+        %{enabled: enabled} = setting ->
+          Logger.info(
+            "accepts_new_events_notifications: Found setting #{inspect(setting)}, enabled=#{enabled}"
+          )
+
+          enabled
+      end
+
+    Logger.info("accepts_new_events_notifications: result=#{result}")
+    result
   end
 
   @member_roles [:administrator, :moderator, :member]

@@ -330,7 +330,7 @@ import {
 import merge from "lodash/merge";
 import { WEB_PUSH } from "@/graphql/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import { computed, onBeforeMount, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
 import { IConfig } from "@/types/config.model";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
@@ -368,7 +368,6 @@ const groupNotifications = ref<INotificationPendingEnum | undefined>(
 );
 const notificationPendingParticipationValues = ref<Record<string, unknown>>({});
 const groupNotificationsValues = ref<Record<string, unknown>>({});
-const showCopiedTooltip = reactive({ ics: false, atom: false });
 const subscribed = ref(false);
 const canShowWebPush = ref(false);
 
