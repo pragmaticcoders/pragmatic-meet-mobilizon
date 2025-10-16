@@ -641,7 +641,7 @@ import {
   enumTransformer,
   useRouteQuery,
 } from "vue-use-route-query";
-import { computed, inject, ref, watch, onMounted } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
@@ -712,24 +712,10 @@ const {
   })
 );
 
-const event = computed(() => {
-  const eventData = participantsResult.value?.event;
-  console.log("[DEBUG] Event computed:", {
-    hasEvent: !!eventData,
-    participantsTotal: eventData?.participants?.total,
-    participantsCount: eventData?.participants?.elements?.length,
-    currentPage: page.value,
-    loading: participantsLoading.value,
-  });
-  return eventData;
-});
+const event = computed(() => participantsResult.value?.event);
 
 // Explicit pagination handlers with hard refresh
 const goToPreviousPage = () => {
-  console.log("[DEBUG] goToPreviousPage clicked - doing hard refresh", {
-    currentPage: page.value,
-    targetPage: page.value - 1,
-  });
   if (page.value > 1) {
     const newPage = page.value - 1;
     const url = new URL(window.location.href);
@@ -739,15 +725,10 @@ const goToPreviousPage = () => {
 };
 
 const goToNextPage = () => {
-  console.log("[DEBUG] goToNextPage clicked - doing hard refresh", {
-    currentPage: page.value,
-    total: event.value?.participants?.total,
-  });
   if (event.value?.participants?.total) {
     const maxPage = Math.ceil(
       event.value.participants.total / PARTICIPANTS_PER_PAGE
     );
-    console.log("[DEBUG] Calculated maxPage:", maxPage);
     if (page.value < maxPage) {
       const newPage = page.value + 1;
       const url = new URL(window.location.href);
@@ -758,63 +739,19 @@ const goToNextPage = () => {
 };
 
 const onPageChange = (newPage: number) => {
-  console.log("[DEBUG] onPageChange called (desktop) - doing hard refresh", {
-    oldPage: page.value,
-    newPage,
-  });
   const url = new URL(window.location.href);
   url.searchParams.set("page", newPage.toString());
   window.location.href = url.toString();
 };
 
 // Clear checked rows when pagination or filter changes
-// Apollo will automatically refetch when reactive variables (page, role) change
 watch([page, role], (newValues, oldValues) => {
   // Skip initial trigger
   if (oldValues[0] === undefined && oldValues[1] === undefined) {
-    console.log("[DEBUG] Watch initial trigger - skipping");
     return;
   }
-
-  console.log("[DEBUG] ========== PAGINATION/ROLE CHANGE ==========");
-  console.log("[DEBUG] Old values:", {
-    page: oldValues[0],
-    role: oldValues[1],
-  });
-  console.log("[DEBUG] New values:", {
-    page: newValues[0],
-    role: newValues[1],
-  });
-  console.log("[DEBUG] Apollo will automatically refetch with new variables");
-
   checkedRows.value = [];
-  console.log("[DEBUG] Cleared checked rows");
 });
-
-// Watch loading state changes
-watch(participantsLoading, (newLoading, oldLoading) => {
-  console.log("[DEBUG] Loading state changed:", {
-    from: oldLoading,
-    to: newLoading,
-    currentPage: page.value,
-    currentRole: role.value,
-  });
-});
-
-// Watch participants result changes
-watch(
-  () => participantsResult.value?.event?.participants?.elements,
-  (newElements, oldElements) => {
-    console.log("[DEBUG] Participants elements changed:", {
-      oldCount: oldElements?.length,
-      newCount: newElements?.length,
-      oldFirstId: oldElements?.[0]?.id,
-      newFirstId: newElements?.[0]?.id,
-      currentPage: page.value,
-      allNewIds: newElements?.map((p) => p.id),
-    });
-  }
-);
 
 // Authorization queries and computed properties
 const currentActorId = computed(() => currentActor.value?.id);
@@ -866,41 +803,24 @@ const actorIsOrganizer = computed((): boolean => {
 const hasGroupPrivileges = computed((): boolean => {
   // If event is not attributed to a group, no group privileges apply
   if (!event.value?.attributedTo) {
-    console.log("[DEBUG] No attributedTo for event");
     return false;
   }
 
-  console.log("[DEBUG] Event attributedTo:", event.value.attributedTo);
-  console.log(
-    "[DEBUG] Group federated username:",
-    groupFederatedUsername.value
-  );
-  console.log("[DEBUG] Person data:", person.value);
-  console.log("[DEBUG] Memberships:", person.value?.memberships);
-
   // Check if person has memberships in the group
   if (!person.value?.memberships) {
-    console.log("[DEBUG] No memberships found");
     return false;
   }
 
   // Check if there are any memberships
   if (person.value.memberships.total === 0) {
-    console.log("[DEBUG] Memberships total is 0");
     return false;
   }
-
-  console.log(
-    "[DEBUG] Membership elements:",
-    person.value.memberships.elements
-  );
 
   // Check if any membership has moderator or administrator role
   const hasPrivileges = person.value.memberships.elements.some((membership) =>
     [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
   );
 
-  console.log("[DEBUG] Has group privileges:", hasPrivileges);
   return hasPrivileges;
 });
 
@@ -920,15 +840,10 @@ const authDataLoading = computed((): boolean => {
 const canManageEvent = computed((): boolean => {
   // While loading, return false but don't enforce it
   if (authDataLoading.value) {
-    console.log("[DEBUG] Still loading authorization data");
     return false;
   }
 
-  const result = actorIsOrganizer.value || hasGroupPrivileges.value;
-  console.log("[DEBUG] actorIsOrganizer:", actorIsOrganizer.value);
-  console.log("[DEBUG] hasGroupPrivileges:", hasGroupPrivileges.value);
-  console.log("[DEBUG] canManageEvent:", result);
-  return result;
+  return actorIsOrganizer.value || hasGroupPrivileges.value;
 });
 
 const notifier = inject<Notifier>("notifier");
@@ -944,13 +859,11 @@ watch(
 
     // If event is attributed to a group, wait for person data to load
     if (eventValue.attributedTo && personValue === undefined) {
-      console.log("[DEBUG] Waiting for person data to load...");
       return;
     }
 
     // Now we can safely check permissions
     if (canManage === false) {
-      console.log("[DEBUG] Permission denied, redirecting...");
       // Show error notification and redirect to event page
       notifier?.error(
         t("You don't have permission to manage participants for this event")
@@ -959,8 +872,6 @@ watch(
         name: RouteName.EVENT,
         params: { uuid: eventValue.uuid },
       });
-    } else {
-      console.log("[DEBUG] Permission granted!");
     }
   },
   { immediate: true }
@@ -1258,19 +1169,6 @@ const toggleQueueDetails = (row: IParticipant): void => {
 };
 
 const openDetailedRows = ref<Record<string, boolean>>({});
-
-// Log initial component mount
-onMounted(() => {
-  console.log("[DEBUG] ========== PARTICIPANTS VIEW MOUNTED ==========");
-  console.log("[DEBUG] Initial state:", {
-    eventId: eventId.value,
-    page: page.value,
-    role: role.value,
-    participantsPerPage: PARTICIPANTS_PER_PAGE,
-    currentActor: currentActor.value?.id,
-    loading: participantsLoading.value,
-  });
-});
 
 useHead({
   title: computed(() =>
