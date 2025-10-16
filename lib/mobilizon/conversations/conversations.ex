@@ -15,8 +15,8 @@ defmodule Mobilizon.Conversations do
   alias Mobilizon.Storage.{Page, Repo}
 
   @conversation_preloads [
-    :origin_comment,
-    :last_comment,
+    {:origin_comment, :actor},
+    {:last_comment, :actor},
     :event,
     :participants
   ]
@@ -182,13 +182,15 @@ defmodule Mobilizon.Conversations do
       |> where(
         [cp, m],
         (cp.actor_id == ^actor_id and cp.unread == true) or
-        (m.actor_id == ^actor_id and m.role in [:creator, :administrator, :moderator] and cp.unread == true)
+          (m.actor_id == ^actor_id and m.role in [:creator, :administrator, :moderator] and
+             cp.unread == true)
       )
 
-    count = subquery
-    |> subquery()
-    |> Repo.aggregate(:count)
-    
+    count =
+      subquery
+      |> subquery()
+      |> Repo.aggregate(:count)
+
     Logger.debug("Counting unread conversations for actor #{actor_id}: #{count}")
     count
   end
@@ -253,7 +255,11 @@ defmodule Mobilizon.Conversations do
              []
            )
            |> Repo.transaction(),
-         %Conversation{} = conversation <- Repo.preload(conversation, @conversation_preloads) do
+         %Conversation{last_comment: %Comment{} = comment} = conversation <-
+           Repo.preload(conversation, @conversation_preloads) do
+      # Send email notifications to other participants for the new conversation
+      notify_conversation_participants(conversation, comment, attrs.actor_id)
+
       {:ok, conversation}
     end
   end
@@ -326,6 +332,9 @@ defmodule Mobilizon.Conversations do
            |> Repo.transaction(),
          # Conversation is not updated
          %Comment{} = comment <- Repo.preload(comment, @comment_preloads) do
+      # Send email notifications to other participants
+      notify_conversation_participants(conversation, comment, attrs.actor_id)
+
       {:ok, %Conversation{conversation | last_comment: comment}}
     end
   end
@@ -367,5 +376,50 @@ defmodule Mobilizon.Conversations do
     conversation_participant
     |> ConversationParticipant.changeset(attrs)
     |> Repo.update()
+  end
+
+  @doc """
+  Send email notifications to conversation participants about a new message
+  """
+  @spec notify_conversation_participants(Conversation.t(), Comment.t(), integer() | String.t()) ::
+          :ok
+  defp notify_conversation_participants(
+         %Conversation{participants: participants} = conversation,
+         %Comment{} = comment,
+         sender_actor_id
+       ) do
+    require Logger
+
+    Logger.info("Sending email notifications for new message in conversation #{conversation.id}")
+
+    # Notify all participants except the sender
+    participants
+    |> Enum.reject(fn participant ->
+      participant.id == sender_actor_id or to_string(participant.id) == to_string(sender_actor_id)
+    end)
+    |> Enum.filter(fn participant ->
+      # Only notify local users (those with user_id)
+      not is_nil(participant.user_id)
+    end)
+    |> Enum.each(fn participant ->
+      with %Mobilizon.Users.User{} = user <-
+             Mobilizon.Users.get_user!(participant.user_id) do
+        Logger.info(
+          "Sending message notification to user #{user.id} (#{user.email}) with locale: #{inspect(user.locale)}"
+        )
+
+        Mobilizon.Web.Email.Conversation.notify_of_new_message(
+          user,
+          conversation,
+          comment,
+          participant
+        )
+        |> Mobilizon.Web.Email.Mailer.send_email()
+
+        Logger.info("Sent message notification to user #{user.id}")
+      end
+    end)
+
+    :ok
   end
 end

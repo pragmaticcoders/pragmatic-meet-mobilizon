@@ -625,3 +625,35 @@ msgstr "Nowy uczestnik dołączył do listy oczekujących na wydarzenie %{title}
 #, elixir-format
 msgid "New participant joined event %{title}"
 msgstr "Nowy uczestnik dołączył do wydarzenia %{title}"
+
+#: lib/web/email/conversation.ex:32
+#, elixir-format
+msgid "New message from %{sender}"
+msgstr "Nowa wiadomość od %{sender}"
+
+#: lib/web/templates/email/conversation_new_message.html.heex:6
+#: lib/web/templates/email/conversation_new_message.text.eex:3
+#, elixir-format
+msgid "You have received a new message from %{sender}:"
+msgstr "Otrzymałeś nową wiadomość od %{sender}:"
+
+#: lib/web/templates/email/conversation_new_message.text.eex:5
+#, elixir-format
+msgid "From:"
+msgstr "Od:"
+
+#: lib/web/templates/email/conversation_new_message.html.heex:29
+#, elixir-format
+msgid "View conversation"
+msgstr "Zobacz konwersację"
+
+#: lib/web/templates/email/conversation_new_message.text.eex:10
+#, elixir-format
+msgid "View conversation:"
+msgstr "Zobacz konwersację:"
+
+#: lib/web/templates/email/conversation_new_message.html.heex:37
+#: lib/web/templates/email/conversation_new_message.text.eex:13
+#, elixir-format
+msgid "You are receiving this email because you are a participant in this conversation."
+msgstr "Otrzymujesz ten e-mail, ponieważ jesteś uczestnikiem tej konwersacji."

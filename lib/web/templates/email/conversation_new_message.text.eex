@@ -1,0 +1,13 @@
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Hello,") %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "You have received a new message from %{sender}:", sender: @sender_name) %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "From:") %> <%= @sender_name %><%= if @sender.preferred_username, do: " (@#{Mobilizon.Actors.Actor.preferred_username_and_domain(@sender)})", else: "" %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Message:") %>
+<%= @message_text %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "View conversation:") %>
+<%= Mobilizon.Web.Endpoint.url() %>/conversations/<%= @conversation.id %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "You are receiving this email because you are a participant in this conversation.") %>
