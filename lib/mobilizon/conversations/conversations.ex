@@ -404,10 +404,6 @@ defmodule Mobilizon.Conversations do
     |> Enum.each(fn participant ->
       with %Mobilizon.Users.User{} = user <-
              Mobilizon.Users.get_user!(participant.user_id) do
-        Logger.info(
-          "Sending message notification to user #{user.id} (#{user.email}) with locale: #{inspect(user.locale)}"
-        )
-
         Mobilizon.Web.Email.Conversation.notify_of_new_message(
           user,
           conversation,
@@ -415,8 +411,6 @@ defmodule Mobilizon.Conversations do
           participant
         )
         |> Mobilizon.Web.Email.Mailer.send_email()
-
-        Logger.info("Sent message notification to user #{user.id}")
       end
     end)
 

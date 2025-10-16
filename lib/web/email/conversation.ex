@@ -23,11 +23,8 @@ defmodule Mobilizon.Web.Email.Conversation do
         %Comment{actor: %Actor{} = sender, text: text},
         %Actor{} = recipient_actor
       ) do
-    require Logger
-
     # Use user's locale, fallback to "en" if nil
     locale = locale || "en"
-    Logger.info("Setting email locale to: #{locale} for user #{email}")
     Gettext.put_locale(locale)
 
     # Get sender name
