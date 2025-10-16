@@ -56,11 +56,17 @@ defmodule Mobilizon.GraphQL.API.Participations do
             # Auto-join the group if the event belongs to a group
             auto_join_event_group(event, actor)
 
+            # Notify group administrators/moderators about waitlist join
+            notify_group_admins_of_new_participant(event, participant, :waitlist)
+
             result
 
           {:ok, activity, participant} = result ->
             # Regular participation - auto-join the group if the event belongs to a group
             auto_join_event_group(event, actor)
+
+            # Notify group administrators/moderators
+            notify_group_admins_of_new_participant(event, participant)
 
             result
 
@@ -351,5 +357,63 @@ defmodule Mobilizon.GraphQL.API.Participations do
         Logger.warn("Event #{event_id}: unexpected condition #{inspect(other)}")
         :ok
     end
+  end
+
+  @doc """
+  Notify group administrators and moderators when someone joins an event or waitlist.
+  Only sends notifications if the event is attributed to a group.
+  """
+  @spec notify_group_admins_of_new_participant(Event.t(), Participant.t(), atom()) :: :ok
+  def notify_group_admins_of_new_participant(
+        event,
+        participant,
+        participation_type \\ :participant
+      )
+
+  def notify_group_admins_of_new_participant(
+        %Event{attributed_to_id: group_id} = event,
+        %Participant{} = participant,
+        participation_type
+      )
+      when not is_nil(group_id) do
+    Logger.info(
+      "Notifying group #{group_id} administrators about new #{participation_type} for event #{event.id}"
+    )
+
+    # Get the group actor and then its administrators/moderators
+    with %Actor{type: :Group} = group <- Mobilizon.Actors.get_actor(group_id) do
+      group
+      |> Mobilizon.Actors.list_members_for_group(
+        nil,
+        [:administrator, :moderator, :creator],
+        1,
+        100
+      )
+      |> Map.get(:elements, [])
+      |> Enum.filter(fn %Mobilizon.Actors.Member{actor: actor} ->
+        # Only notify local users (those with user_id)
+        not is_nil(actor.user_id)
+      end)
+      |> Enum.each(fn %Mobilizon.Actors.Member{actor: %Actor{user_id: user_id}} ->
+        with %Mobilizon.Users.User{} = user <- Mobilizon.Users.get_user!(user_id) do
+          Mobilizon.Web.Email.Participation.notify_admin_of_new_participation(
+            user,
+            event,
+            participant,
+            participation_type
+          )
+          |> Mobilizon.Web.Email.Mailer.send_email()
+
+          Logger.info("Sent notification to group admin user #{user_id}")
+        end
+      end)
+    end
+
+    :ok
+  end
+
+  def notify_group_admins_of_new_participant(%Event{}, %Participant{}, _participation_type) do
+    # Event is not attributed to a group, skip notification
+    :ok
   end
 end

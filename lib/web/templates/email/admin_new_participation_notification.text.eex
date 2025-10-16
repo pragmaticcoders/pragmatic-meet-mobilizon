@@ -1,0 +1,22 @@
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Hello,") %>
+
+<%= if @participation_type == :joined_waitlist do %>
+<%= Mobilizon.Web.Gettext.dgettext("activity", "A new participant has joined the waitlist for your event:") %>
+<% else %>
+<%= Mobilizon.Web.Gettext.dgettext("activity", "A new participant has joined your event:") %>
+<% end %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Event:") %> <%= @event.title %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Participant:") %>
+<%= if @participant.actor.name do %><%= @participant.actor.name %> (@<%= Mobilizon.Actors.Actor.preferred_username_and_domain(@participant.actor) %>)<% else %>@<%= Mobilizon.Actors.Actor.preferred_username_and_domain(@participant.actor) %><% end %>
+
+<%= if @participant.metadata && @participant.metadata.message do %>
+<%= Mobilizon.Web.Gettext.dgettext("activity", "Message:") %>
+<%= @participant.metadata.message %>
+<% end %>
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "View participants:") %>
+<%= Mobilizon.Web.Endpoint.url() %>/events/<%= @event.uuid %>/participations
+
+<%= Mobilizon.Web.Gettext.dgettext("activity", "You are receiving this email because you are an administrator or moderator of the group organizing this event.") %>

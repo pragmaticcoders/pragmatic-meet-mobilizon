@@ -224,4 +224,45 @@ defmodule Mobilizon.Web.Email.Participation do
     |> ObjectView.render(%{participant: %Participant{participant | event: event}})
     |> Jason.encode!()
   end
+
+  @doc """
+  Send notification to group administrators/moderators when someone joins an event or waitlist
+  """
+  @spec notify_admin_of_new_participation(User.t(), Event.t(), Participant.t(), atom()) ::
+          Swoosh.Email.t()
+  def notify_admin_of_new_participation(
+        %User{email: email, locale: locale},
+        %Event{} = event,
+        %Participant{actor: %Actor{}} = participant,
+        participation_type
+      ) do
+    Gettext.put_locale(locale)
+
+    {subject, template_type} =
+      case participation_type do
+        :waitlist ->
+          {dgettext(
+             "activity",
+             "New participant joined waitlist for event %{title}",
+             title: event.title
+           ), :joined_waitlist}
+
+        _ ->
+          {dgettext(
+             "activity",
+             "New participant joined event %{title}",
+             title: event.title
+           ), :joined_event}
+      end
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:admin_new_participation_notification, %{
+      locale: locale,
+      event: event,
+      participant: participant,
+      participation_type: template_type,
+      subject: subject
+    })
+  end
 end

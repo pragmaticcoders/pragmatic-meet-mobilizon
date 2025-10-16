@@ -527,3 +527,64 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "This information is sent privately to you as a person who registered for this event. Share the informations above with other people with caution."
 msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:3
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:1
+#, elixir-format
+msgid "Hello,"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:7
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:4
+#, elixir-format
+msgid "A new participant has joined the waitlist for your event:"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:12
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:6
+#, elixir-format
+msgid "A new participant has joined your event:"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:21
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:11
+#, elixir-format
+msgid "Participant:"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:30
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:15
+#, elixir-format
+msgid "Message:"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:49
+#, elixir-format
+msgid "View participants"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.html.heex:59
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:22
+#, elixir-format
+msgid "You are receiving this email because you are an administrator or moderator of the group organizing this event."
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:9
+#, elixir-format
+msgid "Event:"
+msgstr ""
+
+#: lib/web/templates/email/admin_new_participation_notification.text.eex:19
+#, elixir-format
+msgid "View participants:"
+msgstr ""
+
+#: lib/web/email/participation.ex:244
+#, elixir-format
+msgid "New participant joined waitlist for event %{title}"
+msgstr ""
+
+#: lib/web/email/participation.ex:250
+#, elixir-format
+msgid "New participant joined event %{title}"
+msgstr ""
