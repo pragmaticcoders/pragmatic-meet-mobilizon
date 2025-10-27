@@ -37,25 +37,39 @@ defmodule Mobilizon.Service.Workers.BuildSearch do
           SELECT
             setweight(to_tsvector(unaccent($2)), 'A') ||
             setweight(to_tsvector(unaccent(coalesce($4, ' '))), 'B') ||
-            setweight(to_tsvector(unaccent($3)), 'C')
+            setweight(to_tsvector(unaccent($3)), 'C') ||
+            setweight(to_tsvector(unaccent(coalesce($5, ' '))), 'C')
           )
         ) ON CONFLICT (id) DO UPDATE SET title = $2, document = (
           SELECT
             setweight(to_tsvector(unaccent($2)), 'A') ||
             setweight(to_tsvector(unaccent(coalesce($4, ' '))), 'B') ||
-            setweight(to_tsvector(unaccent($3)), 'C')
+            setweight(to_tsvector(unaccent($3)), 'C') ||
+            setweight(to_tsvector(unaccent(coalesce($5, ' '))), 'C')
           );
       """,
       [
         event.id,
         event.title,
         HTML.strip_tags_and_insert_spaces(event.description),
-        get_tags_string(event)
+        get_tags_string(event),
+        get_actor_names(event)
       ]
     )
   end
 
   defp get_tags_string(%Event{tags: tags}) do
     Enum.map_join(tags, " ", & &1.title)
+  end
+
+  defp get_actor_names(%Event{attributed_to: attributed_to, organizer_actor: organizer_actor}) do
+    names =
+      [
+        attributed_to && Map.get(attributed_to, :name),
+        organizer_actor && Map.get(organizer_actor, :name)
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    Enum.join(names, " ")
   end
 end
