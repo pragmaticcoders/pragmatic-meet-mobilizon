@@ -212,6 +212,16 @@
                   {{ t("Share") }}
                 </o-button>
 
+                <!-- Join Group Button -->
+                <o-button
+                  v-if="showJoinButton && !isCurrentActorAGroupMember"
+                  @click="joinGroup
+                  icon-left="account-multiple-plus"
+                  class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                >
+                  {{ t("Join group") }}
+                </o-button>
+
                 <!-- More Options Menu -->
                 <o-dropdown aria-role="list">
                   <template #trigger>
@@ -258,20 +268,6 @@
                       <ViewList class="mr-2" :size="18" />
                       {{ t("Activity") }}
                     </router-link>
-                  </o-dropdown-item>
-
-                  <!-- Join Button for eligible users -->
-                  <o-dropdown-item
-                    v-if="showJoinButton && !isCurrentActorAGroupMember"
-                    aria-role="menuitem"
-                  >
-                    <button
-                      @click="joinGroup"
-                      class="flex items-center w-full px-4 py-2"
-                    >
-                      <AccountMultiplePlus class="mr-2" :size="18" />
-                      {{ t("Join group") }}
-                    </button>
                   </o-dropdown-item>
 
                   <!-- Additional options -->
