@@ -13,7 +13,7 @@ How to add administator
 4. docker exec -it postgis_container_id sh
 5. psql -h postgres -U mobilizon (and type password)
 6. SELECT role, email FROM users;
-7. UPDATE users SET role = 'administrator' WHERE email = 'email@example.com';
+7. UPDATE users SET role = 'administrator' WHERE email = 'marcin.sarelo@pragmaticcoders.com';
 
 How to start application inside dev container
 1. run project in devcontainer (/.devcontainer)
