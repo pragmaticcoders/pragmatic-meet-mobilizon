@@ -233,7 +233,7 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
         )
 
       assert hd(res["errors"])["message"] ==
-               "You don't have permission to do this"
+               "Not authorized to access object users"
     end
 
     test "list_users/3 returns a list of users", %{conn: conn} do

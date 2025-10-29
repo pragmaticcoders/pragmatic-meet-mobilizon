@@ -17,7 +17,7 @@ defmodule Mobilizon.EventsTest do
     title: "some title",
     url: "some url",
     uuid: "b5126423-f1af-43e4-a923-002a03003ba4",
-    category: "MEETING"
+    category: "SOCIAL_ACTIVITIES"
   }
 
   describe "list_events/5" do

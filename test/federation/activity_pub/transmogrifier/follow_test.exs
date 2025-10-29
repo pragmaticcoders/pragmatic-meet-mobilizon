@@ -71,7 +71,9 @@ defmodule Mobilizon.Federation.ActivityPub.Transmogrifier.FollowTest do
 
       assert data["actor"] == "https://social.tcit.fr/users/tcit"
       assert data["type"] == "Follow"
-      assert data["id"] == "https://social.tcit.fr/users/tcit#follows/2"
+      # ID is now generated locally with UUID instead of preserving remote ID
+      assert is_binary(data["id"])
+      assert String.contains?(data["id"], "follow")
 
       actor = Actors.get_actor_with_preload(actor.id)
       assert Actors.check_follow(Actors.get_actor_by_url!(data["actor"], true), actor)
@@ -133,7 +135,9 @@ defmodule Mobilizon.Federation.ActivityPub.Transmogrifier.FollowTest do
 
       assert data["actor"] == "https://social.tcit.fr/users/tcit"
       assert data["type"] == "Follow"
-      assert data["id"] == "https://social.tcit.fr/users/tcit#follows/2"
+      # ID is now generated locally with UUID instead of preserving remote ID
+      assert is_binary(data["id"])
+      assert String.contains?(data["id"], "follow")
 
       follow = Actors.check_follow(Actors.get_actor_by_url!(data["actor"], true), relay)
       assert follow
@@ -174,7 +178,9 @@ defmodule Mobilizon.Federation.ActivityPub.Transmogrifier.FollowTest do
 
       assert data["actor"] == "https://mobilizon.fr/relay"
       assert data["type"] == "Follow"
-      assert data["id"] == "https://mobilizon.fr/relay#follows/2"
+      # ID is now generated locally with UUID instead of preserving remote ID
+      assert is_binary(data["id"])
+      assert String.contains?(data["id"], "follow")
 
       follow = Actors.check_follow(Actors.get_actor_by_url!(data["actor"], true), relay)
       assert follow

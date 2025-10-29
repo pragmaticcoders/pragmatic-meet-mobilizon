@@ -17,6 +17,6 @@ defmodule Mobilizon.Web.HealthControllerTest do
     assert response["status"] == "healthy"
     assert is_binary(response["timestamp"])
     assert is_binary(response["version"])
-    assert response["checks"]["database"] == :ok
+    assert response["checks"]["database"] == "ok"
   end
 end 

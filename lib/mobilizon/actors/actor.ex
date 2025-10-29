@@ -146,8 +146,7 @@ defmodule Mobilizon.Actors.Actor do
     :inbox_url,
     :type,
     :preferred_username,
-    :members_url,
-    :custom_url
+    :members_url
   ]
   @group_creation_optional_attrs [
     :shared_inbox_url,
@@ -157,7 +156,8 @@ defmodule Mobilizon.Actors.Actor do
     :visibility,
     :openness,
     :manually_approves_followers,
-    :approval_status
+    :approval_status,
+    :custom_url
   ]
   @group_creation_attrs @group_creation_required_attrs ++ @group_creation_optional_attrs
 
@@ -371,11 +371,11 @@ defmodule Mobilizon.Actors.Actor do
   def group_creation_changeset(actor, params) do
     actor
     |> cast(params, @group_creation_attrs)
+    |> put_change(:type, :Group)
     |> build_urls(:Group)
     |> common_changeset(params)
     |> put_change(:domain, nil)
     |> put_change(:keys, Crypto.generate_rsa_2048_private_key())
-    |> put_change(:type, :Group)
     |> unique_username_validator()
     |> username_validator()
     |> validate_required(@group_creation_required_attrs)

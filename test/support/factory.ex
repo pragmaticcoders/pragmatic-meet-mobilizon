@@ -83,7 +83,8 @@ defmodule Mobilizon.Factory do
         inbox_url: Actor.build_url(preferred_username, :inbox),
         outbox_url: Actor.build_url(preferred_username, :outbox),
         user: nil,
-        physical_address: build(:address)
+        physical_address: build(:address),
+        custom_url: "https://example.com/group"
       }
     )
   end
@@ -191,7 +192,7 @@ defmodule Mobilizon.Factory do
       ends_on: Timex.shift(start, hours: 2),
       organizer_actor: actor,
       attributed_to: nil,
-      category: "PARTY",
+      category: "SOCIAL_ACTIVITIES",
       physical_address: build(:address),
       visibility: :public,
       tags: build_list(3, :tag),

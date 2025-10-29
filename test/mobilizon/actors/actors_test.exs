@@ -388,7 +388,8 @@ defmodule Mobilizon.ActorsTest do
       summary: "some description",
       suspended: true,
       preferred_username: "some_title",
-      name: "Some Title"
+      name: "Some Title",
+      custom_url: "https://example.com"
     }
     @update_attrs %{
       summary: "some updated description",

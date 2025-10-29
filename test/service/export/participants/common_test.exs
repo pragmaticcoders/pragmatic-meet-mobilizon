@@ -12,7 +12,7 @@ defmodule Mobilizon.Service.Export.Participants.CommonTest do
     actor = insert(:actor)
     name = Actor.display_name_and_username(actor)
     date = datetime_to_string(participant.inserted_at)
-    assert [^name, _, ^date, ""] = Common.to_list({participant, actor})
+    assert [^name, _, _, ^date, ""] = Common.to_list({participant, actor, nil})
   end
 
   test "convert participants with metadata to list items" do
@@ -20,13 +20,13 @@ defmodule Mobilizon.Service.Export.Participants.CommonTest do
     actor = insert(:actor)
     name = Actor.display_name_and_username(actor)
     date = datetime_to_string(participant.inserted_at)
-    assert [^name, _, ^date, "a message"] = Common.to_list({participant, actor})
+    assert [^name, _, _, ^date, "a message"] = Common.to_list({participant, actor, nil})
   end
 
   test "convert anonymous participants to list items" do
     participant = insert(:participant)
     actor = insert(:actor, domain: nil, preferred_username: "anonymous")
     date = datetime_to_string(participant.inserted_at)
-    assert ["Anonymous participant", _, ^date, ""] = Common.to_list({participant, actor})
+    assert ["Anonymous participant", _, _, ^date, ""] = Common.to_list({participant, actor, nil})
   end
 end

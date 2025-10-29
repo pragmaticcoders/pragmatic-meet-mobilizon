@@ -8,35 +8,32 @@ defmodule Mobilizon.Web.Upload.Filter.ExiftoolTest do
   alias Mobilizon.Web.Upload
   alias Mobilizon.Web.Upload.Filter
 
-  setup do
-    if command_available?("exiftool") do
-      {:ok, skip: true}
-    else
-      :ok
-    end
-  end
-
   test "apply exiftool filter" do
-    File.cp!(
-      "test/fixtures/DSCN0010.jpg",
-      "test/fixtures/DSCN0010_tmp.jpg"
-    )
+    unless command_available?("exiftool") do
+      # Skip test if exiftool is not installed
+      assert true
+    else
+      File.cp!(
+        "test/fixtures/DSCN0010.jpg",
+        "test/fixtures/DSCN0010_tmp.jpg"
+      )
 
-    upload = %Mobilizon.Web.Upload{
-      name: "image_with_GPS_data.jpg",
-      content_type: "image/jpeg",
-      path: Path.absname("test/fixtures/DSCN0010.jpg"),
-      tempfile: Path.absname("test/fixtures/DSCN0010_tmp.jpg")
-    }
+      upload = %Mobilizon.Web.Upload{
+        name: "image_with_GPS_data.jpg",
+        content_type: "image/jpeg",
+        path: Path.absname("test/fixtures/DSCN0010.jpg"),
+        tempfile: Path.absname("test/fixtures/DSCN0010_tmp.jpg")
+      }
 
-    assert Filter.Exiftool.filter(upload) == {:ok, :filtered}
+      assert Filter.Exiftool.filter(upload) == {:ok, :filtered}
 
-    {exif_original, 0} = System.cmd("exiftool", ["test/fixtures/DSCN0010.jpg"])
-    {exif_filtered, 0} = System.cmd("exiftool", ["test/fixtures/DSCN0010_tmp.jpg"])
+      {exif_original, 0} = System.cmd("exiftool", ["test/fixtures/DSCN0010.jpg"])
+      {exif_filtered, 0} = System.cmd("exiftool", ["test/fixtures/DSCN0010_tmp.jpg"])
 
-    refute exif_original == exif_filtered
-    assert String.match?(exif_original, ~r/GPS/)
-    refute String.match?(exif_filtered, ~r/GPS/)
+      refute exif_original == exif_filtered
+      assert String.match?(exif_original, ~r/GPS/)
+      refute String.match?(exif_filtered, ~r/GPS/)
+    end
   end
 
   test "verify webp files are skipped" do

@@ -8,7 +8,7 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
   alias Mobilizon.GraphQL.AbsintheHelpers
 
   @non_existent_username "nonexistent"
-  @new_group_params %{name: "new group", preferredUsername: "new_group"}
+  @new_group_params %{name: "new group", preferredUsername: "new_group", customUrl: "https://example.com"}
 
   setup %{conn: conn} do
     user = insert(:user)
@@ -23,6 +23,7 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
     $preferredUsername: String!
     $name: String!
     $summary: String
+    $customUrl: String!
     $avatar: MediaInput
     $banner: MediaInput
     ) {
@@ -30,6 +31,7 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
         preferredUsername: $preferredUsername
         name: $name
         summary: $summary
+        customUrl: $customUrl
         banner: $banner
         avatar: $avatar
       ) {

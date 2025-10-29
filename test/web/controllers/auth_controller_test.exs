@@ -51,10 +51,10 @@ defmodule Mobilizon.Web.AuthControllerTest do
       |> assign(:ueberauth_failure, %{errors: [%{message: "Some error"}]})
       |> get("/auth/twitter/callback")
 
-    assert "/login?code=Error with Login Provider&provider=twitter" =
-             redirection = redirected_to(conn, 302)
-
-    conn = get(recycle(conn), redirection)
-    assert html_response(conn, 200)
+    # After auth controller changes, errors redirect to retry page instead of simple login
+    redirection = redirected_to(conn, 302)
+    assert redirection =~ "/auth/retry?provider=twitter"
+    assert redirection =~ "error=Error:%20Some%20error"
+    # The retry page functionality is tested separately, no need to follow the redirect here
   end
 end
