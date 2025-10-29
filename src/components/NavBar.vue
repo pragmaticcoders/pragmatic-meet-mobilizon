@@ -113,50 +113,6 @@
                   </div>
                 </o-dropdown-item>
 
-                <o-dropdown-item
-                  v-for="identity in identities"
-                  :active="identity.id === currentActor?.id"
-                  :key="identity.id"
-                  tabindex="0"
-                  @click="
-                    setIdentity({
-                      preferredUsername: identity.preferredUsername,
-                    })
-                  "
-                  @keyup.enter="
-                    setIdentity({
-                      preferredUsername: identity.preferredUsername,
-                    })
-                  "
-                >
-                  <div class="flex items-center px-4 py-2 hover:bg-gray-50">
-                    <div class="flex-shrink-0">
-                      <figure class="h-8 w-8" v-if="identity.avatar">
-                        <img
-                          class="rounded-full object-cover h-full w-full"
-                          loading="lazy"
-                          :src="identity.avatar.url"
-                          alt=""
-                          height="32"
-                          width="32"
-                        />
-                      </figure>
-                      <AccountCircle v-else :size="32" />
-                    </div>
-                    <div class="ml-3 flex-1 min-w-0">
-                      <p class="text-sm font-medium text-gray-900 truncate">
-                        {{ displayName(identity) }}
-                      </p>
-                      <p
-                        class="text-sm text-gray-500 truncate"
-                        v-if="identity.name"
-                      >
-                        @{{ identity.preferredUsername }}
-                      </p>
-                    </div>
-                  </div>
-                </o-dropdown-item>
-
                 <div class="border-t border-gray-100">
                   <o-dropdown-item
                     aria-role="listitem"
@@ -371,9 +327,7 @@ import {
   useCurrentActorClient,
   useCurrentUserIdentities,
 } from "@/composition/apollo/actor";
-import { useLazyQuery, useMutation } from "@vue/apollo-composable";
-import { UPDATE_DEFAULT_ACTOR } from "@/graphql/actor";
-import { changeIdentity } from "@/utils/identity";
+import { useLazyQuery } from "@vue/apollo-composable";
 import { useRegistrationConfig } from "@/composition/apollo/config";
 import { useOruga } from "@oruga-ui/oruga-next";
 import {
@@ -489,33 +443,6 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
 });
 
 onMounted(() => {});
-
-watch(identities, () => {
-  // If we don't have any identities, the user has validated their account,
-  // is logging for the first time but didn't create an identity somehow
-  if (identities.value && identities.value.length === 0) {
-    console.warn(
-      "We have no identities listed for current user",
-      identities.value
-    );
-    console.info("Pushing route to CREATE_IDENTITY");
-    router.push({
-      name: RouteName.CREATE_IDENTITY,
-    });
-  }
-});
-
-const { onDone, mutate: setIdentity } = useMutation<{
-  changeDefaultActor: { id: string; defaultActor: { id: string } };
-}>(UPDATE_DEFAULT_ACTOR);
-
-onDone(({ data }) => {
-  const identity = identities.value?.find(
-    ({ id }) => id === data?.changeDefaultActor?.defaultActor?.id
-  );
-  if (!identity) return;
-  changeIdentity(identity);
-});
 
 const showMobileMenu = ref(false);
 

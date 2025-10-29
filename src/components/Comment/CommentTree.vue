@@ -12,12 +12,16 @@
         >{{ t("Comments are closed for everybody else.") }}</o-notification
       >
       <article class="flex flex-wrap items-start gap-2">
-        <figure class="" v-if="newCommentValue.actor">
-          <identity-picker-wrapper
-            :inline="false"
-            v-model="newCommentValue.actor"
+        <figure class="h-12 w-12" v-if="currentActor?.avatar">
+          <img
+            class="rounded-full h-full w-full object-cover"
+            :src="currentActor.avatar.url"
+            alt=""
+            width="48"
+            height="48"
           />
         </figure>
+        <AccountCircle v-else :size="48" />
         <div class="flex-1">
           <div class="flex flex-col gap-2">
             <div class="editor-wrapper">
@@ -95,7 +99,7 @@
 
 <script lang="ts" setup>
 import EventComment from "@/components/Comment/EventComment.vue";
-import IdentityPickerWrapper from "@/components/Account/IdentityPickerWrapper.vue";
+import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import { CommentModeration } from "@/types/enums";
 import { CommentModel, IComment } from "../../types/comment.model";
 import {

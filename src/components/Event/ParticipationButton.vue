@@ -268,19 +268,6 @@
           </div>
         </div>
       </o-dropdown-item>
-
-      <o-dropdown-item
-        :value="false"
-        aria-role="listitem"
-        @click="joinModal"
-        @keyup.enter="joinModal"
-        v-if="
-          !event.options.blockNewRegistrations &&
-          (!isEventFull || event.options.enableWaitlist) &&
-          (identities ?? []).length > 1
-        "
-        >{{ t("with another identity…") }}</o-dropdown-item
-      >
     </o-dropdown>
     <o-button
       rel="nofollow"

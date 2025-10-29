@@ -126,7 +126,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
   end
 
   @doc """
-  This function is used to create more identities from an existing user
+  This function is used to create the user's single identity.
+  Users can only have one identity which will be set as their default actor.
   """
   @spec create_person(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, Actor.t()} | {:error, String.t() | :unauthenticated}
@@ -135,28 +136,37 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
         %{preferred_username: _preferred_username} = args,
         %{context: %{current_user: user} = context} = _resolution
       ) do
-    args = Map.put(args, :user_id, user.id)
-    user_agent = Map.get(context, :user_agent, "")
+    # Check if user already has an identity
+    existing_actors = Users.get_actors_for_user(user)
 
-    with args <- Map.update(args, :preferred_username, "", &String.downcase/1),
-         {:spam, :ham} <-
-           {:spam,
-            AntiSpam.service().check_profile(
-              args.preferred_username,
-              args.summary,
-              user.email,
-              user.current_sign_in_ip,
-              user_agent
-            )},
-         {:picture, args} when is_map(args) <- {:picture, save_attached_pictures(args)},
-         {:ok, %Actor{} = new_person} <- Actors.new_person(args) do
-      {:ok, new_person}
+    if length(existing_actors) >= 1 do
+      {:error, dgettext("errors", "You can only have one identity")}
     else
-      {:error, err} ->
-        {:error, err}
+      args = Map.put(args, :user_id, user.id)
+      user_agent = Map.get(context, :user_agent, "")
 
-      {:picture, {:error, :file_too_large}} ->
-        {:error, dgettext("errors", "The provided picture is too heavy")}
+      with args <- Map.update(args, :preferred_username, "", &String.downcase/1),
+           {:spam, :ham} <-
+             {:spam,
+              AntiSpam.service().check_profile(
+                args.preferred_username,
+                args.summary,
+                user.email,
+                user.current_sign_in_ip,
+                user_agent
+              )},
+           {:picture, args} when is_map(args) <- {:picture, save_attached_pictures(args)},
+           {:ok, %Actor{} = new_person} <- Actors.new_person(args) do
+        # Set the created identity as the user's default actor
+        Users.update_user_default_actor(user, new_person)
+        {:ok, new_person}
+      else
+        {:error, err} ->
+          {:error, err}
+
+        {:picture, {:error, :file_too_large}} ->
+          {:error, dgettext("errors", "The provided picture is too heavy")}
+      end
     end
   end
 
@@ -203,7 +213,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
   end
 
   @doc """
-  This function is used to delete an existing identity
+  This function is used to delete an existing identity.
+  Since users can only have one identity, deletion is not allowed.
   """
   @spec delete_person(any(), map(), Absinthe.Resolution.t()) ::
           {:ok, Actor.t()} | {:error, String.t() | :unauthenticated}
@@ -213,16 +224,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
         %{context: %{current_user: %User{} = user}} = _resolution
       ) do
     case owned_actor(user, id) do
-      {:ok, %Actor{} = actor} ->
-        if last_identity?(user) do
-          {:error, dgettext("errors", "Cannot remove the last identity of a user")}
-        else
-          if last_admin_of_a_group?(actor.id) do
-            {:error, dgettext("errors", "Cannot remove the last administrator of a group")}
-          else
-            Actors.delete_actor(actor)
-          end
-        end
+      {:ok, %Actor{} = _actor} ->
+        # Always prevent deletion of the single identity
+        {:error, dgettext("errors", "Cannot delete your only identity")}
 
       {:error, err} ->
         {:error, err}
