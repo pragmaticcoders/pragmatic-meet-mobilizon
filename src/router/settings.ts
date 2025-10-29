@@ -261,22 +261,6 @@ export const settingsRoutes: RouteRecordRaw[] = [
         meta: { requiredAuth: true, announcer: { skip: true } },
       },
       {
-        path: "/identity/create",
-        name: SettingsRouteName.CREATE_IDENTITY,
-        component: (): Promise<any> =>
-          import("@/views/Account/children/EditIdentity.vue"),
-        props: (route: RouteLocationNormalized): Record<string, unknown> => ({
-          identityName: route.params.identityName,
-          isUpdate: false,
-        }),
-        meta: {
-          requiredAuth: true,
-          announcer: {
-            message: (): string => t("Create identity") as string,
-          },
-        },
-      },
-      {
         path: "/identity/update/:identityName?",
         name: SettingsRouteName.UPDATE_IDENTITY,
         component: (): Promise<any> =>

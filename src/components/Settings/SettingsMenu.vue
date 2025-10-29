@@ -31,10 +31,6 @@
             params: { identityName: profile.preferredUsername },
           }"
         />
-        <SettingMenuItem
-          :title="t('New profile')"
-          :to="{ name: RouteName.CREATE_IDENTITY }"
-        />
       </SettingMenuSection>
       <SettingMenuSection
         v-if="

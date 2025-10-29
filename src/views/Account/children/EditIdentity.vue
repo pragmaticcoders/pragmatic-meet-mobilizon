@@ -3,18 +3,10 @@
     <breadcrumbs-nav :links="breadcrumbsLinks" />
     <div v-if="identity" class="py-4">
       <h1 class="font-bold text-[28px] leading-[36px] text-[#1c1b1f] mb-8">
-        <span v-if="isUpdate" class="line-clamp-2">{{
+        <span class="line-clamp-2">{{
           displayName(identity)
         }}</span>
-        <span v-else>{{ t("Create a new profile") }}</span>
       </h1>
-      <div
-        v-if="identities?.length == 0"
-        class="text-[16px] leading-[24px] text-[#1c1b1f] mb-8"
-      >
-        {{ t("Congratulations, your account is now created!") }}
-        {{ t("Now, create your first profile:") }}
-      </div>
 
       <!-- LinkedIn prefill notification -->
       <div
@@ -158,15 +150,7 @@
           @click="submit()"
           class="px-6 py-3 bg-[#155eef] text-white font-bold text-[16px] leading-[24px] hover:bg-blue-600 transition-colors"
         >
-          {{ isUpdate ? t("Save") : t("Create my profile") }}
-        </button>
-        <button
-          v-if="isUpdate"
-          @click="openDeleteIdentityConfirmation()"
-          type="button"
-          class="px-6 py-3 bg-[#cc0000] text-white font-bold text-[16px] leading-[24px] hover:bg-red-700 transition-colors"
-        >
-          {{ t("Delete this identity") }}
+          {{ t("Save") }}
         </button>
       </div>
     </div>
@@ -191,20 +175,18 @@
 
 <script lang="ts" setup>
 import {
-  CREATE_PERSON,
-  DELETE_PERSON,
   FETCH_PERSON_OWNED,
   IDENTITIES,
   PERSON_FRAGMENT,
   PERSON_FRAGMENT_FEED_TOKENS,
   UPDATE_PERSON,
+  UPDATE_CURRENT_ACTOR_CLIENT,
 } from "@/graphql/actor";
 import { IPerson, displayName } from "@/types/actor";
 import PictureUpload from "@/components/PictureUpload.vue";
 import { MOBILIZON_INSTANCE_HOST } from "@/api/_entrypoint";
 import RouteName from "@/router/name";
 import { buildFileFromIMedia, buildFileVariable } from "@/utils/image";
-import { changeIdentity } from "@/utils/identity";
 import {
   CREATE_FEED_TOKEN_ACTOR,
   DELETE_FEED_TOKEN,
@@ -242,6 +224,8 @@ const props = defineProps<{ isUpdate: boolean; identityName?: string }>();
 const { currentActor } = useCurrentActorClient();
 
 const { identities } = useCurrentUserIdentities();
+
+const { mutate: updateCurrentActorClient } = useMutation(UPDATE_CURRENT_ACTOR_CLIENT);
 
 const {
   result: personResult,
@@ -381,72 +365,12 @@ const submit = (): Promise<void> => {
     return Promise.resolve();
   }
 
-  if (props.isUpdate) return updateIdentity();
-
-  return createIdentity();
+  return updateIdentity();
 };
-
-const {
-  mutate: deletePersonMutation,
-  onDone: deletePersonDone,
-  onError: deletePersonError,
-} = useMutation(DELETE_PERSON, () => ({
-  update: (store: ApolloCache<InMemoryCache>) => {
-    const data = store.readQuery<{ loggedUser: Pick<ICurrentUser, "actors"> }>({
-      query: IDENTITIES,
-    });
-
-    if (data) {
-      store.writeQuery({
-        query: IDENTITIES,
-        data: {
-          loggedUser: {
-            ...data.loggedUser,
-            actors: data.loggedUser.actors.filter(
-              (i) => i.id !== identity.value.id
-            ),
-          },
-        },
-      });
-    }
-  },
-}));
 
 const notifier = inject<Notifier>("notifier");
 
 const { resolveClient } = useApolloClient();
-
-deletePersonDone(async () => {
-  notifier?.success(
-    t("Identity {displayName} deleted", {
-      displayName: displayName(identity.value),
-    })
-  );
-  /**
-   * If we just deleted the current identity,
-   * we need to change it to the next one
-   */
-  const client = resolveClient();
-  const data = client.readQuery<{
-    loggedUser: Pick<ICurrentUser, "actors">;
-  }>({ query: IDENTITIES });
-  if (data) {
-    await maybeUpdateCurrentActorCache(data.loggedUser.actors[0]);
-  }
-
-  await redirectIfNoIdentitySelected();
-});
-
-deletePersonError((err) => handleError(err));
-
-/**
- * Delete an identity
- */
-const deleteIdentity = async (): Promise<void> => {
-  deletePersonMutation({
-    id: identity.value?.id,
-  });
-};
 
 const {
   mutate: updateIdentityMutation,
@@ -490,66 +414,6 @@ const updateIdentity = async (): Promise<void> => {
   const variables = await buildVariables();
 
   updateIdentityMutation(variables);
-};
-
-const {
-  mutate: createIdentityMutation,
-  onDone: createIdentityDone,
-  onError: createIdentityError,
-} = useMutation(CREATE_PERSON, () => ({
-  update: (
-    store: ApolloCache<InMemoryCache>,
-    { data: updateData }: FetchResult
-  ) => {
-    const data = store.readQuery<{ loggedUser: Pick<ICurrentUser, "actors"> }>({
-      query: IDENTITIES,
-    });
-
-    if (data && updateData?.createPerson) {
-      store.writeQuery({
-        query: IDENTITIES,
-        data: {
-          loggedUser: {
-            ...data.loggedUser,
-            actors: [
-              ...data.loggedUser.actors,
-              { ...updateData?.createPerson, type: ActorType.PERSON },
-            ],
-          },
-        },
-      });
-    }
-  },
-}));
-
-createIdentityDone(async () => {
-  notifier?.success(
-    t("Identity {displayName} created", {
-      displayName: displayName(identity.value),
-    })
-  );
-
-  // If it is the fisrt created identity, then we need to activate this identity
-  const client = resolveClient();
-  const data = client.readQuery<{
-    loggedUser: Pick<ICurrentUser, "actors">;
-  }>({ query: IDENTITIES });
-  if (data) {
-    await maybeUpdateCurrentActorCache(data.loggedUser.actors[0]);
-  }
-
-  router.push({
-    name: RouteName.UPDATE_IDENTITY,
-    params: { identityName: identity.value.preferredUsername },
-  });
-});
-
-createIdentityError((err) => handleError(err));
-
-const createIdentity = async (): Promise<void> => {
-  const variables = await buildVariables();
-
-  createIdentityMutation(variables);
 };
 
 const handleErrors = (absintheErrors: AbsintheGraphQLErrors): void => {
@@ -758,16 +622,14 @@ const redirectIfNoIdentitySelected = async (identityParam?: string) => {
 };
 
 const maybeUpdateCurrentActorCache = async (newIdentity: IPerson) => {
-  if (currentActor.value) {
-    // If there is no current actor, update the current actor
-    if (
-      currentActor.value.preferredUsername ===
-        identity.value.preferredUsername ||
-      currentActor.value.id == null
-    ) {
-      await changeIdentity(newIdentity);
-    }
-    // currentActor.value = newIdentity;
+  // Update current actor cache with the updated identity data
+  if (currentActor.value && currentActor.value.id === newIdentity.id) {
+    await updateCurrentActorClient({
+      id: newIdentity.id,
+      avatar: newIdentity.avatar?.url,
+      preferredUsername: newIdentity.preferredUsername,
+      name: newIdentity.name,
+    });
   }
 };
 
@@ -797,17 +659,11 @@ const breadcrumbsLinks = computed(
         text: t("Profiles") as string,
       },
     ];
-    if (props.isUpdate && identity.value) {
+    if (identity.value) {
       links.push({
         name: RouteName.UPDATE_IDENTITY,
         params: { identityName: identity.value.preferredUsername },
         text: identity.value.name,
-      });
-    } else {
-      links.push({
-        name: RouteName.CREATE_IDENTITY,
-        params: {},
-        text: t("New profile") as string,
       });
     }
     return links;
@@ -821,13 +677,9 @@ const updateUsername = (value: string) => {
 
 useHead({
   title: computed(() => {
-    let title = t("Create a new profile") as string;
-    if (isUpdate.value) {
-      title = t("Edit profile {profile}", {
-        profile: identityName.value,
-      }) as string;
-    }
-    return title;
+    return t("Edit profile {profile}", {
+      profile: identityName.value,
+    }) as string;
   }),
 });
 </script>

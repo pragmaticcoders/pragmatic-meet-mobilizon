@@ -15,7 +15,6 @@
       :identities="identities"
       :anonymousParticipationConfig="anonymousParticipationConfig"
       @join-event="joinEvent"
-      @join-modal="isJoinModalActive = true"
       @join-event-with-confirmation="joinEventWithConfirmation"
       @confirm-leave="confirmLeave"
       @cancel-anonymous-participation="cancelAnonymousParticipation"
@@ -269,44 +268,6 @@
     />
   </o-modal>
   <o-modal
-    v-model:active="isJoinModalActive"
-    has-modal-card
-    ref="participationModal"
-    :close-button-aria-label="t('Close')"
-  >
-    <identity-picker v-if="identity" v-model="identity">
-      <template #footer>
-        <footer class="flex gap-2">
-          <o-button
-            ref="cancelButton"
-            variant="cancel"
-            @click="isJoinModalActive = false"
-            @keyup.enter="isJoinModalActive = false"
-          >
-            {{ t("Cancel") }}
-          </o-button>
-          <o-button
-            v-if="identity"
-            variant="primary"
-            ref="confirmButton"
-            @click="
-              event?.joinOptions === EventJoinOptions.RESTRICTED
-                ? joinEventWithConfirmation(identity as IPerson)
-                : joinEvent(identity as IPerson)
-            "
-            @keyup.enter="
-              event?.joinOptions === EventJoinOptions.RESTRICTED
-                ? joinEventWithConfirmation(identity as IPerson)
-                : joinEvent(identity as IPerson)
-            "
-          >
-            {{ t("Confirm my particpation") }}
-          </o-button>
-        </footer>
-      </template>
-    </identity-picker>
-  </o-modal>
-  <o-modal
     v-model:active="isJoinConfirmationModalActive"
     has-modal-card
     ref="joinConfirmationModal"
@@ -364,7 +325,6 @@ import { IActor, IPerson } from "@/types/actor";
 import { IEvent } from "@/types/event.model";
 import ParticipationSection from "@/components/Participation/ParticipationSection.vue";
 import ReportModal from "@/components/Report/ReportModal.vue";
-import IdentityPicker from "@/components/Account/IdentityPicker.vue";
 import { EventJoinOptions, ParticipantRole, MemberRole } from "@/types/enums";
 import { GRAPHQL_API_ENDPOINT } from "@/api/_entrypoint";
 import { computed, defineAsyncComponent, inject, onMounted, ref } from "vue";
@@ -461,7 +421,6 @@ const organizerDomain = computed((): string | undefined => {
 const reportModal = ref();
 const isReportModalActive = ref(false);
 const isShareModalActive = ref(false);
-const isJoinModalActive = ref(false);
 const isJoinConfirmationModalActive = ref(false);
 
 const actorForConfirmation = ref<IPerson | null>(null);
@@ -620,7 +579,6 @@ const joinEvent = (
   message: string | null = null
 ): void => {
   isJoinConfirmationModalActive.value = false;
-  isJoinModalActive.value = false;
   joinEventMutation({
     eventId: event.value?.id,
     actorId: identityForJoin?.id,
