@@ -15,6 +15,31 @@ const {
 );
 
 /**
+ * Set the current actor to the specified identity
+ * Use this when you have a single IPerson object (e.g., from defaultActor)
+ */
+export async function changeIdentity(identity: IPerson | undefined): Promise<void> {
+  console.debug("Setting current actor", identity);
+
+  if (!identity || !identity.id) {
+    console.debug("Invalid identity provided", identity);
+    return;
+  }
+
+  console.debug("Initializing current actor from identity", identity);
+
+  // Update current actor in cache
+  await updateCurrentActorClient(identity);
+
+  console.debug("Saving actor data");
+  saveActorData(identity);
+
+  onUpdateCurrentActorClientDone(() => {
+    console.debug("Current actor client updated successfully");
+  });
+}
+
+/**
  * Initialize the current actor from user's single identity
  */
 export async function initializeCurrentActor(
