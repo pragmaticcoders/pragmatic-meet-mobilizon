@@ -492,7 +492,18 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
     with {:group, %Actor{type: :Group} = group} <- {:group, Actors.get_actor(group_id)},
          {:ok, _activity, %Member{} = member} <-
            Actions.Leave.leave(group, actor, true) do
-      {:ok, member}
+      # Automatically unfollow the group when leaving
+      case Actors.unfollow(group, actor) do
+        {:ok, _follower} ->
+          Logger.debug("Auto-unfollowed group #{group.id} by actor #{actor.id} after leaving")
+          {:ok, member}
+
+        {:error, _err} ->
+          # If unfollow fails, we still successfully left, so return the member
+          # This is not critical - user might not have been following anyway
+          Logger.debug("Could not auto-unfollow group #{group.id} by actor #{actor.id}: follow may not exist")
+          {:ok, member}
+      end
     else
       {:error, :member_not_found} ->
         {:error, dgettext("errors", "Member not found")}
