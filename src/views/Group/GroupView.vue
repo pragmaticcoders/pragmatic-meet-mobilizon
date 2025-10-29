@@ -177,16 +177,6 @@
 
               <!-- Action Buttons with Icons -->
               <div class="flex flex-wrap justify-center gap-3 max-w-lg mx-auto">
-                <!-- Follow Button -->
-                <o-button
-                  v-if="showFollowButton"
-                  @click="followGroup"
-                  icon-left="rss"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-                >
-                  {{ t("Follow") }}
-                </o-button>
-
                 <!-- Contact Button -->
                 <o-button
                   tag="router-link"
@@ -1068,7 +1058,6 @@ import {
   PERSON_STATUS_GROUP,
 } from "@/graphql/actor";
 import LazyImageWrapper from "../../components/Image/LazyImageWrapper.vue";
-import { FOLLOW_GROUP, UNFOLLOW_GROUP } from "@/graphql/followers";
 import { useAnonymousReportsConfig } from "../../composition/apollo/config";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
@@ -1282,58 +1271,6 @@ onLeaveGroupDone(() => {
   console.debug("done");
 });
 
-const { mutate: followGroupMutation, onError: onFollowGroupError } =
-  useMutation(FOLLOW_GROUP, () => ({
-    refetchQueries: [
-      {
-        query: PERSON_STATUS_GROUP,
-        variables: {
-          id: currentActor.value?.id,
-          group: usernameWithDomain(group.value),
-        },
-      },
-    ],
-  }));
-
-onFollowGroupError((error) => {
-  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-    notifier?.error(error.graphQLErrors[0].message);
-  }
-});
-
-const followGroup = async (): Promise<void> => {
-  if (!currentActor.value?.id) {
-    router.push({
-      name: RouteName.GROUP_FOLLOW,
-      params: {
-        preferredUsername: usernameWithDomain(group.value),
-      },
-    });
-    return;
-  }
-  followGroupMutation({
-    groupId: group.value?.id,
-  });
-};
-
-const { onError: onUnfollowGroupError } = useMutation(UNFOLLOW_GROUP, () => ({
-  refetchQueries: [
-    {
-      query: PERSON_STATUS_GROUP,
-      variables: {
-        id: currentActor.value?.id,
-        group: usernameWithDomain(group.value),
-      },
-    },
-  ],
-}));
-
-onUnfollowGroupError((error) => {
-  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-    notifier?.error(error.graphQLErrors[0].message);
-  }
-});
-
 const {
   mutate: createReportMutation,
   onError: onCreateReportError,
@@ -1457,10 +1394,6 @@ const ableToReport = computed((): boolean => {
     currentActor.value?.id !== undefined ||
     anonymousReportsConfig.value?.allowed === true
   );
-});
-
-const showFollowButton = computed((): boolean => {
-  return !isCurrentActorFollowing.value || previewPublic.value;
 });
 
 const showJoinButton = computed((): boolean => {

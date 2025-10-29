@@ -9,6 +9,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   alias Mobilizon.Actors.{Actor, Follower, Member}
   alias Mobilizon.Federation.ActivityPub.Actions
   alias Mobilizon.Federation.ActivityPub.Actor, as: ActivityPubActor
+  alias Mobilizon.Federation.ActivityPub.Types
   alias Mobilizon.GraphQL.API
   alias Mobilizon.Users.User
   alias Mobilizon.Web.Upload
@@ -417,7 +418,47 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
          {:is_able_to_join, true} <- {:is_able_to_join, Member.can_be_joined(group)},
          {:ok, _activity, %Member{} = member} <-
            Actions.Join.join(group, actor, true, args) do
-      {:ok, member}
+      # Automatically follow the group when joining
+      # Use Mobilizon.Actors.follow directly which always creates the follower record
+      Logger.info(
+        "Attempting to auto-follow group #{group.id} (#{group.preferred_username}) by actor #{actor.id} (#{actor.preferred_username})"
+      )
+
+      follow_result = Actors.follow(group, actor, nil, true)
+
+      case follow_result do
+        {:ok, %Follower{} = follower} ->
+          # Follow created successfully in database
+          Logger.info(
+            "Successfully auto-followed group #{group.id} by actor #{actor.id}, follower id: #{follower.id}"
+          )
+          {:ok, member}
+
+        {:error, :already_following} ->
+          # Already following, which is fine - just return the member
+          Logger.debug("Actor #{actor.id} already following group #{group.id}")
+          {:ok, member}
+
+        {:error, :follow_pending} ->
+          # Follow exists but pending approval - that's fine
+          Logger.debug("Actor #{actor.id} has pending follow for group #{group.id}")
+          {:ok, member}
+
+        {:error, %Ecto.Changeset{} = changeset} ->
+          # Changeset error - log all errors
+          Logger.error(
+            "FAILED to auto-follow: Changeset errors: #{inspect(changeset.errors)}, changes: #{inspect(changeset.changes)}, data: #{inspect(Map.take(Map.from_struct(changeset.data || %{}), [:id, :actor_id, :target_actor_id, :approved, :url]))}"
+          )
+          {:ok, member}
+
+        {:error, err} ->
+          # Log the error but don't fail the join
+          Logger.error(
+            "FAILED to automatically follow group #{group.id} after join by actor #{actor.id}: #{inspect(err)}"
+          )
+          # If follow fails, we still successfully joined, so return the member
+          {:ok, member}
+      end
     else
       {:error, :group_not_found} ->
         {:error, dgettext("errors", "Group not found")}
