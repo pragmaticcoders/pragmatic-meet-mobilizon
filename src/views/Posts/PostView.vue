@@ -312,7 +312,10 @@ const {
   onError: onFetchPostError,
 } = useQuery<{
   post: IPost;
-}>(FETCH_POST, () => ({ slug: props.slug }), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(FETCH_POST, () => ({ slug: props.slug }), {
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
+});
 
 const handleErrors = (errors: AbsintheGraphQLErrors): void => {
   if (

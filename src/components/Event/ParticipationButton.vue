@@ -361,10 +361,6 @@ const joinEvent = (actor: IPerson | undefined): void => {
   }
 };
 
-const joinModal = (): void => {
-  emit("join-modal");
-};
-
 const confirmLeave = (): void => {
   emit("confirm-leave");
 };

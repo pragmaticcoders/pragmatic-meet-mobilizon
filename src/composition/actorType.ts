@@ -7,19 +7,19 @@ import { ActorType } from "@/types/enums";
  */
 export function useCurrentActorType() {
   const { currentActor } = useCurrentActorClient();
-  
+
   const isCurrentActorGroup = computed(() => {
     return currentActor.value?.type === ActorType.GROUP;
   });
-  
+
   const isCurrentActorPerson = computed(() => {
     return currentActor.value?.type === ActorType.PERSON;
   });
-  
+
   const currentActorType = computed(() => {
     return currentActor.value?.type;
   });
-  
+
   return {
     currentActor,
     isCurrentActorGroup,

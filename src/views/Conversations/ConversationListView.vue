@@ -105,7 +105,7 @@ const NewConversation = defineAsyncComponent(
 );
 
 const openNewMessageModal = () => {
-  const modalInstance = modal.open({
+  modal.open({
     component: NewConversation,
     props: {
       personMentions: personMentions.value,

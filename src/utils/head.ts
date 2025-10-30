@@ -6,7 +6,10 @@ import { IConfig } from "@/types/config.model";
 import { ABOUT } from "@/graphql/config";
 
 const { result } = provideApolloClient(apolloClient)(() =>
-  useQuery<{ config: Pick<IConfig, "name"> }>(ABOUT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false })
+  useQuery<{ config: Pick<IConfig, "name"> }>(ABOUT, undefined, {
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  })
 );
 const instanceName = computed(() => result.value?.config?.name);
 

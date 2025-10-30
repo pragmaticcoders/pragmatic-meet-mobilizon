@@ -135,7 +135,7 @@ const {
 onSearchPersonsAndGroupsResult((result) => {
   // Always stop loading when we get any result, even if it's outdated
   searchLoading.value = false;
-  
+
   if (result.data) {
     const persons = result.data.searchPersons?.elements || [];
     const groups = result.data.searchGroups?.elements || [];
@@ -150,13 +150,13 @@ onSearchPersonsAndGroupsResult((result) => {
         displayName: displayName(group),
       })),
     ];
-    
+
     // Filter out the current user/actor to prevent messaging themselves
     const filteredActors = actors.filter((actor) => {
       if (!currentActor.value) return true;
       return actor.id !== currentActor.value.id;
     });
-    
+
     availableActors.value = filteredActors;
   } else {
     availableActors.value = [];

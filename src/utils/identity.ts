@@ -1,6 +1,5 @@
 import { UPDATE_CURRENT_ACTOR_CLIENT } from "@/graphql/actor";
 import { IPerson } from "@/types/actor";
-import { AUTH_USER_ACTOR_ID } from "@/constants";
 import { saveActorData } from "@/utils/auth";
 import { provideApolloClient, useMutation } from "@vue/apollo-composable";
 import { apolloClient } from "@/vue-apollo";

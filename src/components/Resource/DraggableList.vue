@@ -132,28 +132,32 @@ watch(checkedResources, (newCheckedResources) => {
 });
 
 // Watch for changes in resources to clean up selection state
-watch(() => props.resources, (newResources) => {
-  const existingResourceIds = new Set(newResources.map(r => r.id).filter(Boolean));
-  
-  // Clean up checkedResources - remove any checked resources that no longer exist
-  Object.keys(checkedResources).forEach(resourceId => {
-    if (!existingResourceIds.has(resourceId)) {
-      delete checkedResources[resourceId];
-    }
-  });
-  
-  // Update validCheckedResources to only include existing resources
-  validCheckedResources.value = validCheckedResources.value.filter(id => 
-    existingResourceIds.has(id)
-  );
-  
-  // Update checkedAll state
-  const totalResources = newResources.length;
-  const checkedCount = validCheckedResources.value.length;
-  checkedAll.value = totalResources > 0 && checkedCount === totalResources;
-}, { deep: true });
+watch(
+  () => props.resources,
+  (newResources) => {
+    const existingResourceIds = new Set(
+      newResources.map((r) => r.id).filter(Boolean)
+    );
 
+    // Clean up checkedResources - remove any checked resources that no longer exist
+    Object.keys(checkedResources).forEach((resourceId) => {
+      if (!existingResourceIds.has(resourceId)) {
+        delete checkedResources[resourceId];
+      }
+    });
 
+    // Update validCheckedResources to only include existing resources
+    validCheckedResources.value = validCheckedResources.value.filter((id) =>
+      existingResourceIds.has(id)
+    );
+
+    // Update checkedAll state
+    const totalResources = newResources.length;
+    const checkedCount = validCheckedResources.value.length;
+    checkedAll.value = totalResources > 0 && checkedCount === totalResources;
+  },
+  { deep: true }
+);
 </script>
 <style lang="scss" scoped>
 @use "@/styles/_mixins" as *;

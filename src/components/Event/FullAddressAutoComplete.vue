@@ -305,10 +305,6 @@ const checkCurrentPosition = (e: LatLng): boolean => {
 
 const { t, locale } = useI18n({ useScope: "global" });
 
-const actualLabel = computed((): string => {
-  return props.label ?? t("Find an address");
-});
-
 // eslint-disable-next-line class-methods-use-this
 const canShowLocateMeButton = computed((): boolean => {
   return window.isSecureContext;

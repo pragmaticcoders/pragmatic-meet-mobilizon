@@ -22,12 +22,8 @@
           v-model="locale"
           :placeholder="t('Select a language')"
         >
-          <option value="en" key="en">
-            🇬🇧 English
-          </option>
-          <option value="pl" key="pl">
-            🇵🇱 Polski
-          </option>
+          <option value="en" key="en">🇬🇧 English</option>
+          <option value="pl" key="pl">🇵🇱 Polski</option>
         </o-select>
       </div>
 
@@ -91,8 +87,6 @@ watch(locale, async () => {
     saveLocaleData(locale.value as string);
   }
 });
-
-
 </script>
 
 <style lang="scss">

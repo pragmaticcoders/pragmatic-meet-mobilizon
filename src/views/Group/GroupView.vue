@@ -1085,7 +1085,6 @@ import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 
 import Flag from "vue-material-design-icons/Flag.vue";
 import ExitToApp from "vue-material-design-icons/ExitToApp.vue";
-import AccountMultiplePlus from "vue-material-design-icons/AccountMultiplePlus.vue";
 
 import Cog from "vue-material-design-icons/Cog.vue";
 import ViewList from "vue-material-design-icons/ViewList.vue";

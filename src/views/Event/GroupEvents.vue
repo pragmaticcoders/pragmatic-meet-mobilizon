@@ -45,12 +45,19 @@
           class="px-6 py-2.5 font-semibold"
           :to="{
             name: RouteName.CREATE_EVENT,
-            query: { 
+            query: {
               actorId: group.id,
-              groupUsername: group.preferredUsername 
+              groupUsername: group.preferredUsername,
             },
           }"
-          @click="console.log('GroupEvents Create Event clicked - Group data:', { id: group.id, preferredUsername: group.preferredUsername, name: group.name, type: group.type })"
+          @click="
+            console.log('GroupEvents Create Event clicked - Group data:', {
+              id: group.id,
+              preferredUsername: group.preferredUsername,
+              name: group.name,
+              type: group.type,
+            })
+          "
           >{{ t("+ Create an event") }}</o-button
         >
       </div>

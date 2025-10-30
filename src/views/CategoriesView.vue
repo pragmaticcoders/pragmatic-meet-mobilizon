@@ -115,7 +115,10 @@ const eventCategoryLabel = (categoryId: string): string | undefined => {
 
 const { result: categoryStatsResult } = useQuery<{
   categoryStatistics: CategoryStatsModel[];
-}>(CATEGORY_STATISTICS, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(CATEGORY_STATISTICS, undefined, {
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
+});
 const categoryStats = computed(
   () => categoryStatsResult.value?.categoryStatistics ?? []
 );

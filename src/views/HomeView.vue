@@ -268,7 +268,10 @@ const { result: aboutConfigResult } = useQuery<{
     IConfig,
     "name" | "description" | "slogan" | "registrationsOpen"
   >;
-}>(ABOUT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(ABOUT, undefined, {
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
+});
 
 const config = computed(() => aboutConfigResult.value?.config);
 
@@ -283,7 +286,10 @@ const currentActor = computed<IPerson | undefined>(
 
 const { result: currentUserResult } = useQuery<{
   currentUser: ICurrentUser;
-}>(CURRENT_USER_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(CURRENT_USER_CLIENT, undefined, {
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
+});
 
 const currentUser = computed(() => currentUserResult.value?.currentUser);
 
@@ -548,7 +554,10 @@ const userSettingsLocation = computed(() => {
 
 const { result: currentUserLocationResult } = useQuery<{
   currentUserLocation: LocationType;
-}>(CURRENT_USER_LOCATION_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(CURRENT_USER_LOCATION_CLIENT, undefined, {
+  fetchPolicy: "cache-and-network",
+  notifyOnNetworkStatusChange: false,
+});
 
 // The user's location currently in the Apollo cache
 const currentUserLocation = computed(() => {

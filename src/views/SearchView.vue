@@ -312,8 +312,12 @@
             >
               {{
                 listShortDisjunctionFormatter(
-                  languageOneOf.map(
-                    (lang) => lang === 'en' ? '🇬🇧 English' : lang === 'pl' ? '🇵🇱 Polski' : lang
+                  languageOneOf.map((lang) =>
+                    lang === "en"
+                      ? "🇬🇧 English"
+                      : lang === "pl"
+                        ? "🇵🇱 Polski"
+                        : lang
                   )
                 )
               }}
@@ -511,7 +515,10 @@
             <SkeletonGroupResultList v-for="i in 6" :key="i" />
           </template>
           <template v-else-if="searchGroups && searchGroups?.total > 0">
-            <MultiGroupCard :groups="searchGroups?.elements || []" class="mb-6" />
+            <MultiGroupCard
+              :groups="searchGroups?.elements || []"
+              class="mb-6"
+            />
             <o-pagination
               v-show="searchGroups && searchGroups?.total > GROUP_PAGE_LIMIT"
               :total="searchGroups?.total"
@@ -582,7 +589,12 @@ import {
   startOfMonth,
   eachWeekendOfInterval,
 } from "date-fns";
-import { ContentType, EventStatus, SearchTargets, ParticipantRole } from "@/types/enums";
+import {
+  ContentType,
+  EventStatus,
+  SearchTargets,
+  ParticipantRole,
+} from "@/types/enums";
 import { IEvent } from "@/types/event.model";
 import { SEARCH_EVENTS_AND_GROUPS, SEARCH_EVENTS } from "@/graphql/search";
 import { Paginate } from "@/types/paginate";
@@ -1034,7 +1046,7 @@ const boostLanguagesQuery = computed((): string[] => {
   for (const completeLanguage of navigator.languages) {
     const language = completeLanguage.split("-")[0];
 
-    if (['en', 'pl'].includes(language)) {
+    if (["en", "pl"].includes(language)) {
       languages.add(language);
     }
   }
@@ -1078,49 +1090,57 @@ watch(
 const { result: searchElementsResult, loading: searchLoading } = useQuery<{
   searchEvents: Paginate<TypeNamed<IEvent>>;
   searchGroups: Paginate<TypeNamed<IGroup>>;
-}>(SEARCH_EVENTS_AND_GROUPS, () => ({
-  term: searchDebounced.value,
-  tags: tag.value,
-  location: geoHashLocation.value,
-  beginsOn: start.value,
-  endsOn: end.value,
-  longEvents: longEvents.value,
-  radius: geoHashLocation.value ? radius.value : undefined,
-  eventPage: eventPage.value,
-  groupPage: groupPage.value,
-  limit: EVENT_PAGE_LIMIT,
-  type: isOnline.value ? "ONLINE" : undefined,
-  categoryOneOf: categoryOneOf.value,
-  statusOneOf: statusOneOf.value,
-  languageOneOf: languageOneOf.value,
-  searchTarget: searchTarget.value,
-  bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
-  zoom: zoom.value,
-  sortByEvents: sortByForType(sortByEvents.value, EventSortValues),
-  sortByGroups: sortByGroups.value,
-  boostLanguages: boostLanguagesQuery.value,
-}), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(
+  SEARCH_EVENTS_AND_GROUPS,
+  () => ({
+    term: searchDebounced.value,
+    tags: tag.value,
+    location: geoHashLocation.value,
+    beginsOn: start.value,
+    endsOn: end.value,
+    longEvents: longEvents.value,
+    radius: geoHashLocation.value ? radius.value : undefined,
+    eventPage: eventPage.value,
+    groupPage: groupPage.value,
+    limit: EVENT_PAGE_LIMIT,
+    type: isOnline.value ? "ONLINE" : undefined,
+    categoryOneOf: categoryOneOf.value,
+    statusOneOf: statusOneOf.value,
+    languageOneOf: languageOneOf.value,
+    searchTarget: searchTarget.value,
+    bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
+    zoom: zoom.value,
+    sortByEvents: sortByForType(sortByEvents.value, EventSortValues),
+    sortByGroups: sortByGroups.value,
+    boostLanguages: boostLanguagesQuery.value,
+  }),
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
+);
 
 const { result: searchShortElementsResult } = useQuery<{
   searchEvents: Paginate<TypeNamed<IEvent>>;
-}>(SEARCH_EVENTS, () => ({
-  term: searchDebounced.value,
-  tags: tag.value,
-  location: geoHashLocation.value,
-  beginsOn: start.value,
-  endsOn: end.value,
-  longEvents: false,
-  radius: geoHashLocation.value ? radius.value : undefined,
-  limit: 0,
-  type: isOnline.value ? "ONLINE" : undefined,
-  categoryOneOf: categoryOneOf.value,
-  statusOneOf: statusOneOf.value,
-  languageOneOf: languageOneOf.value,
-  searchTarget: searchTarget.value,
-  bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
-  zoom: zoom.value,
-  boostLanguages: boostLanguagesQuery.value,
-}), { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+}>(
+  SEARCH_EVENTS,
+  () => ({
+    term: searchDebounced.value,
+    tags: tag.value,
+    location: geoHashLocation.value,
+    beginsOn: start.value,
+    endsOn: end.value,
+    longEvents: false,
+    radius: geoHashLocation.value ? radius.value : undefined,
+    limit: 0,
+    type: isOnline.value ? "ONLINE" : undefined,
+    categoryOneOf: categoryOneOf.value,
+    statusOneOf: statusOneOf.value,
+    languageOneOf: languageOneOf.value,
+    searchTarget: searchTarget.value,
+    bbox: mode.value === ViewMode.MAP ? bbox.value : undefined,
+    zoom: zoom.value,
+    boostLanguages: boostLanguagesQuery.value,
+  }),
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
+);
 
 /**
  * Helper function to create mock participation for events without participation data
@@ -1129,7 +1149,7 @@ const createMockParticipation = (event: IEvent): IParticipant => {
   return {
     id: `mock-${event.id}`,
     event,
-    actor: currentActor.value || {} as IPerson,
+    actor: currentActor.value || ({} as IPerson),
     role: ParticipantRole.NOT_APPROVED,
     metadata: {},
     insertedAt: new Date(),

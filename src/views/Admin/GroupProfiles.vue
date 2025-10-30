@@ -26,7 +26,9 @@
           </label>
           <o-select v-model="approvalStatus" class="min-w-[140px]">
             <option value="">{{ t("All") }}</option>
-            <option value="PENDING_APPROVAL">{{ t("Pending Approval") }}</option>
+            <option value="PENDING_APPROVAL">
+              {{ t("Pending Approval") }}
+            </option>
             <option value="APPROVED">{{ t("Approved") }}</option>
             <option value="REJECTED">{{ t("Rejected") }}</option>
           </o-select>

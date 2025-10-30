@@ -323,10 +323,7 @@ import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Inbox from "vue-material-design-icons/Inbox.vue";
 import { useCurrentUserClient } from "@/composition/apollo/user";
-import {
-  useCurrentActorClient,
-  useCurrentUserIdentities,
-} from "@/composition/apollo/actor";
+import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useLazyQuery } from "@vue/apollo-composable";
 import { useRegistrationConfig } from "@/composition/apollo/config";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -342,7 +339,6 @@ const { currentActor } = useCurrentActorClient();
 const router = useRouter();
 const route = useRoute();
 
-const { identities } = useCurrentUserIdentities();
 const { registrationsOpen, registrationsAllowlist, databaseLogin } =
   useRegistrationConfig();
 
@@ -357,14 +353,18 @@ const canRegister = computed(() => {
 const { t } = useI18n({ useScope: "global" });
 
 const unreadConversationsCount = computed(() => {
-  const count = unreadActorConversationsResult.value?.loggedUser.defaultActor
-    ?.unreadConversationsCount ?? 0;
+  const count =
+    unreadActorConversationsResult.value?.loggedUser.defaultActor
+      ?.unreadConversationsCount ?? 0;
   console.debug("NavBar: unreadConversationsCount computed", {
     count,
     hasResult: !!unreadActorConversationsResult.value,
     hasLoggedUser: !!unreadActorConversationsResult.value?.loggedUser,
-    hasDefaultActor: !!unreadActorConversationsResult.value?.loggedUser?.defaultActor,
-    rawCount: unreadActorConversationsResult.value?.loggedUser?.defaultActor?.unreadConversationsCount
+    hasDefaultActor:
+      !!unreadActorConversationsResult.value?.loggedUser?.defaultActor,
+    rawCount:
+      unreadActorConversationsResult.value?.loggedUser?.defaultActor
+        ?.unreadConversationsCount,
   });
   return count;
 });
@@ -389,9 +389,9 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
         previousActorValue?.preferredUsername ||
         previousActorValue === null ||
         previousActorValue === undefined)
-    )
+    ),
   });
-  
+
   if (
     currentActorValue?.id &&
     (currentActorValue.preferredUsername !==
@@ -399,11 +399,17 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
       previousActorValue === null ||
       previousActorValue === undefined)
   ) {
-    console.debug("NavBar: Setting up unread conversations subscription for actor", currentActorValue.id);
+    console.debug(
+      "NavBar: Setting up unread conversations subscription for actor",
+      currentActorValue.id
+    );
     const result = await loadUnreadConversations();
     console.debug("NavBar: Initial unread conversations loaded", {
       result,
-      count: result && typeof result === 'object' ? result.loggedUser?.defaultActor?.unreadConversationsCount : null
+      count:
+        result && typeof result === "object"
+          ? result.loggedUser?.defaultActor?.unreadConversationsCount
+          : null,
     });
 
     subscribeToMore<
@@ -416,17 +422,18 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
       },
       updateQuery: (previousResult, { subscriptionData }) => {
         const newCount = subscriptionData?.data?.personUnreadConversationsCount;
-        const previousCount = previousResult.loggedUser.defaultActor?.unreadConversationsCount;
-        
+        const previousCount =
+          previousResult.loggedUser.defaultActor?.unreadConversationsCount;
+
         console.debug(
           "NavBar: Updating actor unread conversations count via subscription",
           {
             newCount,
             previousCount,
-            subscriptionData: subscriptionData?.data
+            subscriptionData: subscriptionData?.data,
           }
         );
-        
+
         return {
           ...previousResult,
           loggedUser: {

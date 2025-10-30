@@ -75,15 +75,17 @@ import { IConfig } from "@/types/config.model";
 import RouteName from "../router/name";
 import { useQuery } from "@vue/apollo-composable";
 import { computed } from "vue";
-import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 import { useRoute } from "vue-router";
 
-const { currentUser } = useCurrentUserClient();
 const $route = useRoute();
 
-const { result: configResult } = useQuery<{ config: IConfig }>(ABOUT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+const { result: configResult } = useQuery<{ config: IConfig }>(
+  ABOUT,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
+);
 
 const config = computed(() => configResult.value?.config);
 

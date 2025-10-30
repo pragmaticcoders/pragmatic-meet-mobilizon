@@ -1,7 +1,6 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16" v-if="resource">
-    <breadcrumbs-nav :links="breadcrumbLinks">
-    </breadcrumbs-nav>
+    <breadcrumbs-nav :links="breadcrumbLinks"> </breadcrumbs-nav>
     <DraggableList
       v-if="resource.actor"
       :resources="resource.children.elements"
@@ -17,7 +16,7 @@
       @rename="handleRename"
       @move="handleMove"
     />
-    
+
     <!-- Add new resource button -->
     <div class="my-6 ml-2" v-if="resource.actor">
       <o-dropdown aria-role="list">
@@ -54,7 +53,7 @@
         </o-dropdown-item>
       </o-dropdown>
     </div>
-    
+
     <o-pagination
       v-if="resource.children.total > RESOURCES_PER_PAGE"
       :total="resource.children.total"
@@ -85,7 +84,9 @@
               />
             </o-field>
 
-            <o-button native-type="submit" class="mt-2">{{ t("Rename resource") }}</o-button>
+            <o-button native-type="submit" class="mt-2">{{
+              t("Rename resource")
+            }}</o-button>
           </form>
         </section>
       </div>
@@ -237,8 +238,6 @@
   </div>
 </template>
 <script lang="ts" setup>
-
-
 import Plus from "vue-material-design-icons/Plus.vue";
 import ResourceItem from "@/components/Resource/ResourceItem.vue";
 import { displayName, usernameWithDomain } from "@/types/actor";
@@ -385,7 +384,7 @@ createResourceDone(() => {
   newResource.resourceUrl = "";
   // Clear all errors when resource is created successfully
   modalError.value = "";
-  Object.keys(modalFieldErrors).forEach(key => {
+  Object.keys(modalFieldErrors).forEach((key) => {
     delete modalFieldErrors[key];
   });
 });
@@ -406,7 +405,7 @@ const createResource = () => {
   if (!resource.value?.actor) return;
   modalError.value = "";
   // Clear all field errors when submitting
-  Object.keys(modalFieldErrors).forEach(key => {
+  Object.keys(modalFieldErrors).forEach((key) => {
     delete modalFieldErrors[key];
   });
   createResourceMutation({
@@ -433,10 +432,10 @@ previewDone(({ data }) => {
   if (!data?.previewResourceLink) return;
   // Clear any existing errors on successful preview
   modalError.value = "";
-  Object.keys(modalFieldErrors).forEach(key => {
+  Object.keys(modalFieldErrors).forEach((key) => {
     delete modalFieldErrors[key];
   });
-  
+
   newResource.title = data?.previewResourceLink.title ?? "";
   newResource.summary = data?.previewResourceLink?.description?.substring(
     0,
@@ -471,20 +470,20 @@ const clearFieldError = (fieldName: string): void => {
 };
 
 const clearUrlError = (): void => {
-  clearFieldError('resource_url');
+  clearFieldError("resource_url");
 };
 
 const clearTitleError = (): void => {
-  clearFieldError('title');
+  clearFieldError("title");
 };
 
 const clearSummaryError = (): void => {
-  clearFieldError('summary');
+  clearFieldError("summary");
 };
 
 const resetFormErrors = (): void => {
   modalError.value = "";
-  Object.keys(modalFieldErrors).forEach(key => {
+  Object.keys(modalFieldErrors).forEach((key) => {
     delete modalFieldErrors[key];
   });
 };
