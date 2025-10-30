@@ -56,6 +56,7 @@ stats.html
 /coverage
 /playwright-report/
 .histoire
+.vitest-cache
 
 /docker/production/nginx/conf/**/*
 /docker/production/nginx/certs/**/*
