@@ -49,3 +49,25 @@ export async function initializeCurrentActor(
     console.debug("Current actor client updated successfully");
   });
 }
+
+/**
+ * Change the current actor to a specific identity
+ */
+export async function changeIdentity(identity: IPerson): Promise<void> {
+  console.debug("Changing current actor to identity", identity);
+
+  if (!identity.id) {
+    console.warn("Cannot change to identity without id");
+    return;
+  }
+
+  // Update current actor in cache
+  await updateCurrentActorClient(identity);
+
+  console.debug("Saving actor data");
+  saveActorData(identity);
+
+  onUpdateCurrentActorClientDone(() => {
+    console.debug("Current actor changed successfully");
+  });
+}
