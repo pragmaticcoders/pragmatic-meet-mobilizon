@@ -125,6 +125,10 @@ jobs:
           elif [[ $GITHUB_REF == 'refs/heads/test' ]]; then
             echo "environment=test" >> $GITHUB_OUTPUT
             echo "tag=test" >> $GITHUB_OUTPUT
+          else
+            # For PRs and other branches, use short SHA
+            echo "environment=pr" >> $GITHUB_OUTPUT
+            echo "tag=pr-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
           fi
 
       - name: Build and push Docker image
@@ -139,8 +143,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Load image locally for E2E tests on PRs
-          load: ${{ github.event_name == 'pull_request' }}
 
   test-e2e:
     needs: build
@@ -189,20 +191,18 @@ jobs:
           elif [[ $GITHUB_REF == 'refs/heads/test' ]]; then
             echo "tag=test" >> $GITHUB_OUTPUT
           else
-            # For PRs, use the commit SHA
-            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+            # For PRs, use short SHA (must match build job)
+            echo "tag=pr-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Pull Docker image (main/test branches only)
+      - name: Pull Docker image (main/test branches)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
         run: docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
       
-      - name: Tag local image for E2E tests (PRs)
+      - name: Build Docker image locally (PRs only)
         if: github.event_name == 'pull_request'
         run: |
-          # The build job loaded the image locally
-          docker tag ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-                     ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+          docker build -f docker/production/Dockerfile -t ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }} .
 
       - name: Create docker-compose configuration for E2E tests
         run: |
