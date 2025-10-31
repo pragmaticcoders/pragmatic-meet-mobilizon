@@ -98,7 +98,7 @@ jobs:
   build:
     needs: [test-frontend]  # test-backend temporarily disabled
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    # Run on PRs and main/test branches
     outputs:
       environment: ${{ steps.env.outputs.environment }}
       tag: ${{ steps.env.outputs.tag }}
@@ -132,17 +132,20 @@ jobs:
         with:
           context: .
           file: docker/production/Dockerfile
-          push: true
+          # Only push to registry on main/test branches, not PRs
+          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' }}
           tags: |
             ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.env.outputs.tag }}
             ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Load image locally for E2E tests on PRs
+          load: ${{ github.event_name == 'pull_request' }}
 
   test-e2e:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    # Run on PRs and main/test branches
 
     services:
       postgres:
@@ -185,10 +188,21 @@ jobs:
             echo "tag=latest" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == 'refs/heads/test' ]]; then
             echo "tag=test" >> $GITHUB_OUTPUT
+          else
+            # For PRs, use the commit SHA
+            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Pull Docker image
+      - name: Pull Docker image (main/test branches only)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
         run: docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+      
+      - name: Tag local image for E2E tests (PRs)
+        if: github.event_name == 'pull_request'
+        run: |
+          # The build job loaded the image locally
+          docker tag ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+                     ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
 
       - name: Create docker-compose configuration for E2E tests
         run: |
