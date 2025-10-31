@@ -61,13 +61,14 @@ export async function changeIdentity(identity: IPerson): Promise<void> {
     return;
   }
 
+  // Create a new mutation instance for this call
+  const { mutate: changeActorMutation } = provideApolloClient(apolloClient)(
+    () => useMutation(UPDATE_CURRENT_ACTOR_CLIENT)
+  );
+
   // Update current actor in cache
-  await updateCurrentActorClient(identity);
+  await changeActorMutation(identity);
 
   console.debug("Saving actor data");
   saveActorData(identity);
-
-  onUpdateCurrentActorClientDone(() => {
-    console.debug("Current actor changed successfully");
-  });
 }
