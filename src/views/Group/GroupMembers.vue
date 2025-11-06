@@ -24,6 +24,7 @@
       :active="groupMembersLoading"
       class="o-loading--enhanced o-loading--page"
     />
+    <!-- Invite section - only for admins -->
     <section
       class="bg-white p-2 mt-4"
       v-if="group && isCurrentActorAGroupAdmin"
@@ -81,11 +82,18 @@
       </div>
       <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
+    </section>
+
+    <!-- Members list section - visible for all group members -->
+    <section
+      class="bg-white p-2 mt-4"
+      v-if="group && isCurrentActorAGroupMember"
+    >
       <h1 class="text-xl font-bold text-[#1c1b1f] mb-4">
         {{ t("Group Members") }} ({{ group.members.total }})
       </h1>
-      <!-- Filter by status section -->
-      <div class="my-6">
+      <!-- Filter by status section - only for admins -->
+      <div class="my-6" v-if="isCurrentActorAGroupAdmin">
         <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
           t("Filter by status")
         }}</label>
@@ -233,6 +241,7 @@
           field="actions"
           :label="t('Actions')"
           v-slot="props"
+          v-if="isCurrentActorAGroupAdmin"
           header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
           cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
         >
@@ -298,8 +307,8 @@
         </template>
       </o-table>
     </section>
-    <o-notification v-else-if="!groupMembersLoading && group">
-      {{ t("You are not an administrator for this group.") }}
+    <o-notification v-else-if="!groupMembersLoading && group && !isCurrentActorAGroupMember">
+      {{ t("You must be a member of this group to view its members.") }}
     </o-notification>
   </div>
 </template>
@@ -428,9 +437,28 @@ const isGroupPendingApproval = computed((): boolean => {
   return group.value?.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
 });
 
-const members = computed(
-  () => group.value?.members ?? { total: 0, elements: [] }
-);
+const members = computed(() => {
+  const allMembers = group.value?.members ?? { total: 0, elements: [] };
+  
+  // For non-admin members, filter out INVITED, NOT_APPROVED, and REJECTED members
+  if (!isCurrentActorAGroupAdmin.value && allMembers.elements) {
+    const filteredElements = allMembers.elements.filter(
+      (member: IMember) =>
+        ![
+          MemberRole.INVITED,
+          MemberRole.NOT_APPROVED,
+          MemberRole.REJECTED,
+        ].includes(member.role)
+    );
+    return {
+      ...allMembers,
+      elements: filteredElements,
+      total: filteredElements.length,
+    };
+  }
+  
+  return allMembers;
+});
 
 const {
   mutate: inviteMemberMutation,
@@ -1088,6 +1116,14 @@ const updateMember = async (
 
 const isCurrentActorAGroupAdmin = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.ADMINISTRATOR);
+});
+
+const isCurrentActorAGroupMember = computed((): boolean => {
+  return hasCurrentActorThisRole([
+    MemberRole.MODERATOR,
+    MemberRole.ADMINISTRATOR,
+    MemberRole.MEMBER,
+  ]);
 });
 
 const hasCurrentActorThisRole = (givenRole: string | string[]): boolean => {
