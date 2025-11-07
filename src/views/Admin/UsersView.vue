@@ -23,6 +23,16 @@
               $t("Filter")
             }}</o-button>
           </p>
+          <p class="control self-end mb-0">
+            <o-button 
+              variant="success" 
+              icon-left="download"
+              @click="exportUsersToCSV"
+              :loading="exportLoading"
+            >{{
+              $t("Export CSV")
+            }}</o-button>
+          </p>
         </o-field>
       </form>
       <o-table
@@ -102,17 +112,18 @@
 <script lang="ts" setup>
 import { LIST_USERS } from "../../graphql/user";
 import RouteName from "../../router/name";
-import { LANGUAGES_CODES } from "@/graphql/admin";
+import { LANGUAGES_CODES, EXPORT_USERS_CSV } from "@/graphql/admin";
 import { IUser } from "@/types/current-user.model";
 import { Paginate } from "@/types/paginate";
 import EmptyContent from "../../components/Utils/EmptyContent.vue";
-import { useQuery } from "@vue/apollo-composable";
+import { useQuery, useLazyQuery } from "@vue/apollo-composable";
 import { ILanguage } from "@/types/admin.model";
-import { computed, ref } from "vue";
+import { computed, ref, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 import { integerTransformer, useRouteQuery } from "vue-use-route-query";
 import { formatDateTimeString } from "@/filters/datetime";
+import { Notifier } from "@/plugins/notifier";
 
 const USERS_PER_PAGE = 10;
 
@@ -187,6 +198,47 @@ const resetFilters = (): void => {
   emailFilterFieldValue.value = "";
   ipFilterFieldValue.value = "";
   activateFilters();
+};
+
+const exportLoading = ref(false);
+const notifier = inject<Notifier>("notifier");
+
+const { load: loadExportUsersCsv } = useLazyQuery<{ exportUsersCsv: string }>(
+  EXPORT_USERS_CSV
+);
+
+const exportUsersToCSV = async (): Promise<void> => {
+  try {
+    exportLoading.value = true;
+    const result = await loadExportUsersCsv();
+    
+    if (result?.exportUsersCsv) {
+      // Create a blob from the CSV content and trigger download
+      const blob = new Blob([result.exportUsersCsv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `users_export_${timestamp}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
+      notifier?.success(t("Users export started. The download will begin shortly."));
+    } else {
+      notifier?.error(t("Failed to export users"));
+    }
+  } catch (error) {
+    console.error("Error exporting users:", error);
+    notifier?.error(t("Failed to export users"));
+  } finally {
+    exportLoading.value = false;
+  }
 };
 </script>
 
