@@ -401,7 +401,7 @@
   "Distance": "Odległość",
   "Do not receive any mail": "Nie odbieraj wiadomości e-mail",
   "Do you really want to suspend the account « {emailAccount} » ?": "Czy naprawdę chcesz zawiesić konto « {emailAccount} » ?",
-  "Do you really want to suspend the account « {emailAccount} » ?": "Do you really want to suspend the account « {emailAccount} » ?",
+  "Do you really want to suspend the account « {emailAccount} » ?": "Czy naprawdę chcesz zawiesić konto « {emailAccount} » ?",
   "Do you really want to suspend this account? All of the user's profiles will be deleted.": "Czy naprawdę chcesz zawiesić to konto? Wszystkie profile użytkownika / użytkowniczki zostaną usunięte.",
   "Do you really want to suspend this profile? All of the profiles content will be deleted.": "Czy naprawdę chcesz zawiesić ten profil? Cała jego zawartość zostanie usunięta.",
   "Do you wish to {create_event} or {explore_events}?": "Czy chcesz {create_event} lub {explore_events}?",
