@@ -442,6 +442,17 @@
               >
                 {{ t("Manage Members") }}
               </o-button>
+              <o-button
+                v-else-if="isCurrentActorAGroupMember && !previewPublic"
+                tag="router-link"
+                :to="{
+                  name: RouteName.GROUP_MEMBERS_SETTINGS,
+                  params: { preferredUsername: usernameWithDomain(group) },
+                }"
+                class="w-full py-2 px-4 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {{ t("View all members") }}
+              </o-button>
             </div>
           </div>
 
