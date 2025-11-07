@@ -23,10 +23,13 @@ defmodule Mobilizon.Web.AuthController do
     # Capture intent parameter (login vs register)
     # default to register for backward compatibility
     intent = Map.get(params, "intent", "register")
+    
+    # Capture redirect parameter if provided
+    redirect_path = Map.get(params, "redirect")
 
     # Generate state for CSRF protection using signed token (no session needed)
-    # Include intent in the state for callback processing
-    state = generate_csrf_state(intent)
+    # Include intent and redirect in the state for callback processing
+    state = generate_csrf_state(intent, redirect_path)
 
     # Get authorization URL from our custom LinkedIn implementation
     case LinkedInOAuth.authorize_url(state) do
@@ -213,11 +216,12 @@ defmodule Mobilizon.Web.AuthController do
       {:ok, state_data} ->
         Logger.info("LinkedIn OAuth: State verified")
         intent = Map.get(state_data, "intent", "register")
+        redirect_path = Map.get(state_data, "redirect")
 
         case LinkedInOAuth.authenticate(code, state) do
           {:ok, %{user_info: user_info, token: token}} ->
             Logger.info("LinkedIn OAuth: Authentication successful for #{user_info["email"]}")
-            process_linkedin_user(conn, user_info, token, intent)
+            process_linkedin_user(conn, user_info, token, intent, redirect_path)
 
           {:error, {:revoked_token, message}} ->
             Logger.error("LinkedIn OAuth: User revoked token - #{message}")
@@ -241,7 +245,7 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  defp process_linkedin_user(conn, user_info, _token, intent \\ "register") do
+  defp process_linkedin_user(conn, user_info, _token, intent \\ "register", redirect_path \\ nil) do
     email = user_info["email"]
     name = user_info["name"] || user_info["given_name"] || email
     username = generate_username_from_linkedin(name, user_info, email)
@@ -261,7 +265,7 @@ defmodule Mobilizon.Web.AuthController do
         
         case update_user_profile_from_linkedin(user, user_info) do
           {:ok, updated_user} ->
-            complete_linkedin_authentication(conn, updated_user, username, name, intent)
+            complete_linkedin_authentication(conn, updated_user, username, name, intent, redirect_path)
           
           {:error, error} ->
             Logger.error("Failed to update LinkedIn profile for user #{email}: #{inspect(error)}")
@@ -288,7 +292,7 @@ defmodule Mobilizon.Web.AuthController do
             case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
-                complete_linkedin_authentication(conn, user, username, name, intent)
+                complete_linkedin_authentication(conn, user, username, name, intent, redirect_path)
 
               {:error, error} ->
                 Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
@@ -302,7 +306,7 @@ defmodule Mobilizon.Web.AuthController do
             case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
-                complete_linkedin_authentication(conn, user, username, name, "register")
+                complete_linkedin_authentication(conn, user, username, name, "register", redirect_path)
 
               {:error, error} ->
                 Logger.error("Failed to create user with profile for #{email}: #{inspect(error)}")
@@ -313,38 +317,46 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # Helper function to complete LinkedIn authentication with tokens
-  defp complete_linkedin_authentication(conn, user, username, name, intent \\ "register") do
+  defp complete_linkedin_authentication(conn, user, username, name, intent \\ "register", redirect_path \\ nil) do
     case Authenticator.generate_tokens(user) do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
         Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
 
-        # Determine redirect URL based on intent and whether user has an actor
+        # Use provided redirect path if available, otherwise determine based on intent and actor
         redirect_url =
-          case {intent, user.default_actor_id} do
-            {"login", nil} ->
-              # Login but no actor - this should not happen after our fixes, but redirect to identity creation as fallback
-              Logger.warn("LinkedIn login for user #{user.email} with no default actor - redirecting to identity creation")
-              "/identity/create?source=linkedin"
-              
-            {"login", _actor_id} ->
-              # Login with actor - redirect to home
-              "/"
-
-            {_, nil} ->
-              # Registration or other intent with no actor - redirect to create identity
-              "/identity/create?source=linkedin"
-
-            {_, _actor_id} ->
-              # Registration or other intent with actor - redirect to edit identity
-              case Actors.get_actor(user.default_actor_id) do
-                %Actor{} = actor ->
-                  "/identity/update/#{actor.preferred_username}?source=linkedin"
-
-                nil ->
-                  # Fallback if actor lookup fails - redirect to create
-                  Logger.warn("Actor #{user.default_actor_id} not found for user #{user.email} - redirecting to identity creation")
+          case redirect_path do
+            nil ->
+              case {intent, user.default_actor_id} do
+                {"login", nil} ->
+                  # Login but no actor - this should not happen after our fixes, but redirect to identity creation as fallback
+                  Logger.warn("LinkedIn login for user #{user.email} with no default actor - redirecting to identity creation")
                   "/identity/create?source=linkedin"
+                
+                {"login", _actor_id} ->
+                  # Login with actor - redirect to home
+                  "/"
+
+                {_, nil} ->
+                  # Registration or other intent with no actor - redirect to create identity
+                  "/identity/create?source=linkedin"
+
+                {_, _actor_id} ->
+                  # Registration or other intent with actor - redirect to edit identity
+                  case Actors.get_actor(user.default_actor_id) do
+                    %Actor{} = actor ->
+                      "/identity/update/#{actor.preferred_username}?source=linkedin"
+
+                    nil ->
+                      # Fallback if actor lookup fails - redirect to create
+                      Logger.warn("Actor #{user.default_actor_id} not found for user #{user.email} - redirecting to identity creation")
+                      "/identity/create?source=linkedin"
+                  end
               end
+            
+            path when is_binary(path) ->
+              # Use the provided redirect path
+              Logger.info("LinkedIn OAuth: Using provided redirect path: #{path}")
+              path
           end
 
         # Store tokens and redirect based on intent
@@ -564,13 +576,14 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # CSRF state management using signed tokens (no session required)
-  defp generate_csrf_state(intent \\ "register") do
+  defp generate_csrf_state(intent \\ "register", redirect_path \\ nil) do
     timestamp = System.system_time(:second)
 
     data = %{
       "nonce" => :crypto.strong_rand_bytes(16) |> Base.url_encode64(padding: false),
       "timestamp" => timestamp,
-      "intent" => intent
+      "intent" => intent,
+      "redirect" => redirect_path
     }
 
     Phoenix.Token.sign(Mobilizon.Web.Endpoint, "linkedin_oauth_state", data)
