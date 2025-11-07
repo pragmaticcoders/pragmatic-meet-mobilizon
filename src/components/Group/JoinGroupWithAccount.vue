@@ -39,14 +39,14 @@ const isFederating = computed(() => config.value?.federating ?? true);
 
 // If federation is disabled, redirect to login immediately
 watch(
-  [isFederating, () => props.preferredUsername],
-  ([federating, username]) => {
-    if (federating === false && username) {
+  isFederating,
+  (federating) => {
+    if (federating === false) {
       router.replace({
         name: RouteName.LOGIN,
         query: {
           code: LoginErrorCode.NEED_TO_LOGIN,
-          redirect: `/@${username}`,
+          redirect: `/@${props.preferredUsername}`,
         },
       });
     }
