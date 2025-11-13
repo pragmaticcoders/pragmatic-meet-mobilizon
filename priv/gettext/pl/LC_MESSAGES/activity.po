@@ -501,27 +501,25 @@ msgstr "Anonimowy profil"
 
 #: lib/web/templates/email/email_anonymous_activity.html.heex:107
 #: lib/web/templates/email/email_anonymous_activity.text.eex:14
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{profile} has posted a private announcement about event %{event}."
 msgstr "Profil %{profile} opublikował ogłoszenie w wydarzeniu %{event}."
 
 #: lib/web/templates/email/email_anonymous_activity.html.heex:50
 #: lib/web/templates/email/email_anonymous_activity.text.eex:6
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{profile} has posted a public announcement under event %{event}."
 msgstr "Profil %{profile} opublikował ogłoszenie w wydarzeniu %{event}."
 
 #: lib/web/templates/email/activity/_conversation_activity_item.html.heex:3
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in a %{conversation}."
 msgstr "Profil %{profile} wspomniał o Tobie w %{conversation}."
-"Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/web/templates/email/activity/_conversation_activity_item.text.eex:1
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in a conversation."
 msgstr "Profil %{profile} wspomniał o Tobie w rozmowie."
-"Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/service/activity/renderer/conversation.ex:36
 #, elixir-autogen, elixir-format
@@ -529,7 +527,7 @@ msgid "%{profile} replied to your message"
 msgstr "Profil %{profile} odpowiedział na Twoją wiadomość"
 
 #: lib/web/templates/email/activity/_conversation_activity_item.html.heex:10
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "%{profile} replied you in a %{conversation}."
 msgstr "Profil %{profile} odpowiedział na dyskusję %{discussion}."
 
