@@ -23,3 +23,7 @@ node_modules
 playwright-report
 test
 tests
+# Build artifacts
+priv/static
+.vitest-cache
+dist
