@@ -6,7 +6,8 @@ WORKDIR /build
 COPY . .
 
 # Network timeout because it's slow when cross-compiling
-RUN npm install && npm run build
+# Skip prepare script (husky) in production builds, but run postinstall for patches
+RUN npm ci --ignore-scripts && npx patch-package && npm run build
 
 # Then, build the application binary
 FROM elixir:1.16-alpine AS builder
