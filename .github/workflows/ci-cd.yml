@@ -141,8 +141,10 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.env.outputs.tag }}
             ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          no-cache: true
+          # Temporarily disabled cache to fix corrupted build layers
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
   test-e2e:
     needs: build
