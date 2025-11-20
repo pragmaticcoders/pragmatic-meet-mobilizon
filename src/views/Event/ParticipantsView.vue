@@ -703,7 +703,7 @@ const {
   }),
   () => ({
     enabled:
-      currentActor.value?.id !== undefined &&
+      eventId.value !== undefined &&
       page.value !== undefined &&
       role.value !== undefined,
     fetchPolicy: "cache-and-network",
