@@ -617,39 +617,38 @@
 </template>
 
 <script lang="ts" setup>
-import { ParticipantRole, MemberRole } from "@/types/enums";
-import { IParticipant } from "@/types/participant.model";
-import { IEvent } from "@/types/event.model";
-import { IPerson } from "@/types/actor";
-import {
-  EXPORT_EVENT_PARTICIPATIONS,
-  PARTICIPANTS,
-  UPDATE_PARTICIPANT,
-  EVENT_PERSON_PARTICIPATION,
-} from "@/graphql/event";
-import { usernameWithDomain } from "@/types/actor";
-import { asyncForEach } from "@/utils/asyncForEach";
-import RouteName from "@/router/name";
+import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
 import { useParticipantsExportFormats } from "@/composition/config";
-import { useMutation, useQuery } from "@vue/apollo-composable";
-import {
-  integerTransformer,
-  enumTransformer,
-  useRouteQuery,
-} from "vue-use-route-query";
-import { computed, inject, ref, watch } from "vue";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
+import {
+  EVENT_PERSON_PARTICIPATION,
+  EXPORT_EVENT_PARTICIPATIONS,
+  PARTICIPANTS,
+  UPDATE_PARTICIPANT,
+} from "@/graphql/event";
+import { Notifier } from "@/plugins/notifier";
+import RouteName from "@/router/name";
+import { IPerson, usernameWithDomain } from "@/types/actor";
+import { MemberRole, ParticipantRole } from "@/types/enums";
+import { IEvent } from "@/types/event.model";
+import { IParticipant } from "@/types/participant.model";
+import { asyncForEach } from "@/utils/asyncForEach";
+import { useHead } from "@/utils/head";
+import { useMutation, useQuery } from "@vue/apollo-composable";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Incognito from "vue-material-design-icons/Incognito.vue";
-import EmptyContent from "@/components/Utils/EmptyContent.vue";
-import { Notifier } from "@/plugins/notifier";
-import { useHead } from "@/utils/head";
 import { useRouter } from "vue-router";
+import {
+  enumTransformer,
+  integerTransformer,
+  useRouteQuery,
+} from "vue-use-route-query";
 
 const PARTICIPANTS_PER_PAGE = 10;
 const MESSAGE_ELLIPSIS_LENGTH = 130;
@@ -703,11 +702,11 @@ const {
   }),
   () => ({
     enabled:
-      currentActor.value?.id !== undefined &&
+      eventId.value !== undefined &&
+      eventId.value !== "" &&
       page.value !== undefined &&
       role.value !== undefined,
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
+    fetchPolicy: "network-only",
     notifyOnNetworkStatusChange: true,
   })
 );
@@ -751,6 +750,41 @@ watch([page, role], (newValues, oldValues) => {
     return;
   }
   checkedRows.value = [];
+});
+
+// Refetch participants when eventId changes (e.g., when navigating to a different event)
+watch(eventId, (newEventId, oldEventId) => {
+  if (newEventId && newEventId !== oldEventId) {
+    refetchParticipants();
+  }
+});
+
+// Watch for currentActor to load and refetch if needed
+watch(
+  () => currentActor.value?.id,
+  (newActorId, oldActorId) => {
+    // Only refetch if actor just loaded (was undefined/null, now has value)
+    // and we have eventId but no participants data yet
+    if (
+      newActorId &&
+      !oldActorId &&
+      eventId.value &&
+      (!event.value?.participants?.elements?.length ||
+        event.value.participants.elements.length === 0)
+    ) {
+      refetchParticipants();
+    }
+  }
+);
+
+// Ensure data is fetched when component mounts
+onMounted(async () => {
+  // Wait a tick to ensure all reactive values are initialized
+  await nextTick();
+  if (eventId.value) {
+    // Always refetch on mount to ensure fresh data
+    refetchParticipants();
+  }
 });
 
 // Authorization queries and computed properties
