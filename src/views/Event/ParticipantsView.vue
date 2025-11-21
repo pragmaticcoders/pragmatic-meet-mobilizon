@@ -706,7 +706,8 @@ const {
       eventId.value !== "" &&
       page.value !== undefined &&
       role.value !== undefined,
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
     notifyOnNetworkStatusChange: true,
   })
 );
@@ -752,10 +753,29 @@ watch([page, role], (newValues, oldValues) => {
   checkedRows.value = [];
 });
 
+// Guard to prevent concurrent refetches
+const isRefetching = ref(false);
+
+// Safe refetch function with error handling and duplicate prevention
+const safeRefetch = async (): Promise<void> => {
+  if (isRefetching.value) {
+    return;
+  }
+  isRefetching.value = true;
+  try {
+    await refetchParticipants();
+  } catch (error) {
+    console.error("Failed to refetch participants:", error);
+    notifier?.error(t("Failed to load participants"));
+  } finally {
+    isRefetching.value = false;
+  }
+};
+
 // Refetch participants when eventId changes (e.g., when navigating to a different event)
 watch(eventId, (newEventId, oldEventId) => {
   if (newEventId && newEventId !== oldEventId) {
-    refetchParticipants();
+    safeRefetch();
   }
 });
 
@@ -772,7 +792,7 @@ watch(
       (!event.value?.participants?.elements?.length ||
         event.value.participants.elements.length === 0)
     ) {
-      refetchParticipants();
+      safeRefetch();
     }
   }
 );
@@ -783,7 +803,7 @@ onMounted(async () => {
   await nextTick();
   if (eventId.value) {
     // Always refetch on mount to ensure fresh data
-    refetchParticipants();
+    safeRefetch();
   }
 });
 
