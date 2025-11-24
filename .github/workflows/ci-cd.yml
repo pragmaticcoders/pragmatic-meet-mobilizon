@@ -217,8 +217,8 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
         run: docker pull ${{ steps.image_ref.outputs.image_ref }}
       
-      - name: Build Docker image locally (PRs only)
-        if: github.event_name == 'pull_request'
+      - name: Build Docker image locally (PRs and non-main/test branches)
+        if: github.event_name == 'pull_request' || (github.ref != 'refs/heads/main' && github.ref != 'refs/heads/test')
         run: |
           docker build -f docker/production/Dockerfile -t ${{ steps.image_ref.outputs.image_ref }} .
 
