@@ -22,15 +22,20 @@
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
-        <div class="flex items-center gap-2" v-if="canManageEvent">
+        <div
+          class="flex items-center gap-2"
+          v-show="canManageEvent || authDataLoading"
+        >
           <label for="role-select" class="text-sm font-medium whitespace-nowrap"
             >{{ t("Status") }}:</label
           >
           <o-select
             v-model="role"
             id="role-select"
+            ref="roleSelectRef"
             class="min-w-[150px] flex-1 sm:flex-initial"
             @change="onRoleChange"
+            :disabled="!canManageEvent"
           >
             <option value="EVERYTHING">
               {{ t("Everything") }}
@@ -686,6 +691,7 @@ const checkedRows = ref<IParticipant[]>([]);
 const bulkActionLoading = ref(false);
 
 const queueTable = ref();
+const roleSelectRef = ref<HTMLElement | null>(null);
 
 const {
   result: participantsResult,
@@ -754,8 +760,24 @@ watch([page, role], (newValues, oldValues) => {
   checkedRows.value = [];
 });
 
+// Helper to get select element
+const getSelectElement = (): HTMLSelectElement | null => {
+  // Try to get select element from component ref
+  const component = roleSelectRef.value as any;
+  if (component?.$el) {
+    const select = component.$el.querySelector("select");
+    if (select) return select;
+  }
+  // Fallback to direct DOM query
+  return document.getElementById("role-select") as HTMLSelectElement | null;
+};
+
 // Handler for role select change - always refetch even if same value selected
 const onRoleChange = async () => {
+  // Store scroll position before refetch
+  const scrollY = window.scrollY;
+  const scrollX = window.scrollX;
+
   // Reset page to 1 when filter changes
   if (page.value !== 1) {
     page.value = 1;
@@ -771,8 +793,32 @@ const onRoleChange = async () => {
       limit: PARTICIPANTS_PER_PAGE,
       roles: role.value === "EVERYTHING" ? undefined : role.value,
     });
+
+    // Restore scroll position first
+    window.scrollTo(scrollX, scrollY);
+
+    // Then restore focus without scrolling (after a small delay to ensure DOM is ready)
+    await nextTick();
+    setTimeout(() => {
+      const currentSelect = getSelectElement();
+      if (currentSelect) {
+        // Only restore focus if select is still in viewport or close to it
+        const currentRect = currentSelect.getBoundingClientRect();
+        const isVisible =
+          currentRect.top >= 0 &&
+          currentRect.left >= 0 &&
+          currentRect.bottom <= window.innerHeight &&
+          currentRect.right <= window.innerWidth;
+
+        if (isVisible || Math.abs(currentRect.top) < 200) {
+          currentSelect.focus({ preventScroll: true });
+        }
+      }
+    }, 10);
   } catch (error) {
     console.error("Failed to refetch participants on role change:", error);
+    // Restore scroll position even on error
+    window.scrollTo(scrollX, scrollY);
   }
 };
 
