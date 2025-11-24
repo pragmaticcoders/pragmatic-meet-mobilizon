@@ -180,6 +180,7 @@ jobs:
         run: npm ci
 
       - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -197,14 +198,29 @@ jobs:
             echo "tag=pr-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Determine image reference
+        id: image_ref
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          REGISTRY: ${{ env.REGISTRY }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            echo "image_ref=${IMAGE_NAME}:${TAG}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image_ref=${REGISTRY}/${DOCKER_USERNAME}/${IMAGE_NAME}:${TAG}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Pull Docker image (main/test branches)
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
-        run: docker pull ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+        run: docker pull ${{ steps.image_ref.outputs.image_ref }}
       
       - name: Build Docker image locally (PRs only)
         if: github.event_name == 'pull_request'
         run: |
-          docker build -f docker/production/Dockerfile -t ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }} .
+          docker build -f docker/production/Dockerfile -t ${{ steps.image_ref.outputs.image_ref }} .
 
       - name: Create docker-compose configuration for E2E tests
         run: |
@@ -212,7 +228,7 @@ jobs:
           version: "3.8"
           services:
             mobilizon:
-              image: ${{ env.REGISTRY }}/${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
+              image: ${{ steps.image_ref.outputs.image_ref }}
               ports:
                 - "4000:4000"
               environment:
