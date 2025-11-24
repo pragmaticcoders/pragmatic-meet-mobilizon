@@ -1633,8 +1633,8 @@ msgstr "Przepraszamy, ale coś poszło nie tak po naszej stronie."
 #: lib/web/templates/email/email.html.heex:109
 #: lib/web/templates/email/email.text.eex:4
 #, elixir-autogen, elixir-format
-msgid "This is a demonstration site to test Mobilizon."
-msgstr "To jest strona demonstracyjna pozwalająca na przetestowanie Mobilizon."
+msgid "This is a demonstration site to test Pragmatic Meet."
+msgstr "To jest strona demonstracyjna służąca do testowania Pragmatic Meet."
 
 #: lib/service/metadata/actor.ex:86
 #: lib/service/metadata/actor.ex:93
@@ -1643,6 +1643,27 @@ msgstr "To jest strona demonstracyjna pozwalająca na przetestowanie Mobilizon."
 #, elixir-autogen, elixir-format
 msgid "%{name}'s feed"
 msgstr "Kanał należący do %{name}"
+
+#: lib/web/templates/email/email.html.heex:150
+#: lib/web/templates/email/email.text.eex:9
+#, elixir-autogen, elixir-format
+msgid "Contact Pragmatic Coders Support"
+msgstr "Skontaktuj się ze wsparciem Pragmatic Coders"
+
+#: lib/web/templates/email/email.html.heex:187
+#, elixir-autogen, elixir-format
+msgid "<b>%{instance}</b> is powered by Pragmatic Meet."
+msgstr "<b>%{instance}</b> działa na Pragmatic Meet."
+
+#: lib/web/templates/email/email.text.eex:11
+#, elixir-autogen, elixir-format
+msgid "%{instance} is powered by Pragmatic Meet."
+msgstr "%{instance} działa na Pragmatic Meet."
+
+#: lib/web/templates/email/email.html.heex:193
+#, elixir-autogen, elixir-format
+msgid "Learn more about Pragmatic Coders here!"
+msgstr "Dowiedz się więcej o Pragmatic Coders tutaj!"
 
 #: lib/service/export/feed.ex:117
 #, elixir-autogen, elixir-format
