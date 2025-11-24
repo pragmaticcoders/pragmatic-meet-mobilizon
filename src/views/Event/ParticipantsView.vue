@@ -30,6 +30,7 @@
             v-model="role"
             id="role-select"
             class="min-w-[150px] flex-1 sm:flex-initial"
+            @change="onRoleChange"
           >
             <option value="EVERYTHING">
               {{ t("Everything") }}
@@ -752,6 +753,28 @@ watch([page, role], (newValues, oldValues) => {
   }
   checkedRows.value = [];
 });
+
+// Handler for role select change - always refetch even if same value selected
+const onRoleChange = async () => {
+  // Reset page to 1 when filter changes
+  if (page.value !== 1) {
+    page.value = 1;
+    await nextTick();
+  }
+
+  // Always force refetch from network, even if same value is selected
+  // This fixes the issue where selecting the same option twice shows empty list
+  try {
+    await refetchParticipants({
+      uuid: eventId.value,
+      page: page.value,
+      limit: PARTICIPANTS_PER_PAGE,
+      roles: role.value === "EVERYTHING" ? undefined : role.value,
+    });
+  } catch (error) {
+    console.error("Failed to refetch participants on role change:", error);
+  }
+};
 
 // Guard to prevent concurrent refetches
 const isRefetching = ref(false);
