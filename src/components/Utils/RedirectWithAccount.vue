@@ -27,7 +27,7 @@
           >{{ t("Login on {instance}", { instance: host }) }}</o-button
         >
       </div>
-      <div class="sm:border-l-4 px-2 sm:px-4 flex-1">
+      <div class="sm:border-l-4 px-2 sm:px-4 flex-1" v-if="isFederating">
         <h2 class="text-2xl">
           {{ t("I have an account on another Mobilizon instance.") }}
         </h2>
@@ -70,6 +70,9 @@ import RouteName from "../../router/name";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useInstanceName } from "@/composition/apollo/config";
+import { useQuery } from "@vue/apollo-composable";
+import { CONFIG } from "@/graphql/config";
+import { IConfig } from "@/types/config.model";
 
 const props = defineProps<{
   uri: string;
@@ -82,6 +85,11 @@ const remoteActorAddress = ref("");
 const { t } = useI18n({ useScope: "global" });
 
 const { instanceName } = useInstanceName();
+
+const { result: configResult } = useQuery<{ config: IConfig }>(CONFIG);
+const config = computed(() => configResult.value?.config);
+
+const isFederating = computed(() => config.value?.federating ?? true);
 
 const host = computed((): string => {
   return window.location.hostname;

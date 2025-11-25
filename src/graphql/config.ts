@@ -96,6 +96,7 @@ export const CONFIG = gql`
         onlyAdminCanCreateGroups
         onlyGroupsCanCreateEvents
       }
+      federating
       auth {
         ldap
         databaseLogin

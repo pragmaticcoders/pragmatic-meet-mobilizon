@@ -309,3 +309,9 @@ export const ADMIN_UPDATE_USER = gql`
     }
   }
 `;
+
+export const EXPORT_USERS_CSV = gql`
+  query ExportUsersCsv {
+    exportUsersCsv
+  }
+`;

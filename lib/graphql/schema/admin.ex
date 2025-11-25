@@ -390,6 +390,14 @@ defmodule Mobilizon.GraphQL.Schema.AdminType do
       middleware(Rajska.QueryAuthorization, permit: :administrator)
       resolve(&Admin.get_instance/3)
     end
+
+    @desc """
+    Export all users data to CSV
+    """
+    field :export_users_csv, :string do
+      middleware(Rajska.QueryAuthorization, permit: :administrator)
+      resolve(&Admin.export_users_csv/3)
+    end
   end
 
   object :admin_mutations do

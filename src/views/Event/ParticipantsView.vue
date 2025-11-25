@@ -22,14 +22,20 @@
       <div
         class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4"
       >
-        <div class="flex items-center gap-2" v-if="canManageEvent">
+        <div
+          class="flex items-center gap-2"
+          v-show="canManageEvent || authDataLoading"
+        >
           <label for="role-select" class="text-sm font-medium whitespace-nowrap"
             >{{ t("Status") }}:</label
           >
           <o-select
             v-model="role"
             id="role-select"
+            ref="roleSelectRef"
             class="min-w-[150px] flex-1 sm:flex-initial"
+            @change="onRoleChange"
+            :disabled="!canManageEvent"
           >
             <option value="EVERYTHING">
               {{ t("Everything") }}
@@ -617,39 +623,38 @@
 </template>
 
 <script lang="ts" setup>
-import { ParticipantRole, MemberRole } from "@/types/enums";
-import { IParticipant } from "@/types/participant.model";
-import { IEvent } from "@/types/event.model";
-import { IPerson } from "@/types/actor";
-import {
-  EXPORT_EVENT_PARTICIPATIONS,
-  PARTICIPANTS,
-  UPDATE_PARTICIPANT,
-  EVENT_PERSON_PARTICIPATION,
-} from "@/graphql/event";
-import { usernameWithDomain } from "@/types/actor";
-import { asyncForEach } from "@/utils/asyncForEach";
-import RouteName from "@/router/name";
+import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
 import { useParticipantsExportFormats } from "@/composition/config";
-import { useMutation, useQuery } from "@vue/apollo-composable";
-import {
-  integerTransformer,
-  enumTransformer,
-  useRouteQuery,
-} from "vue-use-route-query";
-import { computed, inject, ref, watch } from "vue";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
+import {
+  EVENT_PERSON_PARTICIPATION,
+  EXPORT_EVENT_PARTICIPATIONS,
+  PARTICIPANTS,
+  UPDATE_PARTICIPANT,
+} from "@/graphql/event";
+import { Notifier } from "@/plugins/notifier";
+import RouteName from "@/router/name";
+import { IPerson, usernameWithDomain } from "@/types/actor";
+import { MemberRole, ParticipantRole } from "@/types/enums";
+import { IEvent } from "@/types/event.model";
+import { IParticipant } from "@/types/participant.model";
+import { asyncForEach } from "@/utils/asyncForEach";
+import { useHead } from "@/utils/head";
+import { useMutation, useQuery } from "@vue/apollo-composable";
+import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Incognito from "vue-material-design-icons/Incognito.vue";
-import EmptyContent from "@/components/Utils/EmptyContent.vue";
-import { Notifier } from "@/plugins/notifier";
-import { useHead } from "@/utils/head";
 import { useRouter } from "vue-router";
+import {
+  enumTransformer,
+  integerTransformer,
+  useRouteQuery,
+} from "vue-use-route-query";
 
 const PARTICIPANTS_PER_PAGE = 10;
 const MESSAGE_ELLIPSIS_LENGTH = 130;
@@ -686,6 +691,7 @@ const checkedRows = ref<IParticipant[]>([]);
 const bulkActionLoading = ref(false);
 
 const queueTable = ref();
+const roleSelectRef = ref<HTMLElement | null>(null);
 
 const {
   result: participantsResult,
@@ -703,7 +709,8 @@ const {
   }),
   () => ({
     enabled:
-      currentActor.value?.id !== undefined &&
+      eventId.value !== undefined &&
+      eventId.value !== "" &&
       page.value !== undefined &&
       role.value !== undefined,
     fetchPolicy: "cache-and-network",
@@ -751,6 +758,122 @@ watch([page, role], (newValues, oldValues) => {
     return;
   }
   checkedRows.value = [];
+});
+
+// Helper to get select element
+const getSelectElement = (): HTMLSelectElement | null => {
+  // Try to get select element from component ref
+  const component = roleSelectRef.value as any;
+  if (component?.$el) {
+    const select = component.$el.querySelector("select");
+    if (select) return select;
+  }
+  // Fallback to direct DOM query
+  return document.getElementById("role-select") as HTMLSelectElement | null;
+};
+
+// Handler for role select change - always refetch even if same value selected
+const onRoleChange = async () => {
+  // Store scroll position before refetch
+  const scrollY = window.scrollY;
+  const scrollX = window.scrollX;
+
+  // Reset page to 1 when filter changes
+  if (page.value !== 1) {
+    page.value = 1;
+    await nextTick();
+  }
+
+  // Always force refetch from network, even if same value is selected
+  // This fixes the issue where selecting the same option twice shows empty list
+  try {
+    await refetchParticipants({
+      uuid: eventId.value,
+      page: page.value,
+      limit: PARTICIPANTS_PER_PAGE,
+      roles: role.value === "EVERYTHING" ? undefined : role.value,
+    });
+
+    // Restore scroll position first
+    window.scrollTo(scrollX, scrollY);
+
+    // Then restore focus without scrolling (after a small delay to ensure DOM is ready)
+    await nextTick();
+    setTimeout(() => {
+      const currentSelect = getSelectElement();
+      if (currentSelect) {
+        // Only restore focus if select is still in viewport or close to it
+        const currentRect = currentSelect.getBoundingClientRect();
+        const isVisible =
+          currentRect.top >= 0 &&
+          currentRect.left >= 0 &&
+          currentRect.bottom <= window.innerHeight &&
+          currentRect.right <= window.innerWidth;
+
+        if (isVisible || Math.abs(currentRect.top) < 200) {
+          currentSelect.focus({ preventScroll: true });
+        }
+      }
+    }, 10);
+  } catch (error) {
+    console.error("Failed to refetch participants on role change:", error);
+    // Restore scroll position even on error
+    window.scrollTo(scrollX, scrollY);
+  }
+};
+
+// Guard to prevent concurrent refetches
+const isRefetching = ref(false);
+
+// Safe refetch function with error handling and duplicate prevention
+const safeRefetch = async (): Promise<void> => {
+  if (isRefetching.value) {
+    return;
+  }
+  isRefetching.value = true;
+  try {
+    await refetchParticipants();
+  } catch (error) {
+    console.error("Failed to refetch participants:", error);
+    notifier?.error(t("Failed to load participants"));
+  } finally {
+    isRefetching.value = false;
+  }
+};
+
+// Refetch participants when eventId changes (e.g., when navigating to a different event)
+watch(eventId, (newEventId, oldEventId) => {
+  if (newEventId && newEventId !== oldEventId) {
+    safeRefetch();
+  }
+});
+
+// Watch for currentActor to load and refetch if needed
+watch(
+  () => currentActor.value?.id,
+  (newActorId, oldActorId) => {
+    // Only refetch if actor just loaded (was undefined/null, now has value)
+    // and we have eventId but no participants data yet
+    if (
+      newActorId &&
+      !oldActorId &&
+      eventId.value &&
+      (!event.value?.participants?.elements?.length ||
+        event.value.participants.elements.length === 0)
+    ) {
+      safeRefetch();
+    }
+  }
+);
+
+// Ensure data is fetched when component mounts
+onMounted(async () => {
+  // Wait a tick to ensure all reactive values are initialized
+  await nextTick();
+  if (eventId.value) {
+    // Always refetch on mount to ensure fresh data
+    safeRefetch();
+  }
 });
 
 // Authorization queries and computed properties

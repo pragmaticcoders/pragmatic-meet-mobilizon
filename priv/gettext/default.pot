@@ -1260,7 +1260,28 @@ msgstr ""
 #: lib/web/templates/email/email.html.heex:109
 #: lib/web/templates/email/email.text.eex:4
 #, elixir-autogen, elixir-format
-msgid "This is a demonstration site to test Mobilizon."
+msgid "This is a demonstration site to test Pragmatic Meet."
+msgstr ""
+
+#: lib/web/templates/email/email.html.heex:150
+#: lib/web/templates/email/email.text.eex:9
+#, elixir-autogen, elixir-format
+msgid "Contact Pragmatic Coders Support"
+msgstr ""
+
+#: lib/web/templates/email/email.html.heex:187
+#, elixir-autogen, elixir-format
+msgid "<b>%{instance}</b> is powered by Pragmatic Meet."
+msgstr ""
+
+#: lib/web/templates/email/email.text.eex:11
+#, elixir-autogen, elixir-format
+msgid "%{instance} is powered by Pragmatic Meet."
+msgstr ""
+
+#: lib/web/templates/email/email.html.heex:193
+#, elixir-autogen, elixir-format
+msgid "Learn more about Pragmatic Coders here!"
 msgstr ""
 
 #: lib/service/metadata/actor.ex:86

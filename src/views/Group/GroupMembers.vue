@@ -24,6 +24,7 @@
       :active="groupMembersLoading"
       class="o-loading--enhanced o-loading--page"
     />
+    <!-- Invite section - only for admins -->
     <section
       class="bg-white p-2 mt-4"
       v-if="group && isCurrentActorAGroupAdmin"
@@ -81,11 +82,18 @@
       </div>
       <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
+    </section>
+
+    <!-- Members list section - visible for all group members -->
+    <section
+      class="bg-white p-2 mt-4"
+      v-if="group && isCurrentActorAGroupMember"
+    >
       <h1 class="text-xl font-bold text-[#1c1b1f] mb-4">
         {{ t("Group Members") }} ({{ group.members.total }})
       </h1>
-      <!-- Filter by status section -->
-      <div class="my-6">
+      <!-- Filter by status section - only for admins -->
+      <div class="my-6" v-if="isCurrentActorAGroupAdmin">
         <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
           t("Filter by status")
         }}</label>
@@ -95,7 +103,7 @@
             id="group-members-status-filter"
             class="w-48 border border-[#cac9cb] bg-white p-[18px]"
           >
-            <option :value="undefined">
+            <option value="EVERYTHING">
               {{ t("Everything") }}
             </option>
             <option :value="MemberRole.ADMINISTRATOR">
@@ -233,6 +241,7 @@
           field="actions"
           :label="t('Actions')"
           v-slot="props"
+          v-if="isCurrentActorAGroupAdmin"
           header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
           cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
         >
@@ -298,42 +307,44 @@
         </template>
       </o-table>
     </section>
-    <o-notification v-else-if="!groupMembersLoading && group">
-      {{ t("You are not an administrator for this group.") }}
+    <o-notification
+      v-else-if="!groupMembersLoading && group && !isCurrentActorAGroupMember"
+    >
+      {{ t("You must be a member of this group to view its members.") }}
     </o-notification>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { MemberRole, ApprovalStatus } from "@/types/enums";
-import { IMember } from "@/types/actor/member.model";
-import RouteName from "@/router/name";
+import ActorAutoComplete from "@/components/Account/ActorAutoComplete.vue";
+import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import {
-  INVITE_MEMBER,
+  useCurrentActorClient,
+  usePersonStatusGroup,
+} from "@/composition/apollo/actor";
+import { formatDateString, formatTimeString } from "@/filters/datetime";
+import {
+  APPROVE_MEMBER,
   GROUP_MEMBERS,
+  INVITE_MEMBER,
   REMOVE_MEMBER,
   UPDATE_MEMBER,
-  APPROVE_MEMBER,
 } from "@/graphql/member";
-import { usernameWithDomain, displayName, IGroup, IActor } from "@/types/actor";
-import EmptyContent from "@/components/Utils/EmptyContent.vue";
+import { Notifier } from "@/plugins/notifier";
+import RouteName from "@/router/name";
+import { displayName, IActor, IGroup, usernameWithDomain } from "@/types/actor";
+import { IMember } from "@/types/actor/member.model";
+import { ApprovalStatus, MemberRole } from "@/types/enums";
 import { useHead } from "@/utils/head";
-import { useI18n } from "vue-i18n";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import { computed, inject, ref, nextTick } from "vue";
+import { computed, inject, nextTick, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import {
   enumTransformer,
   integerTransformer,
   useRouteQuery,
 } from "vue-use-route-query";
-import {
-  useCurrentActorClient,
-  usePersonStatusGroup,
-} from "@/composition/apollo/actor";
-import { formatTimeString, formatDateString } from "@/filters/datetime";
-import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
-import { Notifier } from "@/plugins/notifier";
-import ActorAutoComplete from "@/components/Account/ActorAutoComplete.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -351,7 +362,12 @@ const { currentActor } = useCurrentActorClient();
 const selectedActors = ref<IActor[]>([]);
 const inviteError = ref("");
 const page = useRouteQuery("page", 1, integerTransformer);
-const roles = useRouteQuery("roles", undefined, enumTransformer(MemberRole));
+const MemberAllRoles = { ...MemberRole, EVERYTHING: "EVERYTHING" };
+const roles = useRouteQuery(
+  "roles",
+  "EVERYTHING",
+  enumTransformer(MemberAllRoles)
+);
 const MEMBERS_PER_PAGE = 10;
 const notifier = inject<Notifier>("notifier");
 
@@ -414,7 +430,7 @@ const {
     groupName: props.preferredUsername,
     page: page.value,
     limit: MEMBERS_PER_PAGE,
-    roles: roles.value,
+    roles: roles.value === "EVERYTHING" ? undefined : roles.value,
   }),
   () => ({
     enabled: props.preferredUsername !== undefined,
@@ -428,9 +444,28 @@ const isGroupPendingApproval = computed((): boolean => {
   return group.value?.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
 });
 
-const members = computed(
-  () => group.value?.members ?? { total: 0, elements: [] }
-);
+const members = computed(() => {
+  const allMembers = group.value?.members ?? { total: 0, elements: [] };
+
+  // For non-admin members, filter out INVITED, NOT_APPROVED, and REJECTED members
+  if (!isCurrentActorAGroupAdmin.value && allMembers.elements) {
+    const filteredElements = allMembers.elements.filter(
+      (member: IMember) =>
+        ![
+          MemberRole.INVITED,
+          MemberRole.NOT_APPROVED,
+          MemberRole.REJECTED,
+        ].includes(member.role)
+    );
+    return {
+      ...allMembers,
+      elements: filteredElements,
+      total: filteredElements.length,
+    };
+  }
+
+  return allMembers;
+});
 
 const {
   mutate: inviteMemberMutation,
@@ -447,11 +482,14 @@ const {
           groupName: props.preferredUsername,
           page: page.value,
           limit: MEMBERS_PER_PAGE,
-          roles: roles.value,
+          roles: roles.value === "EVERYTHING" ? undefined : roles.value,
         };
 
         // Only update current filter if it includes INVITED role or no filter
-        if (!roles.value || roles.value === MemberRole.INVITED) {
+        if (
+          roles.value === "EVERYTHING" ||
+          roles.value === MemberRole.INVITED
+        ) {
           const existingData = cache.readQuery<{ group: IGroup }>({
             query: GROUP_MEMBERS,
             variables: currentVariables,
@@ -581,7 +619,7 @@ onInviteMemberDone(() => {
     const invitedActor = selectedActors.value[0];
 
     // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
-    if (roles.value && roles.value !== MemberRole.INVITED) {
+    if (roles.value !== "EVERYTHING" && roles.value !== MemberRole.INVITED) {
       // Auto-switch to INVITED filter to show the invited member
       roles.value = MemberRole.INVITED;
 
@@ -601,7 +639,7 @@ onInviteMemberDone(() => {
     }
   } else if (selectedActors.value.length > 1) {
     // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
-    if (roles.value && roles.value !== MemberRole.INVITED) {
+    if (roles.value !== "EVERYTHING" && roles.value !== MemberRole.INVITED) {
       // Auto-switch to INVITED filter to show the invited members
       roles.value = MemberRole.INVITED;
 
@@ -663,9 +701,9 @@ const loadMoreMembers = async (): Promise<void> => {
     variables() {
       return {
         name: usernameWithDomain(group.value),
-        page,
+        page: page.value,
         limit: MEMBERS_PER_PAGE,
-        roles,
+        roles: roles.value === "EVERYTHING" ? undefined : roles.value,
       };
     },
   });
@@ -685,7 +723,7 @@ const {
           groupName: props.preferredUsername,
           page: page.value,
           limit: MEMBERS_PER_PAGE,
-          roles: roles.value,
+          roles: roles.value === "EVERYTHING" ? undefined : roles.value,
         };
 
         const existingData = cache.readQuery<{ group: IGroup }>({
@@ -965,7 +1003,7 @@ const {
           groupName: props.preferredUsername,
           page: page.value,
           limit: MEMBERS_PER_PAGE,
-          roles: roles.value,
+          roles: roles.value === "EVERYTHING" ? undefined : roles.value,
         };
 
         const currentData = cache.readQuery<{ group: IGroup }>({
@@ -1088,6 +1126,14 @@ const updateMember = async (
 
 const isCurrentActorAGroupAdmin = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.ADMINISTRATOR);
+});
+
+const isCurrentActorAGroupMember = computed((): boolean => {
+  return hasCurrentActorThisRole([
+    MemberRole.MODERATOR,
+    MemberRole.ADMINISTRATOR,
+    MemberRole.MEMBER,
+  ]);
 });
 
 const hasCurrentActorThisRole = (givenRole: string | string[]): boolean => {

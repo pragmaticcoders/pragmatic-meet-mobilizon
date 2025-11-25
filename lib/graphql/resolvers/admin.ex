@@ -683,4 +683,143 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
   end
 
   defp follow_status(_, _), do: :none
+
+  @spec export_users_csv(any, map(), Absinthe.Resolution.t()) ::
+          {:ok, String.t()} | {:error, String.t()}
+  def export_users_csv(_parent, _args, %{context: %{current_user: %User{role: role}}})
+      when is_admin(role) do
+    # Generate the CSV content and return it directly
+    case generate_users_csv_content() do
+      {:ok, csv_content} ->
+        {:ok, csv_content}
+
+      {:error, reason} ->
+        {:error, "Failed to generate CSV: #{inspect(reason)}"}
+    end
+  end
+
+  def export_users_csv(_parent, _args, %{context: %{current_user: %User{}}}) do
+    {:error, dgettext("errors", "You need to be an administrator")}
+  end
+
+  def export_users_csv(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "You need to be logged in")}
+  end
+
+  defp generate_users_csv_content do
+    import Ecto.Query
+
+    try do
+      # Query all users with their actors
+      users =
+        User
+        |> where([u], u.disabled == false)
+        |> preload([:actors])
+        |> Mobilizon.Storage.Repo.all()
+
+      # Generate CSV header
+      csv_content =
+        csv_encode(["User Name", "User Email", "Registration Date", "Groups Joined"]) <> "\n"
+
+      # Process each user and add to CSV
+      csv_rows =
+        users
+        |> Enum.map(fn user ->
+          actors = Users.get_actors_for_user(user)
+          groups = get_all_groups_for_user_actors(actors)
+          user_name = get_user_display_name(actors)
+          registration_date = format_datetime(user.inserted_at)
+          groups_str = format_groups(groups)
+
+          csv_encode([user_name, user.email, registration_date, groups_str])
+        end)
+        |> Enum.join("\n")
+
+      {:ok, csv_content <> csv_rows}
+    rescue
+      e -> {:error, e}
+    end
+  end
+
+  defp get_all_groups_for_user_actors(actors) do
+    import Ecto.Query
+    alias Mobilizon.Actors.Member
+
+    actors
+    |> Enum.flat_map(fn actor ->
+      query =
+        from(m in Member,
+          join: a in Actor,
+          on: m.actor_id == a.id,
+          join: p in Actor,
+          on: m.parent_id == p.id,
+          where: a.id == ^actor.id and m.role not in [:not_approved, :rejected, :invited],
+          where: p.type == :Group,
+          select: %{
+            group_name: p.name,
+            group_username: p.preferred_username,
+            role: m.role,
+            member_since: m.member_since
+          }
+        )
+
+      Mobilizon.Storage.Repo.all(query)
+    end)
+    |> Enum.uniq_by(fn g -> g.group_username end)
+  end
+
+  defp get_user_display_name([]), do: "N/A"
+
+  defp get_user_display_name(actors) when is_list(actors) do
+    actor = List.first(actors)
+
+    cond do
+      is_nil(actor) -> "N/A"
+      actor.name && actor.name != "" -> actor.name
+      true -> "@#{actor.preferred_username}"
+    end
+  end
+
+  defp format_datetime(nil), do: ""
+
+  defp format_datetime(%DateTime{} = dt) do
+    DateTime.to_iso8601(dt)
+  end
+
+  defp format_datetime(%NaiveDateTime{} = dt) do
+    NaiveDateTime.to_iso8601(dt)
+  end
+
+  defp format_groups([]), do: ""
+
+  defp format_groups(groups) do
+    groups
+    |> Enum.map(fn group ->
+      name =
+        if group.group_name && group.group_name != "",
+          do: group.group_name,
+          else: "@#{group.group_username}"
+
+      role_part = if group.role != :member, do: " (#{group.role})", else: ""
+      "#{name}#{role_part}"
+    end)
+    |> Enum.join("; ")
+  end
+
+  defp csv_encode(fields) when is_list(fields) do
+    fields
+    |> Enum.map(&csv_encode_field/1)
+    |> Enum.join(",")
+  end
+
+  defp csv_encode_field(field) when is_binary(field) do
+    if String.contains?(field, [",", "\n", "\r", "\""]) do
+      escaped = String.replace(field, "\"", "\"\"")
+      "\"#{escaped}\""
+    else
+      field
+    end
+  end
+
+  defp csv_encode_field(field), do: to_string(field)
 end

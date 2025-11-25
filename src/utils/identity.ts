@@ -15,17 +15,18 @@ const {
   useMutation(UPDATE_CURRENT_ACTOR_CLIENT)
 );
 
-export async function changeIdentity(identity: IPerson): Promise<void> {
-  if (!identity.id) return;
+export async function changeIdentity(identity: IPerson | undefined): Promise<void> {
+  if (!identity || !identity.id) {
+    console.debug("Invalid identity provided", identity);
+    return;
+  }
   console.debug("Changing identity", identity);
 
   // Update current actor in cache
   await updateCurrentActorClient(identity);
 
-  if (identity.id) {
-    console.debug("Saving actor data");
-    saveActorData(identity);
-  }
+  console.debug("Saving actor data");
+  saveActorData(identity);
 
   // Clear profile-specific cache data and refetch for new profile
   try {

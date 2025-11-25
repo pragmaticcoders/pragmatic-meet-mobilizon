@@ -177,16 +177,6 @@
 
               <!-- Action Buttons with Icons -->
               <div class="flex flex-wrap justify-center gap-3 max-w-lg mx-auto">
-                <!-- Follow Button -->
-                <o-button
-                  v-if="showFollowButton"
-                  @click="followGroup"
-                  icon-left="rss"
-                  class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
-                >
-                  {{ t("Follow") }}
-                </o-button>
-
                 <!-- Contact Button -->
                 <o-button
                   tag="router-link"
@@ -210,6 +200,16 @@
                   class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
                   {{ t("Share") }}
+                </o-button>
+
+                <!-- Join Group Button -->
+                <o-button
+                  v-if="showJoinButton && !isCurrentActorAGroupMember"
+                  @click="joinGroup"
+                  icon-left="account-multiple-plus"
+                  class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                >
+                  {{ t("Join group") }}
                 </o-button>
 
                 <!-- More Options Menu -->
@@ -258,20 +258,6 @@
                       <ViewList class="mr-2" :size="18" />
                       {{ t("Activity") }}
                     </router-link>
-                  </o-dropdown-item>
-
-                  <!-- Join Button for eligible users -->
-                  <o-dropdown-item
-                    v-if="showJoinButton && !isCurrentActorAGroupMember"
-                    aria-role="menuitem"
-                  >
-                    <button
-                      @click="joinGroup"
-                      class="flex items-center w-full px-4 py-2"
-                    >
-                      <AccountMultiplePlus class="mr-2" :size="18" />
-                      {{ t("Join group") }}
-                    </button>
                   </o-dropdown-item>
 
                   <!-- Additional options -->
@@ -455,6 +441,17 @@
                 "
               >
                 {{ t("Manage Members") }}
+              </o-button>
+              <o-button
+                v-else-if="isCurrentActorAGroupMember && !previewPublic"
+                tag="router-link"
+                :to="{
+                  name: RouteName.GROUP_MEMBERS_SETTINGS,
+                  params: { preferredUsername: usernameWithDomain(group) },
+                }"
+                class="w-full py-2 px-4 rounded-lg font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {{ t("View all members") }}
               </o-button>
             </div>
           </div>
@@ -1072,7 +1069,6 @@ import {
   PERSON_STATUS_GROUP,
 } from "@/graphql/actor";
 import LazyImageWrapper from "../../components/Image/LazyImageWrapper.vue";
-import { FOLLOW_GROUP, UNFOLLOW_GROUP } from "@/graphql/followers";
 import { useAnonymousReportsConfig } from "../../composition/apollo/config";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
@@ -1285,58 +1281,6 @@ onLeaveGroupDone(() => {
   console.debug("done");
 });
 
-const { mutate: followGroupMutation, onError: onFollowGroupError } =
-  useMutation(FOLLOW_GROUP, () => ({
-    refetchQueries: [
-      {
-        query: PERSON_STATUS_GROUP,
-        variables: {
-          id: currentActor.value?.id,
-          group: usernameWithDomain(group.value),
-        },
-      },
-    ],
-  }));
-
-onFollowGroupError((error) => {
-  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-    notifier?.error(error.graphQLErrors[0].message);
-  }
-});
-
-const followGroup = async (): Promise<void> => {
-  if (!currentActor.value?.id) {
-    router.push({
-      name: RouteName.GROUP_FOLLOW,
-      params: {
-        preferredUsername: usernameWithDomain(group.value),
-      },
-    });
-    return;
-  }
-  followGroupMutation({
-    groupId: group.value?.id,
-  });
-};
-
-const { onError: onUnfollowGroupError } = useMutation(UNFOLLOW_GROUP, () => ({
-  refetchQueries: [
-    {
-      query: PERSON_STATUS_GROUP,
-      variables: {
-        id: currentActor.value?.id,
-        group: usernameWithDomain(group.value),
-      },
-    },
-  ],
-}));
-
-onUnfollowGroupError((error) => {
-  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-    notifier?.error(error.graphQLErrors[0].message);
-  }
-});
-
 const {
   mutate: createReportMutation,
   onError: onCreateReportError,
@@ -1460,10 +1404,6 @@ const ableToReport = computed((): boolean => {
     currentActor.value?.id !== undefined ||
     anonymousReportsConfig.value?.allowed === true
   );
-});
-
-const showFollowButton = computed((): boolean => {
-  return !isCurrentActorFollowing.value || previewPublic.value;
 });
 
 const showJoinButton = computed((): boolean => {
