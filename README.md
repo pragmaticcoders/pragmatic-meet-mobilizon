@@ -4,15 +4,15 @@ A comprehensive guide for setting up and running Mobilizon locally for developme
 
 ## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Development Setup Options](#development-setup-options)
+- [Prerequisites](#🔧-prerequisites)
+- [Quick Start](#🚀-quick-start)
+- [Development Setup Options](#🐳-development-setup-options)
   - [Option 1: Docker Development (Recommended)](#option-1-docker-development-recommended)
   - [Option 2: Native Development](#option-2-native-development)
-- [Database Management](#database-management)
-- [Environment Variables](#environment-variables)
-- [Useful Commands](#useful-commands)
-- [Troubleshooting](#troubleshooting)
+- [Database Management](#🗄️-database-management)
+- [Environment Variables](#🔧-environment-variables)
+- [Useful Commands](#📝-useful-commands)
+- [Troubleshooting](#🔍-troubleshooting)
 
 ## 🔧 Prerequisites
 
