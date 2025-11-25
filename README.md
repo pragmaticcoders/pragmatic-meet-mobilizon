@@ -4,15 +4,15 @@ A comprehensive guide for setting up and running Mobilizon locally for developme
 
 ## 📋 Table of Contents
 
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Development Setup Options](#development-setup-options)
+- [Prerequisites](#🔧-prerequisites)
+- [Quick Start](#🚀-quick-start)
+- [Development Setup Options](#🐳-development-setup-options)
   - [Option 1: Docker Development (Recommended)](#option-1-docker-development-recommended)
   - [Option 2: Native Development](#option-2-native-development)
-- [Database Management](#database-management)
-- [Environment Variables](#environment-variables)
-- [Useful Commands](#useful-commands)
-- [Troubleshooting](#troubleshooting)
+- [Database Management](#🗄️-database-management)
+- [Environment Variables](#🔧-environment-variables)
+- [Useful Commands](#📝-useful-commands)
+- [Troubleshooting](#🔍-troubleshooting)
 
 ## 🔧 Prerequisites
 
@@ -32,7 +32,22 @@ A comprehensive guide for setting up and running Mobilizon locally for developme
 
 ## 🚀 Quick Start
 
-### Docker Development (Fastest)
+### Docker Development via docker-compose (Fastest)
+
+First create `.env` either from [Environment Configuration](#environment-configuration) or copy `.env.template` and adjust values.
+```bash
+cp .env.template .env
+cd docker/development
+
+docker-compose up
+```
+
+This will set your environment up and you're ready to develop.
+
+Changes you make on the Frontend will be reflected in the application via hot reloading.
+Changes you make on the Backend do not require resetting the container.
+
+### Docker Development via make (Fast)
 
 ```bash
 # 1. Clone and enter the repository
