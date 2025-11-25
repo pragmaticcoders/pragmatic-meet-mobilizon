@@ -12,66 +12,64 @@ env:
   IMAGE_NAME: mobilizon-app
 
 jobs:
-  # TODO: Backend tests disabled temporarily - need to optimize for better performance
-  # Re-enable after async test optimizations are properly tuned
-  # test-backend:
-  #   runs-on: ubuntu-latest
+  test-backend:
+    runs-on: ubuntu-latest
 
-  #   services:
-  #     postgres:
-  #       image: postgis/postgis:15-3.4
-  #       env:
-  #         POSTGRES_USER: mobilizon_test
-  #         POSTGRES_PASSWORD: mobilizon
-  #         POSTGRES_DB: mobilizon_test
-  #       ports:
-  #         - 5432:5432
-  #       options: >-
-  #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_USER: mobilizon_test
+          POSTGRES_PASSWORD: mobilizon
+          POSTGRES_DB: mobilizon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
-  #   env:
-  #     MIX_ENV: test
-  #     MOBILIZON_DATABASE_HOST: localhost
-  #     MOBILIZON_DATABASE_USERNAME: mobilizon_test
-  #     MOBILIZON_DATABASE_PASSWORD: mobilizon
-  #     MOBILIZON_DATABASE_DBNAME: mobilizon_test
+    env:
+      MIX_ENV: test
+      MOBILIZON_DATABASE_HOST: localhost
+      MOBILIZON_DATABASE_USERNAME: mobilizon_test
+      MOBILIZON_DATABASE_PASSWORD: mobilizon
+      MOBILIZON_DATABASE_DBNAME: mobilizon_test
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Set up Elixir
-  #       uses: erlef/setup-beam@v1
-  #       with:
-  #         elixir-version: '1.15'
-  #         otp-version: '26'
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.15'
+          otp-version: '26'
 
-  #     - name: Cache dependencies
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           deps
-  #           _build
-  #         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-  #         restore-keys: ${{ runner.os }}-mix-
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
 
-  #     - name: Install dependencies
-  #       run: mix deps.get
+      - name: Install dependencies
+        run: mix deps.get
 
-  #     - name: Prepare test database
-  #       run: mix prepare_test
+      - name: Prepare test database
+        run: mix prepare_test
 
-  #     - name: Run tests
-  #       run: mix test
+      - name: Run tests
+        run: mix test
 
-  #     - name: Run Credo
-  #       run: mix credo --strict
+      - name: Run Credo
+        run: mix credo --strict
 
-  #     - name: Run Sobelow security scan
-  #       run: mix sobelow --config
+      - name: Run Sobelow security scan
+        run: mix sobelow --config
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -96,7 +94,7 @@ jobs:
         run: npm run lint
 
   build:
-    needs: [test-frontend]
+    needs: [test-frontend, test-backend]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
     outputs:
