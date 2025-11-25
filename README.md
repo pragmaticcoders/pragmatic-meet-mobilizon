@@ -32,7 +32,22 @@ A comprehensive guide for setting up and running Mobilizon locally for developme
 
 ## 🚀 Quick Start
 
-### Docker Development (Fastest)
+### Docker Development via docker-compose (Fastest)
+
+First create `.env` either from [Environment Configuration](#environment-configuration) or copy `.env.template` and adjust values.
+```bash
+cp .env.template .env
+cd docker/development
+
+docker-compose up
+```
+
+This will set your environment up and you're ready to develop.
+
+Changes you make on the Frontend will be reflected in the application via hot reloading.
+Changes you make on the Backend do not require resetting the container.
+
+### Docker Development via make (Fast)
 
 ```bash
 # 1. Clone and enter the repository
