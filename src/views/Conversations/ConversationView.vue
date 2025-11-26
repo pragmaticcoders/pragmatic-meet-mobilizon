@@ -113,7 +113,7 @@
       {{ error }}
     </o-notification>
     <section v-if="currentActor" class="conversation-content">
-      <div class="messages-container">
+      <div class="messages-container" ref="messagesContainerRef">
         <!-- Date separator -->
         <div
           class="date-separator"
@@ -445,7 +445,14 @@ import { formatList } from "@/utils/i18n";
 import { ApolloCache, InMemoryCache } from "@apollo/client/core";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { format, isToday, isYesterday, parseISO } from "date-fns";
-import { computed, defineAsyncComponent, inject, ref } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  inject,
+  nextTick,
+  ref,
+  watch,
+} from "vue";
 import { useI18n } from "vue-i18n";
 import Calendar from "vue-material-design-icons/Calendar.vue";
 import { useRouter } from "vue-router";
@@ -728,6 +735,9 @@ onConversationResult(({ data }) => {
       totalComments: conversation.comments.total,
     });
 
+    // Scroll to bottom after loading messages
+    scrollToBottom();
+
     // Mark conversation as read when opened - user has engaged with it
     if (conversation.unread) {
       console.debug("Conversation is unread, marking as read", {
@@ -814,4 +824,48 @@ const formatTime = (date: string | Date): string => {
 
 // Editor reference
 const editorRef = ref<any>(null);
+
+// Messages container reference for scrolling
+const messagesContainerRef = ref<HTMLElement | null>(null);
+
+// Scroll to bottom of messages container
+const scrollToBottom = () => {
+  // Use multiple ticks, requestAnimationFrame and setTimeout to ensure all elements
+  // including async components (like Editor) are fully rendered
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      nextTick(() => {
+        // Small delay to ensure async components like Editor are loaded
+        setTimeout(() => {
+          if (messagesContainerRef.value) {
+            messagesContainerRef.value.scrollTop =
+              messagesContainerRef.value.scrollHeight;
+          }
+        }, 100);
+      });
+    });
+  });
+};
+
+// Watch for changes in comments and scroll to bottom
+watch(
+  () => conversation.value?.comments.elements.length,
+  () => {
+    scrollToBottom();
+  },
+  { flush: "post" }
+);
+
+// Watch for Editor component to load and scroll to bottom
+watch(
+  () => editorRef.value,
+  () => {
+    if (editorRef.value) {
+      // Editor component has loaded, scroll to bottom after a short delay
+      setTimeout(() => {
+        scrollToBottom();
+      }, 150);
+    }
+  }
+);
 </script>
