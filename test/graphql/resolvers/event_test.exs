@@ -1576,10 +1576,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       assert hd(res["errors"])["message"] =~ "cannot delete"
     end
 
-    # TODO: Action log creation is not working - see docs/TEST_FAILURES_CONSULTATION.md
-    # Action logs are not being created when events are deleted by moderators
-    # This needs team consultation to determine if this is intentional or a bug
-    @tag :skip
     test "delete_event/3 allows a event being deleted by a moderator and creates a entry in actionLogs",
          %{
            conn: conn,

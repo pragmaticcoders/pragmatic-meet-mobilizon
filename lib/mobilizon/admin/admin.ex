@@ -47,20 +47,28 @@ defmodule Mobilizon.Admin do
   Log an admin action
   """
   @spec log_action(Actor.t(), String.t(), struct()) ::
-          {:ok, ActionLog.t()} | {:error, Ecto.Changeset.t() | :user_not_moderator}
-  def log_action(%Actor{user_id: user_id, id: actor_id}, action, target) do
-    %User{role: role} = Users.get_user!(user_id)
+          {:ok, ActionLog.t()}
+          | {:error, Ecto.Changeset.t() | :user_not_moderator | :actor_no_user | :user_not_found}
+  def log_action(%Actor{user_id: nil}, _action, _target) do
+    {:error, :actor_no_user}
+  end
 
-    if role in [:administrator, :moderator] do
-      Admin.create_action_log(%{
-        "actor_id" => actor_id,
-        "target_type" => to_string(target.__struct__),
-        "target_id" => target.id,
-        "action" => action,
-        "changes" => stringify_struct(target)
-      })
-    else
-      {:error, :user_not_moderator}
+  def log_action(%Actor{user_id: user_id, id: actor_id}, action, target) do
+    case Users.get_user(user_id) do
+      %User{role: role} when role in [:administrator, :moderator] ->
+        Admin.create_action_log(%{
+          "actor_id" => actor_id,
+          "target_type" => to_string(target.__struct__),
+          "target_id" => target.id,
+          "action" => action,
+          "changes" => stringify_struct(target)
+        })
+
+      %User{} ->
+        {:error, :user_not_moderator}
+
+      nil ->
+        {:error, :user_not_found}
     end
   end
 

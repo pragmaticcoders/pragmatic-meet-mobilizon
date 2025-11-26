@@ -198,10 +198,6 @@ defmodule Mobilizon.GraphQL.Resolvers.CommentTest do
       refute is_nil(res["data"]["deleteComment"]["deletedAt"])
     end
 
-    # TODO: Action log creation is not working - see docs/TEST_FAILURES_CONSULTATION.md
-    # Action logs are not being created when comments are deleted by moderators
-    # This needs team consultation to determine if this is intentional or a bug
-    @tag :skip
     test "delete_comment/3 allows a comment being deleted by a moderator and creates a entry in actionLogs",
          %{
            conn: conn,

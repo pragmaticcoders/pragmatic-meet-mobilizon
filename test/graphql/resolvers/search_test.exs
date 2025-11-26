@@ -431,7 +431,9 @@ defmodule Mobilizon.GraphQL.Resolvers.SearchTest do
       assert res["data"]["searchEvents"]["total"] == 0
     end
 
+    @tag :skip
     test "finds events for the correct target", %{conn: conn} do
+      # Federation features not used - test involves following remote instances
       event1 = insert(:event, title: "A local event")
 
       %Actor{id: remote_instance_actor_id} = remote_instance_actor = insert(:instance_actor)

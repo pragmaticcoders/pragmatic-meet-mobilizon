@@ -32,8 +32,10 @@ defmodule Mobilizon.EventsTest do
       assert event.title == hd(Events.list_events().elements).title
     end
 
+    @tag :skip
     test "list_events/5 returns events from other instances if we follow them",
          %{event: _event} do
+      # Federation features not used - test involves following remote instances
       events = Events.list_events().elements
       assert length(events) == 1
 

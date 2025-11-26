@@ -764,10 +764,6 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
     }
     """
 
-    # TODO: Action log creation is not working - see docs/TEST_FAILURES_CONSULTATION.md
-    # Action logs are not being created when profiles are suspended
-    # This needs team consultation to determine if this is intentional or a bug
-    @tag :skip
     test "suspends a remote profile", %{conn: conn} do
       modo = insert(:user, role: :moderator)
       %Actor{id: modo_actor_id} = insert(:actor, user: modo)

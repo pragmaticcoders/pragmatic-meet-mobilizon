@@ -46,7 +46,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
                        } = action_log ->
           target_type
           |> String.to_existing_atom()
-          |> transform_action_log(action, action_log)
+          |> transform_action_log(String.to_existing_atom(action), action_log)
           |> add_extra_data(actor, id, inserted_at)
         end)
         |> Enum.filter(& &1)

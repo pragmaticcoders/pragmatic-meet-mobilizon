@@ -585,6 +585,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
          {:ok, %User{}} <-
            do_delete_account(%User{} = user) do
       Admin.log_action(moderator_actor, "delete", user)
+      {:ok, %{id: to_string(user.id)}}
     else
       %User{disabled: true} ->
         {:error, dgettext("errors", "User already disabled")}
