@@ -493,54 +493,68 @@ const {
     enabled: conversationId.value !== undefined,
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: false,
+    pollInterval: 5000, // Odświeżaj co 5 sekund
   })
 );
 
-subscribeToMore({
-  document: CONVERSATION_COMMENT_CHANGED,
-  variables: {
-    id: conversationId.value,
-  },
-  updateQuery(
-    previousResult: any,
-    { subscriptionData }: { subscriptionData: any }
-  ) {
-    const previousConversation = previousResult.conversation;
-    const lastComment =
-      subscriptionData.data.conversationCommentChanged.lastComment;
+// Subscribe to conversation changes when conversationId is available
+watch(
+  conversationId,
+  (newId: string | undefined) => {
+    if (!newId) return;
+    subscribeToMore({
+      document: CONVERSATION_COMMENT_CHANGED,
+      variables: () => ({
+        id: conversationId.value,
+      }),
+      updateQuery(
+        previousResult: any,
+        { subscriptionData }: { subscriptionData: any }
+      ) {
+        if (!subscriptionData.data?.conversationCommentChanged?.lastComment) {
+          return previousResult;
+        }
 
-    // Check if this comment is already in our current elements
-    const commentExists = previousConversation.comments.elements.some(
-      (comment: IComment) => comment.id === lastComment.id
-    );
+        const previousConversation = previousResult?.conversation;
+        const lastComment =
+          subscriptionData.data.conversationCommentChanged.lastComment;
 
-    // Only add the comment if it's not already there
-    if (!commentExists) {
-      // All comments are loaded at once, so hasMoreComments is always false
-      hasMoreComments.value = false;
+        if (!previousConversation || !lastComment) {
+          return previousResult;
+        }
 
-      return {
-        conversation: {
-          ...previousConversation,
-          lastComment: lastComment,
-          comments: {
-            elements: [...previousConversation.comments.elements, lastComment],
-            total: previousConversation.comments.total + 1,
-          },
-        },
-      };
-    }
+        // Check if this comment is already in our current elements
+        const commentExists = previousConversation.comments?.elements?.some(
+          (comment: IComment) => comment.id === lastComment.id
+        );
 
-    // Comment already exists, just update the lastComment reference but don't change elements
-    return {
-      ...previousResult,
-      conversation: {
-        ...previousConversation,
-        lastComment: lastComment,
+        // Only add the comment if it's not already there
+        if (!commentExists) {
+          // All comments are loaded at once, so hasMoreComments is always false
+          hasMoreComments.value = false;
+
+          return {
+            conversation: {
+              ...previousConversation,
+              lastComment: lastComment,
+              comments: {
+                elements: [
+                  ...(previousConversation.comments?.elements || []),
+                  lastComment,
+                ],
+                total: (previousConversation.comments?.total || 0) + 1,
+              },
+            },
+          };
+        }
+
+        // Comment already exists, return previous result unchanged
+        return previousResult;
       },
-    };
+    });
   },
-});
+  { immediate: true }
+);
 
 const conversation = computed(() => conversationResult.value?.conversation);
 const otherParticipants = computed(
@@ -611,6 +625,7 @@ const { mutate: replyToConversationMutation, onDone: onReplyDone } =
       attributedToId?: string;
     }
   >(REPLY_TO_PRIVATE_MESSAGE_MUTATION, () => ({
+    fetchPolicy: "no-cache",
     update: (store: ApolloCache<InMemoryCache>, { data }) => {
       console.debug("update after reply to", [
         conversationId.value,
@@ -658,27 +673,36 @@ const { mutate: replyToConversationMutation, onDone: onReplyDone } =
         return;
       }
 
-      store.writeQuery({
-        query: GET_CONVERSATION,
-        variables: {
-          id: conversationId.value,
-          page: page.value,
-          limit: COMMENTS_PER_PAGE,
-        },
-        data: {
-          conversation: {
-            ...conversationCached,
-            lastComment: newCommentFromMutation,
-            comments: {
-              elements: [
-                ...conversationCached.comments.elements,
-                newCommentFromMutation,
-              ],
-              total: conversationCached.comments.total + 1,
-            },
+      // Use updateQuery instead of writeQuery for better @connection support
+      store.updateQuery<{ conversation: IConversation }>(
+        {
+          query: GET_CONVERSATION,
+          variables: {
+            id: conversationId.value,
+            page: page.value,
+            limit: COMMENTS_PER_PAGE,
           },
         },
-      });
+        (cachedData) => {
+          if (!cachedData) {
+            return cachedData;
+          }
+
+          return {
+            conversation: {
+              ...cachedData.conversation,
+              lastComment: newCommentFromMutation,
+              comments: {
+                elements: [
+                  ...cachedData.conversation.comments.elements,
+                  newCommentFromMutation,
+                ],
+                total: cachedData.conversation.comments.total + 1,
+              },
+            },
+          };
+        }
+      );
 
       console.debug("Cache updated successfully with new comment");
     },
