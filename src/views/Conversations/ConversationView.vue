@@ -491,7 +491,7 @@ const {
   }),
   () => ({
     enabled: conversationId.value !== undefined,
-    fetchPolicy: "no-cache",
+    fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: false,
   })
 );
@@ -639,18 +639,18 @@ const { mutate: replyToConversationMutation, onDone: onReplyDone } =
       const newConversation = data.postPrivateMessage;
 
       // The lastComment from the mutation is the new comment we just sent
-      const newComment = newConversation.lastComment;
+      const newCommentFromMutation = newConversation.lastComment;
 
-      if (!newComment) {
+      if (!newCommentFromMutation) {
         console.warn("No lastComment in mutation response");
         return;
       }
 
-      console.debug("Adding new comment to cache:", newComment);
+      console.debug("Adding new comment to cache:", newCommentFromMutation);
 
       // Check if the comment already exists to avoid duplicates
       const commentExists = conversationCached.comments.elements.some(
-        (comment) => comment.id === newComment.id
+        (comment) => comment.id === newCommentFromMutation.id
       );
 
       if (commentExists) {
@@ -668,9 +668,12 @@ const { mutate: replyToConversationMutation, onDone: onReplyDone } =
         data: {
           conversation: {
             ...conversationCached,
-            lastComment: newComment,
+            lastComment: newCommentFromMutation,
             comments: {
-              elements: [...conversationCached.comments.elements, newComment],
+              elements: [
+                ...conversationCached.comments.elements,
+                newCommentFromMutation,
+              ],
               total: conversationCached.comments.total + 1,
             },
           },
@@ -725,32 +728,32 @@ onConversationError((discussionError) =>
 
 onConversationResult(({ data }) => {
   if (data?.conversation) {
-    const conversation = data.conversation;
+    const conversationData = data.conversation;
 
     // All comments are loaded at once, so no more comments to load
     hasMoreComments.value = false;
 
     console.debug("Initial conversation load:", {
-      commentsCount: conversation.comments.elements.length,
-      totalComments: conversation.comments.total,
+      commentsCount: conversationData.comments.elements.length,
+      totalComments: conversationData.comments.total,
     });
 
     // Scroll to bottom after loading messages
     scrollToBottom();
 
     // Mark conversation as read when opened - user has engaged with it
-    if (conversation.unread) {
+    if (conversationData.unread) {
       console.debug("Conversation is unread, marking as read", {
         conversationId: conversationId.value,
-        unread: conversation.unread,
-        conversationParticipantId: conversation.conversationParticipantId,
+        unread: conversationData.unread,
+        conversationParticipantId: conversationData.conversationParticipantId,
       });
       markConversationAsRead();
     } else {
       console.debug("Conversation already read", {
         conversationId: conversationId.value,
-        unread: conversation.unread,
-        conversationParticipantId: conversation.conversationParticipantId,
+        unread: conversationData.unread,
+        conversationParticipantId: conversationData.conversationParticipantId,
       });
     }
   }
@@ -794,11 +797,11 @@ onMarkAsReadDone((result) => {
   });
 });
 
-onMarkAsReadError((error) => {
+onMarkAsReadError((markAsReadError) => {
   console.error("Failed to mark conversation as read", {
     conversationId: conversationId.value,
     conversationParticipantId: conversation.value?.conversationParticipantId,
-    error,
+    error: markAsReadError,
   });
 });
 
