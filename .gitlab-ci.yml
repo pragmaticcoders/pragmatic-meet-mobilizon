@@ -113,6 +113,8 @@ exunit:
   variables:
     MIX_ENV: test
   before_script:
+    - apt update
+    - apt install -y --no-install-recommends imagemagick
     - mix deps.get
     - mix compile
     - mix tz_world.update
