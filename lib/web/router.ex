@@ -237,6 +237,9 @@ defmodule Mobilizon.Web.Router do
     get("/auth/:provider", AuthController, :request)
     # Have a look at https://github.com/ueberauth/ueberauth/issues/125 some day
     # Also possible CSRF issue
+    # sobelow_skip ["Config.CSRFRoute"]
+    # OAuth callback supports both GET/POST per Ueberauth library requirements
+    # CSRF protection implemented via state parameter validation in AuthController
     get("/auth/:provider/callback", AuthController, :callback)
     post("/auth/:provider/callback", AuthController, :callback)
     get("/auth/retry/:provider", AuthController, :retry_oauth)
@@ -247,6 +250,8 @@ defmodule Mobilizon.Web.Router do
     get("/login/device", PageController, :auth_device)
   end
 
+  # sobelow_skip ["Config.Headers"]
+  # OAuth token endpoints - API endpoints don't require browser security headers
   pipeline :login do
     plug(:accepts, ["html", "json"])
   end

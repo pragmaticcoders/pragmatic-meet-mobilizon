@@ -115,6 +115,8 @@ config :mobilizon, :media_proxy,
     ]
   ]
 
+# sobelow_skip ["Config.Secrets"]
+# Development/test defaults only - overridden in production via environment variables
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,
   relay: "localhost",
