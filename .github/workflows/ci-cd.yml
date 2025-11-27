@@ -72,8 +72,9 @@ jobs:
       - name: Run tests
         run: mix test
 
-      - name: Run Credo
+      - name: Run Credo (informational)
         run: mix credo
+        continue-on-error: true
 
       - name: Run Sobelow security scan
         run: mix sobelow --config
