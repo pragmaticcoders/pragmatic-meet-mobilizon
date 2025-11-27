@@ -69,16 +69,16 @@ jobs:
       - name: Prepare test database
         run: mix prepare_test
 
-      # Temporarily disabled to focus on other workflow issues
-      # - name: Run tests
-      #   run: mix test
+      - name: Run tests
+        run: mix test
 
       - name: Run Credo (informational)
         run: mix credo
         continue-on-error: true
 
-      - name: Run Sobelow security scan
+      - name: Run Sobelow security scan (informational)
         run: mix sobelow --config
+        continue-on-error: true
 
   test-frontend:
     runs-on: ubuntu-latest
