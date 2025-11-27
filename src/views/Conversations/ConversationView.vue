@@ -493,7 +493,7 @@ const {
     enabled: conversationId.value !== undefined,
     fetchPolicy: "cache-and-network",
     notifyOnNetworkStatusChange: false,
-    pollInterval: 5000, // Odświeżaj co 5 sekund
+    pollInterval: 5000, // Refresh every 5 seconds
   })
 );
 
