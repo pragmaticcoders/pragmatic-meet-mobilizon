@@ -1893,5 +1893,6 @@
   "{username} was invited to {group}. Showing invited members.": "{username} został zaproszony do {group}. Pokazywanie zaproszonych członków.",
   "{user}'s follow request was accepted": "Prośba o subskrypcję od {user} została zaakceptowana",
   "{user}'s follow request was rejected": "Prośba o subskrypcję od {user} została odrzucona",
-  "© The OpenStreetMap Contributors": "© Współtwórcy OpenStreetMap"
+  "© The OpenStreetMap Contributors": "© Współtwórcy OpenStreetMap",
+  "Conversation": "Konwersacja"
 }
