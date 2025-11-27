@@ -1,5 +1,11 @@
 <template>
-  <section class="container mx-auto max-w-2xl">
+  <section v-if="isUserSignedIn">
+    <div class="message-box">
+      <div class="spinner"></div>
+      <span>Redirecting to event page...</span>
+    </div>
+  </section>
+  <section class="container mx-auto max-w-2xl" v-else>
     <h2 class="text-2xl">
       {{ t("You wish to participate to the following event") }}
     </h2>
@@ -94,13 +100,29 @@
 </template>
 <script lang="ts" setup>
 import EventListViewCard from "@/components/Event/EventListViewCard.vue";
-import RouteName from "../../router/name";
-import { useFetchEvent } from "@/composition/apollo/event";
+import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useAnonymousParticipationConfig } from "@/composition/apollo/config";
-import { computed } from "vue";
-import { useRouter } from "vue-router";
+import { useFetchEvent } from "@/composition/apollo/event";
+import { useCurrentUserClient } from "@/composition/apollo/user";
+import {
+  EVENT_PERSON_PARTICIPATION,
+  FETCH_EVENT,
+  JOIN_EVENT,
+} from "@/graphql/event";
+import { Notifier } from "@/plugins/notifier";
+import { IPerson } from "@/types/actor";
+import { EventJoinOptions, ParticipantRole } from "@/types/enums";
+import { IEvent } from "@/types/event.model";
+import { IParticipant } from "@/types/participant.model";
 import { useHead } from "@/utils/head";
+import { ApolloCache } from "@apollo/client/cache";
+import { FetchResult } from "@apollo/client/core";
+import { useOruga } from "@oruga-ui/oruga-next";
+import { useMutation } from "@vue/apollo-composable";
+import { computed, inject, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
+import RouteName from "../../router/name";
 
 const props = defineProps<{ uuid: string }>();
 
@@ -108,7 +130,12 @@ const { event } = useFetchEvent(computed(() => props.uuid));
 
 const { anonymousParticipationConfig } = useAnonymousParticipationConfig();
 
+const { currentUser } = useCurrentUserClient();
+const { currentActor } = useCurrentActorClient();
+
 const router = useRouter();
+
+const notifier = inject<Notifier>("notifier");
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -133,11 +160,201 @@ const hasAnonymousEmailParticipationMethod = computed(
     );
   }
 );
+
+const emit = defineEmits(["join-event-with-confirmation", "join-event"]);
+
+const {
+  mutate: joinEventMutation,
+  onDone: onJoinEventMutationDone,
+  onError: onJoinEventMutationError,
+} = useMutation<{
+  joinEvent: IParticipant;
+}>(JOIN_EVENT, () => ({
+  update: (
+    store: ApolloCache<{
+      joinEvent: IParticipant;
+    }>,
+    { data }: FetchResult
+  ) => {
+    if (data == null) return;
+
+    const participationCachedData = store.readQuery<{ person: IPerson }>({
+      query: EVENT_PERSON_PARTICIPATION,
+      variables: { eventId: event.value?.id, actorId: currentActor.value?.id },
+    });
+
+    if (participationCachedData?.person == undefined) {
+      console.error(
+        "Cannot update participation cache, because of null value."
+      );
+      return;
+    }
+    store.writeQuery({
+      query: EVENT_PERSON_PARTICIPATION,
+      variables: { eventId: event.value?.id, actorId: currentActor.value?.id },
+      data: {
+        person: {
+          ...participationCachedData?.person,
+          participations: {
+            elements: [data.joinEvent],
+            total: 1,
+          },
+        },
+      },
+    });
+
+    const cachedData = store.readQuery<{ event: IEvent }>({
+      query: FETCH_EVENT,
+      variables: { uuid: event.value?.uuid },
+    });
+    if (cachedData == null) return;
+    const { event: cachedEvent } = cachedData;
+    if (cachedEvent === null) {
+      console.error(
+        "Cannot update event participant cache, because of null value."
+      );
+      return;
+    }
+    const participantStats = { ...cachedEvent.participantStats };
+
+    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+      participantStats.notApproved += 1;
+    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+      // Waitlist participants don't count toward the participant count
+      // They will be moved to participants when spots become available
+    } else {
+      participantStats.going += 1;
+      participantStats.participant += 1;
+    }
+
+    store.writeQuery({
+      query: FETCH_EVENT,
+      variables: { uuid: event.value?.uuid },
+      data: {
+        event: {
+          ...cachedEvent,
+          participantStats,
+        },
+      },
+    });
+  },
+}));
+
+const participationRequestedMessage = () => {
+  notifier?.success(t("Your participation has been requested"));
+};
+
+const participationConfirmedMessage = () => {
+  notifier?.success(t("Your participation has been confirmed"));
+};
+
+const participationWaitlistMessage = () => {
+  notifier?.info(t("You have been added to the waitlist"));
+};
+
+onJoinEventMutationDone(async ({ data }) => {
+  await router.replace({
+    name: RouteName.EVENT,
+    params: { uuid: props.uuid },
+  });
+
+  if (data) {
+    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+      participationRequestedMessage();
+    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+      participationWaitlistMessage();
+    } else {
+      participationConfirmedMessage();
+    }
+  }
+});
+
+const { notification } = useOruga();
+
+onJoinEventMutationError(async (error) => {
+  await router.replace({
+    name: RouteName.EVENT,
+    params: { uuid: props.uuid },
+  });
+
+  if (error.message) {
+    notification.open({
+      message: error.message,
+      variant: "danger",
+      position: "bottom-right",
+      duration: 5000,
+    });
+  }
+  console.error(error);
+});
+
+const joinEvent = (actor: IPerson | undefined): void => {
+  if (event.value?.joinOptions === EventJoinOptions.RESTRICTED) {
+    /**
+     * 
+     *         @join-event="(actor) => $emit('join-event', actor)"
+        @join-modal="$emit('join-modal')"
+        @join-event-with-confirmation="
+          (actor) => $emit('join-event-with-confirmation', actor)
+        "
+     */
+    emit("join-event-with-confirmation", actor);
+  } else {
+    // For waitlist or regular participation, just emit join-event
+    // The backend will handle whether to add to participants or waitlist
+    joinEventMutation({
+      eventId: event.value?.id,
+      actorId: currentActor.value?.id,
+    });
+  }
+};
+
+const isUserSignedIn = computed((): boolean => {
+  return currentUser.value?.isLoggedIn ?? false;
+});
+watch(isUserSignedIn, async (isSignedIn) => {
+  if (isSignedIn && currentActor.value) {
+    joinEvent(currentActor.value);
+  }
+});
 </script>
 <style lang="scss" scoped>
 .column > a {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+</style>
+<style lang="scss" scoped>
+.message-box {
+  background-color: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 0.25rem;
+  color: #92400e;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #92400e;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

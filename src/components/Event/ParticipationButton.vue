@@ -313,6 +313,7 @@
       :to="{
         name: RouteName.LOGIN,
         params: { uuid: event.uuid },
+        query: { redirect: `/events/${event.uuid}/participate` },
       }"
       v-else-if="!currentActor?.id"
       variant="primary"
@@ -325,15 +326,15 @@
 
 <script lang="ts" setup>
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
-import { IParticipant } from "../../types/participant.model";
-import { IEvent } from "../../types/event.model";
-import { IPerson, displayName } from "../../types/actor";
-import RouteName from "../../router/name";
-import { computed, watch, onMounted } from "vue";
-import MenuDown from "vue-material-design-icons/MenuDown.vue";
+import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
+import MenuDown from "vue-material-design-icons/MenuDown.vue";
 import TimerSandEmpty from "vue-material-design-icons/TimerSandEmpty.vue";
+import RouteName from "../../router/name";
+import { IPerson, displayName } from "../../types/actor";
+import { IEvent } from "../../types/event.model";
+import { IParticipant } from "../../types/participant.model";
 
 const props = defineProps<{
   participation: IParticipant | undefined;
@@ -359,10 +360,6 @@ const joinEvent = (actor: IPerson | undefined): void => {
     // The backend will handle whether to add to participants or waitlist
     emit("join-event", actor);
   }
-};
-
-const joinModal = (): void => {
-  emit("join-modal");
 };
 
 const confirmLeave = (): void => {
