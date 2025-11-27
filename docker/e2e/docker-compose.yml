@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_USER: mobilizon
+      POSTGRES_PASSWORD: mobilizon
+      POSTGRES_DB: mobilizon_e2e
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mobilizon"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mobilizon:
+    image: mobilizon-e2e:local
+    ports:
+      - "4000:4000"
+    environment:
+      MOBILIZON_INSTANCE_NAME: "E2E Test Instance"
+      MOBILIZON_INSTANCE_HOST: "localhost"
+      MOBILIZON_DATABASE_HOST: postgres
+      MOBILIZON_DATABASE_USERNAME: mobilizon
+      MOBILIZON_DATABASE_PASSWORD: mobilizon
+      MOBILIZON_DATABASE_DBNAME: mobilizon_e2e
+      MOBILIZON_DATABASE_PORT: 5432
+      MOBILIZON_INSTANCE_REGISTRATIONS_OPEN: "true"
+      MOBILIZON_INSTANCE_EMAIL: "noreply@mobilizon.test"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+

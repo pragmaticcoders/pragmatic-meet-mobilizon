@@ -306,7 +306,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.GroupType do
 
       arg(:name, :string, description: "The displayed name for the group")
       arg(:summary, :string, description: "The summary for the group", default_value: "")
-      arg(:custom_url, non_null(:string), description: "Marketing Banner Location URL for the group")
+      arg(:custom_url, :string, description: "Marketing Banner Location URL for the group")
 
       arg(:visibility, :group_visibility,
         description: "The visibility for the group",

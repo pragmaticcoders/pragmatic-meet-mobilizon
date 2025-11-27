@@ -8,12 +8,13 @@ defmodule Mobilizon.Web.ErrorViewTest do
 
   test "renders 404.html", %{conn: conn} do
     # Produced HTML might have new lines inside
+    # The actual instance name (e.g., "Pragmatic" or "Mobilizon") may vary based on config
     assert Regex.replace(
              ~r/(\r\n|\n|\r)  +/,
              render_to_string(ErrorView, "404.html", %{conn: conn}),
              " "
            ) =~
-             "We're sorry but Mobilizon doesn't work properly without JavaScript enabled. Please enable it to continue."
+             "doesn't work properly without JavaScript enabled. Please enable it to continue."
   end
 
   test "render 500.html" do

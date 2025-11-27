@@ -3,17 +3,20 @@
 set -e
 
 echo "-- Waiting for database..."
-# Wait for PostgreSQL to be ready
-while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -U postgres; do
+# Wait for PostgreSQL server to be ready (using default postgres user or configured user)
+until pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432}; do
    echo "Waiting for PostgreSQL to be ready..."
    sleep 2s
 done
 
-# Wait for the specific database to be available
-while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -U ${MOBILIZON_DATABASE_USERNAME} -d ${MOBILIZON_DATABASE_DBNAME}; do
-   echo "Waiting for database ${MOBILIZON_DATABASE_DBNAME} to be ready..."
-   sleep 2s
-done
+# Only wait for specific database if not in test mode (database might not exist yet in test)
+if [ "$MIX_ENV" != "test" ]; then
+  # Wait for the specific database to be available
+  while ! pg_isready -h ${MOBILIZON_DATABASE_HOST} -p ${MOBILIZON_DATABASE_PORT:-5432} -U ${MOBILIZON_DATABASE_USERNAME} -d ${MOBILIZON_DATABASE_DBNAME}; do
+     echo "Waiting for database ${MOBILIZON_DATABASE_DBNAME} to be ready..."
+     sleep 2s
+  done
+fi
 
 # Check if dependencies need to be installed
 if [ ! -d "deps" ] || [ ! -d "deps/phoenix" ]; then
@@ -43,15 +46,25 @@ fi
 echo "-- Compiling Elixir assets..."
 mix compile
 
-echo "-- Creating database extensions..."
-PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
-PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
-PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS unaccent;'
+# Skip database setup in test mode (handled by mix prepare_test)
+if [ "$MIX_ENV" != "test" ]; then
+  echo "-- Creating database extensions..."
+  PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
+  PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS pg_trgm;'
+  PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d $MOBILIZON_DATABASE_DBNAME -h $MOBILIZON_DATABASE_HOST -p ${MOBILIZON_DATABASE_PORT:-5432} -c 'CREATE EXTENSION IF NOT EXISTS unaccent;'
 
-echo "-- Running migrations..."
-mix mobilizon.ecto.migrate
+  echo "-- Running migrations..."
+  mix mobilizon.ecto.migrate
+fi
 
-echo "-- Starting Phoenix server with Vite!"
-echo "-- Phoenix will be available at http://localhost:4000"
-echo "-- Vite dev server will run on port 5173 (proxied by Phoenix)"
-exec mix phx.server 
+# If no command is provided, start Phoenix server
+# Otherwise, execute the provided command
+if [ $# -eq 0 ]; then
+  echo "-- Starting Phoenix server with Vite!"
+  echo "-- Phoenix will be available at http://localhost:4000"
+  echo "-- Vite dev server will run on port 5173 (proxied by Phoenix)"
+  exec mix phx.server
+else
+  # Execute the provided command
+  exec "$@"
+fi 

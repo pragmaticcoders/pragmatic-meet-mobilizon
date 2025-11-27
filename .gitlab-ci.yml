@@ -113,6 +113,10 @@ exunit:
   variables:
     MIX_ENV: test
   before_script:
+    - apt update
+    - apt install -y --no-install-recommends imagemagick
+    - which identify || echo "identify command not found"
+    - identify -version || echo "identify failed to run"
     - mix deps.get
     - mix compile
     - mix tz_world.update

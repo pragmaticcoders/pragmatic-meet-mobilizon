@@ -27,9 +27,7 @@
       </div>
 
       <!-- Countdown display -->
-      <div class="countdown-text">
-        Retrying in {{ countdown }} seconds...
-      </div>
+      <div class="countdown-text">Retrying in {{ countdown }} seconds...</div>
 
       <!-- Cancel button -->
       <router-link to="/login" class="cancel-button">
@@ -40,78 +38,78 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
 
 // Reactive state
-const countdown = ref(0)
-const progressWidth = ref(0)
-const totalTime = ref(0)
+const countdown = ref(0);
+const progressWidth = ref(0);
+const totalTime = ref(0);
 
 // Timer reference
-let timer: NodeJS.Timeout | null = null
+let timer: NodeJS.Timeout | null = null;
 
 // Get parameters from URL
-const provider = route.query.provider as string
-const attempt = parseInt(route.query.attempt as string) || 1
-const delay = parseInt(route.query.delay as string) || 2
-const token = route.query.token as string
-const error = route.query.error as string
+const provider = route.query.provider as string;
+const attempt = parseInt(route.query.attempt as string) || 1;
+const delay = parseInt(route.query.delay as string) || 2;
+const token = route.query.token as string;
+const error = route.query.error as string;
 
 onMounted(() => {
-  console.log('LinkedIn retry handler mounted:', {
+  console.log("LinkedIn retry handler mounted:", {
     provider,
     attempt,
     delay,
-    token: token?.substring(0, 20) + '...',
-    error
-  })
+    token: token?.substring(0, 20) + "...",
+    error,
+  });
 
   // Initialize countdown
-  countdown.value = delay
-  totalTime.value = delay
-  progressWidth.value = 0
+  countdown.value = delay;
+  totalTime.value = delay;
+  progressWidth.value = 0;
 
   // Start countdown timer
   timer = setInterval(() => {
-    countdown.value--
-    progressWidth.value = ((totalTime.value - countdown.value) / totalTime.value) * 100
+    countdown.value--;
+    progressWidth.value =
+      ((totalTime.value - countdown.value) / totalTime.value) * 100;
 
     if (countdown.value <= 0) {
-      clearInterval(timer!)
-      progressWidth.value = 100
+      clearInterval(timer!);
+      progressWidth.value = 100;
 
       // Redirect to retry endpoint after countdown
       setTimeout(() => {
-        window.location.href = `/auth/retry/${provider}?token=${token}`
-      }, 500)
+        window.location.href = `/auth/retry/${provider}?token=${token}`;
+      }, 500);
     }
-  }, 1000)
-})
+  }, 1000);
+});
 
 onUnmounted(() => {
   if (timer) {
-    clearInterval(timer)
+    clearInterval(timer);
   }
-})
+});
 
 // Handle visibility change (pause timer when tab is hidden)
 const handleVisibilityChange = () => {
   if (document.hidden && timer) {
-    clearInterval(timer)
+    clearInterval(timer);
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('visibilitychange', handleVisibilityChange)
-})
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('visibilitychange', handleVisibilityChange)
-})
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
+});
 </script>
 
 <style scoped>
@@ -122,7 +120,7 @@ onUnmounted(() => {
   justify-content: center;
   padding: 1rem;
   background-color: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .retry-card {
@@ -189,8 +187,12 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .progress-container {
@@ -234,7 +236,7 @@ onUnmounted(() => {
   .retry-card {
     padding: 2rem 1rem;
   }
-  
+
   .title {
     font-size: 1.25rem;
   }

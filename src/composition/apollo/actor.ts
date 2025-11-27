@@ -15,7 +15,10 @@ export function useCurrentActorClient() {
     result: currentActorResult,
     error,
     loading,
-  } = useQuery<{ currentActor: IPerson }>(CURRENT_ACTOR_CLIENT, undefined, { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false });
+  } = useQuery<{ currentActor: IPerson }>(CURRENT_ACTOR_CLIENT, undefined, {
+    fetchPolicy: "cache-and-network",
+    notifyOnNetworkStatusChange: false,
+  });
   const currentActor = computed<IPerson | undefined>(
     () => currentActorResult.value?.currentActor
   );

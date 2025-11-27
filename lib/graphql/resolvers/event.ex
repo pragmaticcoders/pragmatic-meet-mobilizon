@@ -449,7 +449,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
             with {:ok, res} <- do_delete_event(event, actor, !is_local),
                  %Actor{} = actor <- Actors.get_actor(actor_id) do
               Admin.log_action(actor, "delete", event)
-
               {:ok, res}
             end
 

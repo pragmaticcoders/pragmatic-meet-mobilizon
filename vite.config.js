@@ -116,6 +116,9 @@ export default defineConfig(({ command }) => {
     },
     test: {
       environment: "jsdom",
+      cache: {
+        dir: path.resolve(__dirname, "./.vitest-cache"),
+      },
       resolve: {
         alias: {
           "@": path.resolve(__dirname, "./src"),

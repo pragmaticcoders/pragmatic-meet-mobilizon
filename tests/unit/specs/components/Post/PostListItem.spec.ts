@@ -1,11 +1,36 @@
 import { mount } from "@vue/test-utils";
 import PostListItem from "@/components/Post/PostListItem.vue";
-import { beforeEach, describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { enUS } from "date-fns/locale";
 import { routes } from "@/router";
 import { createRouter, createWebHistory, Router } from "vue-router";
 
+// Mock the useDefaultPicture composition
+vi.mock("@/composition/apollo/config", () => ({
+  useDefaultPicture: () => ({
+    defaultPicture: {
+      value: {
+        url: "/img/default.jpg",
+        metadata: {
+          blurhash: "MCHKI4El-P-U}+={R-WWoes,Iu-P=?R,xD",
+        },
+      },
+    },
+  }),
+}));
+
 let router: Router;
+
+// Mock IntersectionObserver for LazyImage component
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  disconnect() {}
+  observe() {}
+  takeRecords() {
+    return [];
+  }
+  unobserve() {}
+} as any;
 
 beforeEach(async () => {
   router = createRouter({
@@ -24,6 +49,11 @@ const postData = {
   insertedAt: "2020-12-02T09:01:20.873Z",
   tags: [],
   language: "en",
+  picture: {
+    id: "123",
+    url: "https://example.com/image.jpg",
+    alt: "Post image",
+  },
 };
 
 const generateWrapper = (

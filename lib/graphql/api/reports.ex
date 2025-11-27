@@ -77,24 +77,24 @@ defmodule Mobilizon.GraphQL.API.Reports do
         %Actor{id: moderator_id, user_id: user_id} = moderator,
         content
       ) do
-    %User{role: role} = Users.get_user!(user_id)
+    case Users.get_user(user_id) do
+      %User{role: role} when role in [:administrator, :moderator] ->
+        with {:ok, %Note{} = note} <-
+               Mobilizon.Reports.create_note(%{
+                 "report_id" => report_id,
+                 "moderator_id" => moderator_id,
+                 "content" => content
+               }) do
+          Admin.log_action(moderator, "create", note)
+          {:ok, note}
+        end
 
-    if role in [:administrator, :moderator] do
-      with {:ok, %Note{} = note} <-
-             Mobilizon.Reports.create_note(%{
-               "report_id" => report_id,
-               "moderator_id" => moderator_id,
-               "content" => content
-             }),
-           {:ok, _} <- Admin.log_action(moderator, "create", note) do
-        {:ok, note}
-      end
-    else
-      {:error,
-       dgettext(
-         "errors",
-         "You need to be a moderator or an administrator to create a note on a report"
-       )}
+      _ ->
+        {:error,
+         dgettext(
+           "errors",
+           "You need to be a moderator or an administrator to create a note on a report"
+         )}
     end
   end
 
@@ -108,21 +108,21 @@ defmodule Mobilizon.GraphQL.API.Reports do
         %Actor{id: moderator_id, user_id: user_id} = moderator
       ) do
     if note_moderator_id == moderator_id do
-      %User{role: role} = Users.get_user!(user_id)
+      case Users.get_user(user_id) do
+        %User{role: role} when role in [:administrator, :moderator] ->
+          with {:ok, %Note{} = note} <-
+                 Mobilizon.Reports.delete_note(note) do
+            Admin.log_action(moderator, "delete", note)
+            {:ok, note}
+          end
 
-      if role in [:administrator, :moderator] do
-        with {:ok, %Note{} = note} <-
-               Mobilizon.Reports.delete_note(note),
-             {:ok, _} <- Admin.log_action(moderator, "delete", note) do
-          {:ok, note}
+        _ ->
+          {:error,
+           dgettext(
+             "errors",
+             "You need to be a moderator or an administrator to create a note on a report"
+           )}
         end
-      else
-        {:error,
-         dgettext(
-           "errors",
-           "You need to be a moderator or an administrator to create a note on a report"
-         )}
-      end
     else
       {:error, dgettext("errors", "You can only remove your own notes")}
     end

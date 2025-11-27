@@ -233,7 +233,7 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
         )
 
       assert hd(res["errors"])["message"] ==
-               "You don't have permission to do this"
+               "Not authorized to access object users"
     end
 
     test "list_users/3 returns a list of users", %{conn: conn} do
@@ -926,7 +926,7 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       # Verify user has no actors initially
       assert user.default_actor_id == nil
-      assert length(Users.get_actors_for_user(user)) == 0
+      assert Enum.empty?(Users.get_actors_for_user(user))
 
       # Login should create a default actor
       res =

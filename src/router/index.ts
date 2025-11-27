@@ -152,7 +152,8 @@ export const routes = [
     meta: {
       requiredAuth: false,
       announcer: {
-        message: (): string => t("Retrying LinkedIn authentication...") as string,
+        message: (): string =>
+          t("Retrying LinkedIn authentication...") as string,
       },
     },
   },

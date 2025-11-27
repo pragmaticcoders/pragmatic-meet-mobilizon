@@ -141,7 +141,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Comment do
             with {:ok, res} <- do_delete_comment(comment, actor),
                  %Actor{} = actor <- Actors.get_actor(actor_id) do
               Admin.log_action(actor, "delete", comment)
-
               {:ok, res}
             end
 

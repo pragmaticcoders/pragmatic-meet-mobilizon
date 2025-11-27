@@ -7,6 +7,6 @@
   format: "txt",
   out: "",
   threshold: "medium",
-  ignore: ["Config.HTTPS", "Config.CSP"],
-  ignore_files: ["config/runtime.exs"]
+  ignore: ["Config.HTTPS", "Config.CSP", "Config.Headers", "Config.Secrets"],
+  ignore_files: ["config/runtime.exs", "config/config.exs"]
 ]

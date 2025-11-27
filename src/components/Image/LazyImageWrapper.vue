@@ -39,7 +39,9 @@ const pictureOrDefault = computed(() => {
       return {
         url: defaultPicture.value.url,
         metadata: {
-          blurhash: (defaultPicture.value as any).metadata?.blurhash || DEFAULT_BLURHASH,
+          blurhash:
+            (defaultPicture.value as any).metadata?.blurhash ||
+            DEFAULT_BLURHASH,
         },
       };
     }

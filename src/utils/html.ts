@@ -17,29 +17,39 @@ export const getValueFromMetaWithRetry = async (
 ): Promise<string | null> => {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     // Wait for DOM to be ready
-    if (document.readyState !== 'complete') {
+    if (document.readyState !== "complete") {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    
+
     const element = document.querySelector(`meta[name="${name}"]`);
     if (element && element.getAttribute("content")) {
       const content = element.getAttribute("content");
-      console.debug(`Found meta tag '${name}' on attempt ${attempt + 1}: ${content?.substring(0, 20)}...`);
+      console.debug(
+        `Found meta tag '${name}' on attempt ${attempt + 1}: ${content?.substring(0, 20)}...`
+      );
       return content;
     }
 
     // Progressive backoff: increase delay slightly with each attempt
-    const currentDelay = delayMs + (attempt * 50);
-    
+    const currentDelay = delayMs + attempt * 50;
+
     // Wait before next attempt
     if (attempt < maxRetries - 1) {
-      console.debug(`Meta tag '${name}' not found, retrying in ${currentDelay}ms (attempt ${attempt + 1}/${maxRetries})`);
+      console.debug(
+        `Meta tag '${name}' not found, retrying in ${currentDelay}ms (attempt ${attempt + 1}/${maxRetries})`
+      );
       await new Promise((resolve) => setTimeout(resolve, currentDelay));
     }
   }
 
-  console.error(`Meta tag '${name}' not found after ${maxRetries} attempts. Document state: ${document.readyState}`);
-  console.error(`Available meta tags: ${Array.from(document.querySelectorAll('meta[name]')).map(el => el.getAttribute('name')).join(', ')}`);
+  console.error(
+    `Meta tag '${name}' not found after ${maxRetries} attempts. Document state: ${document.readyState}`
+  );
+  console.error(
+    `Available meta tags: ${Array.from(document.querySelectorAll("meta[name]"))
+      .map((el) => el.getAttribute("name"))
+      .join(", ")}`
+  );
   return null;
 };
 

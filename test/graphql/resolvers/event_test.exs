@@ -482,7 +482,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
             organizer_actor_id: "#{actor.id}",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             tags: ["nicolas", "birthday", "bad tag"]
           }
         )
@@ -496,7 +496,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
                %{"slug" => "bad-tag", "title" => "bad tag"}
              ]
 
-      assert res["data"]["createEvent"]["category"] == "PARTY"
+      assert res["data"]["createEvent"]["category"] == "SOCIAL_ACTIVITIES"
     end
 
     test "create_event/3 creates an event with an address", %{
@@ -517,7 +517,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
             organizer_actor_id: "#{actor.id}",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             physicalAddress: %{
               street: "#{address.street}",
               locality: "#{address.locality}"
@@ -546,7 +546,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
             organizer_actor_id: "#{actor.id}",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             physicalAddress: %{
               id: "#{address_id}"
             }
@@ -580,7 +580,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           begins_on:
             "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
           organizer_actor_id: "#{actor.id}",
-          category: "PARTY",
+          category: "SOCIAL_ACTIVITIES",
           picture: %{
             media: %{
               name: "picture for my event",
@@ -670,7 +670,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
             organizer_actor_id: "#{actor.id}",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             picture: %{
               media_uuid: "#{media_uuid}"
             }
@@ -1052,7 +1052,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             tags: ["tag1_updated", "tag2_updated"],
             onlineAddress: "toto@example.com",
             phoneAddress: "0000000000",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             options: %{
               maximumAttendeeCapacity: 30,
               showRemainingAttendeeCapacity: true
@@ -1075,7 +1075,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       assert event_res["status"] == "TENTATIVE"
       assert event_res["online_address"] == "toto@example.com"
       assert event_res["phone_address"] == "0000000000"
-      assert event_res["category"] == "PARTY"
+      assert event_res["category"] == "SOCIAL_ACTIVITIES"
 
       assert event_res["options"]["maximumAttendeeCapacity"] == 30
       assert event_res["options"]["showRemainingAttendeeCapacity"] == true
@@ -1147,7 +1147,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "my event updated",
             description: "description updated",
             beginsOn: "#{begins_on}",
-            category: "PARTY",
+            category: "SOCIAL_ACTIVITIES",
             picture: %{
               media: %{
                 name: "picture for my event",

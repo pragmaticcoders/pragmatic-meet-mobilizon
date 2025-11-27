@@ -3,9 +3,7 @@
     <breadcrumbs-nav :links="breadcrumbsLinks" />
     <div v-if="identity" class="py-4">
       <h1 class="font-bold text-[28px] leading-[36px] text-[#1c1b1f] mb-8">
-        <span class="line-clamp-2">{{
-          displayName(identity)
-        }}</span>
+        <span class="line-clamp-2">{{ displayName(identity) }}</span>
       </h1>
 
       <!-- LinkedIn prefill notification -->
@@ -14,15 +12,15 @@
         class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm mb-6 rounded-md"
       >
         <div class="flex items-start">
-          <o-icon
-            icon="linkedin"
-            size="small"
-            class="mr-2 mt-0.5"
-          />
+          <o-icon icon="linkedin" size="small" class="mr-2 mt-0.5" />
           <div>
             <p class="font-medium">{{ t("Profile data from LinkedIn") }}</p>
             <p class="text-blue-600 text-xs mt-1">
-              {{ t("Your profile has been prefilled with information from your LinkedIn account. Please review and modify as needed.") }}
+              {{
+                t(
+                  "Your profile has been prefilled with information from your LinkedIn account. Please review and modify as needed."
+                )
+              }}
             </p>
           </div>
         </div>
@@ -178,7 +176,6 @@ import {
   FETCH_PERSON_OWNED,
   IDENTITIES,
   PERSON_FRAGMENT,
-  PERSON_FRAGMENT_FEED_TOKENS,
   UPDATE_PERSON,
   UPDATE_CURRENT_ACTOR_CLIENT,
 } from "@/graphql/actor";
@@ -187,26 +184,17 @@ import PictureUpload from "@/components/PictureUpload.vue";
 import { MOBILIZON_INSTANCE_HOST } from "@/api/_entrypoint";
 import RouteName from "@/router/name";
 import { buildFileFromIMedia, buildFileVariable } from "@/utils/image";
-import {
-  CREATE_FEED_TOKEN_ACTOR,
-  DELETE_FEED_TOKEN,
-} from "@/graphql/feed_tokens";
-import { IFeedToken } from "@/types/feedtoken.model";
 import { ServerParseError } from "@apollo/client/link/http";
 import { ApolloCache, FetchResult, InMemoryCache } from "@apollo/client/core";
 import pick from "lodash/pick";
 import { ActorType } from "@/types/enums";
 import { useRouter, useRoute } from "vue-router";
-import {
-  useCurrentActorClient,
-  useCurrentUserIdentities,
-} from "@/composition/apollo/actor";
-import { useMutation, useQuery, useApolloClient } from "@vue/apollo-composable";
+import { useCurrentActorClient } from "@/composition/apollo/actor";
+import { useMutation, useQuery } from "@vue/apollo-composable";
 import { useAvatarMaxSize } from "@/composition/config";
-import { computed, inject, reactive, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { convertToUsername } from "@/utils/username";
-import { Dialog } from "@/plugins/dialog";
 import { Notifier } from "@/plugins/notifier";
 import { AbsintheGraphQLErrors } from "@/types/errors.model";
 import { ICurrentUser } from "@/types/current-user.model";
@@ -223,9 +211,9 @@ const props = defineProps<{ isUpdate: boolean; identityName?: string }>();
 
 const { currentActor } = useCurrentActorClient();
 
-const { identities } = useCurrentUserIdentities();
-
-const { mutate: updateCurrentActorClient } = useMutation(UPDATE_CURRENT_ACTOR_CLIENT);
+const { mutate: updateCurrentActorClient } = useMutation(
+  UPDATE_CURRENT_ACTOR_CLIENT
+);
 
 const {
   result: personResult,
@@ -285,7 +273,6 @@ const avatarMaxSize = useAvatarMaxSize();
 
 const errors = ref<string[]>([]);
 const avatarFile = ref<File | null>(null);
-const showCopiedTooltip = reactive({ ics: false, atom: false });
 
 const isUpdate = computed(() => props.isUpdate);
 const identityName = computed(() => props.identityName);
@@ -348,18 +335,18 @@ watch(
 const submit = (): Promise<void> => {
   // Clear previous errors
   errors.value = [];
-  
+
   // Validate required fields
   const validationErrors: string[] = [];
-  
+
   if (!identity.value.name?.trim()) {
     validationErrors.push(t("Display name is required") as string);
   }
-  
+
   if (!identity.value.preferredUsername?.trim()) {
     validationErrors.push(t("Username is required") as string);
   }
-  
+
   if (validationErrors.length > 0) {
     errors.value = validationErrors;
     return Promise.resolve();
@@ -369,8 +356,6 @@ const submit = (): Promise<void> => {
 };
 
 const notifier = inject<Notifier>("notifier");
-
-const { resolveClient } = useApolloClient();
 
 const {
   mutate: updateIdentityMutation,
@@ -426,140 +411,6 @@ const handleErrors = (absintheErrors: AbsintheGraphQLErrors): void => {
 const getInstanceHost = computed((): string => {
   return MOBILIZON_INSTANCE_HOST;
 });
-
-const tokenToURL = (token: string, format: string): string => {
-  return `${window.location.origin}/events/going/${token}/${format}`;
-};
-
-const copyURL = (e: Event, url: string, format: "ics" | "atom"): void => {
-  if (navigator.clipboard) {
-    e.preventDefault();
-    navigator.clipboard.writeText(url);
-    showCopiedTooltip[format] = true;
-    setTimeout(() => {
-      showCopiedTooltip[format] = false;
-    }, 2000);
-  }
-};
-
-const generateFeedTokens = async (): Promise<void> => {
-  await createNewFeedToken({ actor_id: identity.value?.id });
-};
-
-const regenerateFeedTokens = async (): Promise<void> => {
-  if (identity.value?.feedTokens.length < 1) return;
-  await deleteFeedToken({ token: identity.value.feedTokens[0].token });
-  await createNewFeedToken(
-    { actor_id: identity.value?.id },
-    {
-      update(cache, { data }) {
-        const actorId = data?.createFeedToken.actor?.id;
-        const newFeedToken = data?.createFeedToken.token;
-
-        if (!newFeedToken) return;
-
-        let cachedData = cache.readFragment<{
-          id: string | undefined;
-          feedTokens: { token: string }[];
-        }>({
-          id: `Person:${actorId}`,
-          fragment: PERSON_FRAGMENT_FEED_TOKENS,
-        });
-        // Remove the old token
-        cachedData = {
-          id: cachedData?.id,
-          feedTokens: [
-            ...(cachedData?.feedTokens ?? []).slice(0, -1),
-            { token: newFeedToken },
-          ],
-        };
-        cache.writeFragment({
-          id: `Person:${actorId}`,
-          fragment: PERSON_FRAGMENT_FEED_TOKENS,
-          data: cachedData,
-        });
-      },
-    }
-  );
-};
-
-const { mutate: deleteFeedToken } = useMutation(DELETE_FEED_TOKEN);
-
-const { mutate: createNewFeedToken } = useMutation<{
-  createFeedToken: IFeedToken;
-}>(CREATE_FEED_TOKEN_ACTOR, () => ({
-  update(cache, { data }) {
-    const actorId = data?.createFeedToken.actor?.id;
-    const newFeedToken = data?.createFeedToken.token;
-
-    if (!newFeedToken) return;
-
-    let cachedData = cache.readFragment<{
-      id: string | undefined;
-      feedTokens: { token: string }[];
-    }>({
-      id: `Person:${actorId}`,
-      fragment: PERSON_FRAGMENT_FEED_TOKENS,
-    });
-    // Add the new token to the list
-    cachedData = {
-      id: cachedData?.id,
-      feedTokens: [...(cachedData?.feedTokens ?? []), { token: newFeedToken }],
-    };
-    cache.writeFragment({
-      id: `Person:${actorId}`,
-      fragment: PERSON_FRAGMENT_FEED_TOKENS,
-      data: cachedData,
-    });
-  },
-}));
-
-const dialog = inject<Dialog>("dialog");
-
-const openRegenerateFeedTokensConfirmation = (): void => {
-  dialog?.confirm({
-    variant: "warning",
-    title: t("Regenerate new links") as string,
-    message: t(
-      "You'll need to change the URLs where there were previously entered."
-    ) as string,
-    confirmText: t("Regenerate new links") as string,
-    cancelText: t("Cancel") as string,
-    onConfirm: () => regenerateFeedTokens(),
-  });
-};
-
-const openDeleteIdentityConfirmation = (): void => {
-  dialog?.prompt({
-    variant: "danger",
-    title: t("Delete your identity") as string,
-    message: `${t(
-      "This will delete / anonymize all content (events, comments, messages, participations…) created from this identity."
-    )}
-            <br /><br />
-            ${t(
-              "If this identity is the only administrator of some groups, you need to delete them before being able to delete this identity."
-            )}
-            ${t(
-              "Otherwise this identity will just be removed from the group administrators."
-            )}
-            <br /><br />
-            ${t(
-              'To confirm, type your identity username "{preferredUsername}"',
-              {
-                preferredUsername: identity.value.preferredUsername,
-              }
-            )}`,
-    confirmText: t("Delete {preferredUsername}", {
-      preferredUsername: identity.value.preferredUsername,
-    }),
-    inputAttrs: {
-      placeholder: identity.value.preferredUsername,
-      pattern: identity.value.preferredUsername,
-    },
-    onConfirm: () => deleteIdentity(),
-  });
-};
 
 const handleError = (err: any) => {
   console.error(err);

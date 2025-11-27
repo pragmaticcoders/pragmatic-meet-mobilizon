@@ -37,6 +37,7 @@ defmodule Mobilizon.GraphQL.Resolvers.AdminTest do
     """
 
     @note_content "This a note on a report"
+
     test "list_action_logs/3 list action logs", %{conn: conn} do
       %User{} = user_moderator = insert(:user, role: :moderator)
       %Actor{} = moderator = insert(:actor, user: user_moderator)

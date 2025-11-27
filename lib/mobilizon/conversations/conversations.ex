@@ -333,7 +333,9 @@ defmodule Mobilizon.Conversations do
          # Conversation is not updated
          %Comment{} = comment <- Repo.preload(comment, @comment_preloads) do
       # Send email notifications to other participants
-      notify_conversation_participants(conversation, comment, attrs.actor_id)
+      # Preload conversation participants for notification
+      conversation_with_participants = Repo.preload(conversation, [participants: [:user]])
+      notify_conversation_participants(conversation_with_participants, comment, attrs.actor_id)
 
       {:ok, %Conversation{conversation | last_comment: comment}}
     end
