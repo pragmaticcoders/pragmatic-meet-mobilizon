@@ -47,7 +47,6 @@ defmodule Mobilizon do
         # workers
         Guardian.DB.Sweeper,
         ActivityPub.Federator,
-        TzWorld.Backend.DetsWithIndexCache,
         cachex_spec(:feed, 2500, 60, 60, &Feed.create_cache/1),
         cachex_spec(:ics, 2500, 60, 60, &ICalendar.create_cache/1),
         cachex_spec(
@@ -67,6 +66,14 @@ defmodule Mobilizon do
         }
       ] ++
         task_children(@env)
+
+    # Only add TzWorld if timezone geodata file exists and is valid
+    children =
+      if timezone_data_available?() do
+        children ++ [TzWorld.Backend.DetsWithIndexCache]
+      else
+        children
+      end
 
     children =
       if Mobilizon.PythonPort.python_exists?() do
@@ -132,6 +139,18 @@ defmodule Mobilizon do
 
   defp task_children(:test), do: []
   defp task_children(_), do: [relay_actor(), anonymous_actor(), render_error_page()]
+
+  # Check if timezone geodata file exists and is valid
+  # This prevents the app from crashing if TzWorld data is not available
+  @spec timezone_data_available?() :: boolean
+  defp timezone_data_available? do
+    data_dir = Application.get_env(:tz_world, :data_dir, "/var/lib/mobilizon/timezones")
+    geodata_file = Path.join(data_dir, "timezones-geodata.dets")
+    
+    File.exists?(geodata_file) && File.stat!(geodata_file).size > 100
+  rescue
+    _ -> false
+  end
 
   defp relay_actor do
     %{

@@ -21,6 +21,12 @@ PGPASSWORD=$MOBILIZON_DATABASE_PASSWORD psql -U $MOBILIZON_DATABASE_USERNAME -d 
 echo "-- Running migrations..."
 /bin/mobilizon_ctl migrate
 
+# Seed E2E test data if in E2E environment
+if [ "$MOBILIZON_ENV" = "e2e" ]; then
+  echo "-- Seeding E2E test data..."
+  MOBILIZON_CTL_RPC_DISABLED=true /bin/mobilizon_ctl eval 'Application.put_env(:mobilizon, :env, :e2e); Code.eval_file("priv/repo/e2e.seed.exs")' || echo "Warning: E2E seed failed, continuing anyway"
+fi
+
 #echo "-- Running admin commands..."
 # NOTE: CLI commands must use eval mode during startup (RPC mode fails on running containers)
 # WORKAROUND: Add CLI commands here with MOBILIZON_CTL_RPC_DISABLED=true for distributed Erlang issue
