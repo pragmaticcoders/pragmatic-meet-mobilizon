@@ -562,6 +562,7 @@
       <o-modal
         v-model:active="showMap"
         :close-button-aria-label="t('Close')"
+        :close-icon="null"
         class="map-modal"
         v-if="event?.physicalAddress?.geom"
         has-modal-card
