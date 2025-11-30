@@ -24,7 +24,14 @@ echo "-- Running migrations..."
 # Seed E2E test data if in E2E environment
 if [ "$MOBILIZON_ENV" = "e2e" ]; then
   echo "-- Seeding E2E test data..."
-  MOBILIZON_CTL_RPC_DISABLED=true /bin/mobilizon_ctl eval 'Application.put_env(:mobilizon, :env, :e2e); Code.eval_file("priv/repo/e2e.seed.exs")' || echo "Warning: E2E seed failed, continuing anyway"
+  echo "-- Creating test users: user@email.com, confirmed@email.com, unconfirmed@email.com"
+  if /bin/mobilizon eval 'Application.put_env(:mobilizon, :env, :e2e); Application.ensure_all_started(:mobilizon); Code.eval_string(File.read!("priv/repo/e2e.seed.exs"))'; then
+    echo "-- E2E test data seeded successfully"
+  else
+    echo "ERROR: E2E seed failed! Test users were not created."
+    echo "This will cause e2e tests to fail. Check the error above."
+    exit 1
+  fi
 fi
 
 #echo "-- Running admin commands..."

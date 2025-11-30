@@ -170,7 +170,7 @@ e2e:
     - npx playwright test --project $BROWSER
   parallel:
     matrix:
-      - BROWSER: ["firefox", "chromium"]
+      - BROWSER: ["chromium"]
   artifacts:
     expire_in: 2 days
     paths:

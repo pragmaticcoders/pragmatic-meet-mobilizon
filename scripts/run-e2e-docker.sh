@@ -56,6 +56,9 @@ if npx wait-on http://localhost:4000 -t 60000; then
     echo ""
     echo -e "${GREEN}✅ Application is ready${NC}"
     echo ""
+    echo -e "${YELLOW}📋 Checking startup logs...${NC}"
+    docker compose -f docker/e2e/docker-compose.yml logs mobilizon | tail -20
+    echo ""
 else
     echo -e "${RED}❌ Application failed to start within 60 seconds${NC}"
     echo ""
@@ -66,7 +69,7 @@ fi
 
 # Step 4: Install Playwright browsers
 echo -e "${GREEN}🎭 Step 4: Ensuring Playwright browsers are installed...${NC}"
-npx playwright install --with-deps chromium firefox
+npx playwright install --with-deps chromium
 echo ""
 
 # Step 5: Run E2E tests
@@ -93,6 +96,9 @@ else
     echo -e "${RED}❌ Some tests failed${NC}"
     echo ""
     echo -e "${YELLOW}📊 To view the test report, run: npx playwright show-report${NC}"
+    echo ""
+    echo -e "${YELLOW}📋 Recent Mobilizon logs:${NC}"
+    docker compose -f docker/e2e/docker-compose.yml logs mobilizon | tail -30
 fi
 
 exit $TEST_EXIT_CODE

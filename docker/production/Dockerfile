@@ -79,6 +79,8 @@ ENV MOBILIZON_DOCKER=true
 ENV MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
 
 COPY --from=builder --chown=nobody:nobody _build/prod/rel/mobilizon ./
+# Copy e2e seed file for e2e testing
+COPY --chown=nobody:nobody priv/repo/e2e.seed.exs ./priv/repo/e2e.seed.exs
 RUN cp /releases/*/runtime.exs /etc/mobilizon/config.exs
 # Fix execute permissions on mobilizon_ctl script
 RUN chmod +x /bin/mobilizon_ctl
