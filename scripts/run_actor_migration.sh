@@ -114,7 +114,7 @@ print_header "Step 4: Running Dry-Run (Preview)"
 print_info "This shows what WOULD be done without making changes..."
 echo ""
 
-if docker exec "$CONTAINER_NAME" bin/mobilizon eval "Mix.Tasks.Mobilizon.Users.FixMissingActors.run(['--dry-run'])"; then
+if docker exec "$CONTAINER_NAME" bin/mobilizon eval 'Mix.Tasks.Mobilizon.Users.FixMissingActors.run(["--dry-run"])'; then
   print_success "Dry-run completed successfully"
 else
   print_error "Dry-run failed!"
@@ -145,7 +145,7 @@ print_header "Step 6: Running Migration"
 print_info "Applying changes to database..."
 echo ""
 
-if docker exec "$CONTAINER_NAME" bin/mobilizon eval "Mix.Tasks.Mobilizon.Users.FixMissingActors.run([])"; then
+if docker exec "$CONTAINER_NAME" bin/mobilizon eval 'Mix.Tasks.Mobilizon.Users.FixMissingActors.run([])'; then
   print_success "Migration completed successfully!"
 else
   print_error "Migration failed!"
