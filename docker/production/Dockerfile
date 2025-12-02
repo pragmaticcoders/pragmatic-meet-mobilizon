@@ -33,7 +33,6 @@ COPY config/config.exs config/prod.exs ./config/
 COPY config/docker.exs ./config/runtime.exs
 COPY rel ./rel
 COPY support ./support
-COPY scripts ./scripts
 COPY --from=assets /build/priv/static ./priv/static
 
 RUN mix phx.digest.clean --all && mix phx.digest && mix release
@@ -81,6 +80,9 @@ ENV MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
 COPY --from=builder --chown=nobody:nobody _build/prod/rel/mobilizon ./
 # Copy e2e seed file for e2e testing
 COPY --chown=nobody:nobody priv/repo/e2e.seed.exs ./priv/repo/e2e.seed.exs
+# Copy scripts directory for migration scripts
+COPY --chown=nobody:nobody scripts ./scripts
+RUN chmod +x ./scripts/*.sh
 RUN cp /releases/*/runtime.exs /etc/mobilizon/config.exs
 # Fix execute permissions on mobilizon_ctl script
 RUN chmod +x /bin/mobilizon_ctl
