@@ -68,8 +68,11 @@ defmodule Mobilizon.Web.AuthController do
           %{message_key: "OAuth2", message: message} ->
             "OAuth2: #{message}"
 
-          _ ->
-            "#{error.message_key}: #{error.message}"
+          %{message_key: key, message: message} ->
+            "#{key}: #{message}"
+
+          %{message: message} ->
+            message
         end
       end)
       |> Enum.join(", ")
