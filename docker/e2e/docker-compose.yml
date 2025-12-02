@@ -18,7 +18,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   mobilizon:
-    image: mobilizon-e2e:local
+    image: ${MOBILIZON_E2E_IMAGE:-mobilizon-e2e:local}
     ports:
       - "4000:4000"
     environment:

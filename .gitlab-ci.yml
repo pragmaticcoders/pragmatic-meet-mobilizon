@@ -43,6 +43,10 @@ cache:
 # It saves minutes during a pipeline build time
 install:
   stage: install
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   script:
     - npm ci
     - mix deps.get
@@ -50,6 +54,10 @@ install:
 
 lint-elixir:
   stage: check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   before_script:
     - mix deps.get
   script:
@@ -68,6 +76,10 @@ lint-elixir:
 lint-front:
   image: node:20
   stage: check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   before_script:
     - export EXITVALUE=0
     - npm ci
@@ -79,6 +91,10 @@ lint-front:
 build-frontend:
   stage: build-js
   image: node:20
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   before_script:
     - apt update
     - apt install -y --no-install-recommends python3 build-essential webp imagemagick gifsicle jpegoptim optipng pngquant
@@ -90,10 +106,15 @@ build-frontend:
     paths:
       - priv/static
   needs:
-    - lint-front
+    - job: lint-front
+      optional: true
 
 deps:
   stage: check
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   before_script:
     - mix deps.get
   script:
@@ -103,10 +124,15 @@ deps:
     - exit $EXITVALUE
   allow_failure: true
   needs:
-    - install
+    - job: install
+      optional: true
 
 exunit:
   stage: test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   services:
     - name: postgis/postgis:16-3.4
       alias: postgres
@@ -133,8 +159,13 @@ exunit:
 
 vitest:
   stage: test
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - when: on_success
   needs:
-    - lint-front
+    - job: lint-front
+      optional: true
   before_script:
     - npm install --frozen-lockfile
   script:
@@ -148,31 +179,75 @@ vitest:
         - junit.xml
     expire_in: 30 days
 
-e2e:
+# E2E tests for PRs using Docker (image built locally, not pushed)
+e2e-docker-pr:
   stage: test
-  except:
-    - tags@kaihuri/mobilizon
+  image: docker:24
   services:
-    - name: postgis/postgis:16-3.4
-      alias: postgres
+    - docker:24-dind
   variables:
-    MIX_ENV: "e2e"
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    MOBILIZON_E2E_IMAGE: "mobilizon-e2e:ci-${CI_COMMIT_SHORT_SHA}"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  needs:
+    - build-docker-pr
+  tags:
+    - "privileged"
   before_script:
-    - mix deps.get
-    - mix ecto.create
-    - mix ecto.migrate
-    - mix run priv/repo/e2e.seed.exs
-    - npm install && npm run build && npx playwright install
-    - mix phx.digest
+    - apk add --no-cache nodejs npm
   script:
-    - mix phx.server &
-    - npx wait-on http://localhost:4000
-    - npx playwright test --project $BROWSER
-  parallel:
-    matrix:
-      - BROWSER: ["chromium"]
+    - docker compose -f docker/e2e/docker-compose.yml up -d
+    - npx wait-on http://localhost:4000 -t 120000 || (docker compose -f docker/e2e/docker-compose.yml logs && exit 1)
+    - npx playwright install --with-deps chromium
+    - npx playwright test --project chromium
+  after_script:
+    - docker compose -f docker/e2e/docker-compose.yml down -v
   artifacts:
     expire_in: 2 days
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+
+# E2E tests for main branch using Docker (image pulled from registry)
+e2e-docker-main:
+  stage: test
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_VERIFY: 1
+    DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+    MOBILIZON_E2E_IMAGE: "kaihuri/mobilizon:main"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+      when: never
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+  needs:
+    - build-docker-main
+  tags:
+    - "privileged"
+  before_script:
+    - apk add --no-cache nodejs npm
+    - mkdir -p ~/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"auth\":\"$CI_REGISTRY_AUTH\",\"email\":\"$CI_REGISTRY_EMAIL\"}}}" > ~/.docker/config.json
+    - docker pull kaihuri/mobilizon:main
+  script:
+    - docker compose -f docker/e2e/docker-compose.yml up -d
+    - npx wait-on http://localhost:4000 -t 120000 || (docker compose -f docker/e2e/docker-compose.yml logs && exit 1)
+    - npx playwright install --with-deps chromium
+    - npx playwright test --project chromium
+  after_script:
+    - docker compose -f docker/e2e/docker-compose.yml down -v
+  artifacts:
+    expire_in: 2 days
+    when: always
     paths:
       - playwright-report/
       - test-results/
@@ -227,14 +302,24 @@ pages:
   tags:
     - "privileged"
 
+# Build Docker image for PRs (without push) - used for E2E testing
+build-docker-pr:
+  <<: *docker
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - docker buildx build --load --platform linux/amd64 -t mobilizon-e2e:ci-${CI_COMMIT_SHORT_SHA} -f docker/production/Dockerfile .
+
 build-docker-main:
   <<: *docker
   rules:
     - if: '$CI_PROJECT_NAMESPACE != "kaihuri"'
       when: never
-    - if: '$CI_PIPELINE_SOURCE == "schedule" || $CI_PIPELINE_TRIGGERED == "true"'
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "trigger" && $CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
   script:
-    - docker buildx build --platform linux/amd64 -t kaihuri/mobilizon:main -f docker/production/Dockerfile .
+    - docker buildx build --push --platform linux/amd64 -t kaihuri/mobilizon:main -f docker/production/Dockerfile .
 
 build-docker-tag:
   <<: *docker
