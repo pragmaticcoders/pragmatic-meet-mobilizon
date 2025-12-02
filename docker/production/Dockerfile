@@ -33,7 +33,6 @@ COPY config/config.exs config/prod.exs ./config/
 COPY config/docker.exs ./config/runtime.exs
 COPY rel ./rel
 COPY support ./support
-COPY scripts ./scripts
 COPY --from=assets /build/priv/static ./priv/static
 
 RUN mix phx.digest.clean --all && mix phx.digest && mix release
@@ -67,10 +66,11 @@ RUN mkdir -p /var/lib/mobilizon/uploads/exports/{csv,pdf,ods} && chown -R nobody
 # Create configuration directory
 RUN mkdir -p /etc/mobilizon && chown nobody:nobody /etc/mobilizon
 
-USER nobody
+# Copy and set permissions for mobilizon-admin (must be done as root)
+COPY docker/production/mobilizon-admin /usr/local/bin/
+RUN chmod +x /usr/local/bin/mobilizon-admin
 
-# Get timezone geodata
-RUN curl -L 'https://packages.joinmobilizon.org/tz_world/timezones-geodata.dets' -o /var/lib/mobilizon/timezones/timezones-geodata.dets
+USER nobody
 
 EXPOSE 4000
 
@@ -78,10 +78,15 @@ ENV MOBILIZON_DOCKER=true
 ENV MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
 
 COPY --from=builder --chown=nobody:nobody _build/prod/rel/mobilizon ./
+# Copy e2e seed file for e2e testing
+COPY --chown=nobody:nobody priv/repo/e2e.seed.exs ./priv/repo/e2e.seed.exs
+# Copy scripts directory for migration scripts
+COPY --chown=nobody:nobody scripts ./scripts
+RUN chmod +x ./scripts/*.sh
 RUN cp /releases/*/runtime.exs /etc/mobilizon/config.exs
 # Fix execute permissions on mobilizon_ctl script
 RUN chmod +x /bin/mobilizon_ctl
-COPY docker/production/docker-entrypoint.sh ./
-COPY --chmod=755 docker/production/mobilizon-admin /usr/local/bin/
+COPY --chown=nobody:nobody docker/production/docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

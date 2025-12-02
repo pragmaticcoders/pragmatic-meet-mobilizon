@@ -19,7 +19,7 @@ cleanup() {
     if [ "$SERVICES_STARTED" = true ]; then
         echo ""
         echo -e "${YELLOW}🧹 Cleaning up...${NC}"
-        docker-compose -f docker/e2e/docker-compose.yml down -v 2>/dev/null || true
+        docker compose -f docker/e2e/docker-compose.yml down -v 2>/dev/null || true
     fi
     exit $exit_code
 }
@@ -40,7 +40,7 @@ fi
 
 # Step 2: Start services
 echo -e "${GREEN}🚀 Step 2: Starting services...${NC}"
-if docker-compose -f docker/e2e/docker-compose.yml up -d; then
+if docker compose -f docker/e2e/docker-compose.yml up -d; then
     SERVICES_STARTED=true
     echo ""
     echo -e "${GREEN}✅ Services started${NC}"
@@ -56,20 +56,21 @@ if npx wait-on http://localhost:4000 -t 60000; then
     echo ""
     echo -e "${GREEN}✅ Application is ready${NC}"
     echo ""
+    echo -e "${YELLOW}📋 Checking startup logs...${NC}"
+    docker compose -f docker/e2e/docker-compose.yml logs mobilizon | tail -20
+    echo ""
 else
     echo -e "${RED}❌ Application failed to start within 60 seconds${NC}"
     echo ""
     echo "Docker logs:"
-    docker-compose -f docker/e2e/docker-compose.yml logs mobilizon
+    docker compose -f docker/e2e/docker-compose.yml logs mobilizon
     exit 1
 fi
 
-# Step 4: Install Playwright browsers if needed
-if [ ! -d "$HOME/.cache/ms-playwright" ]; then
-    echo -e "${GREEN}🎭 Step 4: Installing Playwright browsers...${NC}"
-    npx playwright install --with-deps
-    echo ""
-fi
+# Step 4: Install Playwright browsers
+echo -e "${GREEN}🎭 Step 4: Ensuring Playwright browsers are installed...${NC}"
+npx playwright install --with-deps chromium
+echo ""
 
 # Step 5: Run E2E tests
 echo -e "${GREEN}🧪 Step 5: Running E2E tests...${NC}"
@@ -84,7 +85,7 @@ TEST_EXIT_CODE=$?
 if [ "$SERVICES_STARTED" = true ]; then
     echo ""
     echo -e "${YELLOW}🧹 Cleaning up...${NC}"
-    docker-compose -f docker/e2e/docker-compose.yml down -v 2>/dev/null || true
+    docker compose -f docker/e2e/docker-compose.yml down -v 2>/dev/null || true
 fi
 
 if [ $TEST_EXIT_CODE -eq 0 ]; then
@@ -95,6 +96,9 @@ else
     echo -e "${RED}❌ Some tests failed${NC}"
     echo ""
     echo -e "${YELLOW}📊 To view the test report, run: npx playwright show-report${NC}"
+    echo ""
+    echo -e "${YELLOW}📋 Recent Mobilizon logs:${NC}"
+    docker compose -f docker/e2e/docker-compose.yml logs mobilizon | tail -30
 fi
 
 exit $TEST_EXIT_CODE

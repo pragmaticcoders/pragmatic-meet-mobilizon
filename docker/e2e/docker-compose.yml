@@ -31,6 +31,7 @@ services:
       MOBILIZON_DATABASE_PORT: 5432
       MOBILIZON_INSTANCE_REGISTRATIONS_OPEN: "true"
       MOBILIZON_INSTANCE_EMAIL: "noreply@mobilizon.test"
+      MOBILIZON_ENV: "e2e"
     depends_on:
       postgres:
         condition: service_healthy

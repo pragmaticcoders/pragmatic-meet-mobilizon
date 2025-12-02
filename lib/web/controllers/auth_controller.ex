@@ -154,6 +154,8 @@ defmodule Mobilizon.Web.AuthController do
       end
 
     with %User{} = user <- user,
+         # Update sign-in tracking information for OAuth logins
+         user <- update_oauth_login_information(user, conn),
          {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
            Authenticator.generate_tokens(user) do
       Logger.info("Successfully logged in user \"#{email}\" through #{strategy}")
@@ -324,6 +326,9 @@ defmodule Mobilizon.Web.AuthController do
 
   # Helper function to complete LinkedIn authentication with tokens
   defp complete_linkedin_authentication(conn, user, username, name, intent \\ "register", redirect_path \\ nil) do
+    # Update sign-in tracking information
+    user = update_oauth_login_information(user, conn)
+    
     case Authenticator.generate_tokens(user) do
       {:ok, %{access_token: access_token, refresh_token: refresh_token}} ->
         Logger.info("Successfully generated tokens for user \"#{user.email}\" through linkedin")
@@ -770,6 +775,56 @@ defmodule Mobilizon.Web.AuthController do
       {:error, reason} ->
         Logger.error("Invalid retry token for #{provider_name}: #{inspect(reason)}")
         redirect_to_error(conn, :invalid_token, provider_name)
+    end
+  end
+
+  @doc """
+  Updates user login tracking information (current_sign_in_at, last_sign_in_at, and IP addresses)
+  for OAuth logins. This ensures OAuth users are counted in active user statistics.
+  """
+  @spec update_oauth_login_information(User.t(), Plug.Conn.t()) :: User.t()
+  defp update_oauth_login_information(
+         %User{current_sign_in_at: current_sign_in_at, current_sign_in_ip: current_sign_in_ip} = user,
+         conn
+       ) do
+    current_ip = get_client_ip(conn)
+    now = DateTime.utc_now()
+
+    case Users.update_user(user, %{
+           last_sign_in_at: current_sign_in_at || now,
+           last_sign_in_ip: current_sign_in_ip || current_ip,
+           current_sign_in_ip: current_ip,
+           current_sign_in_at: now
+         }) do
+      {:ok, updated_user} ->
+        Logger.debug("Updated OAuth login information for user #{user.email}")
+        updated_user
+
+      {:error, changeset} ->
+        Logger.error("Failed to update OAuth login information for user #{user.email}: #{inspect(changeset)}")
+        # Return original user if update fails to not block the login flow
+        user
+    end
+  end
+
+  @spec get_client_ip(Plug.Conn.t()) :: String.t() | nil
+  defp get_client_ip(conn) do
+    # Try to get real IP from forwarded headers first (for proxied requests)
+    case Plug.Conn.get_req_header(conn, "x-forwarded-for") do
+      [ip | _] ->
+        # Take the first IP in the chain (original client)
+        ip
+        |> String.split(",")
+        |> List.first()
+        |> String.trim()
+
+      [] ->
+        # Fall back to remote_ip from conn
+        case conn.remote_ip do
+          {a, b, c, d} -> "#{a}.#{b}.#{c}.#{d}"
+          {a, b, c, d, e, f, g, h} -> "#{a}:#{b}:#{c}:#{d}:#{e}:#{f}:#{g}:#{h}"
+          _ -> nil
+        end
     end
   end
 
