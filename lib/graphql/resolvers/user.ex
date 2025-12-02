@@ -266,20 +266,20 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   """
   @spec validate_user(map(), %{token: String.t()}, map()) :: {:ok, map()} | {:error, String.t()}
   def validate_user(_parent, %{token: token}, _resolution) do
-    case Email.User.check_confirmation_token(token) do
-      {:ok, %User{} = user} ->
-        actor = Users.get_actor_for_user(user)
+    with {:ok, %User{} = user} <- Email.User.check_confirmation_token(token),
+         {:ok, %User{} = user} <- ensure_user_has_default_actor(user) do
+      actor = Users.get_actor_for_user(user)
 
-        {:ok, %{access_token: access_token, refresh_token: refresh_token}} =
-          Authenticator.generate_tokens(user)
+      {:ok, %{access_token: access_token, refresh_token: refresh_token}} =
+        Authenticator.generate_tokens(user)
 
-        {:ok,
-         %{
-           access_token: access_token,
-           refresh_token: refresh_token,
-           user: Map.put(user, :default_actor, actor)
-         }}
-
+      {:ok,
+       %{
+         access_token: access_token,
+         refresh_token: refresh_token,
+         user: Map.put(user, :default_actor, actor)
+       }}
+    else
       {:error, :invalid_token} ->
         Logger.info("Invalid token #{token} to validate user")
         {:error, dgettext("errors", "Unable to validate user")}
@@ -287,6 +287,10 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
       {:error, %Ecto.Changeset{} = err} ->
         Logger.info("Unable to validate user with token #{token}")
         Logger.debug(inspect(err))
+        {:error, dgettext("errors", "Unable to validate user")}
+
+      {:error, error} ->
+        Logger.error("Failed to ensure user has default actor during validation: #{inspect(error)}")
         {:error, dgettext("errors", "Unable to validate user")}
     end
   end
