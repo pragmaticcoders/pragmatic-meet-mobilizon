@@ -232,10 +232,10 @@ jobs:
           echo "Waiting for application to be ready..."
           npx wait-on http://localhost:4000 -t 120000 || (docker compose -f docker/e2e/docker-compose.yml logs && exit 1)
 
-      - name: Install Playwright browsers
-        uses: microsoft/playwright-github-action@v1
+      - name: Install Playwright system dependencies
+        run: npx playwright install-deps chromium
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright Chromium browser
         run: npx playwright install chromium
 
       - name: Run E2E tests
@@ -303,10 +303,10 @@ jobs:
           echo "Waiting for application to be ready..."
           npx wait-on http://localhost:4000 -t 120000 || (docker compose -f docker/e2e/docker-compose.yml logs && exit 1)
 
-      - name: Install Playwright browsers
-        uses: microsoft/playwright-github-action@v1
+      - name: Install Playwright system dependencies
+        run: npx playwright install-deps chromium
 
-      - name: Install Playwright Chromium
+      - name: Install Playwright Chromium browser
         run: npx playwright install chromium
 
       - name: Run E2E tests
