@@ -205,5 +205,3 @@ else
 fi
 
 echo ""
-print_info "For more details, see docs/DOCKER_MIGRATION_GUIDE.md"
-echo ""
