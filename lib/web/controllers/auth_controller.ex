@@ -253,7 +253,7 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  defp process_linkedin_user(conn, user_info, _token, intent \\ "register", redirect_path \\ nil) do
+  defp process_linkedin_user(conn, user_info, _token, intent, redirect_path) do
     email = user_info["email"]
     name = user_info["name"] || user_info["given_name"] || email
     username = generate_username_from_linkedin(name, user_info, email)
@@ -309,7 +309,7 @@ defmodule Mobilizon.Web.AuthController do
 
           _ ->
             # Unknown intent - default to registration for backward compatibility
-            Logger.warn("Unknown intent #{intent} for #{email} - defaulting to registration")
+            Logger.warning("Unknown intent #{intent} for #{email} - defaulting to registration")
 
             case create_user_with_linkedin_profile(email, user_info) do
               {:ok, %User{} = user} ->
@@ -325,7 +325,7 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # Helper function to complete LinkedIn authentication with tokens
-  defp complete_linkedin_authentication(conn, user, username, name, intent \\ "register", redirect_path \\ nil) do
+  defp complete_linkedin_authentication(conn, user, username, name, intent, redirect_path) do
     # Update sign-in tracking information
     user = update_oauth_login_information(user, conn)
     
@@ -340,7 +340,7 @@ defmodule Mobilizon.Web.AuthController do
               case {intent, user.default_actor_id} do
                 {"login", nil} ->
                   # Login but no actor - this should not happen after our fixes, but redirect to identity creation as fallback
-                  Logger.warn("LinkedIn login for user #{user.email} with no default actor - redirecting to identity creation")
+                  Logger.warning("LinkedIn login for user #{user.email} with no default actor - redirecting to identity creation")
                   "/identity/create?source=linkedin"
                 
                 {"login", _actor_id} ->
@@ -359,7 +359,7 @@ defmodule Mobilizon.Web.AuthController do
 
                     nil ->
                       # Fallback if actor lookup fails - redirect to create
-                      Logger.warn("Actor #{user.default_actor_id} not found for user #{user.email} - redirecting to identity creation")
+                      Logger.warning("Actor #{user.default_actor_id} not found for user #{user.email} - redirecting to identity creation")
                       "/identity/create?source=linkedin"
                   end
               end
@@ -587,7 +587,7 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # CSRF state management using signed tokens (no session required)
-  defp generate_csrf_state(intent \\ "register", redirect_path \\ nil) do
+  defp generate_csrf_state(intent, redirect_path) do
     timestamp = System.system_time(:second)
 
     data = %{
@@ -778,10 +778,8 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  @doc """
-  Updates user login tracking information (current_sign_in_at, last_sign_in_at, and IP addresses)
-  for OAuth logins. This ensures OAuth users are counted in active user statistics.
-  """
+  # Updates user login tracking information (current_sign_in_at, last_sign_in_at, and IP addresses)
+  # for OAuth logins. This ensures OAuth users are counted in active user statistics.
   @spec update_oauth_login_information(User.t(), Plug.Conn.t()) :: User.t()
   defp update_oauth_login_information(
          %User{current_sign_in_at: current_sign_in_at, current_sign_in_ip: current_sign_in_ip} = user,

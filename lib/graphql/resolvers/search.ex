@@ -19,7 +19,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Search do
       ) do
     # Regular users can only search public profiles for privacy
     # Administrators and moderators can search private profiles if needed
-    current_user = Map.get(context, :current_user)
+    _current_user = Map.get(context, :current_user)
     current_actor = Map.get(context, :current_actor)
 
     minimum_visibility = :private

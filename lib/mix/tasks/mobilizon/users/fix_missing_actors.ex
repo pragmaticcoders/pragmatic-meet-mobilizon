@@ -46,7 +46,7 @@ defmodule Mix.Tasks.Mobilizon.Users.FixMissingActors do
 
     shell_info("Found #{length(users_without_actors)} user(s) without default actors\n")
 
-    if length(users_without_actors) == 0 do
+    if Enum.empty?(users_without_actors) do
       shell_info("✅ All users have actors - nothing to fix!")
       :ok
     else

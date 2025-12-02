@@ -6,7 +6,6 @@ defmodule Mix.Tasks.Mobilizon.Users.ExportCsv do
   use Mix.Task
   import Mix.Tasks.Mobilizon.Common
   import Ecto.Query
-  alias Mobilizon.Actors
   alias Mobilizon.Actors.{Actor, Member}
   alias Mobilizon.Storage.Repo
   alias Mobilizon.Users

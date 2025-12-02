@@ -766,11 +766,9 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     })
   end
 
-  @doc """
-  Ensures that a user has a default actor. If not, uses existing actor or creates one.
-  This is particularly important for email/password users who don't get a default actor
-  set during registration, unlike OAuth users.
-  """
+  # Ensures that a user has a default actor. If not, uses existing actor or creates one.
+  # This is particularly important for email/password users who don't get a default actor
+  # set during registration, unlike OAuth users.
   @spec ensure_user_has_default_actor(User.t()) :: {:ok, User.t()} | {:error, any()}
   defp ensure_user_has_default_actor(%User{default_actor_id: nil, provider: nil} = user) do
     # User registered with email/password and has no default actor

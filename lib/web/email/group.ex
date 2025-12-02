@@ -9,7 +9,7 @@ defmodule Mobilizon.Web.Email.Group do
   alias Mobilizon.{Actors, Config, Users}
   alias Mobilizon.Actors.{Actor, Member}
   alias Mobilizon.Events.Event
-  alias Mobilizon.Users.{Setting, User}
+  alias Mobilizon.Users.User
   alias Mobilizon.Web.Email
   require Logger
 
