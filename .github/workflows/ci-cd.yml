@@ -148,12 +148,12 @@ jobs:
   build:
     needs: [test-frontend, test-backend]
     runs-on: ubuntu-latest
-    # Run on push to main/test OR on workflow_dispatch (skip tests, build directly)
+    # Run on push to main/test OR on workflow_dispatch from main (skip tests, build directly)
     # Use always() to allow running when tests are skipped on workflow_dispatch
     if: |
       always() &&
       ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test')) ||
-       github.event_name == 'workflow_dispatch') &&
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
       (needs.test-frontend.result == 'success' || needs.test-frontend.result == 'skipped') &&
       (needs.test-backend.result == 'success' || needs.test-backend.result == 'skipped')
     outputs:
@@ -364,8 +364,11 @@ jobs:
   deploy-prod:
     needs: [build]
     runs-on: ubuntu-latest
-    # Only deploy to prod on manual trigger (workflow_dispatch)
-    if: github.event_name == 'workflow_dispatch'
+    # Only deploy to prod on manual trigger (workflow_dispatch) from main branch
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      needs.build.result == 'success'
 
     steps:
       - name: Deploy to production server
