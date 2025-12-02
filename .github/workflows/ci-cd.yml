@@ -199,7 +199,7 @@ jobs:
   # E2E tests for PRs - uses locally built Docker image from artifact
   test-e2e-pr:
     needs: build-pr
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
 
     steps:
@@ -258,7 +258,7 @@ jobs:
   # E2E tests for main branch - uses pushed Docker image from registry
   test-e2e-main:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # Run on push to main/test, skip on workflow_dispatch (fast deployment)
     if: |
       github.event_name == 'push' && 
