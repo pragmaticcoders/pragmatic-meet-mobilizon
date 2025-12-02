@@ -35,7 +35,10 @@ defmodule Mix.Tasks.Mobilizon.Users.FixMissingActors do
 
     dry_run = Keyword.get(options, :dry_run, false)
 
-    start_mobilizon()
+    # Only start app if not already running (e.g. when called via mix, not via bin/mobilizon eval)
+    unless Application.started_applications() |> Enum.any?(fn {app, _, _} -> app == :mobilizon end) do
+      start_mobilizon()
+    end
 
     if dry_run do
       shell_info("🔍 Running in DRY-RUN mode - no changes will be made\n")
