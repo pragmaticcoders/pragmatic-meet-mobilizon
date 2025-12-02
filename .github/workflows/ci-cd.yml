@@ -327,12 +327,12 @@ jobs:
         run: docker compose -f docker/e2e/docker-compose.yml down -v
 
   deploy-dev:
-    # Wait for E2E tests on main/test branch, or just build on workflow_dispatch
+    # Deploy to dev ONLY on push to main/test (after E2E tests pass)
     needs: [build, test-e2e-main]
     runs-on: ubuntu-latest
-    # Run on push to main/test (after E2E) or on workflow_dispatch (skip E2E)
     if: |
       always() &&
+      github.event_name == 'push' &&
       (github.ref == 'refs/heads/test' || github.ref == 'refs/heads/main') &&
       (needs.build.result == 'success') &&
       (needs.test-e2e-main.result == 'success' || needs.test-e2e-main.result == 'skipped')
