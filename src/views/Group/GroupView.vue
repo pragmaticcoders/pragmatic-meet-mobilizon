@@ -223,8 +223,7 @@
                 >
                   <template #trigger>
                     <o-button
-                      variant="warning"
-                      class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                      class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                     >
                       <template class="flex items-center gap-2">
                         <TimerSandEmpty :size="20" />
