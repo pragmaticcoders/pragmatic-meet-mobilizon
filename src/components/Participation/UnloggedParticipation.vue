@@ -245,10 +245,16 @@ const {
       todayStart.setHours(0, 0, 0, 0);
       const afterDateTime = todayStart.toISOString();
 
-      const homeData = store.readQuery({
-        query: HOME_USER_QUERIES,
-        variables: { afterDateTime },
-      });
+      let homeData;
+      try {
+        homeData = store.readQuery({
+          query: HOME_USER_QUERIES,
+          variables: { afterDateTime },
+        });
+      } catch (readError) {
+        console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+        homeData = null;
+      }
 
       if (homeData?.loggedUser?.participations?.elements) {
         const updatedHomeData = {
@@ -271,10 +277,14 @@ const {
           variables: { afterDateTime },
           data: updatedHomeData,
         });
+        console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+      } else {
+        console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
+        store.evict({ fieldName: "loggedUser" });
+        store.gc();
       }
     } catch (error) {
       console.warn("Failed to update HOME_USER_QUERIES cache:", error);
-      // Fallback: evict cache to force refetch
       store.evict({ fieldName: "loggedUser" });
       store.gc();
     }

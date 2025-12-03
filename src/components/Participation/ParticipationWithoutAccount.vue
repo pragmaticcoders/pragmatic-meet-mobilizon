@@ -229,16 +229,20 @@ const {
     });
 
     // Update HOME_USER_QUERIES cache to immediately show the event on home page
-    // (if user is logged in)
     try {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
       const afterDateTime = todayStart.toISOString();
 
-      const homeData = store.readQuery({
-        query: HOME_USER_QUERIES,
-        variables: { afterDateTime },
-      });
+      let homeData;
+      try {
+        homeData = store.readQuery({
+          query: HOME_USER_QUERIES,
+          variables: { afterDateTime },
+        });
+      } catch (readError) {
+        homeData = null;
+      }
 
       if (homeData?.loggedUser?.participations?.elements) {
         const updatedHomeData = {
@@ -261,10 +265,17 @@ const {
           variables: { afterDateTime },
           data: updatedHomeData,
         });
+        console.debug("Successfully updated HOME_USER_QUERIES cache");
+      } else {
+        // User might not be logged in or query not in cache
+        console.debug("HOME_USER_QUERIES not available, will refetch on navigation");
+        store.evict({ fieldName: "loggedUser" });
+        store.gc();
       }
     } catch (cacheError) {
-      // Silent fail - user might not be logged in
       console.debug("Could not update HOME_USER_QUERIES cache:", cacheError);
+      store.evict({ fieldName: "loggedUser" });
+      store.gc();
     }
   },
 }));
