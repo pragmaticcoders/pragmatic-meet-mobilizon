@@ -173,6 +173,30 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
 
       assert hd(res["errors"])["message"] =~ "Group not found"
     end
+
+    test "leave_group/3 should allow a NOT_APPROVED member to cancel their membership request", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      group = insert(:group)
+      insert(:member, role: :administrator, parent: group)
+      %Member{id: member_id} = insert(:member, %{actor: actor, parent: group, role: :not_approved})
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @leave_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["leaveGroup"]["id"] == to_string(member_id)
+
+      # Verify the member was actually deleted
+      assert Mobilizon.Actors.get_member(member_id) == nil
+    end
   end
 
   describe "Member Resolver to invite to a group" do

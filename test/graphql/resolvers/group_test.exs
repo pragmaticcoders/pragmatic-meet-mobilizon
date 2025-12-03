@@ -681,4 +681,122 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
                Mobilizon.Actors.get_follower_by_followed_and_following(group, actor)
     end
   end
+
+  describe "Integration: Join moderated group and cancel membership request" do
+    @join_group_mutation """
+    mutation JoinGroup($groupId: ID!) {
+      joinGroup(groupId: $groupId) {
+        id
+        role
+        actor {
+          id
+        }
+        parent {
+          id
+        }
+      }
+    }
+    """
+
+    @leave_group_mutation """
+    mutation LeaveGroup($groupId: ID!) {
+      leaveGroup(groupId: $groupId) {
+        id
+      }
+    }
+    """
+
+    @person_memberships_query """
+    query PersonMemberships($id: ID!, $group: String!) {
+      person(id: $id) {
+        id
+        memberships(group: $group) {
+          total
+          elements {
+            id
+            role
+          }
+        }
+      }
+    }
+    """
+
+    test "User can join a moderated group and cancel their pending membership request", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      # Create a moderated group (openness: :moderated means members need approval)
+      group = insert(:group, openness: :moderated)
+      insert(:member, role: :administrator, parent: group)
+
+      # Step 1: User joins the group
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @join_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["joinGroup"]["role"] == "NOT_APPROVED"
+      member_id = res["data"]["joinGroup"]["id"]
+
+      # Step 2: Verify membership exists with NOT_APPROVED status
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @person_memberships_query,
+          variables: %{
+            id: actor.id,
+            group: group.preferred_username
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["person"]["memberships"]["total"] == 1
+      assert hd(res["data"]["person"]["memberships"]["elements"])["role"] == "NOT_APPROVED"
+
+      # Step 3: User cancels their membership request (leaves group)
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @leave_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["leaveGroup"]["id"] == member_id
+
+      # Step 4: Verify membership was removed
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @person_memberships_query,
+          variables: %{
+            id: actor.id,
+            group: group.preferred_username
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["person"]["memberships"]["total"] == 0
+
+      # Step 5: Verify user can join again after canceling
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @join_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["joinGroup"]["role"] == "NOT_APPROVED"
+    end
+  end
 end

@@ -204,13 +204,82 @@
 
                 <!-- Join Group Button -->
                 <o-button
-                  v-if="showJoinButton && !isCurrentActorAGroupMember"
+                  v-if="showJoinButton && !isCurrentActorAGroupMember && !isCurrentActorAPendingGroupMember"
                   @click="joinGroup"
                   icon-left="account-multiple-plus"
                   class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
                   {{ t("Join group") }}
                 </o-button>
+
+                <!-- Pending Membership Request Status -->
+                <div
+                  v-if="isCurrentActorAPendingGroupMember"
+                  class="flex flex-col gap-3"
+                >
+                  <o-dropdown aria-role="list">
+                    <template #trigger>
+                      <o-button
+                        variant="warning"
+                        class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                      >
+                        <template class="flex items-center gap-2">
+                          <TimerSandEmpty :size="20" />
+                          <span>{{ t("Request pending") }}</span>
+                          <MenuDown :size="20" />
+                        </template>
+                      </o-button>
+                    </template>
+
+                    <o-dropdown-item
+                      aria-role="menuitem"
+                      @click="openCancelMembershipRequestModal"
+                    >
+                      <span class="flex items-center px-4 py-2">
+                        {{ t("Cancel membership request") }}
+                      </span>
+                    </o-dropdown-item>
+                  </o-dropdown>
+
+                  <!-- Info Banner -->
+                  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                      <div class="flex-shrink-0">
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="text-amber-500"
+                        >
+                          <circle
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            fill="currentColor"
+                            fill-opacity="0.1"
+                          />
+                          <path
+                            d="M12 6v6l4 2"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </div>
+                      <div class="flex-1">
+                        <h3 class="font-medium text-amber-800 dark:text-amber-200 text-sm mb-1">
+                          {{ t("Membership request sent!") }}
+                        </h3>
+                        <p class="text-amber-700 dark:text-amber-300 text-sm leading-relaxed">
+                          {{ t("Waiting for group admin approval.") }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <!-- More Options Menu -->
                 <o-dropdown aria-role="list">
@@ -1091,6 +1160,8 @@ import Information from "vue-material-design-icons/Information.vue";
 
 import Calendar from "vue-material-design-icons/Calendar.vue";
 import Bullhorn from "vue-material-design-icons/Bullhorn.vue";
+import TimerSandEmpty from "vue-material-design-icons/TimerSandEmpty.vue";
+import MenuDown from "vue-material-design-icons/MenuDown.vue";
 import { useI18n } from "vue-i18n";
 import { useCreateReport } from "@/composition/apollo/report";
 import { useHead } from "@/utils/head";
@@ -1239,6 +1310,20 @@ const openLeaveGroupModal = async (): Promise<void> => {
   });
 };
 
+const openCancelMembershipRequestModal = async (): Promise<void> => {
+  dialog?.confirm({
+    variant: "warning",
+    title: t("Cancel membership request"),
+    message: t(
+      "Are you sure you want to cancel your membership request to {groupName}?",
+      { groupName: `<b>${displayName(group.value)}</b>` }
+    ),
+    onConfirm: leaveGroup,
+    confirmText: t("Cancel request"),
+    cancelText: t("Keep request"),
+  });
+};
+
 const {
   mutate: leaveGroupMutation,
   onError: onLeaveGroupError,
@@ -1370,6 +1455,13 @@ const isCurrentActorAnInvitedGroupMember = computed((): boolean => {
     .includes(group.value?.id);
 });
 
+const isCurrentActorAPendingGroupMember = computed((): boolean => {
+  return personMemberships.value.elements
+    .filter((membership) => membership.role === MemberRole.NOT_APPROVED)
+    .map(({ parent: { id } }) => id)
+    .includes(group.value?.id);
+});
+
 /**
  * New members, if on a different server,
  * can take a while to refresh the group and fetch all private data
@@ -1407,7 +1499,7 @@ const ableToReport = computed((): boolean => {
 });
 
 const showJoinButton = computed((): boolean => {
-  return !isCurrentActorAGroupMember.value || previewPublic.value;
+  return (!isCurrentActorAGroupMember.value && !isCurrentActorAPendingGroupMember.value) || previewPublic.value;
 });
 
 const isCurrentActorAGroupAdmin = computed((): boolean => {
