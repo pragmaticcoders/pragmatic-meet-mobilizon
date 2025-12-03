@@ -343,7 +343,6 @@ import {
   JOIN_EVENT,
   LEAVE_EVENT,
 } from "@/graphql/event";
-import { HOME_USER_QUERIES } from "@/graphql/home";
 import { Notifier } from "@/plugins/notifier";
 import { Dialog } from "@/plugins/dialog";
 import { Snackbar } from "@/plugins/snackbar";

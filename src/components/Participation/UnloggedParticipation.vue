@@ -109,7 +109,6 @@ import {
   FETCH_EVENT,
   JOIN_EVENT,
 } from "@/graphql/event";
-import { HOME_USER_QUERIES } from "@/graphql/home";
 import { Notifier } from "@/plugins/notifier";
 import { IPerson } from "@/types/actor";
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
