@@ -204,7 +204,11 @@
 
                 <!-- Join Group Button -->
                 <o-button
-                  v-if="showJoinButton && !isCurrentActorAGroupMember && !isCurrentActorAPendingGroupMember"
+                  v-if="
+                    showJoinButton &&
+                    !isCurrentActorAGroupMember &&
+                    !isCurrentActorAPendingGroupMember
+                  "
                   @click="joinGroup"
                   icon-left="account-multiple-plus"
                   class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
@@ -213,73 +217,32 @@
                 </o-button>
 
                 <!-- Pending Membership Request Status -->
-                <div
+                <o-dropdown
                   v-if="isCurrentActorAPendingGroupMember"
-                  class="flex flex-col gap-3"
+                  aria-role="list"
                 >
-                  <o-dropdown aria-role="list">
-                    <template #trigger>
-                      <o-button
-                        variant="warning"
-                        class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-md font-medium transition-colors"
-                      >
-                        <template class="flex items-center gap-2">
-                          <TimerSandEmpty :size="20" />
-                          <span>{{ t("Request pending") }}</span>
-                          <MenuDown :size="20" />
-                        </template>
-                      </o-button>
-                    </template>
-
-                    <o-dropdown-item
-                      aria-role="menuitem"
-                      @click="openCancelMembershipRequestModal"
+                  <template #trigger>
+                    <o-button
+                      variant="warning"
+                      class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-md font-medium transition-colors"
                     >
-                      <span class="flex items-center px-4 py-2">
-                        {{ t("Cancel membership request") }}
-                      </span>
-                    </o-dropdown-item>
-                  </o-dropdown>
+                      <template class="flex items-center gap-2">
+                        <TimerSandEmpty :size="20" />
+                        <span>{{ t("Request pending") }}</span>
+                        <MenuDown :size="20" />
+                      </template>
+                    </o-button>
+                  </template>
 
-                  <!-- Info Banner -->
-                  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg p-4">
-                    <div class="flex items-start gap-3">
-                      <div class="flex-shrink-0">
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="text-amber-500"
-                        >
-                          <circle
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            fill="currentColor"
-                            fill-opacity="0.1"
-                          />
-                          <path
-                            d="M12 6v6l4 2"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          />
-                        </svg>
-                      </div>
-                      <div class="flex-1">
-                        <h3 class="font-medium text-amber-800 dark:text-amber-200 text-sm mb-1">
-                          {{ t("Membership request sent!") }}
-                        </h3>
-                        <p class="text-amber-700 dark:text-amber-300 text-sm leading-relaxed">
-                          {{ t("Waiting for group admin approval.") }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  <o-dropdown-item
+                    aria-role="menuitem"
+                    @click="openCancelMembershipRequestModal"
+                  >
+                    <span class="flex items-center px-4 py-2">
+                      {{ t("Cancel membership request") }}
+                    </span>
+                  </o-dropdown-item>
+                </o-dropdown>
 
                 <!-- More Options Menu -->
                 <o-dropdown aria-role="list">
@@ -1254,8 +1217,11 @@ watch(
   }
 );
 
-const { mutate: joinGroupMutation, onError: onJoinGroupError } =
-  useMutation(JOIN_GROUP);
+const {
+  mutate: joinGroupMutation,
+  onError: onJoinGroupError,
+  onDone: onJoinGroupDone,
+} = useMutation(JOIN_GROUP);
 
 const joinGroup = async (): Promise<void> => {
   if (!currentActor.value?.id) {
@@ -1286,13 +1252,23 @@ const joinGroup = async (): Promise<void> => {
       ],
     }
   );
-
-  onJoinGroupError((error) => {
-    if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-      notifier?.error(error.graphQLErrors[0].message);
-    }
-  });
 };
+
+onJoinGroupDone((joinResult) => {
+  if (joinResult.data?.joinGroup?.role === "NOT_APPROVED") {
+    notifier?.success(
+      t("Membership request sent! Waiting for administrator approval.")
+    );
+  } else if (joinResult.data?.joinGroup?.role === "MEMBER") {
+    notifier?.success(t("You have successfully joined the group!"));
+  }
+});
+
+onJoinGroupError((error) => {
+  if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+    notifier?.error(error.graphQLErrors[0].message);
+  }
+});
 
 const dialog = inject<Dialog>("dialog");
 
@@ -1499,7 +1475,11 @@ const ableToReport = computed((): boolean => {
 });
 
 const showJoinButton = computed((): boolean => {
-  return (!isCurrentActorAGroupMember.value && !isCurrentActorAPendingGroupMember.value) || previewPublic.value;
+  return (
+    (!isCurrentActorAGroupMember.value &&
+      !isCurrentActorAPendingGroupMember.value) ||
+    previewPublic.value
+  );
 });
 
 const isCurrentActorAGroupAdmin = computed((): boolean => {
