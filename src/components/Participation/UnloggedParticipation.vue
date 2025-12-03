@@ -109,6 +109,7 @@ import {
   FETCH_EVENT,
   JOIN_EVENT,
 } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import { Notifier } from "@/plugins/notifier";
 import { IPerson } from "@/types/actor";
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
@@ -237,6 +238,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 

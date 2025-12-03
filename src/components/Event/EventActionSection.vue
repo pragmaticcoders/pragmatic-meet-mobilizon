@@ -343,6 +343,7 @@ import {
   JOIN_EVENT,
   LEAVE_EVENT,
 } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import { Notifier } from "@/plugins/notifier";
 import { Dialog } from "@/plugins/dialog";
 import { Snackbar } from "@/plugins/snackbar";
@@ -571,6 +572,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 
@@ -780,6 +786,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 

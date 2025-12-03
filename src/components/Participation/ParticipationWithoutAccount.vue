@@ -137,6 +137,7 @@
 <script lang="ts" setup>
 import { IEvent } from "@/types/event.model";
 import { FETCH_EVENT_BASIC, JOIN_EVENT } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import { addLocalUnconfirmedAnonymousParticipation } from "@/services/AnonymousParticipationStorage";
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
 import RouteName from "@/router/name";
@@ -226,6 +227,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 
