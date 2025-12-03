@@ -366,6 +366,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only deploy to prod on manual trigger (workflow_dispatch) from main branch
     if: |
+      always() &&
       github.event_name == 'workflow_dispatch' &&
       github.ref == 'refs/heads/main' &&
       needs.build.result == 'success'
