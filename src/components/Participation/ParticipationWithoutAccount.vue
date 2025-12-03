@@ -262,9 +262,9 @@ const {
           data: updatedHomeData,
         });
       }
-    } catch (error) {
+    } catch (cacheError) {
       // Silent fail - user might not be logged in
-      console.debug("Could not update HOME_USER_QUERIES cache:", error);
+      console.debug("Could not update HOME_USER_QUERIES cache:", cacheError);
     }
   },
 }));
