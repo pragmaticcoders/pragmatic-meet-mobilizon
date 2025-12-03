@@ -15,7 +15,7 @@
         <div class="text" v-html="message" />
       </template>
       <div class="flex gap-2">
-        <div v-if="cancelText" class="action light cancel" @click="close">
+        <div v-if="cancelText" class="action light cancel" @click="forceClose">
           <o-button>{{ cancelText }}</o-button>
         </div>
         <div
@@ -92,6 +92,7 @@ const removePause = () => {
 
 const action = () => {
   props.onAction();
+  forceClose(); // Force close the snackbar after action
 };
 
 const close = () => {
@@ -100,5 +101,11 @@ const close = () => {
     isActive.value = false;
     emit("close");
   }
+};
+
+const forceClose = () => {
+  clearTimeout(timer.value);
+  isActive.value = false;
+  emit("close");
 };
 </script>

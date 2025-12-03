@@ -471,14 +471,10 @@ const groupsSectionDescription = computed(() => {
 });
 
 const filteredFollowedGroupsEvents = computed<IEvent[]>(() => {
+  // Show all events from followed groups (don't filter out joined events)
+  // Events can appear in both "Your upcoming events" and "Events from your groups"
   return (followedGroupEvents.value?.elements || [])
     .map(({ event }: { event: IEvent }) => event)
-    .filter(
-      ({ id }) =>
-        !thisWeekGoingToEvents.value
-          .map(({ event: { id: event_id } }) => event_id)
-          .includes(id)
-    )
     .slice(0, 93);
 });
 
