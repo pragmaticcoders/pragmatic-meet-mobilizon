@@ -571,6 +571,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 
@@ -780,6 +785,11 @@ const {
         },
       },
     });
+
+    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
+    // This will force the home page to refetch the events list
+    store.evict({ fieldName: "loggedUser", args: {} });
+    store.gc();
   },
 }));
 

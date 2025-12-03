@@ -382,7 +382,7 @@ const thisWeekGoingToEvents = computed<IParticipant[]>(() => {
     // For today's events, even if the time has passed, we still want to show them
     const isUpcoming = diffDays >= 0 && diffDays < 30;
 
-    return isToday || isUpcoming;
+    return isToday(event.beginsOn) || isUpcoming;
   });
   res.sort(
     (a: IParticipant, b: IParticipant) =>
