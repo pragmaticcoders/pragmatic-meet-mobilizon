@@ -289,7 +289,11 @@ config :mobilizon, :http_security,
       "dev.pragmaticmeet.com"
     ],
     object_src: [],
-    frame_src: [],
+    frame_src: [
+      "https://www.youtube.com",
+      "https://www.youtube-nocookie.com",
+      "https://youtu.be"
+    ],
     frame_ancestors: []
   ],
   referrer_policy: "same-origin"
