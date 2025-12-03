@@ -137,6 +137,7 @@
 <script lang="ts" setup>
 import { IEvent } from "@/types/event.model";
 import { FETCH_EVENT_BASIC, JOIN_EVENT } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import { addLocalUnconfirmedAnonymousParticipation } from "@/services/AnonymousParticipationStorage";
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
 import RouteName from "@/router/name";
@@ -227,10 +228,44 @@ const {
       },
     });
 
-    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
-    // This will force the home page to refetch the events list
-    store.evict({ fieldName: "loggedUser", args: {} });
-    store.gc();
+    // Update HOME_USER_QUERIES cache to immediately show the event on home page
+    // (if user is logged in)
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const afterDateTime = todayStart.toISOString();
+
+      const homeData = store.readQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+      });
+
+      if (homeData?.loggedUser?.participations?.elements) {
+        const updatedHomeData = {
+          ...homeData,
+          loggedUser: {
+            ...homeData.loggedUser,
+            participations: {
+              ...homeData.loggedUser.participations,
+              total: homeData.loggedUser.participations.total + 1,
+              elements: [
+                updateData.joinEvent,
+                ...homeData.loggedUser.participations.elements,
+              ],
+            },
+          },
+        };
+
+        store.writeQuery({
+          query: HOME_USER_QUERIES,
+          variables: { afterDateTime },
+          data: updatedHomeData,
+        });
+      }
+    } catch (cacheError) {
+      // Silent fail - user might not be logged in
+      console.debug("Could not update HOME_USER_QUERIES cache:", cacheError);
+    }
   },
 }));
 
