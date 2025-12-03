@@ -109,6 +109,7 @@ import {
   FETCH_EVENT,
   JOIN_EVENT,
 } from "@/graphql/event";
+import { HOME_USER_QUERIES } from "@/graphql/home";
 import { Notifier } from "@/plugins/notifier";
 import { IPerson } from "@/types/actor";
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
@@ -238,10 +239,45 @@ const {
       },
     });
 
-    // Evict HOME_USER_QUERIES cache to ensure home page shows updated events
-    // This will force the home page to refetch the events list
-    store.evict({ fieldName: "loggedUser", args: {} });
-    store.gc();
+    // Update HOME_USER_QUERIES cache to immediately show the event on home page
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const afterDateTime = todayStart.toISOString();
+
+      const homeData = store.readQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+      });
+
+      if (homeData?.loggedUser?.participations?.elements) {
+        const updatedHomeData = {
+          ...homeData,
+          loggedUser: {
+            ...homeData.loggedUser,
+            participations: {
+              ...homeData.loggedUser.participations,
+              total: homeData.loggedUser.participations.total + 1,
+              elements: [
+                data.joinEvent,
+                ...homeData.loggedUser.participations.elements,
+              ],
+            },
+          },
+        };
+
+        store.writeQuery({
+          query: HOME_USER_QUERIES,
+          variables: { afterDateTime },
+          data: updatedHomeData,
+        });
+      }
+    } catch (error) {
+      console.warn("Failed to update HOME_USER_QUERIES cache:", error);
+      // Fallback: evict cache to force refetch
+      store.evict({ fieldName: "loggedUser" });
+      store.gc();
+    }
   },
 }));
 

@@ -417,7 +417,12 @@ const canShowMyUpcomingEvents = computed<boolean>(() => {
 });
 
 const canShowFollowedGroupEvents = computed<boolean>(() => {
-  return filteredFollowedGroupsEvents.value.length > 0;
+  // Show section if user is logged in and has any events from followed groups
+  // (regardless of whether they've joined them or not)
+  return (
+    currentActor.value?.id != undefined &&
+    (followedGroupEvents.value?.elements || []).length > 0
+  );
 });
 
 const canShowUserGroups = computed<boolean>(() => {
