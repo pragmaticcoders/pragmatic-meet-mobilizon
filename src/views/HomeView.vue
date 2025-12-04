@@ -33,7 +33,10 @@
       </div>
     </section>
     <!-- Your upcoming events - only show if user has events -->
-    <section v-if="currentUser?.id && canShowMyUpcomingEvents" class="mx-auto mb-8 mt-4">
+    <section
+      v-if="currentUser?.id && canShowMyUpcomingEvents"
+      class="mx-auto mb-8 mt-4"
+    >
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
         {{ t("Your upcoming events") }}
       </h2>
@@ -43,49 +46,49 @@
           class="text-gray-700 mb-4"
           :key="row[0]"
         >
-        <p
-          class="date-component-container"
-          v-if="isInLessThanSevenDays(row[0])"
-        >
-          <span v-if="isToday(row[0])">{{
-            t(
-              "You have one event today.",
-              {
-                count: row[1].size,
-              },
-              row[1].size
-            )
-          }}</span>
-          <span v-else-if="isTomorrow(row[0])">{{
-            t(
-              "You have one event tomorrow.",
-              {
-                count: row[1].size,
-              },
-              row[1].size
-            )
-          }}</span>
-          <span v-else-if="isInLessThanSevenDays(row[0])">
-            {{
+          <p
+            class="date-component-container"
+            v-if="isInLessThanSevenDays(row[0])"
+          >
+            <span v-if="isToday(row[0])">{{
               t(
-                "You have one event in {days} days.",
+                "You have one event today.",
                 {
                   count: row[1].size,
-                  days: calculateDiffDays(row[0]),
                 },
                 row[1].size
               )
-            }}
-          </span>
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <event-participation-card
-            v-for="participation in thisWeek(row)"
-            :key="participation[1].id"
-            :participation="participation[1]"
-          />
+            }}</span>
+            <span v-else-if="isTomorrow(row[0])">{{
+              t(
+                "You have one event tomorrow.",
+                {
+                  count: row[1].size,
+                },
+                row[1].size
+              )
+            }}</span>
+            <span v-else-if="isInLessThanSevenDays(row[0])">
+              {{
+                t(
+                  "You have one event in {days} days.",
+                  {
+                    count: row[1].size,
+                    days: calculateDiffDays(row[0]),
+                  },
+                  row[1].size
+                )
+              }}
+            </span>
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <event-participation-card
+              v-for="participation in thisWeek(row)"
+              :key="participation[1].id"
+              :participation="participation[1]"
+            />
+          </div>
         </div>
-      </div>
         <div class="text-right mt-6">
           <router-link
             :to="{ name: RouteName.MY_EVENTS }"
@@ -94,7 +97,7 @@
           >
         </div>
       </div>
-      
+
       <!-- Empty state for upcoming events -->
       <empty-content v-else icon="calendar" inline center class="my-8">
         {{ t("No upcoming events") }}
@@ -106,14 +109,17 @@
       </empty-content>
     </section>
     <!-- Events from your followed groups - only show if there are events -->
-    <section class="mx-auto mb-8" v-if="currentUser?.id && canShowFollowedGroupEvents">
+    <section
+      class="mx-auto mb-8"
+      v-if="currentUser?.id && canShowFollowedGroupEvents"
+    >
       <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ t("Upcoming events from your groups") }}
       </h2>
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
       </p>
-      
+
       <div v-if="canShowFollowedGroupEvents">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <event-participation-card
@@ -138,7 +144,7 @@
           >
         </div>
       </div>
-      
+
       <!-- Empty state for group events -->
       <empty-content v-else icon="calendar-account" inline center class="my-8">
         {{ t("No events from your groups") }}
@@ -158,7 +164,7 @@
       <p class="text-gray-600 mb-6">
         {{ t("Discover interesting events happening near you") }}
       </p>
-      
+
       <div v-if="canShowPublicEvents">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <event-participation-card
@@ -175,7 +181,7 @@
           >
         </div>
       </div>
-      
+
       <!-- Empty state for public events -->
       <empty-content v-else icon="calendar-blank" inline center class="my-8">
         {{ t("No public events available") }}
@@ -186,6 +192,23 @@
         </template>
       </empty-content>
     </section>
+
+    <!-- Nearby events based on location -->
+    <div class="mx-auto" v-if="currentUser?.id">
+      <CloseEvents
+        @doGeoLoc="performGeoLocation()"
+        :userLocation="
+          (userLocation as any) || {
+            lat: 0,
+            lon: 0,
+            name: '',
+            isIPLocation: false,
+          }
+        "
+        :doingGeoloc="doingGeoloc"
+        :distance="distance as any"
+      />
+    </div>
 
     <!-- Groups section - only show if there are groups -->
     <section class="mx-auto mb-8" v-if="canShowUserGroups">
@@ -249,6 +272,7 @@ import { IMember } from "../types/actor/member.model";
 import { SEARCH_GROUPS, SEARCH_EVENTS } from "../graphql/search";
 import RouteName from "../router/name";
 import { IEvent } from "../types/event.model";
+import CloseEvents from "@/components/Local/CloseEvents.vue";
 import {
   computed,
   onMounted,
