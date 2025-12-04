@@ -74,6 +74,8 @@ defmodule Mobilizon.Web.Router do
   pipeline :browser do
     plug(:put_request_context)
     plug(:fetch_session)
+    plug(:fetch_flash)
+    plug(:protect_from_forgery)
 
     plug(Mobilizon.Web.Plugs.SetLocalePlug)
 
@@ -256,10 +258,17 @@ defmodule Mobilizon.Web.Router do
     #    - Requires :fetch_session in browser pipeline (configured above)
     #
     # State parameters are validated on every callback to prevent CSRF attacks.
+    # This is the OAuth 2.0 standard for CSRF protection (not form-based tokens).
     # Reference: https://github.com/ueberauth/ueberauth/issues/125
+    #
+    # Action reuse (GET and POST to same action) is safe here because:
+    # - Both methods validate the state parameter
+    # - OAuth spec allows both methods
+    # - CSRF protection is via state parameter, not HTTP method
     #
     # sobelow_skip ["Config.CSRFRoute"]
     get("/auth/:provider/callback", AuthController, :callback)
+    # sobelow_skip ["Config.CSRFRoute"]
     post("/auth/:provider/callback", AuthController, :callback)
     get("/auth/retry/:provider", AuthController, :retry_oauth)
 
