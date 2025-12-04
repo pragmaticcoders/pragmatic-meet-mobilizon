@@ -237,13 +237,14 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
     end
   end
 
-  @spec check_attendee_capacity?(Event.t()) :: boolean
-  defp check_attendee_capacity?(%Event{options: options} = event) do
-    maximum_attendee_capacity = Map.get(options, :maximum_attendee_capacity) || 0
-
-    maximum_attendee_capacity == 0 ||
-      Mobilizon.Events.count_participant_participants(event.id) < maximum_attendee_capacity
-  end
+  # Function kept for potential future use - capacity checking logic
+  # @spec check_attendee_capacity?(Event.t()) :: boolean
+  # defp check_attendee_capacity?(%Event{options: options} = event) do
+  #   maximum_attendee_capacity = Map.get(options, :maximum_attendee_capacity) || 0
+  #
+  #   maximum_attendee_capacity == 0 ||
+  #     Mobilizon.Events.count_participant_participants(event.id) < maximum_attendee_capacity
+  # end
 
   # Set the participant to approved if the default role for new participants is :participant
   @spec approve_if_default_role_is_participant(

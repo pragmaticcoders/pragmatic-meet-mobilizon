@@ -23,7 +23,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
       {:error, :participant_not_found} ->
         case Actions.Join.join(event, actor, Map.get(args, :local, true), %{metadata: args}) do
-          {:ok, activity, participant, :waitlist} = result ->
+          {:ok, _activity, participant, :waitlist} = result ->
             # User joined the waitlist - send notification email
             Logger.info(
               "User #{actor_id} joined waitlist for event #{event_id}, sending notification email"
@@ -61,7 +61,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
             result
 
-          {:ok, activity, participant} = result ->
+          {:ok, _activity, participant} = result ->
             # Regular participation - auto-join the group if the event belongs to a group
             auto_join_event_group(event, actor)
 
@@ -81,7 +81,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
           | {:error, :is_only_organizer | :participant_not_found | Ecto.Changeset.t()}
   def leave(%Event{id: event_id} = event, %Actor{} = actor, args \\ %{}) do
     case Actions.Leave.leave(event, actor, Map.get(args, :local, true), %{metadata: args}) do
-      {:ok, activity, participant} = result ->
+      {:ok, _activity, _participant} = result ->
         # When someone leaves, check if we can promote someone from waitlist
         Task.start(fn -> promote_from_waitlist_if_needed(event_id) end)
         result
@@ -113,7 +113,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
     )
 
     case reject(participation, moderator) do
-      {:ok, activity, %Participant{} = participant} = result ->
+      {:ok, _activity, %Participant{}} = result ->
         # When we reject a participant, check if we can promote someone from waitlist
         # We do this AFTER the rejection is complete to ensure the database is updated
         Task.start(fn ->
@@ -201,9 +201,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
     end
   end
 
-  @doc """
-  Automatically add actor to group if the event belongs to a group and the actor is not already a member.
-  """
+  # Automatically add actor to group if the event belongs to a group and the actor is not already a member.
   @spec auto_join_event_group(Event.t(), Actor.t()) :: :ok
   defp auto_join_event_group(%Event{attributed_to_id: nil}, _actor) do
     # Event is not attributed to a group, skip
@@ -291,7 +289,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
       # Get waitlist participants up to the number of available spots (ordered by insertion time)
       case Events.list_participants_for_event(event_id, [:waitlist], available_spots, 1) do
-        %{elements: waitlist_participants} when length(waitlist_participants) > 0 ->
+        %{elements: [_ | _] = waitlist_participants} ->
           Logger.info(
             "Found #{length(waitlist_participants)} waitlist participant(s), promoting..."
           )
@@ -334,7 +332,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
       end
     else
       {:event, _} ->
-        Logger.warn("Event #{event_id} not found")
+        Logger.warning("Event #{event_id} not found")
         :ok
 
       {:waitlist_enabled, false} ->
@@ -354,7 +352,7 @@ defmodule Mobilizon.GraphQL.API.Participations do
         :ok
 
       other ->
-        Logger.warn("Event #{event_id}: unexpected condition #{inspect(other)}")
+        Logger.warning("Event #{event_id}: unexpected condition #{inspect(other)}")
         :ok
     end
   end

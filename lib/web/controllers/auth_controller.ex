@@ -166,33 +166,6 @@ defmodule Mobilizon.Web.AuthController do
     end
   end
 
-  # Extract user determination logic for clarity and reusability
-  defp determine_user_and_action(email, strategy, locale) do
-    {user, is_login} =
-      with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
-           {:error, :user_not_found} <- Users.get_user_by_email(email),
-           {:ok, %User{} = user} <- Users.create_external(email, strategy, %{locale: locale}) do
-        Logger.info("Created new external user for #{email} via #{strategy}")
-        # new user = registration
-        {user, false}
-      else
-        {:ok, %User{} = user} ->
-          Logger.info("Found existing user for #{email}")
-          # existing user = login
-          {user, true}
-
-        {:error, error} ->
-          Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
-          {{:error, error}, false}
-
-        error ->
-          Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
-          {{:error, error}, false}
-      end
-
-    {user, is_login}
-  end
-
   # This should only be called for unhandled cases (fallback)
   def callback(conn, params) do
     Logger.warning("Fallback OAuth callback triggered for: #{conn.request_path}")
@@ -225,6 +198,33 @@ defmodule Mobilizon.Web.AuthController do
         Logger.error("OAuth callback missing provider parameter")
         redirect(conn, to: "/login?code=Error with Login Provider")
     end
+  end
+
+  # Extract user determination logic for clarity and reusability
+  defp determine_user_and_action(email, strategy, locale) do
+    {user, is_login} =
+      with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
+           {:error, :user_not_found} <- Users.get_user_by_email(email),
+           {:ok, %User{} = user} <- Users.create_external(email, strategy, %{locale: locale}) do
+        Logger.info("Created new external user for #{email} via #{strategy}")
+        # new user = registration
+        {user, false}
+      else
+        {:ok, %User{} = user} ->
+          Logger.info("Found existing user for #{email}")
+          # existing user = login
+          {user, true}
+
+        {:error, error} ->
+          Logger.error("Failed to create/find user for #{email}: #{inspect(error)}")
+          {{:error, error}, false}
+
+        error ->
+          Logger.error("Unexpected error during user lookup/creation: #{inspect(error)}")
+          {{:error, error}, false}
+      end
+
+    {user, is_login}
   end
 
   @max_oauth_retries 20

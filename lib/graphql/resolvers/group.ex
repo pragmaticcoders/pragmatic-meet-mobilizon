@@ -9,7 +9,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   alias Mobilizon.Actors.{Actor, Follower, Member}
   alias Mobilizon.Federation.ActivityPub.Actions
   alias Mobilizon.Federation.ActivityPub.Actor, as: ActivityPubActor
-  alias Mobilizon.Federation.ActivityPub.Types
   alias Mobilizon.GraphQL.API
   alias Mobilizon.Users.User
   alias Mobilizon.Web.Upload
@@ -27,8 +26,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
         ) ::
           {:error, :group_not_found} | {:ok, Actor.t()}
   def find_group(
-        parent,
-        %{preferred_username: name} = args,
+        _parent,
+        %{preferred_username: name},
         %{
           context: %{
             current_actor: %Actor{id: actor_id},
@@ -66,8 +65,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
   end
 
   def find_group(
-        parent,
-        %{preferred_username: name} = args,
+        _parent,
+        %{preferred_username: name},
         %{
           context: %{
             current_user: %User{role: role}

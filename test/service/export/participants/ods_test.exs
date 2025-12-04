@@ -38,14 +38,14 @@ defmodule Mobilizon.Service.Export.Participants.ODSTest do
           assert {:ok, path} = ODS.export(event)
           assert File.exists?("uploads/exports/ods/" <> path)
         end
-      catch
-        # Catch GenServer exits from missing Python dependencies
-        :exit, _ ->
-          # Skip test if dependencies are not available
-          :ok
       rescue
         # Also catch regular exceptions
         _ ->
+          # Skip test if dependencies are not available
+          :ok
+      catch
+        # Catch GenServer exits from missing Python dependencies
+        :exit, _ ->
           # Skip test if dependencies are not available
           :ok
       end

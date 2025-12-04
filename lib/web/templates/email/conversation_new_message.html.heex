@@ -11,7 +11,7 @@
   <div class="message-content" style="margin: 20px 0; padding: 15px; background-color: #f5f5f5; border-left: 4px solid #6366f1; border-radius: 4px;">
     <p style="margin: 0;">
       <strong><%= @sender_name %></strong>
-      <% if @sender.preferred_username do %>
+      <%= if @sender.preferred_username do %>
         <span style="color: #6b7280;">@<%= Mobilizon.Actors.Actor.preferred_username_and_domain(@sender) %></span>
       <% end %>
     </p>

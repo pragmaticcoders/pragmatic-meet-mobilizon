@@ -47,7 +47,10 @@ defmodule Mobilizon.GraphQL.Resolvers.FeedToken do
   end
 
   @doc """
-  Retrieve a feed token for actor, if user is admin
+  Retrieve a feed token for actor.
+
+  If user is admin, returns tokens for any actor.
+  If actor belongs to logged user, returns tokens for that actor.
   """
   @spec actor_tokens(any, map, map) :: {:ok, map} | {:error, String.t()}
   def actor_tokens(
@@ -59,10 +62,6 @@ defmodule Mobilizon.GraphQL.Resolvers.FeedToken do
     {:ok, get_actor_tokens(actor_id)}
   end
 
-  @doc """
-  Retrieve a feed token for actor, if actor belongs to logged user
-  """
-  @spec actor_tokens(any, map, map) :: {:ok, map} | {:error, String.t()}
   def actor_tokens(
         %Actor{id: actor_id},
         _args,
@@ -77,17 +76,17 @@ defmodule Mobilizon.GraphQL.Resolvers.FeedToken do
     end
   end
 
-  @spec get_actor_tokens(string) :: list
+  @spec actor_tokens(any, map, map) :: {:error, String.t()}
+  def actor_tokens(_parent, _args, %{}) do
+    {:error, dgettext("errors", "You are not allowed to get a feed token if not connected")}
+  end
+
+  @spec get_actor_tokens(String.t()) :: list
   defp get_actor_tokens(actor_id) do
     actor_id
     |> feed_token_for_actor_query()
     |> Repo.all()
     |> Enum.map(&to_short_uuid/1)
-  end
-
-  @spec actor_tokens(any, map, map) :: {:error, String.t()}
-  def actor_tokens(_parent, _args, %{}) do
-    {:error, dgettext("errors", "You are not allowed to get a feed token if not connected")}
   end
 
   @spec feed_token_for_actor_query(integer) :: Ecto.Query.t()

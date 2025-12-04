@@ -252,10 +252,11 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
     end
   end
 
-  @spec last_identity?(User.t()) :: boolean
-  defp last_identity?(user) do
-    length(Users.get_actors_for_user(user)) <= 1
-  end
+  # Function kept for potential future use - checks if user has only one identity
+  # @spec last_identity?(User.t()) :: boolean
+  # defp last_identity?(user) do
+  #   length(Users.get_actors_for_user(user)) <= 1
+  # end
 
   @spec save_attached_pictures(map()) :: map() | {:error, any()}
   defp save_attached_pictures(args) do
@@ -458,11 +459,12 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
   def organized_events_for_person(_parent, _args, _resolution),
     do: {:ok, %Page{elements: [], total: 0}}
 
+  # Function kept for potential future use - checks if actor is last admin of any group
   # We check that the actor is not the last administrator/creator of a group
-  @spec last_admin_of_a_group?(integer()) :: boolean()
-  defp last_admin_of_a_group?(actor_id) do
-    length(Actors.list_group_ids_where_last_administrator(actor_id)) > 0
-  end
+  # @spec last_admin_of_a_group?(integer()) :: boolean()
+  # defp last_admin_of_a_group?(actor_id) do
+  #   length(Actors.list_group_ids_where_last_administrator(actor_id)) > 0
+  # end
 
   @spec user_can_access_person_details?(Actor.t(), User.t()) :: boolean()
   defp user_can_access_person_details?(%Actor{}, %User{role: role}) when is_moderator(role),

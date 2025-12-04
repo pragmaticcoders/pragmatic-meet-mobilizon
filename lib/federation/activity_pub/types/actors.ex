@@ -201,7 +201,7 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Actors do
           | {:ok, ActivityStreams.t(), Follower.t()}
           | {:error,
              :person_no_follow | :already_following | :followed_suspended | Ecto.Changeset.t()}
-  def follow(%Actor{} = follower_actor, %Actor{type: type} = followed, _local, additional)
+  def follow(%Actor{} = follower_actor, %Actor{type: type} = followed, _local, _additional)
       when type != :Person do
     case Mobilizon.Actors.follow(followed, follower_actor, nil, false) do
       {:ok, %Follower{actor: %Actor{type: actor_type}} = follower} ->

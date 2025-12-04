@@ -380,9 +380,7 @@ defmodule Mobilizon.Conversations do
     |> Repo.update()
   end
 
-  @doc """
-  Send email notifications to conversation participants about a new message
-  """
+  # Send email notifications to conversation participants about a new message
   @spec notify_conversation_participants(Conversation.t(), Comment.t(), integer() | String.t()) ::
           :ok
   defp notify_conversation_participants(
