@@ -71,6 +71,16 @@ defmodule Mobilizon.Web.Endpoint do
 
   plug(Plug.MethodOverride)
   plug(Plug.Head)
+
+  # Session configuration for OAuth state validation
+  # The session store is used to validate OAuth state parameters for CSRF protection
+  plug(Plug.Session,
+    store: :cookie,
+    key: "_mobilizon_key",
+    signing_salt: "signing_salt",
+    same_site: "Lax"
+  )
+
   plug(Mobilizon.Web.Router)
 
   @spec websocket_url :: String.t()

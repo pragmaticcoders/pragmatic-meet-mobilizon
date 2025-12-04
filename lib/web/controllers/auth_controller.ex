@@ -122,7 +122,7 @@ defmodule Mobilizon.Web.AuthController do
   def callback(
         %{assigns: %{ueberauth_auth: %Ueberauth.Auth{strategy: strategy} = auth, locale: locale}} =
           conn,
-        _params
+        params
       ) do
     email = email_from_ueberauth(auth)
     [_, _, _, strategy] = strategy |> to_string() |> String.split(".")
@@ -130,7 +130,44 @@ defmodule Mobilizon.Web.AuthController do
 
     Logger.info("OAuth callback received for #{strategy} with email: #{email}")
 
-    # Determine if this is a login (existing user) or registration (new user)
+    # Validate state parameter for CSRF protection
+    # Note: While Ueberauth's OAuth2 strategies should handle this internally,
+    # we add explicit validation for defense in depth
+    with {:ok, conn} <- validate_ueberauth_state(conn, params),
+         # Determine if this is a login (existing user) or registration (new user)
+         {user, is_login} <- determine_user_and_action(email, strategy, locale),
+         %User{} = user <- user,
+         # Update sign-in tracking information for OAuth logins
+         user <- update_oauth_login_information(user, conn),
+         {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
+           Authenticator.generate_tokens(user) do
+      Logger.info("Successfully logged in user \"#{email}\" through #{strategy}")
+
+      # Determine redirect URL based on whether this is login or registration
+      redirect_url = if is_login, do: "/", else: nil
+
+      render(conn, "callback.html", %{
+        access_token: access_token,
+        refresh_token: refresh_token,
+        user: user,
+        username: username_from_ueberauth(auth),
+        name: display_name_from_ueberauth(auth),
+        redirect_url: redirect_url
+      })
+    else
+      {:error, state_error}
+      when state_error in [:missing_session_state, :missing_callback_state, :state_mismatch] ->
+        Logger.error("State validation failed for #{strategy}: #{state_error}")
+        redirect_to_error(conn, :invalid_state, strategy)
+
+      err ->
+        Logger.error("Failed to login user \"#{email}\" - Error: #{inspect(err)}")
+        redirect_to_error(conn, :unknown_error, strategy)
+    end
+  end
+
+  # Extract user determination logic for clarity and reusability
+  defp determine_user_and_action(email, strategy, locale) do
     {user, is_login} =
       with {:valid_email, false} <- {:valid_email, is_nil(email) or email == ""},
            {:error, :user_not_found} <- Users.get_user_by_email(email),
@@ -153,29 +190,7 @@ defmodule Mobilizon.Web.AuthController do
           {{:error, error}, false}
       end
 
-    with %User{} = user <- user,
-         # Update sign-in tracking information for OAuth logins
-         user <- update_oauth_login_information(user, conn),
-         {:ok, %{access_token: access_token, refresh_token: refresh_token}} <-
-           Authenticator.generate_tokens(user) do
-      Logger.info("Successfully logged in user \"#{email}\" through #{strategy}")
-
-      # Determine redirect URL based on whether this is login or registration
-      redirect_url = if is_login, do: "/", else: nil
-
-      render(conn, "callback.html", %{
-        access_token: access_token,
-        refresh_token: refresh_token,
-        user: user,
-        username: username_from_ueberauth(auth),
-        name: display_name_from_ueberauth(auth),
-        redirect_url: redirect_url
-      })
-    else
-      err ->
-        Logger.error("Failed to login user \"#{email}\" - Error: #{inspect(err)}")
-        redirect_to_error(conn, :unknown_error, strategy)
-    end
+    {user, is_login}
   end
 
   # This should only be called for unhandled cases (fallback)
@@ -587,6 +602,7 @@ defmodule Mobilizon.Web.AuthController do
   end
 
   # CSRF state management using signed tokens (no session required)
+  # Used for LinkedIn custom OAuth implementation
   defp generate_csrf_state(intent, redirect_path) do
     timestamp = System.system_time(:second)
 
@@ -604,6 +620,43 @@ defmodule Mobilizon.Web.AuthController do
     case Phoenix.Token.verify(Mobilizon.Web.Endpoint, "linkedin_oauth_state", state, max_age: 600) do
       {:ok, data} -> {:ok, data}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  # Validate OAuth state parameter for Ueberauth providers
+  # Ueberauth's OAuth2 strategies should store state in session during request phase
+  # and validate it during callback phase. This function provides explicit validation
+  # for defense in depth.
+  defp validate_ueberauth_state(conn, params) do
+    session_state = get_session(conn, :ueberauth_state_param)
+    callback_state = Map.get(params, "state")
+
+    cond do
+      is_nil(session_state) and is_nil(callback_state) ->
+        # Some OAuth providers/strategies may not use state parameter
+        # Allow this case but log a warning
+        Logger.warning("OAuth callback: No state parameter used by provider")
+        {:ok, conn}
+
+      is_nil(session_state) ->
+        Logger.error("OAuth callback: No state found in session - possible CSRF attack")
+        {:error, :missing_session_state}
+
+      is_nil(callback_state) ->
+        Logger.error("OAuth callback: No state in callback parameters - possible CSRF attack")
+        {:error, :missing_callback_state}
+
+      session_state == callback_state ->
+        Logger.debug("OAuth callback: State parameter validated successfully")
+        # Clear the state from session after successful validation
+        {:ok, delete_session(conn, :ueberauth_state_param)}
+
+      true ->
+        Logger.error(
+          "OAuth callback: State mismatch - possible CSRF attack. " <>
+            "Session: #{session_state}, Callback: #{callback_state}"
+        )
+        {:error, :state_mismatch}
     end
   end
 

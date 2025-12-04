@@ -17,7 +17,7 @@ config :mobilizon, Mobilizon.Web.Endpoint,
     scheme: "http"
   ],
   debug_errors: true,
-  secret_key_base: "some secret",
+  secret_key_base: "test_secret_key_base_that_is_at_least_64_bytes_long_for_session_cookies_abcdefghijklmnopqrstuvwxyz0123456789",
   server: false
 
 # Print only warnings and errors during test

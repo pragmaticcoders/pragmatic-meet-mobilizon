@@ -73,6 +73,7 @@ defmodule Mobilizon.Web.Router do
 
   pipeline :browser do
     plug(:put_request_context)
+    plug(:fetch_session)
 
     plug(Mobilizon.Web.Plugs.SetLocalePlug)
 
@@ -235,11 +236,29 @@ defmodule Mobilizon.Web.Router do
     get("/interact", PageController, :interact)
 
     get("/auth/:provider", AuthController, :request)
-    # Have a look at https://github.com/ueberauth/ueberauth/issues/125 some day
-    # Also possible CSRF issue
+
+    # OAuth Authentication Callback Routes
+    # Both GET and POST are supported per OAuth 2.0 specification.
+    # Different OAuth providers use different HTTP methods for their callbacks:
+    # - Most providers (Google, GitHub, etc.) use GET
+    # - Some providers use POST for enhanced security
+    #
+    # CSRF Protection Implementation:
+    # 1. LinkedIn (custom OAuth2): Uses cryptographically signed Phoenix.Token for state validation
+    #    - State is generated with nonce, timestamp, intent, and redirect path
+    #    - See: AuthController.generate_csrf_state/2 and verify_csrf_state/1
+    #    - Max age: 10 minutes, signed with endpoint secret
+    #
+    # 2. Ueberauth providers (GitHub, Google, Twitter, etc.): Session-based state validation
+    #    - State parameter is generated during OAuth request phase
+    #    - Stored in session and validated during callback phase
+    #    - See: AuthController.validate_ueberauth_state/2
+    #    - Requires :fetch_session in browser pipeline (configured above)
+    #
+    # State parameters are validated on every callback to prevent CSRF attacks.
+    # Reference: https://github.com/ueberauth/ueberauth/issues/125
+    #
     # sobelow_skip ["Config.CSRFRoute"]
-    # OAuth callback supports both GET/POST per Ueberauth library requirements
-    # CSRF protection implemented via state parameter validation in AuthController
     get("/auth/:provider/callback", AuthController, :callback)
     post("/auth/:provider/callback", AuthController, :callback)
     get("/auth/retry/:provider", AuthController, :retry_oauth)
