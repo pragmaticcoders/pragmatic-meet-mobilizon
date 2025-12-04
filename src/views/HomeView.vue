@@ -1,7 +1,10 @@
 <template>
   <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <!-- Unlogged introduction -->
-    <unlogged-introduction :config="config" />
+    <!-- Unlogged introduction - only show when user is not logged in -->
+    <unlogged-introduction v-if="!currentUser?.id" :config="config" />
+
+    <!-- Logged-in search bar - only show when user is logged in -->
+    <logged-search-bar v-if="currentUser?.id" />
 
     <!-- Welcome back -->
     <section
@@ -29,128 +32,169 @@
         }}</span>
       </div>
     </section>
-    <!-- Your upcoming events -->
-    <section v-if="canShowMyUpcomingEvents" class="mx-auto mb-8 mt-4">
+    <!-- Your upcoming events - only show if user has events -->
+    <section
+      v-if="currentUser?.id && canShowMyUpcomingEvents"
+      class="mx-auto mb-8 mt-4"
+    >
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
         {{ t("Your upcoming events") }}
       </h2>
-      <div
-        v-for="row of goingToEvents"
-        class="text-gray-700 mb-4"
-        :key="row[0]"
-      >
-        <p
-          class="date-component-container"
-          v-if="isInLessThanSevenDays(row[0])"
+      <div v-if="canShowMyUpcomingEvents">
+        <div
+          v-for="row of goingToEvents"
+          class="text-gray-700 mb-4"
+          :key="row[0]"
         >
-          <span v-if="isToday(row[0])">{{
-            t(
-              "You have one event today.",
-              {
-                count: row[1].size,
-              },
-              row[1].size
-            )
-          }}</span>
-          <span v-else-if="isTomorrow(row[0])">{{
-            t(
-              "You have one event tomorrow.",
-              {
-                count: row[1].size,
-              },
-              row[1].size
-            )
-          }}</span>
-          <span v-else-if="isInLessThanSevenDays(row[0])">
-            {{
+          <p
+            class="date-component-container"
+            v-if="isInLessThanSevenDays(row[0])"
+          >
+            <span v-if="isToday(row[0])">{{
               t(
-                "You have one event in {days} days.",
+                "You have one event today.",
                 {
                   count: row[1].size,
-                  days: calculateDiffDays(row[0]),
                 },
                 row[1].size
               )
-            }}
-          </span>
-        </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <event-participation-card
-            v-for="participation in thisWeek(row)"
-            :key="participation[1].id"
-            :participation="participation[1]"
-          />
+            }}</span>
+            <span v-else-if="isTomorrow(row[0])">{{
+              t(
+                "You have one event tomorrow.",
+                {
+                  count: row[1].size,
+                },
+                row[1].size
+              )
+            }}</span>
+            <span v-else-if="isInLessThanSevenDays(row[0])">
+              {{
+                t(
+                  "You have one event in {days} days.",
+                  {
+                    count: row[1].size,
+                    days: calculateDiffDays(row[0]),
+                  },
+                  row[1].size
+                )
+              }}
+            </span>
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <event-participation-card
+              v-for="participation in thisWeek(row)"
+              :key="participation[1].id"
+              :participation="participation[1]"
+            />
+          </div>
+        </div>
+        <div class="text-right mt-6">
+          <router-link
+            :to="{ name: RouteName.MY_EVENTS }"
+            class="text-blue-600 hover:text-blue-700 font-medium"
+            >{{ t("View everything") }} →</router-link
+          >
         </div>
       </div>
-      <div class="text-right mt-6">
-        <router-link
-          :to="{ name: RouteName.MY_EVENTS }"
-          class="text-blue-600 hover:text-blue-700 font-medium"
-          >{{ t("View everything") }} →</router-link
-        >
-      </div>
+
+      <!-- Empty state for upcoming events -->
+      <empty-content v-else icon="calendar" inline center class="my-8">
+        {{ t("No upcoming events") }}
+        <template #desc>
+          <p class="text-gray-600 dark:text-gray-300">
+            {{ t("You don't have any upcoming events at the moment") }}
+          </p>
+        </template>
+      </empty-content>
     </section>
-    <!-- Events from your followed groups -->
-    <section class="mx-auto mb-8" v-if="canShowFollowedGroupEvents">
+    <!-- Events from your followed groups - only show if there are events -->
+    <section
+      class="mx-auto mb-8"
+      v-if="currentUser?.id && canShowFollowedGroupEvents"
+    >
       <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ t("Upcoming events from your groups") }}
       </h2>
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
       </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <event-participation-card
-          v-for="event in filteredFollowedGroupsEvents"
-          :key="event.id"
-          :participation="createMockParticipation(event)"
-        />
+
+      <div v-if="canShowFollowedGroupEvents">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <event-participation-card
+            v-for="event in filteredFollowedGroupsEvents"
+            :key="event.id"
+            :participation="createMockParticipation(event)"
+          />
+        </div>
+        <div class="text-right mt-6">
+          <router-link
+            class="text-blue-600 hover:text-blue-700 font-medium"
+            :to="{
+              name: RouteName.MY_EVENTS,
+              query: {
+                showUpcoming: 'true',
+                showDrafts: 'false',
+                showAttending: 'false',
+                showMyGroups: 'true',
+              },
+            }"
+            >{{ t("View everything") }} →</router-link
+          >
+        </div>
       </div>
-      <div class="text-right mt-6">
-        <router-link
-          class="text-blue-600 hover:text-blue-700 font-medium"
-          :to="{
-            name: RouteName.MY_EVENTS,
-            query: {
-              showUpcoming: 'true',
-              showDrafts: 'false',
-              showAttending: 'false',
-              showMyGroups: 'true',
-            },
-          }"
-          >{{ t("View everything") }} →</router-link
-        >
-      </div>
+
+      <!-- Empty state for group events -->
+      <empty-content v-else icon="calendar-account" inline center class="my-8">
+        {{ t("No events from your groups") }}
+        <template #desc>
+          <p class="text-gray-600 dark:text-gray-300">
+            {{ t("Events from groups you follow will appear here") }}
+          </p>
+        </template>
+      </empty-content>
     </section>
 
-    <!-- Public events for non-logged users -->
+    <!-- Public events - only show if there are events -->
     <section class="mx-auto mb-8" v-if="canShowPublicEvents">
       <h2 class="text-xl font-bold text-gray-900 mb-2">
-        {{ t("Upcoming events") }}
+        {{ currentUser?.id ? t("More upcoming events") : t("Upcoming events") }}
       </h2>
       <p class="text-gray-600 mb-6">
         {{ t("Discover interesting events happening near you") }}
       </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <event-participation-card
-          v-for="event in displayedPublicEvents"
-          :key="event.id"
-          :participation="createMockParticipation(event)"
-        />
+
+      <div v-if="canShowPublicEvents">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <event-participation-card
+            v-for="event in displayedPublicEvents"
+            :key="event.id"
+            :participation="createMockParticipation(event)"
+          />
+        </div>
+        <div class="text-right mt-6">
+          <router-link
+            class="text-blue-600 hover:text-blue-700 font-medium"
+            :to="{ name: RouteName.SEARCH }"
+            >{{ t("View everything") }} →</router-link
+          >
+        </div>
       </div>
-      <div class="text-right mt-6">
-        <router-link
-          class="text-blue-600 hover:text-blue-700 font-medium"
-          :to="{ name: RouteName.SEARCH }"
-          >{{ t("View everything") }} →</router-link
-        >
-      </div>
+
+      <!-- Empty state for public events -->
+      <empty-content v-else icon="calendar-blank" inline center class="my-8">
+        {{ t("No public events available") }}
+        <template #desc>
+          <p class="text-gray-600 dark:text-gray-300">
+            {{ t("Check back later for upcoming events") }}
+          </p>
+        </template>
+      </empty-content>
     </section>
 
-    <!-- Recent events (only show when user has no upcoming events) -->
-    <div
-      class="mx-auto"
-      v-if="!canShowMyUpcomingEvents && !canShowPublicEvents"
-    >
+    <!-- Nearby events based on location -->
+    <div class="mx-auto" v-if="currentUser?.id">
       <CloseEvents
         @doGeoLoc="performGeoLocation()"
         :userLocation="
@@ -165,8 +209,9 @@
         :distance="distance as any"
       />
     </div>
-    <!-- Groups section -->
-    <section class="mx-auto mb-8">
+
+    <!-- Groups section - only show if there are groups -->
+    <section class="mx-auto mb-8" v-if="canShowUserGroups">
       <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ groupsSectionTitle }}
       </h2>
@@ -246,6 +291,7 @@ import {
 } from "@/graphql/location";
 import { LocationType } from "@/types/user-location.model";
 import UnloggedIntroduction from "@/components/Home/UnloggedIntroduction.vue";
+import LoggedSearchBar from "@/components/Home/LoggedSearchBar.vue";
 import { useHead } from "@unhead/vue";
 import {
   addressToLocation,
@@ -430,34 +476,29 @@ const canShowUserGroups = computed<boolean>(() => {
 });
 
 const displayedPublicEvents = computed<IEvent[]>(() => {
-  if (currentUser.value?.id) {
-    // User is logged in - don't show public events
-    return [];
-  } else {
-    // User is not logged in - show public upcoming events
-    const rawEvents = publicEventsResult.value?.searchEvents?.elements || [];
+  // Show public upcoming events for both logged-in and logged-out users
+  const rawEvents = publicEventsResult.value?.searchEvents?.elements || [];
 
-    todayStart.setHours(0, 0, 0, 0); // Start of today
+  todayStart.setHours(0, 0, 0, 0); // Start of today
 
-    const filteredEvents = rawEvents.filter((event) => {
-      // Only show upcoming events (today and future)
-      if (!event.beginsOn) {
-        return false;
-      }
+  const filteredEvents = rawEvents.filter((event) => {
+    // Only show upcoming events (today and future)
+    if (!event.beginsOn) {
+      return false;
+    }
 
-      const eventDate = new Date(event.beginsOn);
-      return eventDate >= todayStart;
-    });
+    const eventDate = new Date(event.beginsOn);
+    return eventDate >= todayStart;
+  });
 
-    // Limit to max 6 events
-    return filteredEvents.slice(0, 6);
-  }
+  // Limit to max 6 events
+  return filteredEvents.slice(0, 6);
 });
 
 const canShowPublicEvents = computed<boolean>(() => {
-  const isLoggedOut = !currentUser.value?.id;
+  // Show public events for both logged-in and logged-out users if there are events
   const hasEvents = displayedPublicEvents.value.length > 0;
-  return isLoggedOut && hasEvents;
+  return hasEvents;
 });
 
 const groupsSectionTitle = computed(() => {

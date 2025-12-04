@@ -50,6 +50,41 @@
 
           <!-- User Actions -->
           <div class="flex items-center space-x-3">
+            <!-- Create Dropdown -->
+            <o-dropdown position="bottom-right">
+              <template #trigger>
+                <button
+                  type="button"
+                  class="flex items-center justify-center w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  :title="t('Create')"
+                >
+                  <Plus :size="20" />
+                </button>
+              </template>
+
+              <!-- Dropdown menu -->
+              <div
+                class="z-50 w-48 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden p-0"
+              >
+                <o-dropdown-item
+                  aria-role="listitem"
+                  tag="router-link"
+                  :to="{ name: RouteName.CREATE_EVENT }"
+                  class="create-dropdown-item"
+                >
+                  <span class="capitalize">{{ t("Create event") }}</span>
+                </o-dropdown-item>
+                <o-dropdown-item
+                  aria-role="listitem"
+                  tag="router-link"
+                  :to="{ name: RouteName.CREATE_GROUP }"
+                  class="create-dropdown-item"
+                >
+                  <span class="capitalize">{{ t("Create group") }}</span>
+                </o-dropdown-item>
+              </div>
+            </o-dropdown>
+
             <!-- Conversations/Inbox -->
             <router-link
               :to="{ name: RouteName.CONVERSATION_LIST }"
@@ -244,6 +279,12 @@
               {{ t("My groups") }}
             </router-link>
             <router-link
+              :to="{ name: RouteName.CREATE_GROUP }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Create group") }}
+            </router-link>
+            <router-link
               :to="{ name: RouteName.CONVERSATION_LIST }"
               class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md relative"
             >
@@ -322,6 +363,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Inbox from "vue-material-design-icons/Inbox.vue";
+import Plus from "vue-material-design-icons/Plus.vue";
 import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useLazyQuery } from "@vue/apollo-composable";
@@ -470,3 +512,50 @@ const performLogout = async () => {
   }
 };
 </script>
+
+<style scoped>
+.create-dropdown-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: transparent !important;
+}
+
+.create-dropdown-item:hover {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+/* Remove active/focus states */
+.create-dropdown-item:focus,
+.create-dropdown-item:active,
+.create-dropdown-item.router-link-active,
+.create-dropdown-item.router-link-exact-active {
+  background-color: transparent !important;
+  color: #374151 !important;
+}
+
+/* Ensure hover still works on active links */
+.create-dropdown-item:hover,
+.create-dropdown-item.router-link-active:hover,
+.create-dropdown-item.router-link-exact-active:hover {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+/* Remove Oruga's default dropdown padding */
+:deep(.o-drop__menu) {
+  padding: 0 !important;
+}
+
+/* Remove Oruga's default active state styling */
+:deep(.o-drop__item.is-active) {
+  background-color: transparent !important;
+}
+</style>
