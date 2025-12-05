@@ -40,7 +40,7 @@
               :hide-selected="true"
               :default-text="addressDefaultText"
               labelClass="sr-only"
-              :placeholder="t('Entire poland and remote')"
+              :placeholder="t('Entire Poland and remote')"
               class="w-full"
               @update:modelValue="handleAddressChange"
             />
