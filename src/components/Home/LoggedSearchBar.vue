@@ -40,7 +40,7 @@
               :hide-selected="true"
               :default-text="addressDefaultText"
               labelClass="sr-only"
-              :placeholder="t('Entire Poland')"
+              :placeholder="t('Entire poland and remote')"
               class="w-full"
               @update:modelValue="handleAddressChange"
             />
@@ -90,7 +90,7 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { IAddress } from "@/types/address.model";
 import { AddressSearchType } from "@/types/enums";
-import { addressToLocation, getAddressFromLocal } from "@/utils/location";
+import { addressToLocation, getAddressFromLocal, storeAddressInLocal } from "@/utils/location";
 import RouteName from "@/router/name";
 
 const FullAddressAutoComplete = defineAsyncComponent(
@@ -144,9 +144,13 @@ const handleAddressChange = (newAddress: IAddress | null) => {
     if (distance.value === null) {
       distance.value = 10;
     }
+    // Store address in localStorage
+    storeAddressInLocal(newAddress);
   } else {
     // Clear distance when address is cleared
     distance.value = null;
+    // Clear address from localStorage
+    storeAddressInLocal(null);
   }
 };
 

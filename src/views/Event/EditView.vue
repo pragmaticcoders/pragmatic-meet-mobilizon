@@ -6,9 +6,67 @@
     <h1 class="text-3xl font-bold text-gray-900 mb-8" v-if="isUpdate === true">
       {{ t("Update event {name}", { name: event.title }) }}
     </h1>
-    <h1 class="text-3xl font-bold text-gray-900 mb-8" v-else>
+    <h1 v-else class="text-3xl font-bold text-gray-900 mb-8">
       {{ t("Create a new event") }}
     </h1>
+
+    <!-- Group Selector (only show when creating new event, not updating) -->
+    <div v-if="!isUpdate && administeredGroups.length > 0" class="mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">
+        {{ t("Event organizer") }}
+      </h2>
+      <p class="text-sm text-gray-600 mb-4">
+        {{ t("Choose who will organize this event") }}
+      </p>
+      
+      <!-- Selected organizer preview -->
+      <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <img
+          v-if="selectedOrganizerData?.avatar?.url"
+          :src="selectedOrganizerData.avatar.url"
+          :alt="selectedOrganizerData.name || selectedOrganizerData.preferredUsername"
+          class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
+        />
+        <div
+          v-else
+          class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-sm"
+        >
+          {{ (selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || "P")[0].toUpperCase() }}
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-gray-900">
+            {{ selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || t("Personal event") }}
+          </p>
+          <p v-if="selectedOrganizer !== 'personal'" class="text-xs text-gray-500">
+            @{{ selectedOrganizerData?.preferredUsername }}
+          </p>
+        </div>
+      </div>
+      
+      <div class="relative w-full md:w-1/2">
+        <select
+          id="eventOrganizer"
+          v-model="selectedOrganizer"
+          class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+        >
+          <option value="personal">
+            {{ t("Personal event") }}
+          </option>
+          <option
+            v-for="group in administeredGroups"
+            :key="group.id"
+            :value="group.id"
+          >
+            {{ t("Group:") }} {{ group.name || group.preferredUsername }}
+          </option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
 
     <form ref="form" class="space-y-10">
       <section>
@@ -621,8 +679,9 @@ import {
   IEvent,
   toEditJSON,
 } from "@/types/event.model";
-import { LOGGED_USER_DRAFTS } from "@/graphql/actor";
+import { LOGGED_USER_DRAFTS, LOGGED_USER_MEMBERSHIPS } from "@/graphql/actor";
 import { LOGGED_USER_PARTICIPATIONS } from "@/graphql/participant";
+import { IMember } from "@/types/actor/member.model";
 import { IActor, IGroup, IPerson, usernameWithDomain } from "@/types/actor";
 import {
   buildFileFromIMedia,
@@ -904,6 +963,93 @@ watch(
   },
   { immediate: true }
 );
+
+// Fetch user's groups where they are moderator or administrator
+const { result: userMembershipsResult } = useQuery<{
+  loggedUser: { memberships: { elements: IMember[] } };
+}>(LOGGED_USER_MEMBERSHIPS, { limit: 100 }, () => ({
+  enabled: !props.isUpdate && currentActor.value?.id !== undefined,
+  fetchPolicy: "cache-and-network",
+}));
+
+// Filter groups where user has moderator or administrator role
+const administeredGroups = computed<IGroup[]>(() => {
+  const memberships = userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
+  return memberships
+    .filter((membership: IMember) =>
+      [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
+    )
+    .map((membership: IMember) => membership.parent as IGroup);
+});
+
+// Selected organizer value for the dropdown
+const selectedOrganizer = ref<string>("personal");
+
+// Watch for changes in selectedOrganizer and update event attribution
+watch(selectedOrganizer, (newValue) => {
+  if (newValue === "personal") {
+    event.value.attributedTo = undefined;
+    event.value.organizerActor = currentActor.value;
+    // Update URL to remove query params
+    if (route.query.actorId || route.query.groupUsername) {
+      router.replace({ name: route.name as string, query: {} });
+    }
+  } else {
+    // Find the selected group
+    const selectedGroup = administeredGroups.value.find(
+      (group) => group.id === newValue
+    );
+    if (selectedGroup) {
+      event.value.attributedTo = selectedGroup;
+      event.value.organizerActor = currentActor.value;
+      // Update URL with query params
+      router.replace({
+        name: route.name as string,
+        query: {
+          actorId: selectedGroup.id,
+          groupUsername: selectedGroup.preferredUsername,
+        },
+      });
+    }
+  }
+});
+
+// Initialize selectedOrganizer based on query params or event attribution
+watch(
+  [groupResult, administeredGroups],
+  () => {
+    if (props.isUpdate || props.isDuplicate) {
+      // For update/duplicate, set based on existing event attribution
+      if (event.value.attributedTo?.id) {
+        selectedOrganizer.value = event.value.attributedTo.id;
+      } else {
+        selectedOrganizer.value = "personal";
+      }
+    } else if (actorId.value && groupResult.value?.group) {
+      // From query params (coming from group page)
+      selectedOrganizer.value = actorId.value;
+    } else {
+      // Default to personal event
+      selectedOrganizer.value = "personal";
+      // Explicitly clear attribution for new personal events
+      if (!actorId.value) {
+        event.value.attributedTo = undefined;
+        event.value.organizerActor = currentActor.value;
+      }
+    }
+  },
+  { immediate: true }
+);
+
+// Computed property to get the selected organizer's full data (for preview with avatar)
+const selectedOrganizerData = computed(() => {
+  if (selectedOrganizer.value === "personal") {
+    return currentActor.value;
+  }
+  return administeredGroups.value.find(
+    (group) => group.id === selectedOrganizer.value
+  );
+});
 
 const validateForm = () => {
   if (!form.value) return;
