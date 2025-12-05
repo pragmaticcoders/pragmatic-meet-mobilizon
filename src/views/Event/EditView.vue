@@ -1041,16 +1041,6 @@ watch(
   { immediate: true }
 );
 
-// Computed property for event type badge text
-const eventTypeBadge = computed(() => {
-  if (event.value.attributedTo && event.value.attributedTo.id) {
-    return t("Group event: {groupName}", {
-      groupName: event.value.attributedTo.name || event.value.attributedTo.preferredUsername,
-    });
-  }
-  return t("Personal event");
-});
-
 // Computed property to get the selected organizer's full data (for preview with avatar)
 const selectedOrganizerData = computed(() => {
   if (selectedOrganizer.value === "personal") {
