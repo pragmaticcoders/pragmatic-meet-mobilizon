@@ -32,11 +32,8 @@
         }}</span>
       </div>
     </section>
-    <!-- Your upcoming events - only show if user has events -->
-    <section
-      v-if="currentUser?.id && canShowMyUpcomingEvents"
-      class="mx-auto mb-8 mt-4"
-    >
+    <!-- Your upcoming events - only show if user is logged in -->
+    <section v-if="currentUser?.id" class="mx-auto mb-8 mt-4">
       <h2 class="text-2xl font-bold text-gray-900 mb-6">
         {{ t("Your upcoming events") }}
       </h2>
@@ -108,11 +105,8 @@
         </template>
       </empty-content>
     </section>
-    <!-- Events from your followed groups - only show if there are events -->
-    <section
-      class="mx-auto mb-8"
-      v-if="currentUser?.id && canShowFollowedGroupEvents"
-    >
+    <!-- Events from your followed groups - only show if user is logged in -->
+    <section class="mx-auto mb-8" v-if="currentUser?.id">
       <h2 class="text-xl font-bold text-gray-900 mb-2">
         {{ t("Upcoming events from your groups") }}
       </h2>
