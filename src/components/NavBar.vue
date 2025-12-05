@@ -23,6 +23,12 @@
         >
           <nav class="flex items-center space-x-6">
             <router-link
+              :to="{ name: RouteName.HOME }"
+              class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
+            >
+              {{ t("Overview") }}
+            </router-link>
+            <router-link
               :to="{ name: RouteName.SEARCH }"
               class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
             >
@@ -88,40 +94,48 @@
             <!-- Conversations/Inbox -->
             <router-link
               :to="{ name: RouteName.CONVERSATION_LIST }"
-              class="relative p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              class="relative"
               id="conversations-menu-button"
             >
-              <span class="sr-only">{{ t("Open conversations") }}</span>
-              <Inbox :size="24" />
-              <span
-                v-show="unreadConversationsCount > 0"
-                class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
-              >
-                {{ unreadConversationsCount }}
-              </span>
+              <o-tooltip variant="dark" :label="t('View your conversations')">
+                <div
+                  class="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <span class="sr-only">{{ t("Open conversations") }}</span>
+                  <Chat :size="24" />
+                  <span
+                    v-show="unreadConversationsCount > 0"
+                    class="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                  >
+                    {{ unreadConversationsCount }}
+                  </span>
+                </div>
+              </o-tooltip>
             </router-link>
 
             <!-- User Avatar Dropdown -->
             <o-dropdown position="bottom-right">
               <template #trigger>
-                <button
-                  type="button"
-                  class="flex items-center p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  id="user-menu-button"
-                >
-                  <span class="sr-only">{{ t("Open user menu") }}</span>
-                  <figure class="h-8 w-8" v-if="currentActor?.avatar">
-                    <img
-                      class="rounded-full w-full h-full object-cover"
-                      alt=""
-                      :src="currentActor?.avatar.url"
-                      width="32"
-                      height="32"
-                      loading="lazy"
-                    />
-                  </figure>
-                  <AccountCircle v-else :size="32" />
-                </button>
+                <o-tooltip variant="dark" :label="t('Profile and settings')">
+                  <button
+                    type="button"
+                    class="flex items-center p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    id="user-menu-button"
+                  >
+                    <span class="sr-only">{{ t("Open user menu") }}</span>
+                    <figure class="h-8 w-8" v-if="currentActor?.avatar">
+                      <img
+                        class="rounded-full w-full h-full object-cover"
+                        alt=""
+                        :src="currentActor?.avatar.url"
+                        width="32"
+                        height="32"
+                        loading="lazy"
+                      />
+                    </figure>
+                    <AccountCircle v-else :size="32" />
+                  </button>
+                </o-tooltip>
               </template>
 
               <!-- Dropdown menu -->
@@ -255,6 +269,12 @@
           <!-- Logged In Mobile Menu -->
           <template v-if="currentUser?.isLoggedIn">
             <router-link
+              :to="{ name: RouteName.HOME }"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
+            >
+              {{ t("Overview") }}
+            </router-link>
+            <router-link
               :to="{ name: RouteName.SEARCH }"
               class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md"
             >
@@ -362,7 +382,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
-import Inbox from "vue-material-design-icons/Inbox.vue";
+import Chat from "vue-material-design-icons/Chat.vue";
 import Plus from "vue-material-design-icons/Plus.vue";
 import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
