@@ -161,6 +161,7 @@ const handleSearch = () => {
     lat?: number;
     lon?: number;
     distance?: string;
+    isOnline?: boolean;
   } = {};
 
   // Add search query if present
@@ -180,6 +181,9 @@ const handleSearch = () => {
     if (distance.value != null) {
       searchQueryParams.distance = distance.value.toString() + "_km";
     }
+  } else {
+    // If no location is selected, automatically enable online events
+    searchQueryParams.isOnline = true;
   }
 
   // Navigate to search page with query params

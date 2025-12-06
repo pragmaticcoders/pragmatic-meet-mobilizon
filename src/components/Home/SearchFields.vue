@@ -179,6 +179,7 @@ const submit = (event: Event) => {
     search?: string;
     distance?: string;
     contentType?: string;
+    isOnline?: boolean;
   } = {};
   if (search.value != "") {
     search_query.search = search.value;
@@ -193,6 +194,9 @@ const submit = (event: Event) => {
     if (distance.value != null) {
       search_query.distance = distance.value.toString() + "_km";
     }
+  } else {
+    // If no location is selected, automatically enable online events
+    search_query.isOnline = true;
   }
   if (btn_classes.includes("search-Event")) {
     search_query.contentType = ContentType.EVENTS;
