@@ -341,7 +341,7 @@ todayStart.setHours(0, 0, 0, 0);
 
 const { result: userResult } = useQuery<{ loggedUser: IUser }>(
   HOME_USER_QUERIES,
-  { afterDateTime: todayStart.toISOString() },
+  { afterDateTime: todayStart.toISOString(), page: 1, limit: 10 },
   () => ({
     enabled: currentUser.value?.id != undefined,
     fetchPolicy: "cache-and-network",

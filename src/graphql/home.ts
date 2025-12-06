@@ -67,7 +67,7 @@ export const HOME_USER_QUERIES = gql`
           }
         }
       }
-      followedGroupEvents {
+      followedGroupEvents(afterDatetime: $afterDateTime) {
         total
         elements {
           profile {
