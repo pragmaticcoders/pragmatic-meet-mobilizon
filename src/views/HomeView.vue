@@ -38,53 +38,12 @@
         {{ t("Your upcoming events") }}
       </h2>
       <div v-if="canShowMyUpcomingEvents">
-        <div
-          v-for="row of goingToEvents"
-          class="text-gray-700 mb-4"
-          :key="row[0]"
-        >
-          <p
-            class="date-component-container"
-            v-if="isInLessThanSevenDays(row[0])"
-          >
-            <span v-if="isToday(row[0])">{{
-              t(
-                "You have one event today.",
-                {
-                  count: row[1].size,
-                },
-                row[1].size
-              )
-            }}</span>
-            <span v-else-if="isTomorrow(row[0])">{{
-              t(
-                "You have one event tomorrow.",
-                {
-                  count: row[1].size,
-                },
-                row[1].size
-              )
-            }}</span>
-            <span v-else-if="isInLessThanSevenDays(row[0])">
-              {{
-                t(
-                  "You have one event in {days} days.",
-                  {
-                    count: row[1].size,
-                    days: calculateDiffDays(row[0]),
-                  },
-                  row[1].size
-                )
-              }}
-            </span>
-          </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <event-participation-card
-              v-for="participation in row[1]"
-              :key="participation[1].id"
-              :participation="participation[1]"
-            />
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <event-participation-card
+            v-for="participation in thisWeekGoingToEvents"
+            :key="participation.id"
+            :participation="participation"
+          />
         </div>
         <div class="text-right mt-6">
           <router-link
@@ -377,22 +336,6 @@ const isToday = (date: string): boolean => {
   return new Date(date).toDateString() === new Date().toDateString();
 };
 
-const isTomorrow = (date: string): boolean => {
-  return isInDays(date, 1);
-};
-
-const isInDays = (date: string, nbDays: number): boolean => {
-  return calculateDiffDays(date) === nbDays;
-};
-
-const isBefore = (date: string, nbDays: number): boolean => {
-  return calculateDiffDays(date) < nbDays;
-};
-
-const isInLessThanSevenDays = (date: string): boolean => {
-  return isBefore(date, 7);
-};
-
 const calculateDiffDays = (date: string): number => {
   return Math.ceil(
     (new Date(date).getTime() - new Date().getTime()) / 1000 / 60 / 60 / 24
@@ -423,28 +366,11 @@ const thisWeekGoingToEvents = computed<IParticipant[]>(() => {
   return res;
 });
 
-const goingToEvents = computed<Map<string, Map<string, IParticipant>>>(() => {
-  return thisWeekGoingToEvents.value?.reduce(
-    (
-      acc: Map<string, Map<string, IParticipant>>,
-      participation: IParticipant
-    ) => {
-      const day = new Date(participation.event.beginsOn).toDateString();
-      const participations: Map<string, IParticipant> =
-        acc.get(day) || new Map();
-      participations.set(
-        `${participation.event.uuid}${participation.actor.id}`,
-        participation
-      );
-      acc.set(day, participations);
-      return acc;
-    },
-    new Map()
-  );
-});
-
 const canShowMyUpcomingEvents = computed<boolean>(() => {
-  return currentActor.value?.id != undefined && goingToEvents.value.size > 0;
+  return (
+    currentActor.value?.id != undefined &&
+    thisWeekGoingToEvents.value.length > 0
+  );
 });
 
 const canShowFollowedGroupEvents = computed<boolean>(() => {
