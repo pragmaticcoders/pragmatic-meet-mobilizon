@@ -5,7 +5,6 @@
         :event="event"
         :current-actor="emptyCurrentActor"
         :participation="undefined"
-        :identities="[]"
       />
     </Variant>
     <Variant title="Basic">
@@ -13,7 +12,6 @@
         :event="event"
         :current-actor="currentActor"
         :participation="undefined"
-        :identities="identities"
         @join-event="logEvent('Join event', $event)"
         @join-modal="logEvent('Join modal', $event)"
         @confirm-leave="logEvent('Confirm leave', $event)"
@@ -24,7 +22,6 @@
         :event="{ ...event, joinOptions: EventJoinOptions.RESTRICTED }"
         :current-actor="currentActor"
         :participation="undefined"
-        :identities="identities"
         @join-event-with-confirmation="
           logEvent('Join Event with confirmation', $event)
         "
@@ -36,7 +33,6 @@
         :event="event"
         :current-actor="currentActor"
         :participation="participation"
-        :identities="identities"
         @confirm-leave="logEvent('Confirm leave', $event)"
       />
     </Variant>
@@ -48,7 +44,6 @@
           ...participation,
           role: ParticipantRole.NOT_APPROVED,
         }"
-        :identities="identities"
         @confirm-leave="logEvent('Confirm leave', $event)"
       />
     </Variant>
@@ -60,7 +55,6 @@
           ...participation,
           role: ParticipantRole.REJECTED,
         }"
-        :identities="identities"
         @confirm-leave="logEvent('Confirm leave', $event)"
       />
     </Variant>
@@ -90,18 +84,6 @@ const participation: IParticipant = {
   actor: currentActor,
   role: ParticipantRole.PARTICIPANT,
 };
-
-const identities: IPerson[] = [
-  currentActor,
-  {
-    id: "2",
-    preferredUsername: "another",
-    name: "Another",
-    avatar: {
-      url: "https://mobilizon.fr/media/95ab5ba92287ab4857bb517cadae2a7ab6a553748d1c48cefc27e2b7ab640fea.jpg?name=FB_IMG_16150214351371162.jpg",
-    },
-  },
-];
 
 const event: IEvent = {
   title: "hello",

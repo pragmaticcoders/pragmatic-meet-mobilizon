@@ -98,11 +98,36 @@
           class="py-4 border-b border-gray-200"
           v-show="contentType !== 'GROUPS'"
         >
-          <div class="flex items-center justify-between">
-            <label class="text-sm font-medium text-gray-900">{{
-              t("Online events")
-            }}</label>
-            <o-switch v-model="isOnline" />
+          <label class="text-sm font-medium text-gray-900 block mb-3">{{
+            t("Online events")
+          }}</label>
+          <div class="flex flex-col gap-3">
+            <label class="flex items-center cursor-pointer group">
+              <input
+                type="checkbox"
+                :checked="onlineFilter === OnlineFilterMode.ONLINE_ONLY"
+                @change="toggleOnlineOnly"
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span
+                class="ml-3 text-sm font-medium text-gray-900 group-hover:text-gray-700"
+              >
+                {{ t("Show only online events") }}
+              </span>
+            </label>
+            <label class="flex items-center cursor-pointer group">
+              <input
+                type="checkbox"
+                :checked="onlineFilter === OnlineFilterMode.INCLUDE_ONLINE"
+                @change="toggleIncludeOnline"
+                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <span
+                class="ml-3 text-sm font-medium text-gray-900 group-hover:text-gray-700"
+              >
+                {{ t("Include online events") }}
+              </span>
+            </label>
           </div>
         </div>
 
@@ -430,7 +455,7 @@
             </option>
           </o-select>
           <o-button
-            v-show="!isOnline"
+            v-show="onlineFilter !== OnlineFilterMode.ONLINE_ONLY"
             @click="
               () =>
                 (mode = mode === ViewMode.MAP ? ViewMode.LIST : ViewMode.MAP)
@@ -612,7 +637,6 @@ import {
   integerTransformer,
   useRouteQuery,
   enumTransformer,
-  booleanTransformer,
 } from "vue-use-route-query";
 
 import { useHead } from "@/utils/head";
@@ -694,6 +718,12 @@ enum GroupSortValues {
   LAST_EVENT_ACTIVITY = "LAST_EVENT_ACTIVITY",
 }
 
+enum OnlineFilterMode {
+  NONE = "none",
+  ONLINE_ONLY = "online_only",
+  INCLUDE_ONLINE = "include_online",
+}
+
 const props = defineProps<{
   tag?: string;
 }>();
@@ -712,7 +742,28 @@ const contentType = useRouteQuery(
   ContentType.EVENTS,
   enumTransformer(ContentType)
 );
-const isOnline = useRouteQuery("isOnline", false, booleanTransformer);
+// Use string type for URL parameter, convert to enum manually
+const onlineFilterString = useRouteQuery("onlineFilter", "none");
+
+// Convert string to enum value
+const onlineFilter = computed({
+  get: () => {
+    const value = onlineFilterString.value as string;
+    // Match the string value to enum
+    switch (value) {
+      case "online_only":
+        return OnlineFilterMode.ONLINE_ONLY;
+      case "include_online":
+        return OnlineFilterMode.INCLUDE_ONLINE;
+      default:
+        return OnlineFilterMode.NONE;
+    }
+  },
+  set: (newValue: OnlineFilterMode) => {
+    onlineFilterString.value = newValue;
+  },
+});
+
 const categoryOneOf = useRouteQuery("categoryOneOf", [], arrayTransformer);
 const statusOneOf = useRouteQuery(
   "statusOneOf",
@@ -1020,15 +1071,29 @@ const setBounds = ({
 
 watch(mode, (newMode) => {
   if (newMode === ViewMode.MAP) {
-    isOnline.value = false;
+    onlineFilter.value = OnlineFilterMode.NONE;
   }
 });
 
-watch(isOnline, (newIsOnline) => {
-  if (newIsOnline) {
+watch(onlineFilter, (newOnlineFilter) => {
+  if (newOnlineFilter === OnlineFilterMode.ONLINE_ONLY) {
     mode.value = ViewMode.LIST;
   }
 });
+
+const toggleOnlineOnly = () => {
+  onlineFilter.value =
+    onlineFilter.value === OnlineFilterMode.ONLINE_ONLY
+      ? OnlineFilterMode.NONE
+      : OnlineFilterMode.ONLINE_ONLY;
+};
+
+const toggleIncludeOnline = () => {
+  onlineFilter.value =
+    onlineFilter.value === OnlineFilterMode.INCLUDE_ONLINE
+      ? OnlineFilterMode.NONE
+      : OnlineFilterMode.INCLUDE_ONLINE;
+};
 
 const sortByForType = (
   value: EventSortValues,
@@ -1063,7 +1128,7 @@ watch(
     start,
     end,
     radius,
-    isOnline,
+    onlineFilter,
     categoryOneOf,
     statusOneOf,
     languageOneOf,
@@ -1103,7 +1168,12 @@ const { result: searchElementsResult, loading: searchLoading } = useQuery<{
     eventPage: eventPage.value,
     groupPage: groupPage.value,
     limit: EVENT_PAGE_LIMIT,
-    type: isOnline.value ? "ONLINE" : undefined,
+    type:
+      onlineFilter.value === OnlineFilterMode.ONLINE_ONLY
+        ? "ONLINE"
+        : onlineFilter.value === OnlineFilterMode.NONE
+          ? "IN_PERSON"
+          : undefined,
     categoryOneOf: categoryOneOf.value,
     statusOneOf: statusOneOf.value,
     languageOneOf: languageOneOf.value,
@@ -1130,7 +1200,12 @@ const { result: searchShortElementsResult } = useQuery<{
     longEvents: false,
     radius: geoHashLocation.value ? radius.value : undefined,
     limit: 0,
-    type: isOnline.value ? "ONLINE" : undefined,
+    type:
+      onlineFilter.value === OnlineFilterMode.ONLINE_ONLY
+        ? "ONLINE"
+        : onlineFilter.value === OnlineFilterMode.NONE
+          ? "IN_PERSON"
+          : undefined,
     categoryOneOf: categoryOneOf.value,
     statusOneOf: statusOneOf.value,
     languageOneOf: languageOneOf.value,

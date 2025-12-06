@@ -41,10 +41,6 @@
           </o-button>
         </template>
 
-        <o-dropdown-item :value="false" aria-role="listitem">
-          {{ t("Change my identity…") }}
-        </o-dropdown-item>
-
         <o-dropdown-item
           :value="false"
           aria-role="listitem"
@@ -209,66 +205,29 @@
       </div>
     </div>
 
-    <o-dropdown v-else-if="!participation && currentActor?.id">
-      <template #trigger="{ active }">
-        <o-button
-          variant="primary"
-          size="large"
-          :icon-right="active ? 'menu-up' : 'menu-down'"
-          :disabled="
-            event.options.blockNewRegistrations ||
-            (isEventFull && !event.options.enableWaitlist)
-          "
-        >
-          <span v-if="event.options.blockNewRegistrations">
-            {{ t("Registrations blocked") }}
-          </span>
-          <span v-else-if="isEventFull && event.options.enableWaitlist">
-            {{ t("Join waitlist") }}
-          </span>
-          <span v-else-if="isEventFull">
-            {{ t("Event full") }}
-          </span>
-          <span v-else>
-            {{ t("Participate") }}
-          </span>
-        </o-button>
-      </template>
-
-      <o-dropdown-item
-        :value="true"
-        aria-role="listitem"
-        @click="joinEvent(currentActor)"
-        @keyup.enter="joinEvent(currentActor)"
-        v-if="
-          !event.options.blockNewRegistrations &&
-          (!isEventFull || event.options.enableWaitlist)
-        "
-      >
-        <div class="flex gap-2 items-center">
-          <figure
-            class="w-6 h-6 rounded-full overflow-hidden"
-            v-if="currentActor?.avatar"
-          >
-            <img
-              class="w-full h-full object-cover rounded-full"
-              :src="currentActor.avatar.url"
-              alt=""
-            />
-          </figure>
-          <AccountCircle v-else style="border-radius: 50%" />
-          <div class="">
-            <span>
-              {{
-                t("as {identity}", {
-                  identity: displayName(currentActor),
-                })
-              }}
-            </span>
-          </div>
-        </div>
-      </o-dropdown-item>
-    </o-dropdown>
+    <o-button
+      v-else-if="!participation && currentActor?.id"
+      variant="primary"
+      size="large"
+      :disabled="
+        event.options.blockNewRegistrations ||
+        (isEventFull && !event.options.enableWaitlist)
+      "
+      @click="joinEvent(currentActor)"
+    >
+      <span v-if="event.options.blockNewRegistrations">
+        {{ t("Registrations blocked") }}
+      </span>
+      <span v-else-if="isEventFull && event.options.enableWaitlist">
+        {{ t("Join waitlist") }}
+      </span>
+      <span v-else-if="isEventFull">
+        {{ t("Event full") }}
+      </span>
+      <span v-else>
+        {{ t("Participate") }}
+      </span>
+    </o-button>
     <o-button
       rel="nofollow"
       tag="router-link"
@@ -328,11 +287,10 @@
 import { EventJoinOptions, ParticipantRole } from "@/types/enums";
 import { computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import MenuDown from "vue-material-design-icons/MenuDown.vue";
 import TimerSandEmpty from "vue-material-design-icons/TimerSandEmpty.vue";
 import RouteName from "../../router/name";
-import { IPerson, displayName } from "../../types/actor";
+import { IPerson } from "../../types/actor";
 import { IEvent } from "../../types/event.model";
 import { IParticipant } from "../../types/participant.model";
 
@@ -340,7 +298,6 @@ const props = defineProps<{
   participation: IParticipant | undefined;
   event: IEvent;
   currentActor: IPerson | undefined;
-  identities: IPerson[] | undefined;
 }>();
 
 const emit = defineEmits([

@@ -161,7 +161,7 @@ const handleSearch = () => {
     lat?: number;
     lon?: number;
     distance?: string;
-    isOnline?: boolean;
+    onlineFilter?: string;
   } = {};
 
   // Add search query if present
@@ -182,8 +182,8 @@ const handleSearch = () => {
       searchQueryParams.distance = distance.value.toString() + "_km";
     }
   } else {
-    // If no location is selected, automatically enable online events
-    searchQueryParams.isOnline = true;
+    // If no location is selected, automatically include online events
+    searchQueryParams.onlineFilter = "include_online";
   }
 
   // Navigate to search page with query params

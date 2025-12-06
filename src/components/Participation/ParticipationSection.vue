@@ -6,7 +6,6 @@
         :participation="participation"
         :event="event"
         :current-actor="currentActor"
-        :identities="identities"
         @join-event="(actor) => $emit('join-event', actor)"
         @join-modal="$emit('join-modal')"
         @join-event-with-confirmation="
@@ -139,7 +138,6 @@ const props = withDefaults(
     event: IEvent;
     anonymousParticipation?: boolean | null;
     currentActor: IPerson | undefined;
-    identities: IPerson[] | undefined;
     anonymousParticipationConfig?: IAnonymousParticipationConfig | null;
   }>(),
   {

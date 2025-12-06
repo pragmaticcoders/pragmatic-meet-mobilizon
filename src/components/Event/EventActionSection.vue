@@ -12,7 +12,6 @@
       :event="event"
       :anonymousParticipation="anonymousParticipation"
       :currentActor="currentActor"
-      :identities="identities"
       :anonymousParticipationConfig="anonymousParticipationConfig"
       @join-event="joinEvent"
       @join-event-with-confirmation="joinEventWithConfirmation"
@@ -359,7 +358,6 @@ import {
   useAnonymousParticipationConfig,
   useAnonymousReportsConfig,
 } from "@/composition/apollo/config";
-import { useCurrentUserIdentities } from "@/composition/apollo/actor";
 import { useRouter } from "vue-router";
 import { IParticipant } from "@/types/participant.model";
 import { ApolloCache, FetchResult } from "@apollo/client/core";
@@ -392,7 +390,6 @@ const router = useRouter();
 const { anonymousReportsConfig } = useAnonymousReportsConfig();
 const { anonymousActorId } = useAnonymousActorId();
 const { anonymousParticipationConfig } = useAnonymousParticipationConfig();
-const { identities } = useCurrentUserIdentities();
 
 const event = computed(() => props.event);
 

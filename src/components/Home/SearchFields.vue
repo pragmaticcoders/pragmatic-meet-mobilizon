@@ -179,7 +179,7 @@ const submit = (event: Event) => {
     search?: string;
     distance?: string;
     contentType?: string;
-    isOnline?: boolean;
+    onlineFilter?: string;
   } = {};
   if (search.value != "") {
     search_query.search = search.value;
@@ -195,8 +195,8 @@ const submit = (event: Event) => {
       search_query.distance = distance.value.toString() + "_km";
     }
   } else {
-    // If no location is selected, automatically enable online events
-    search_query.isOnline = true;
+    // If no location is selected, automatically include online events
+    search_query.onlineFilter = "include_online";
   }
   if (btn_classes.includes("search-Event")) {
     search_query.contentType = ContentType.EVENTS;

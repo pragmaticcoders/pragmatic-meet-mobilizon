@@ -49,7 +49,6 @@ describe("ParticipationSection", () => {
         event: eventData,
         anonymousParticipation: null,
         currentActor: { id: "5" },
-        identities: [],
         anonymousParticipationConfig: {
           allowed: true,
         },
