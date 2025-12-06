@@ -11,7 +11,7 @@
     </h1>
 
     <!-- Group Selector (only show when creating new event, not updating) -->
-    <div v-if="!isUpdate && administeredGroups.length > 0" class="mb-8">
+    <div v-if="!isUpdate" class="mb-8">
       <h2 class="text-xl font-semibold text-gray-900 mb-6">
         {{ t("Event organizer") }}
       </h2>
