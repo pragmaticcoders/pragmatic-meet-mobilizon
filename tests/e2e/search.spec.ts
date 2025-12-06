@@ -9,16 +9,24 @@ test.describe("Search Page - Online Filter", () => {
 
   test("displays online filter checkboxes", async ({ page }) => {
     // Check that both checkboxes are visible by finding the label with the text
-    const onlineOnlyLabel = page.locator('label:has-text("Show only online events")');
-    const includeOnlineLabel = page.locator('label:has-text("Include online events")');
+    const onlineOnlyLabel = page.locator(
+      'label:has-text("Show only online events")'
+    );
+    const includeOnlineLabel = page.locator(
+      'label:has-text("Include online events")'
+    );
 
     await expect(onlineOnlyLabel).toBeVisible();
     await expect(includeOnlineLabel).toBeVisible();
-    
+
     // Also verify the checkboxes themselves are present
-    const onlineOnlyCheckbox = onlineOnlyLabel.locator('input[type="checkbox"]');
-    const includeOnlineCheckbox = includeOnlineLabel.locator('input[type="checkbox"]');
-    
+    const onlineOnlyCheckbox = onlineOnlyLabel.locator(
+      'input[type="checkbox"]'
+    );
+    const includeOnlineCheckbox = includeOnlineLabel.locator(
+      'input[type="checkbox"]'
+    );
+
     await expect(onlineOnlyCheckbox).toBeVisible();
     await expect(includeOnlineCheckbox).toBeVisible();
   });

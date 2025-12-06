@@ -80,7 +80,7 @@
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <event-participation-card
-              v-for="participation in thisWeek(row)"
+              v-for="participation in row[1]"
               :key="participation[1].id"
               :participation="participation[1]"
             />
