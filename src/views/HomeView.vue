@@ -393,15 +393,6 @@ const isInLessThanSevenDays = (date: string): boolean => {
   return isBefore(date, 7);
 };
 
-const thisWeek = (
-  row: [string, Map<string, IParticipant>]
-): Map<string, IParticipant> => {
-  if (isInLessThanSevenDays(row[0])) {
-    return row[1];
-  }
-  return new Map();
-};
-
 const calculateDiffDays = (date: string): number => {
   return Math.ceil(
     (new Date(date).getTime() - new Date().getTime()) / 1000 / 60 / 60 / 24
