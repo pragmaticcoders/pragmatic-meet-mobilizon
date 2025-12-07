@@ -216,6 +216,7 @@ const calendarOptions = computed((): object => {
       }
 
       // Handle ALL events filter (original logic)
+      console.log("Calendar: Fetching ALL events");
       const queryVars = {
         limit: 999,
         beginsOn: info.start,
@@ -223,24 +224,34 @@ const calendarOptions = computed((): object => {
       };
 
       let result;
-      if (forceRefresh.value) {
-        // Force fresh data from server, bypassing cache completely
-        console.log("Calendar: Forcing fresh data fetch for", queryVars);
-        result = (await searchEventsRefetch(queryVars))?.data;
-        forceRefresh.value = false; // Reset flag after refresh
-        console.log(
-          "Calendar: Fresh data fetched, events:",
-          result?.searchEvents?.elements?.length
-        );
-      } else {
-        // Normal flow with cache
-        result =
-          (await searchEventsLoad(undefined, queryVars)) ||
-          (await searchEventsRefetch(queryVars))?.data;
-      }
+      try {
+        if (forceRefresh.value) {
+          // Force fresh data from server, bypassing cache completely
+          console.log("Calendar: Forcing fresh data fetch for ALL events", queryVars);
+          result = (await searchEventsRefetch(queryVars))?.data;
+          forceRefresh.value = false; // Reset flag after refresh
+          console.log(
+            "Calendar: Fresh ALL events fetched, events:",
+            result?.searchEvents?.elements?.length
+          );
+        } else {
+          // Normal flow with cache
+          console.log("Calendar: Loading ALL events (first load or from cache)");
+          const loadResult = await searchEventsLoad(undefined, queryVars);
+          console.log("Calendar: searchEventsLoad returned:", loadResult);
+          result = loadResult || (await searchEventsRefetch(queryVars))?.data;
+        }
 
-      if (!result) {
-        failureCallback("failed to fetch calendar events");
+        if (!result) {
+          console.error("Calendar: No result from ALL events query");
+          failureCallback("failed to fetch calendar events");
+          return;
+        }
+
+        console.log("Calendar: ALL events query completed successfully, events:", result.searchEvents.elements?.length);
+      } catch (error) {
+        console.error("Calendar: ERROR fetching ALL events:", error);
+        failureCallback("failed to fetch calendar events: " + error);
         return;
       }
 
