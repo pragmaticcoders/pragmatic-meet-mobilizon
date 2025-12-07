@@ -96,30 +96,21 @@ export const LOGGED_USER_UPCOMING_EVENTS = gql`
             picture {
               uuid
               url
-              alt
             }
             beginsOn
+            endsOn
             status
-            visibility
             organizerActor {
               ...ActorFragment
             }
             attributedTo {
               ...ActorFragment
             }
-            participantStats {
-              going
-              notApproved
-              rejected
-              participant
-            }
             options {
               ...EventOptions
             }
             tags {
-              id
-              slug
-              title
+              ...TagFragment
             }
             physicalAddress {
               ...AdressFragment
@@ -127,50 +118,42 @@ export const LOGGED_USER_UPCOMING_EVENTS = gql`
           }
           id
           role
-          actor {
-            ...ActorFragment
-          }
         }
       }
-      followedGroupEvents(afterDatetime: $afterDateTime) {
+    }
+    loggedPerson {
+      id
+      organizedEvents(
+        page: $page
+        limit: $limit
+      ) {
         total
         elements {
-          profile {
-            id
+          id
+          uuid
+          url
+          title
+          picture {
+            uuid
+            url
           }
-          group {
+          beginsOn
+          endsOn
+          status
+          organizerActor {
             ...ActorFragment
           }
-          event {
-            id
-            uuid
-            title
-            beginsOn
-            status
-            picture {
-              url
-            }
-            attributedTo {
-              ...ActorFragment
-            }
-            organizerActor {
-              ...ActorFragment
-            }
-            options {
-              ...EventOptions
-            }
-            physicalAddress {
-              ...AdressFragment
-            }
-            tags {
-              ...TagFragment
-            }
-            participantStats {
-              going
-              notApproved
-              rejected
-              participant
-            }
+          attributedTo {
+            ...ActorFragment
+          }
+          options {
+            ...EventOptions
+          }
+          tags {
+            ...TagFragment
+          }
+          physicalAddress {
+            ...AdressFragment
           }
         }
       }

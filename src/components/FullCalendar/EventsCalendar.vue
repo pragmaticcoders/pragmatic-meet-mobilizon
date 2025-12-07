@@ -18,14 +18,20 @@
 <script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { locale } from "@/utils/i18n";
-import { computed, ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted, onUnmounted, watch } from "vue";
 import { useLazyQuery } from "@vue/apollo-composable";
 import { IEvent } from "@/types/event.model";
 import { Paginate } from "@/types/paginate";
 import { SEARCH_CALENDAR_EVENTS } from "@/graphql/search";
+import { LOGGED_USER_UPCOMING_EVENTS } from "@/graphql/participant";
+import { IUser } from "@/types/current-user.model";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+
+const props = defineProps<{
+  filter: 'all' | 'my';
+}>();
 
 const calendarRef = ref();
 
@@ -40,6 +46,13 @@ const { load: searchEventsLoad, refetch: searchEventsRefetch } = useLazyQuery<{
   fetchPolicy: forceRefresh.value ? "network-only" : "cache-first",
 }));
 
+const { load: loadUserEvents, refetch: refetchUserEvents } = useLazyQuery<{
+  loggedUser: IUser;
+  loggedPerson: any;
+}>(LOGGED_USER_UPCOMING_EVENTS, undefined, () => ({
+  fetchPolicy: forceRefresh.value ? "network-only" : "cache-first",
+}));
+
 // Expose refresh method for external components to trigger calendar refresh
 const refreshCalendar = () => {
   if (calendarRef.value) {
@@ -48,6 +61,11 @@ const refreshCalendar = () => {
     calendarApi.refetchEvents();
   }
 };
+
+// Watch for filter changes and refresh calendar
+watch(() => props.filter, () => {
+  refreshCalendar();
+});
 
 // Listen for global calendar refresh events
 onMounted(() => {
@@ -82,6 +100,122 @@ const calendarOptions = computed((): object => {
       successCallback: (arg: object[]) => unknown,
       failureCallback: (err: string) => unknown
     ) => {
+      // Handle MY events filter
+      if (props.filter === "my") {
+        console.log("Calendar: Fetching MY events - STARTED");
+        const queryVars = {
+          afterDateTime: info.start.toISOString(),
+          beforeDateTime: info.end.toISOString(),
+          page: 1,
+          limit: 999,
+        };
+        console.log("Calendar: Query vars:", queryVars);
+
+        let result;
+        try {
+          console.log("Calendar: About to call loadUserEvents...");
+          if (forceRefresh.value) {
+            console.log("Calendar: Forcing fresh user events fetch");
+            result = (await refetchUserEvents(queryVars))?.data;
+            forceRefresh.value = false;
+          } else {
+            console.log("Calendar: Loading user events (first load or from cache)");
+            const loadResult = await loadUserEvents(undefined, queryVars);
+            console.log("Calendar: loadUserEvents returned:", loadResult);
+            result = loadResult || (await refetchUserEvents(queryVars))?.data;
+          }
+
+          console.log("Calendar: Query completed. Result:", result);
+          console.log(
+            "Calendar: User events fetched, participations:",
+            result?.loggedUser?.participations?.elements?.length,
+            "organized:",
+            result?.loggedPerson?.organizedEvents?.elements?.length
+          );
+        } catch (error) {
+          console.error("Calendar: ERROR fetching user events:", error);
+          console.error("Calendar: Error details:", JSON.stringify(error, null, 2));
+          failureCallback("Failed to fetch user events: " + error);
+          return;
+        }
+
+        if (!result?.loggedUser && !result?.loggedPerson) {
+          console.log("Calendar: No user data returned, showing empty calendar");
+          successCallback([]);
+          return;
+        }
+
+        // Collect events from participations
+        const participationEvents = (result?.loggedUser?.participations?.elements ?? [])
+          .map((participation: any) => participation.event)
+          .filter((event: IEvent | undefined) => event !== undefined);
+
+        // Collect events that user organized and filter by date range on client side
+        const organizedEvents = (result?.loggedPerson?.organizedEvents?.elements ?? [])
+          .filter((event: IEvent) => {
+            if (!event || !event.beginsOn) return false;
+            const eventStart = new Date(event.beginsOn);
+            return eventStart >= info.start && eventStart < info.end;
+          });
+
+        // Merge both lists and remove duplicates based on event ID
+        const eventMap = new Map<string, IEvent>();
+        
+        [...participationEvents, ...organizedEvents].forEach((event: IEvent) => {
+          if (event && event.id) {
+            eventMap.set(event.id, event);
+          }
+        });
+
+        const allMyEvents = Array.from(eventMap.values());
+
+        const events = allMyEvents.map((event: IEvent) => {
+          // Fix FullCalendar exclusive end date issue
+          let adjustedEndDate = event.endsOn;
+
+          if (event.endsOn && event.beginsOn) {
+            const startDate = new Date(event.beginsOn);
+            const endDate = new Date(event.endsOn);
+
+            // Check if event spans multiple days by comparing dates only (not times)
+            const startDay = new Date(
+              startDate.getFullYear(),
+              startDate.getMonth(),
+              startDate.getDate()
+            );
+            const endDay = new Date(
+              endDate.getFullYear(),
+              endDate.getMonth(),
+              endDate.getDate()
+            );
+
+            if (endDay.getTime() > startDay.getTime()) {
+              // Multi-day event: Add 1 day to end date for FullCalendar (which treats end dates as exclusive)
+              const adjustedEnd = new Date(endDate);
+              adjustedEnd.setDate(adjustedEnd.getDate() + 1);
+              adjustedEndDate = adjustedEnd.toISOString();
+            }
+          }
+
+          return {
+            id: event.id,
+            title: event.title,
+            start: event.beginsOn,
+            end: adjustedEndDate,
+            startStr: event.beginsOn,
+            endStr: adjustedEndDate,
+            url: `/events/${event.uuid}`,
+            extendedProps: {
+              event: event,
+            },
+          };
+        });
+
+        successCallback(events);
+        return;
+      }
+
+      // Handle ALL events filter (original logic)
       const queryVars = {
         limit: 999,
         beginsOn: info.start,

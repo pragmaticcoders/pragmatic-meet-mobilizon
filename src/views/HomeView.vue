@@ -407,7 +407,15 @@ const displayedPublicEvents = computed<IEvent[]>(() => {
 });
 
 const canShowPublicEvents = computed<boolean>(() => {
-  // Show public events for both logged-in and logged-out users if there are events
+  // For logged-in users: only show if they have no upcoming personal events
+  if (currentUser.value?.id) {
+    const hasPersonalEvents = thisWeekGoingToEvents.value.length > 0;
+    if (hasPersonalEvents) {
+      return false; // Don't show public events if user has their own events
+    }
+  }
+
+  // Show public events if there are any
   const hasEvents = displayedPublicEvents.value.length > 0;
   return hasEvents;
 });
@@ -626,37 +634,13 @@ const displayedGroups = computed<IGroup[]>(() => {
   return result;
 });
 
-// Compute location for public events with priority: user settings → localStorage → none
+// Compute location for public events using the existing userLocation
 const publicEventsLocation = computed(() => {
-  // Priority 1: User settings location (if logged in and has location set)
-  if (currentUser.value?.id && userSettingsLocation.value?.name) {
-    return userSettingsLocation.value.name;
-  }
-
-  // Priority 2: Last search location from localStorage
-  const localAddress = getAddressFromLocal();
-  if (localAddress?.description) {
-    return localAddress.description;
-  }
-
-  // Priority 3: No location (will show all events)
-  return undefined;
+  return userLocation.value?.name || undefined;
 });
 
 const publicEventsRadius = computed(() => {
-  // If we have user settings location, use the default radius
-  if (currentUser.value?.id && userSettingsLocation.value?.name) {
-    return userSettingsLocation.value?.isIPLocation ? 150 : 25;
-  }
-
-  // If we have localStorage location, try to get radius from there
-  const localAddress = getAddressFromLocal();
-  if (localAddress?.description) {
-    return 25; // default radius for search location
-  }
-
-  // No location means no radius
-  return undefined;
+  return distance.value || undefined;
 });
 
 // Check if we have any location for the public events section
