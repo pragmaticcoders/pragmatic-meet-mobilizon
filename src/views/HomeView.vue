@@ -112,10 +112,10 @@
     <!-- Public events - only show if there are events -->
     <section class="mx-auto mb-8" v-if="canShowPublicEvents">
       <h2 class="text-xl font-bold text-gray-900 mb-2">
-        {{ currentUser?.id ? t("More upcoming events") : t("Upcoming events") }}
+        {{ publicEventsSectionTitle }}
       </h2>
       <p class="text-gray-600 mb-6">
-        {{ t("Discover interesting events happening near you") }}
+        {{ publicEventsSectionDescription }}
       </p>
 
       <div v-if="canShowPublicEvents">
@@ -412,6 +412,24 @@ const canShowPublicEvents = computed<boolean>(() => {
   return hasEvents;
 });
 
+const publicEventsSectionTitle = computed(() => {
+  if (hasPublicEventsLocation.value && publicEventsLocation.value) {
+    // When location is available, show "Upcoming events nearby {location}"
+    return t("Upcoming events nearby {position}", {
+      position: publicEventsLocation.value,
+    });
+  } else {
+    // When no location is available, show "All upcoming events"
+    return t("All upcoming events");
+  }
+});
+
+const publicEventsSectionDescription = computed(() => {
+  return hasPublicEventsLocation.value
+    ? t("Discover interesting events happening near you")
+    : t("Discover interesting events from all locations");
+});
+
 const groupsSectionTitle = computed(() => {
   return currentUser.value?.id ? t("Your groups") : t("Discover groups");
 });
@@ -608,7 +626,46 @@ const displayedGroups = computed<IGroup[]>(() => {
   return result;
 });
 
-// Fetch public events (when not logged in) - use SEARCH_EVENTS (public API)
+// Compute location for public events with priority: user settings → localStorage → none
+const publicEventsLocation = computed(() => {
+  // Priority 1: User settings location (if logged in and has location set)
+  if (currentUser.value?.id && userSettingsLocation.value?.name) {
+    return userSettingsLocation.value.name;
+  }
+
+  // Priority 2: Last search location from localStorage
+  const localAddress = getAddressFromLocal();
+  if (localAddress?.description) {
+    return localAddress.description;
+  }
+
+  // Priority 3: No location (will show all events)
+  return undefined;
+});
+
+const publicEventsRadius = computed(() => {
+  // If we have user settings location, use the default radius
+  if (currentUser.value?.id && userSettingsLocation.value?.name) {
+    return userSettingsLocation.value?.isIPLocation ? 150 : 25;
+  }
+
+  // If we have localStorage location, try to get radius from there
+  const localAddress = getAddressFromLocal();
+  if (localAddress?.description) {
+    return 25; // default radius for search location
+  }
+
+  // No location means no radius
+  return undefined;
+});
+
+// Check if we have any location for the public events section
+const hasPublicEventsLocation = computed(() => {
+  return publicEventsLocation.value !== undefined;
+});
+
+// Fetch public events - use SEARCH_EVENTS (public API)
+// Now enabled for both logged-in and logged-out users
 const { result: publicEventsResult } = useQuery<{
   searchEvents: { elements: IEvent[] };
 }>(
@@ -619,17 +676,16 @@ const { result: publicEventsResult } = useQuery<{
       eventPage: 1,
       longEvents: false,
       term: "", // Empty term to get all public events
-      location: userLocation.value?.name || undefined,
-      radius: distance.value || undefined,
+      location: publicEventsLocation.value,
+      radius: publicEventsRadius.value,
     };
 
     return queryParams;
   },
   () => {
-    const isEnabled = !currentUser.value?.id; // true if user is not logged in (null or undefined)
-
+    // Always enabled now (for both logged-in and logged-out users)
     return {
-      enabled: isEnabled,
+      enabled: true,
       fetchPolicy: "cache-and-network",
       notifyOnNetworkStatusChange: false,
     };
