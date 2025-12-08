@@ -93,7 +93,7 @@ import { useMutation } from "@vue/apollo-composable";
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n({ useScope: "global" });
+const { t, locale } = useI18n({ useScope: "global" });
 useHead({
   title: computed(() => t("Reset password")),
 });
@@ -141,6 +141,7 @@ const sendResetPasswordTokenAction = async (e: Event): Promise<void> => {
 
   sendResetPasswordMutation({
     email: emailValue.value,
+    locale: locale.value,
   });
 };
 </script>

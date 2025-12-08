@@ -56,7 +56,7 @@ import { useMutation } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 
-const { t } = useI18n({ useScope: "global" });
+const { t, locale } = useI18n({ useScope: "global" });
 useHead({
   title: computed(() => t("Resend confirmation email")),
   meta: [{ name: "robots", content: "noindex" }],
@@ -93,6 +93,7 @@ const resendConfirmationAction = async (e: Event): Promise<void> => {
 
   resendConfirmationEmail({
     email: emailValue.value,
+    locale: locale.value,
   });
 };
 </script>

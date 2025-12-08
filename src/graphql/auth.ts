@@ -15,8 +15,8 @@ export const LOGIN = gql`
 `;
 
 export const SEND_RESET_PASSWORD = gql`
-  mutation SendResetPassword($email: String!) {
-    sendResetPassword(email: $email)
+  mutation SendResetPassword($email: String!, $locale: String) {
+    sendResetPassword(email: $email, locale: $locale)
   }
 `;
 
@@ -33,8 +33,8 @@ export const RESET_PASSWORD = gql`
 `;
 
 export const RESEND_CONFIRMATION_EMAIL = gql`
-  mutation ResendConfirmationEmail($email: String!) {
-    resendConfirmationEmail(email: $email)
+  mutation ResendConfirmationEmail($email: String!, $locale: String) {
+    resendConfirmationEmail(email: $email, locale: $locale)
   }
 `;
 

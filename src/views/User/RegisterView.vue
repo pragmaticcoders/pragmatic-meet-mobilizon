@@ -400,7 +400,7 @@ const credentials = reactive<credentialsType>({
   email: typeof route.query.email === "string" ? route.query.email : "",
   password:
     typeof route.query.password === "string" ? route.query.password : "",
-  locale: "en",
+  locale: locale.value,
 });
 
 const emailErrors = ref<errorMessage[]>([]);

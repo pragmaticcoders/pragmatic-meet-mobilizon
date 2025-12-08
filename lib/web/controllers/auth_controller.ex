@@ -312,7 +312,7 @@ defmodule Mobilizon.Web.AuthController do
               "Registration attempt for #{email} - creating new user with LinkedIn profile"
             )
 
-            case create_user_with_linkedin_profile(email, user_info) do
+            case create_user_with_linkedin_profile(email, user_info, conn) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
                 complete_linkedin_authentication(conn, user, username, name, intent, redirect_path)
@@ -326,7 +326,7 @@ defmodule Mobilizon.Web.AuthController do
             # Unknown intent - default to registration for backward compatibility
             Logger.warning("Unknown intent #{intent} for #{email} - defaulting to registration")
 
-            case create_user_with_linkedin_profile(email, user_info) do
+            case create_user_with_linkedin_profile(email, user_info, conn) do
               {:ok, %User{} = user} ->
                 Logger.info("Created new external user for #{email} via linkedin with profile")
                 complete_linkedin_authentication(conn, user, username, name, "register", redirect_path)
@@ -431,8 +431,12 @@ defmodule Mobilizon.Web.AuthController do
   defp sanitize_username(_), do: "linkedin_user"
 
   # Create user with LinkedIn profile data
-  defp create_user_with_linkedin_profile(email, user_info) do
-    with {:ok, %User{} = user} <- Users.create_external(email, "linkedin", %{locale: "en"}),
+  defp create_user_with_linkedin_profile(email, user_info, conn) do
+    # Extract locale from browser Accept-Language header, fallback to "en"
+    locale = conn.assigns[:detected_locale] || "en"
+    Logger.debug("Creating LinkedIn user with locale: #{locale}")
+    
+    with {:ok, %User{} = user} <- Users.create_external(email, "linkedin", %{locale: locale}),
          {:ok, actor} <- create_actor_from_linkedin(user, user_info),
          # Set the newly created actor as the user's default actor
          {:ok, updated_user} <-
