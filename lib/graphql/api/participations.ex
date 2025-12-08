@@ -287,8 +287,8 @@ defmodule Mobilizon.GraphQL.API.Participations do
         "Event #{event_id}: capacity=#{event.options.maximum_attendee_capacity}, current=#{current_participant_count}, available spots=#{available_spots}, checking waitlist..."
       )
 
-      # Get waitlist participants up to the number of available spots (ordered by insertion time)
-      case Events.list_participants_for_event(event_id, [:waitlist], available_spots, 1) do
+      # Get waitlist participants up to the number of available spots (ordered by insertion time, oldest first)
+      case Events.list_participants_for_event(event_id, [:waitlist], 1, available_spots) do
         %{elements: [_ | _] = waitlist_participants} ->
           Logger.info(
             "Found #{length(waitlist_participants)} waitlist participant(s), promoting..."

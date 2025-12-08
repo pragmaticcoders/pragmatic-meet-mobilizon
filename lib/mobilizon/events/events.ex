@@ -1764,7 +1764,7 @@ defmodule Mobilizon.Events do
     id
     |> list_participants_for_event_query()
     |> filter_role(roles)
-    |> order_by(asc: :role)
+    |> order_by([p], [asc: p.role, asc: p.inserted_at])
   end
 
   def participant_for_event_export_query(id, roles) do
