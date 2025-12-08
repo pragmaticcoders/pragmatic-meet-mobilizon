@@ -92,6 +92,9 @@
       </div>
     </template>
     <template #subtitle>
+      <p class="text-gray-600 dark:text-gray-300 mb-6 mt-2">
+        {{ t("Select a location method to fetch local events") }}
+      </p>
       <empty-content
         v-if="!loading && events.total == 0"
         icon="map-marker-distance"

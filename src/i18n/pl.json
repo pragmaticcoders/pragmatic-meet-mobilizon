@@ -1078,6 +1078,7 @@
   "Use GPS location": "Użyj lokalizacji GPS",
   "Online only": "Tylko online",
   "Select location source": "Wybierz źródło lokalizacji",
+  "Select a location method to fetch local events": "Wybierz metodę lokalizacji, aby pobrać lokalne wydarzenia",
   "Not set": "Nie ustawiono",
   "No online events at this time.": "Brak wydarzeń online w tej chwili.",
   "Profile feeds": "Kanały profilu",

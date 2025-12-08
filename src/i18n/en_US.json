@@ -1040,6 +1040,7 @@
   "Use GPS location": "Use GPS location",
   "Online only": "Online only",
   "Select location source": "Select location source",
+  "Select a location method to fetch local events": "Select a location method to fetch local events",
   "Not set": "Not set",
   "No online events at this time.": "No online events at this time.",
   "Register": "Register",
