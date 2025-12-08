@@ -429,8 +429,8 @@ const futureParticipations = computed(
 );
 const groupEvents = computed(
   () =>
-    loggedUserUpcomingEventsResult.value?.loggedUser.followedGroupEvents
-      .elements ?? []
+    loggedUserUpcomingEventsResult.value?.loggedUser?.groupEvents
+      ?.elements ?? []
 );
 
 const LOGGED_USER_DRAFTS_LIMIT = 10;

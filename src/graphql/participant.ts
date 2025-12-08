@@ -120,6 +120,45 @@ export const LOGGED_USER_UPCOMING_EVENTS = gql`
           role
         }
       }
+      groupEvents(afterDatetime: $afterDateTime, page: $page, limit: $limit) {
+        total
+        elements {
+          profile {
+            id
+          }
+          group {
+            ...ActorFragment
+          }
+          event {
+            id
+            uuid
+            url
+            title
+            picture {
+              uuid
+              url
+            }
+            beginsOn
+            endsOn
+            status
+            organizerActor {
+              ...ActorFragment
+            }
+            attributedTo {
+              ...ActorFragment
+            }
+            options {
+              ...EventOptions
+            }
+            tags {
+              ...TagFragment
+            }
+            physicalAddress {
+              ...AdressFragment
+            }
+          }
+        }
+      }
     }
     loggedPerson {
       id

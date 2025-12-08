@@ -151,7 +151,8 @@ defmodule Mobilizon.Web.Email.Event do
          diff
        )
        when not is_nil(email) do
-    locale = Gettext.get_locale()
+    # Get locale from participant metadata, fallback to "en"
+    locale = Map.get(participant_metadata, :locale, "en")
 
     do_send_notification_for_event_update_to_participant(
       participant,

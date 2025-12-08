@@ -748,6 +748,29 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     {:ok, activities}
   end
 
+  def user_group_events(%User{id: user_id}, %{page: page, limit: limit} = args, %{
+        context: %{current_user: %User{id: logged_in_user_id}}
+      })
+      when user_id == logged_in_user_id do
+    activities =
+      Mobilizon.UserGroupEvents.user_group_events(
+        user_id,
+        Map.get(args, :after_datetime),
+        page,
+        limit
+      )
+
+    activities = %Page{
+      activities
+      | elements:
+          Enum.map(activities.elements, fn [event, group, profile] ->
+            %{group: group, profile: profile, event: event}
+          end)
+    }
+
+    {:ok, activities}
+  end
+
   @spec update_user_login_information(User.t(), map()) ::
           {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   defp update_user_login_information(

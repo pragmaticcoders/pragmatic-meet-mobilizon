@@ -135,6 +135,27 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
       resolve(&User.user_followed_group_events/3)
     end
 
+    field(:group_events, :paginated_followed_group_events,
+      description: "Events from groups this user follows or is a member of",
+      meta: [private: true, rule: :"read:user:group_suggested_events"]
+    ) do
+      arg(:page, :integer,
+        default_value: 1,
+        description: "The page in the group events list"
+      )
+
+      arg(:limit, :integer,
+        default_value: 10,
+        description: "The limit of group events per page"
+      )
+
+      arg(:after_datetime, :datetime,
+        description: "Filter group events by event start datetime"
+      )
+
+      resolve(&User.user_group_events/3)
+    end
+
     field(:settings, :user_settings,
       description: "The list of settings for this user",
       meta: [private: true, rule: :"read:user:settings"]
