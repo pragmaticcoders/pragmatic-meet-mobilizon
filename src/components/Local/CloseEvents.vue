@@ -127,7 +127,7 @@
 import { LocationType } from "../../types/user-location.model";
 import CloseContent from "./CloseContent.vue";
 import { watch, computed, useAttrs, ref, onMounted, reactive } from "vue";
-import { FETCH_EVENTS } from "@/graphql/event";
+import { SEARCH_EVENTS } from "@/graphql/search";
 import { IEvent } from "@/types/event.model";
 import { useQuery, useMutation } from "@vue/apollo-composable";
 import EventCard from "../Event/EventCard.vue";
@@ -144,7 +144,6 @@ import {
   getAddressFromLocal,
   addressToLocation,
 } from "@/utils/location";
-import { EventSortField, SortDirection } from "@/types/enums";
 import { IAddress } from "@/types/address.model";
 import { REVERSE_GEOCODE } from "@/graphql/address";
 import { UPDATE_CURRENT_USER_LOCATION_CLIENT } from "@/graphql/location";
@@ -442,11 +441,9 @@ const emptyStateDescription = computed(() => {
 const eventsQuery = useQuery<{
   searchEvents: Paginate<IEvent>;
 }>(
-  FETCH_EVENTS,
+  SEARCH_EVENTS,
   () => {
     const params: any = {
-      orderBy: EventSortField.BEGINS_ON,
-      direction: SortDirection.ASC,
       longEvents: false,
       limit: 93,
     };
