@@ -272,9 +272,9 @@ config :mobilizon, :http_security,
   sts: false,
   sts_max_age: 31_536_000,
   csp_policy: [
-    script_src: [],
+    script_src: ["https://consent.cookiebot.com"],
     style_src: [],
-    connect_src: [],
+    connect_src: ["https://consent.cookiebot.com"],
     font_src: [],
     img_src: [
       "*.tile.openstreetmap.org",
