@@ -150,7 +150,7 @@
     </section>
 
     <!-- Nearby events based on location -->
-    <div class="mx-auto" v-if="currentUser?.id">
+    <section class="mx-auto mb-8" v-if="currentUser?.id">
       <CloseEvents
         @doGeoLoc="performGeoLocation()"
         :userLocation="
@@ -165,7 +165,7 @@
         :distance="distance as any"
         :userSettingsLocation="userSettingsLocation as any"
       />
-    </div>
+    </section>
 
     <!-- Groups section - only show if there are groups -->
     <section class="mx-auto mb-8" v-if="canShowUserGroups">
