@@ -16,8 +16,11 @@
             <span>{{ sectionTitle }}</span>
           </h2>
         </div>
+        <p class="text-gray-600 dark:text-gray-300 text-base font-normal mb-4">
+          {{ t("Select a location method to fetch local events") }}
+        </p>
         <!-- Location Mode and Radius Dropdowns -->
-        <div class="flex flex-col sm:flex-row gap-2 mt-3">
+        <div class="flex flex-col sm:flex-row gap-2">
           <!-- Location Mode Dropdown -->
           <o-dropdown
             v-model="locationMode"
@@ -92,9 +95,6 @@
       </div>
     </template>
     <template #subtitle>
-      <p class="text-gray-600 dark:text-gray-300 mb-6 mt-2">
-        {{ t("Select a location method to fetch local events") }}
-      </p>
       <empty-content
         v-if="!loading && events.total == 0"
         icon="map-marker-distance"
