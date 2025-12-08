@@ -266,24 +266,26 @@ const calendarOptions = computed((): object => {
       };
 
       let result;
-      if (forceRefresh.value) {
-        // Force fresh data from server, bypassing cache completely
-        console.log("Calendar Agenda: Forcing fresh data fetch for", queryVars);
-        result = (await searchEventsRefetch(queryVars))?.data;
-        forceRefresh.value = false; // Reset flag after refresh
-        console.log(
-          "Calendar Agenda: Fresh data fetched, events:",
-          result?.searchEvents?.elements?.length
-        );
-      } else {
-        // Normal flow with cache
-        result =
-          (await searchEventsLoad(undefined, queryVars)) ||
-          (await searchEventsRefetch(queryVars))?.data;
-      }
+      try {
+        // Always use load first, which handles both initial load and cache
+        const loadResult = await searchEventsLoad(undefined, queryVars);
+        
+        // If we want fresh data or load didn't return data, refetch
+        if (forceRefresh.value || !loadResult) {
+          const refetchResult = await searchEventsRefetch(queryVars);
+          result = refetchResult?.data || loadResult;
+          forceRefresh.value = false;
+        } else {
+          result = loadResult;
+        }
 
-      if (!result) {
-        failureCallback("failed to fetch calendar events");
+        if (!result || !result.searchEvents) {
+          failureCallback("failed to fetch calendar events");
+          return;
+        }
+      } catch (error) {
+        console.error("Calendar Agenda: ERROR fetching ALL events:", error);
+        failureCallback("failed to fetch calendar events: " + error);
         return;
       }
 

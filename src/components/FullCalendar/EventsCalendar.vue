@@ -225,25 +225,27 @@ const calendarOptions = computed((): object => {
 
       let result;
       try {
-        if (forceRefresh.value) {
-          // Force fresh data from server, bypassing cache completely
-          console.log("Calendar: Forcing fresh data fetch for ALL events", queryVars);
-          result = (await searchEventsRefetch(queryVars))?.data;
-          forceRefresh.value = false; // Reset flag after refresh
-          console.log(
-            "Calendar: Fresh ALL events fetched, events:",
-            result?.searchEvents?.elements?.length
-          );
+        console.log("Calendar: Loading ALL events, forceRefresh:", forceRefresh.value);
+        
+        // Always use load first, which handles both initial load and cache
+        const loadResult = await searchEventsLoad(undefined, queryVars);
+        console.log("Calendar: searchEventsLoad returned:", loadResult);
+        
+        // If we want fresh data or load didn't return data, refetch
+        if (forceRefresh.value || !loadResult) {
+          console.log("Calendar: Refetching ALL events for fresh data");
+          const refetchResult = await searchEventsRefetch(queryVars);
+          console.log("Calendar: searchEventsRefetch result:", refetchResult);
+          result = refetchResult?.data || loadResult;
+          forceRefresh.value = false;
         } else {
-          // Normal flow with cache
-          console.log("Calendar: Loading ALL events (first load or from cache)");
-          const loadResult = await searchEventsLoad(undefined, queryVars);
-          console.log("Calendar: searchEventsLoad returned:", loadResult);
-          result = loadResult || (await searchEventsRefetch(queryVars))?.data;
+          result = loadResult;
         }
 
-        if (!result) {
-          console.error("Calendar: No result from ALL events query");
+        console.log("Calendar: Final result for ALL events:", result);
+
+        if (!result || !result.searchEvents) {
+          console.error("Calendar: No result or searchEvents from ALL events query, result:", result);
           failureCallback("failed to fetch calendar events");
           return;
         }
