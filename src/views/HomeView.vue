@@ -34,8 +34,9 @@
     </section>
     <!-- Your upcoming events - only show if user is logged in -->
     <section v-if="currentUser?.id" class="mx-auto mb-8 mt-4">
-      <h2 class="text-2xl font-bold text-gray-900 mb-6">
-        {{ t("Your upcoming events") }}
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <o-icon icon="calendar" customSize="28" />
+        <span>{{ t("Your upcoming events") }}</span>
       </h2>
       <div v-if="canShowMyUpcomingEvents">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -66,8 +67,9 @@
     </section>
     <!-- Events from your followed groups - only show if user is logged in -->
     <section class="mx-auto mb-8" v-if="currentUser?.id">
-      <h2 class="text-xl font-bold text-gray-900 mb-2">
-        {{ t("Upcoming events from your groups") }}
+      <h2 class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <o-icon icon="calendar-account" customSize="24" />
+        <span>{{ t("Upcoming events from your groups") }}</span>
       </h2>
       <p class="text-gray-600 mb-6">
         {{ t("That you follow or of which you are a member") }}
@@ -111,8 +113,9 @@
 
     <!-- Public events - only show if there are events -->
     <section class="mx-auto mb-8" v-if="canShowPublicEvents">
-      <h2 class="text-xl font-bold text-gray-900 mb-2">
-        {{ publicEventsSectionTitle }}
+      <h2 class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <o-icon icon="map-marker-radius" customSize="24" />
+        <span>{{ publicEventsSectionTitle }}</span>
       </h2>
       <p class="text-gray-600 mb-6">
         {{ publicEventsSectionDescription }}
@@ -160,13 +163,15 @@
         "
         :doingGeoloc="doingGeoloc"
         :distance="distance as any"
+        :userSettingsLocation="userSettingsLocation as any"
       />
     </div>
 
     <!-- Groups section - only show if there are groups -->
     <section class="mx-auto mb-8" v-if="canShowUserGroups">
-      <h2 class="text-xl font-bold text-gray-900 mb-2">
-        {{ groupsSectionTitle }}
+      <h2 class="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <o-icon icon="account-group" customSize="24" />
+        <span>{{ groupsSectionTitle }}</span>
       </h2>
       <p class="text-gray-600 mb-6">{{ groupsSectionDescription }}</p>
 
@@ -504,7 +509,17 @@ const coords = computed(() => {
     userSettingsLocationGeoHash.value ?? undefined
   );
 
-  return { ...serverLocation.value, isIPLocation: !userSettingsCoords };
+  // If user has set a location in their profile settings, use that
+  if (userSettingsCoords) {
+    return {
+      latitude: userSettingsCoords.latitude,
+      longitude: userSettingsCoords.longitude,
+      isIPLocation: false,
+    };
+  }
+
+  // Otherwise, fall back to server-provided location (IP-based)
+  return { ...serverLocation.value, isIPLocation: true };
 });
 
 const { result: reverseGeocodeResult } = useQuery<{
@@ -516,17 +531,39 @@ const { result: reverseGeocodeResult } = useQuery<{
 }));
 
 const userSettingsLocation = computed(() => {
+  console.log("HomeView - loggedUser.settings.location:", loggedUser.value?.settings?.location);
+  console.log("HomeView - coords:", coords.value);
+  console.log("HomeView - reverseGeocodeResult:", reverseGeocodeResult.value);
+  
+  // If user has a location name directly in their settings, use that with coords
+  const locationName = loggedUser.value?.settings?.location?.name;
+  if (locationName && coords.value?.latitude && coords.value?.longitude) {
+    const result = {
+      lat: coords.value.latitude,
+      lon: coords.value.longitude,
+      name: locationName,
+      picture: undefined,
+      isIPLocation: coords.value.isIPLocation,
+    };
+    console.log("HomeView - userSettingsLocation (from settings):", result);
+    return result;
+  }
+
+  // Otherwise, try to get location name from reverse geocoding
   const location = reverseGeocodeResult.value?.reverseGeocode[0];
   const placeName = location?.locality ?? location?.region ?? location?.country;
   if (placeName) {
-    return {
+    const result = {
       lat: coords.value?.latitude,
       lon: coords.value?.longitude,
       name: placeName,
       picture: location?.pictureInfo,
       isIPLocation: coords.value?.isIPLocation,
     };
+    console.log("HomeView - userSettingsLocation (from reverse geocode):", result);
+    return result;
   } else {
+    console.log("HomeView - userSettingsLocation: empty");
     return {};
   }
 });

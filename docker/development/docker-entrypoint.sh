@@ -46,6 +46,20 @@ fi
 echo "-- Compiling Elixir assets..."
 mix compile
 
+# Setup timezone data if not present
+if [ ! -f "/var/lib/mobilizon/timezones/timezones-geodata.dets" ]; then
+  echo "-- Setting up timezone data..."
+  mkdir -p /var/lib/mobilizon/timezones
+  mix tz_world.update || true
+  # If the update places the file in the build directory, copy it to the expected location
+  if [ -f "_build/dev/lib/tz_world/priv/timezones-geodata.dets" ]; then
+    cp _build/dev/lib/tz_world/priv/timezones-geodata.dets /var/lib/mobilizon/timezones/
+    echo "-- Timezone data setup complete"
+  fi
+else
+  echo "-- Timezone data already present, skipping..."
+fi
+
 # Skip database setup in test mode (handled by mix prepare_test)
 if [ "$MIX_ENV" != "test" ]; then
   echo "-- Creating database extensions..."

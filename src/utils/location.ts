@@ -96,3 +96,25 @@ export const storeUserLocationAndRadiusFromUserSettings = (
     console.debug("user has not set a location");
   }
 };
+
+// CloseEvents section location mode helpers
+export const getCloseEventsLocationMode = (): string => {
+  return window.localStorage.getItem("closeEventsLocationMode") || "entire_poland";
+};
+
+export const setCloseEventsLocationMode = (mode: string): void => {
+  window.localStorage.setItem("closeEventsLocationMode", mode);
+};
+
+export const getCloseEventsRadius = (): number | null => {
+  const radiusString = window.localStorage.getItem("closeEventsRadius");
+  if (radiusString) {
+    const radius = parseInt(radiusString, 10);
+    return isNaN(radius) ? null : radius;
+  }
+  return null;
+};
+
+export const setCloseEventsRadius = (radius: number): void => {
+  window.localStorage.setItem("closeEventsRadius", radius.toString());
+};

@@ -278,6 +278,14 @@ const icons: Record<string, () => Promise<any>> = {
     import(`../../../node_modules/vue-material-design-icons/Server.vue`),
   Plus: () =>
     import(`../../../node_modules/vue-material-design-icons/Plus.vue`),
+  CalendarAccount: () =>
+    import(
+      `../../../node_modules/vue-material-design-icons/CalendarAccount.vue`
+    ),
+  MapMarkerRadius: () =>
+    import(
+      `../../../node_modules/vue-material-design-icons/MapMarkerRadius.vue`
+    ),
 };
 
 const props = withDefaults(
