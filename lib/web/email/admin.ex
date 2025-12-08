@@ -22,7 +22,7 @@ defmodule Mobilizon.Web.Email.Admin do
 
     subject =
       gettext(
-        "New report on Mobilizon instance %{instance}",
+        "New report on %{instance}",
         instance: Config.instance_name()
       )
 

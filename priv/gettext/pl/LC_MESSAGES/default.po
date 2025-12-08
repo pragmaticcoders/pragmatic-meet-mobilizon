@@ -68,12 +68,12 @@ msgstr ""
 
 #: lib/web/email/user.ex:26
 #, elixir-autogen, elixir-format
-msgid "Instructions to confirm your Mobilizon account on %{instance}"
-msgstr "Instrukcje potwierdzania konta na Pragmatic Meet"
+msgid "Instructions to confirm your account on %{instance}"
+msgstr "Instrukcje potwierdzania konta na %{instance}"
 
 #: lib/web/email/admin.ex:22
 #, elixir-autogen, elixir-format
-msgid "New report on Mobilizon instance %{instance}"
+msgid "New report on %{instance}"
 msgstr "Nowe zgłoszenie na instancji Mobilizon %{instance}"
 
 #: lib/web/templates/email/before_event_notification.html.heex:65
@@ -385,12 +385,12 @@ msgstr "Jakie informacje zbieramy?"
 
 #: lib/web/email/user.ex:188
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: confirm your email address"
+msgid "%{instance}: confirm your email address"
 msgstr "Mobilizon na %{instance}: potwierdź swój adres e-mail"
 
 #: lib/web/email/user.ex:165
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: email changed"
+msgid "%{instance}: email changed"
 msgstr "Mobilizon na %{instance}: zmieniono e-mail"
 
 #: lib/web/email/notification.ex:52
@@ -999,12 +999,12 @@ msgstr[2] ""
 
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "%{instance} is powered by Mobilizon."
+msgid "%{instance} is powered by Pragmatic Meet."
 msgstr "%{instance} jest serwerem Mobilizon."
 
 #: lib/web/templates/email/email.html.heex:187
 #, elixir-autogen, elixir-format
-msgid "<b>%{instance}</b> is powered by Mobilizon."
+msgid "<b>%{instance}</b> is powered by Pragmatic Meet."
 msgstr "<b>%{instance}</b> jest serwerem Mobilizon."
 
 #: lib/web/templates/email/pending_participation_notification.html.heex:18
@@ -1102,7 +1102,7 @@ msgstr ""
 #: lib/web/templates/email/email.html.heex:193
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "Learn more about Mobilizon here!"
+msgid "Learn more about Pragmatic Meet here!"
 msgstr "Dowiedz się więcej o Mobilizon!"
 
 #: lib/web/templates/email/event_updated.html.heex:123
@@ -1647,8 +1647,8 @@ msgstr "Kanał należący do %{name}"
 #: lib/web/templates/email/email.html.heex:150
 #: lib/web/templates/email/email.text.eex:9
 #, elixir-autogen, elixir-format
-msgid "Contact Pragmatic Coders Support"
-msgstr "Skontaktuj się ze wsparciem Pragmatic Coders"
+msgid "Contact Pragmatic Meet Support"
+msgstr "Skontaktuj się ze wsparciem Pragmatic Meet"
 
 #: lib/web/templates/email/email.html.heex:187
 #, elixir-autogen, elixir-format
@@ -1662,8 +1662,8 @@ msgstr "%{instance} działa na Pragmatic Meet."
 
 #: lib/web/templates/email/email.html.heex:193
 #, elixir-autogen, elixir-format
-msgid "Learn more about Pragmatic Coders here!"
-msgstr "Dowiedz się więcej o Pragmatic Coders tutaj!"
+msgid "Learn more about Pragmatic Meet here!"
+msgstr "Dowiedz się więcej o Pragmatic Meet tutaj!"
 
 #: lib/service/export/feed.ex:117
 #, elixir-autogen, elixir-format
@@ -2030,7 +2030,7 @@ msgstr "Twoja rola została zmieniona przez administratora(-kę)"
 #: lib/web/email/admin.ex:122
 #, elixir-autogen, elixir-format
 msgid "An administrator confirmed your account on %{instance}"
-msgstr ""
+msgstr "Administrator potwierdził Twoje konto na %{instance}"
 "Twoje konto na %{instance} zostało potwierdzone przez administratora(-kę)"
 
 #: lib/web/templates/email/admin_user_email_changed_new.html.heex:18
@@ -2047,7 +2047,7 @@ msgstr ""
 #: lib/web/email/admin.ex:70
 #, elixir-autogen, elixir-format
 msgid "An administrator manually changed the email attached to your account on %{instance}"
-msgstr ""
+msgstr "Administrator ręcznie zmienił adres e-mail powiązany z Twoim kontem na %{instance}"
 "Adres e-mail powiązany z Twoim kontem na %{instance} został zmieniony przez "
 "administratora(-kę)"
 
@@ -2060,7 +2060,7 @@ msgstr "Twoje konto zostało ręcznie potwierdzone przez administratora(-kę)"
 #: lib/web/email/admin.ex:98
 #, elixir-autogen, elixir-format
 msgid "An administrator updated your role on %{instance}"
-msgstr ""
+msgstr "Administrator zaktualizował Twoją rolę na %{instance}"
 "Twoja rola na %{instance} została zaktualizowana przez administratora(-kę)"
 
 #: lib/web/templates/email/email_changed_new.text.eex:3

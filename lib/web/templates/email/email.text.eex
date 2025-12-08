@@ -6,6 +6,6 @@
 <% end %>
 
 <%= gettext "Need help? Is something not working as expected?" %>
-<%= gettext "Contact Pragmatic Coders Support" %> https://pragmaticcoders.com/contact
+<%= gettext "Contact Pragmatic Meet Support" %> https://pragmaticcoders.com/contact
 
-<%= gettext "%{instance} is powered by Pragmatic Meet.", instance: @instance_name %> <%= gettext "Learn more about Pragmatic Coders here!" %> https://pragmaticcoders.com
+<%= gettext "%{instance} is powered by Pragmatic Meet.", instance: @instance_name %> <%= gettext "Learn more about Pragmatic Meet here!" %> https://pragmaticcoders.com

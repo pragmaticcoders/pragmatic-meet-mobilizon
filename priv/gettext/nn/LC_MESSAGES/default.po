@@ -66,12 +66,12 @@ msgstr ""
 
 #: lib/web/email/user.ex:26
 #, elixir-autogen, elixir-format
-msgid "Instructions to confirm your Mobilizon account on %{instance}"
+msgid "Instructions to confirm your account on %{instance}"
 msgstr "Framgangsmåte for å stadfesta Mobilizon-kontoen din på %{instance}"
 
 #: lib/web/email/admin.ex:22
 #, elixir-autogen, elixir-format
-msgid "New report on Mobilizon instance %{instance}"
+msgid "New report on %{instance}"
 msgstr "Ny rapport på Mobilizon-nettstaden %{instance}"
 
 #: lib/web/templates/email/before_event_notification.html.heex:65
@@ -342,12 +342,12 @@ msgstr "Kva opplysingar samlar me?"
 
 #: lib/web/email/user.ex:188
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: confirm your email address"
+msgid "%{instance}: confirm your email address"
 msgstr "Mobilizon på %{instance}: stadfest epostadressa di"
 
 #: lib/web/email/user.ex:165
 #, elixir-autogen, elixir-format
-msgid "Mobilizon on %{instance}: email changed"
+msgid "%{instance}: email changed"
 msgstr "Mobilizon på %{instance}: epostadressa er endra"
 
 #: lib/web/email/notification.ex:52
@@ -923,12 +923,12 @@ msgstr[1] ""
 
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "%{instance} is powered by Mobilizon."
+msgid "%{instance} is powered by Pragmatic Meet."
 msgstr "%{instance} er ein Mobilizon-nettstad."
 
 #: lib/web/templates/email/email.html.heex:187
 #, elixir-autogen, elixir-format
-msgid "<b>%{instance}</b> is powered by Mobilizon."
+msgid "<b>%{instance}</b> is powered by Pragmatic Meet."
 msgstr "<b>%{instance}</b> er ein Mobilizon-nettstad."
 
 #: lib/web/templates/email/pending_participation_notification.html.heex:18
@@ -1025,7 +1025,7 @@ msgstr ""
 #: lib/web/templates/email/email.html.heex:193
 #: lib/web/templates/email/email.text.eex:11
 #, elixir-autogen, elixir-format
-msgid "Learn more about Mobilizon here!"
+msgid "Learn more about Pragmatic Meet here!"
 msgstr "Lær meir om Mobilizon her!"
 
 #: lib/web/templates/email/event_updated.html.heex:123
@@ -1548,7 +1548,7 @@ msgstr "Orsak, det skjedde noko feil hjå oss."
 #: lib/web/templates/email/email.html.heex:109
 #: lib/web/templates/email/email.text.eex:4
 #, elixir-autogen, elixir-format
-msgid "This is a demonstration site to test Mobilizon."
+msgid "This is a demonstration site to test Pragmatic Meet."
 msgstr "Dette er ei demoside for å prøva ut Mobilizon."
 
 #: lib/service/metadata/actor.ex:86

@@ -24,7 +24,7 @@ defmodule Mobilizon.Web.Email.User do
 
     subject =
       gettext(
-        "Instructions to confirm your Pragmatic Meet account on %{instance}",
+        "Instructions to confirm your account on %{instance}",
         instance: Config.instance_name()
       )
 
@@ -163,7 +163,7 @@ defmodule Mobilizon.Web.Email.User do
 
     subject =
       gettext(
-        "Mobilizon on %{instance}: email changed",
+        "%{instance}: email changed",
         instance: Config.instance_name()
       )
 
@@ -186,7 +186,7 @@ defmodule Mobilizon.Web.Email.User do
 
     subject =
       gettext(
-        "Mobilizon on %{instance}: confirm your email address",
+        "%{instance}: confirm your email address",
         instance: Config.instance_name()
       )
 

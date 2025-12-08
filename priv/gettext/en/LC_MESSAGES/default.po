@@ -69,13 +69,13 @@ msgstr "Resetting your password is easy. Just press the button below and follow 
 
 #: lib/web/email/user.ex:26
 #, elixir-autogen, elixir-format
-msgid "Instructions to confirm your Pragmatic Meet account on %{instance}"
-msgstr "Instructions to confirm your Pragmatic Meet account on %{instance}"
+msgid "Instructions to confirm your account on %{instance}"
+msgstr "Instructions to confirm your account on %{instance}"
 
 #: lib/web/email/admin.ex:22
 #, elixir-autogen, elixir-format
-msgid "New report on Pragmatic Meet instance %{instance}"
-msgstr "New report on Pragmatic Meet instance %{instance}"
+msgid "New report on %{instance}"
+msgstr "New report on Mobilizon instance %{instance}"
 
 #: lib/web/templates/email/before_event_notification.html.heex:65
 #: lib/web/templates/email/before_event_notification.text.eex:4
