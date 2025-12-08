@@ -117,9 +117,9 @@
         :key="i"
         v-show="loading"
       />
-      <event-card
+      <event-participation-card
         v-for="event in events.elements"
-        :event="event"
+        :participation="createMockParticipation(event)"
         :key="event.uuid"
       />
     </template>
@@ -133,8 +133,10 @@ import { watch, computed, useAttrs, ref, onMounted, reactive } from "vue";
 import { SEARCH_EVENTS } from "@/graphql/search";
 import { IEvent } from "@/types/event.model";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import EventCard from "../Event/EventCard.vue";
+import EventParticipationCard from "../Event/EventParticipationCard.vue";
 import { Paginate } from "@/types/paginate";
+import { IParticipant } from "@/types/participant.model";
+import { ParticipantRole } from "@/types/enums";
 import SkeletonEventResult from "../Event/SkeletonEventResult.vue";
 import EmptyContent from "../Utils/EmptyContent.vue";
 import { useI18n } from "vue-i18n";
@@ -150,6 +152,8 @@ import {
 import { IAddress } from "@/types/address.model";
 import { REVERSE_GEOCODE } from "@/graphql/address";
 import { UPDATE_CURRENT_USER_LOCATION_CLIENT } from "@/graphql/location";
+import { CURRENT_ACTOR_CLIENT } from "@/graphql/actor";
+import { IPerson } from "@/types/actor";
 
 const props = defineProps<{
   userLocation: LocationType;
@@ -485,6 +489,31 @@ const loading = computed(
   () =>
     props.doingGeoloc || eventsQuery.loading.value || isGettingGPSLocation.value
 );
+
+// Get current actor for mock participations
+const { result: currentActorResult } = useQuery<{ currentActor: IPerson }>(
+  CURRENT_ACTOR_CLIENT,
+  undefined,
+  { fetchPolicy: "cache-and-network", notifyOnNetworkStatusChange: false }
+);
+const currentActor = computed<IPerson | undefined>(
+  () => currentActorResult.value?.currentActor
+);
+
+/**
+ * Helper function to create mock participation for events without participation data
+ */
+const createMockParticipation = (event: IEvent): IParticipant => {
+  return {
+    id: `mock-${event.id}`,
+    event,
+    actor: currentActor.value || ({} as IPerson),
+    role: ParticipantRole.NOT_APPROVED,
+    metadata: {},
+    insertedAt: new Date(),
+    updatedAt: new Date(),
+  } as IParticipant;
+};
 </script>
 
 <style scoped>
