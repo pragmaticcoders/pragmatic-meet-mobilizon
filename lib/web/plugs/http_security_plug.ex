@@ -127,12 +127,13 @@ defmodule Mobilizon.Web.Plugs.HTTPSecurityPlug do
         "style-src 'self' 'unsafe-inline' fonts.googleapis.com"
       else
         # Default behavior
-        base_style =
-          if Config.get(:env) == :dev, do: [@style_src | "'unsafe-inline' "], else: @style_src
+        # Always use 'unsafe-inline' in production for third-party widgets (Cookiebot, etc.)
+        # Note: This is less secure than using hashes, but required for widgets with inline styles
+        base_style = [@style_src | "'unsafe-inline' "]
 
         config_style = [get_csp_config(:style_src, options)]
-        hash_style = ["'sha256-47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU='"]
-        [base_style] ++ config_style ++ hash_style
+        # REMOVED: hash_style - incompatible with 'unsafe-inline' and widgets like Cookiebot
+        [base_style] ++ config_style
       end
 
     font_src =
