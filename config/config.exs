@@ -272,20 +272,11 @@ config :mobilizon, :http_security,
   sts: false,
   sts_max_age: 31_536_000,
   csp_policy: [
-    script_src: [
-      "https://consent.cookiebot.com",
-      "https://consentcdn.cookiebot.com",
-      "'unsafe-inline'",
-      "'unsafe-eval'"
-    ],
-    style_src: [
-      "https://consent.cookiebot.com",
-      "https://consentcdn.cookiebot.com",
-      "'unsafe-inline'"
-    ],
+    script_src: ["https://consent.cookiebot.com"],
+    style_src: ["'unsafe-inline'"],
     connect_src: [
-      "https://consent.cookiebot.com",
-      "https://consentcdn.cookiebot.com"
+      "https://consentcdn.cookiebot.com",
+      "https://consent.cookiebot.com"
     ],
     font_src: [],
     img_src: [
@@ -293,9 +284,8 @@ config :mobilizon, :http_security,
       "meetup.pragmaticcoders.com",
       "pragmaticmeet.com",
       "dev.pragmaticmeet.com",
+      "http://imgsct.cookiebot.com",
       "https://imgsct.cookiebot.com",
-      "https://consent.cookiebot.com",
-      "https://consentcdn.cookiebot.com",
       "data:"
     ],
     manifest_src: [],
@@ -309,8 +299,7 @@ config :mobilizon, :http_security,
       "https://www.youtube.com",
       "https://www.youtube-nocookie.com",
       "https://youtu.be",
-      "https://consentcdn.cookiebot.com",
-      "https://consent.cookiebot.com"
+      "https://consentcdn.cookiebot.com"
     ],
     frame_ancestors: []
   ],
