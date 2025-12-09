@@ -372,8 +372,27 @@ media_url =
 config :mobilizon, :http_security,
   enabled: true,
   csp_policy: [
+    script_src: ["https://consent.cookiebot.com"],
+    style_src: ["'unsafe-inline'"],
+    connect_src: [
+      "https://consentcdn.cookiebot.com",
+      "https://consent.cookiebot.com"
+    ],
+    font_src: [],
     img_src: [
       "*.tile.openstreetmap.org",
-      media_url
-    ]
+      media_url,
+      "http://imgsct.cookiebot.com",
+      "https://imgsct.cookiebot.com"
+    ],
+    manifest_src: [],
+    media_src: [],
+    object_src: [],
+    frame_src: [
+      "https://www.youtube.com",
+      "https://www.youtube-nocookie.com",
+      "https://youtu.be",
+      "https://consentcdn.cookiebot.com"
+    ],
+    frame_ancestors: []
   ]
