@@ -292,7 +292,8 @@ config :mobilizon, :http_security,
     frame_src: [
       "https://www.youtube.com",
       "https://www.youtube-nocookie.com",
-      "https://youtu.be"
+      "https://youtu.be",
+      "https://consentcdn.cookiebot.com"
     ],
     frame_ancestors: []
   ],
