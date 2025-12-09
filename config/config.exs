@@ -273,7 +273,7 @@ config :mobilizon, :http_security,
   sts_max_age: 31_536_000,
   csp_policy: [
     script_src: ["https://consent.cookiebot.com"],
-    style_src: ["'unsafe-inline'"],
+    style_src: [],
     connect_src: [
       "https://consentcdn.cookiebot.com",
       "https://consent.cookiebot.com"
@@ -285,8 +285,7 @@ config :mobilizon, :http_security,
       "pragmaticmeet.com",
       "dev.pragmaticmeet.com",
       "http://imgsct.cookiebot.com",
-      "https://imgsct.cookiebot.com",
-      "data:"
+      "https://imgsct.cookiebot.com"
     ],
     manifest_src: [],
     media_src: [
