@@ -272,15 +272,16 @@ config :mobilizon, :http_security,
   sts: false,
   sts_max_age: 31_536_000,
   csp_policy: [
-    script_src: ["https://consent.cookiebot.com", "'unsafe-inline'"],
-    style_src: [],
+    script_src: ["https://consent.cookiebot.com", "'unsafe-inline'", "'unsafe-eval'"],
+    style_src: ["'unsafe-inline'"],
     connect_src: ["https://consent.cookiebot.com"],
     font_src: [],
     img_src: [
       "*.tile.openstreetmap.org",
       "meetup.pragmaticcoders.com",
       "pragmaticmeet.com",
-      "dev.pragmaticmeet.com"
+      "dev.pragmaticmeet.com",
+      "https://imgsct.cookiebot.com"
     ],
     manifest_src: [],
     media_src: [
