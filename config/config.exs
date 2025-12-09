@@ -272,7 +272,7 @@ config :mobilizon, :http_security,
   sts: false,
   sts_max_age: 31_536_000,
   csp_policy: [
-    script_src: ["https://consent.cookiebot.com"],
+    script_src: ["https://consent.cookiebot.com", "'unsafe-inline'"],
     style_src: [],
     connect_src: ["https://consent.cookiebot.com"],
     font_src: [],
