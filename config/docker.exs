@@ -375,7 +375,7 @@ config :mobilizon, :http_security,
   sts_max_age: 31_536_000,
   csp_policy: [
     script_src: ["https://consent.cookiebot.com"],
-    style_src: ["'unsafe-inline'"],
+    style_src: ["'unsafe-inline' "],
     connect_src: [
       "https://consentcdn.cookiebot.com",
       "https://consent.cookiebot.com"
