@@ -109,15 +109,9 @@ defmodule Mobilizon.Web.Plugs.HTTPSecurityPlug do
     ]
 
     script_src =
-      if Config.get(:env) == :dev do
-        [@script_src, "'unsafe-inline' "]
-      else
-        [
-          @script_src,
-          "'sha256-4RS22DYeB7U14dra4KcQYxmwt5HkOInieXK1NUMBmQI=' ",
-          "'sha256-zJdRXhLWm9NGI6BFr+sNmHBBrjAdJdFr7MpUq0EwK58=' "
-        ]
-      end
+      # Always use 'unsafe-inline' for scripts to support third-party widgets (Cookiebot, etc.)
+      # Note: This is less secure than using hashes, but required for widgets with inline scripts
+      [@script_src, "'unsafe-inline' "]
 
     script_src = [script_src] ++ [get_csp_config(:script_src, options)]
 
