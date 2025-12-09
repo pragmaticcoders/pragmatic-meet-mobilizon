@@ -371,6 +371,8 @@ media_url =
 
 config :mobilizon, :http_security,
   enabled: true,
+  sts: false,
+  sts_max_age: 31_536_000,
   csp_policy: [
     script_src: ["https://consent.cookiebot.com"],
     style_src: ["'unsafe-inline'"],
@@ -382,11 +384,18 @@ config :mobilizon, :http_security,
     img_src: [
       "*.tile.openstreetmap.org",
       media_url,
+      "meetup.pragmaticcoders.com",
+      "pragmaticmeet.com",
+      "dev.pragmaticmeet.com",
       "http://imgsct.cookiebot.com",
       "https://imgsct.cookiebot.com"
     ],
     manifest_src: [],
-    media_src: [],
+    media_src: [
+      "meetup.pragmaticcoders.com",
+      "pragmaticmeet.com",
+      "dev.pragmaticmeet.com"
+    ],
     object_src: [],
     frame_src: [
       "https://www.youtube.com",
@@ -395,4 +404,5 @@ config :mobilizon, :http_security,
       "https://consentcdn.cookiebot.com"
     ],
     frame_ancestors: []
-  ]
+  ],
+  referrer_policy: "same-origin"
