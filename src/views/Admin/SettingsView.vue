@@ -617,23 +617,6 @@ watch(
   { immediate: true }
 );
 
-const instanceLanguages = computed({
-  get() {
-    return selectedLanguages.value.map((lang) => lang.code);
-  },
-  set(newInstanceLanguages: string[]) {
-    if (languages.value?.length) {
-      selectedLanguages.value =
-        (languages.value || []).filter(({ code }) =>
-          newInstanceLanguages.includes(code)
-        ) || [];
-    } else {
-      // fallback to code-only objects if languages not yet loaded
-      selectedLanguages.value = newInstanceLanguages.map((code) => ({ code, name: code }));
-    }
-  },
-});
-
 const notifier = inject<Notifier>("notifier");
 
 const {
