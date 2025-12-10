@@ -143,18 +143,16 @@
             {{ t("Main languages you/your moderators speak") }}
           </small>
           <o-taginput
-            v-model="instanceLanguages"
-            :data="filteredLanguages"
+            v-model="selectedLanguages"
+            :data="languages || []"
             allow-autocomplete
             :open-on-focus="true"
-            field="name"
+            :remove-on-keys="[]"
             icon="label"
             :placeholder="t('Select languages')"
-            @input="getFilteredLanguages"
+            field="name"
             id="instance-languages"
-          >
-            <template #empty>{{ t("No languages found") }}</template>
-          </o-taginput>
+          />
         </div>
         <div class="field flex flex-col">
           <label class="" for="instance-long-description">{{
@@ -174,7 +172,7 @@
             id="instance-long-description"
           />
         </div>
-        <div class="field flex flex-col">
+        <div class="field flex flex-col w-full">
           <label class="" for="instance-rules">{{ t("Instance Rules") }}</label>
           <small>
             {{
@@ -183,14 +181,16 @@
               )
             }}
           </small>
-          <MultilingualTextarea
-            v-model="settingsToWrite.instanceRules"
-            :instanceLanguages="adminSettings?.instanceLanguages || []"
-            :defaultLanguage="defaultLanguageCode"
-            fieldId="instance-rules"
-            :placeholder="t('Enter your instance rules...')"
-            :rows="10"
-          />
+          <div class="w-full">
+            <MultilingualTextarea
+              v-model="settingsToWrite.instanceRules"
+               :instanceLanguages="instanceLanguageCodes"
+              :defaultLanguage="defaultLanguageCode"
+              fieldId="instance-rules"
+              :placeholder="t('Enter your instance rules...')"
+              :rows="10"
+            />
+          </div>
         </div>
         <o-field :label="t('Instance Terms Source')">
           <div class="">
@@ -307,14 +307,16 @@
           label-for="instanceTerms"
           v-if="settingsToWrite.instanceTermsType === InstanceTermsType.CUSTOM"
         >
-          <MultilingualTextarea
-            v-model="settingsToWrite.instanceTerms"
-            :instanceLanguages="adminSettings?.instanceLanguages || []"
-            :defaultLanguage="defaultLanguageCode"
-            fieldId="instanceTerms"
-            :placeholder="t('Enter your instance terms...')"
-            :rows="15"
-          />
+          <div class="w-full">
+            <MultilingualTextarea
+              v-model="settingsToWrite.instanceTerms"
+              :instanceLanguages="instanceLanguageCodes"
+              :defaultLanguage="defaultLanguageCode"
+              fieldId="instanceTerms"
+              :placeholder="t('Enter your instance terms...')"
+              :rows="15"
+            />
+          </div>
         </o-field>
         <o-field :label="t('Instance Privacy Policy Source')">
           <div class="">
@@ -434,14 +436,16 @@
             InstancePrivacyType.CUSTOM
           "
         >
-          <MultilingualTextarea
-            v-model="settingsToWrite.instancePrivacyPolicy"
-            :instanceLanguages="adminSettings?.instanceLanguages || []"
-            :defaultLanguage="defaultLanguageCode"
-            fieldId="instancePrivacyPolicy"
-            :placeholder="t('Enter your instance privacy policy...')"
-            :rows="15"
-          />
+          <div class="w-full">
+            <MultilingualTextarea
+              v-model="settingsToWrite.instancePrivacyPolicy"
+              :instanceLanguages="instanceLanguageCodes"
+              :defaultLanguage="defaultLanguageCode"
+              fieldId="instancePrivacyPolicy"
+              :placeholder="t('Enter your instance privacy policy...')"
+              :rows="15"
+            />
+          </div>
         </o-field>
         <o-button native-type="submit" variant="primary">{{
           t("Save")
@@ -506,10 +510,37 @@ const adminSettings = ref<IAdminSettings>();
 
 onAdminSettingsResult(async ({ data }) => {
   if (!data) return;
-  adminSettings.value =
-    {
-      ...data.adminSettings,
-    } ?? defaultAdminSettings;
+  
+  console.log("Raw data from server:", data.adminSettings);
+  
+  // Parse JSON strings back to objects for multilingual fields
+  const parseMultilingualField = (value: string | IMultilingualString | null): string | IMultilingualString | null => {
+    if (!value) return value;
+    console.log("Parsing field, value type:", typeof value, "value:", value);
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        console.log("Parsed to:", parsed);
+        // If it parses to an object with multiple keys, it's multilingual
+        if (typeof parsed === "object" && parsed !== null && Object.keys(parsed).length > 0) {
+          return parsed;
+        }
+      } catch (e) {
+        console.log("Parse error:", e);
+        // Not JSON, return as-is
+      }
+    }
+    return value;
+  };
+  
+  adminSettings.value = {
+    ...data.adminSettings,
+    instanceTerms: parseMultilingualField(data.adminSettings.instanceTerms),
+    instancePrivacyPolicy: parseMultilingualField(data.adminSettings.instancePrivacyPolicy),
+    instanceRules: parseMultilingualField(data.adminSettings.instanceRules),
+  } ?? defaultAdminSettings;
+
+  console.log("Parsed adminSettings:", adminSettings.value);
 
   loadWrappedMedia(instanceLogo, adminSettings.value.instanceLogo);
   loadWrappedMedia(instanceFavicon, adminSettings.value.instanceFavicon);
@@ -536,28 +567,53 @@ useHead({
 const settingsToWrite = ref<IAdminSettings>(defaultAdminSettings);
 
 watch(adminSettings, () => {
-  settingsToWrite.value = { ...adminSettings.value };
+  settingsToWrite.value = {
+    ...defaultAdminSettings,
+    ...adminSettings.value,
+  };
+  // if languages are already loaded, map codes to objects; otherwise keep codes until languages arrive
+  if (languages.value?.length) {
+    selectedLanguages.value =
+      adminSettings.value?.instanceLanguages
+        ?.map((code) => languages.value?.find((l) => l.code === code))
+        .filter((l): l is ILanguage => !!l) ?? [];
+  } else {
+    selectedLanguages.value =
+      adminSettings.value?.instanceLanguages?.map((code) => ({ code, name: code })) ??
+      [];
+  }
 });
 
-const filteredLanguages = ref<string[]>([]);
+const selectedLanguages = ref<ILanguage[]>([]);
+
+// Initialize language list when loaded
+watch(
+  languages,
+  (langs) => {
+    if (langs && settingsToWrite.value.instanceLanguages?.length) {
+      selectedLanguages.value =
+        settingsToWrite.value.instanceLanguages
+          .map((code) => langs.find((l) => l.code === code))
+          .filter((l): l is ILanguage => !!l) ?? [];
+    }
+  },
+  { immediate: true }
+);
 
 const instanceLanguages = computed({
   get() {
-    const languageCodes = [...(adminSettings.value?.instanceLanguages ?? [])];
-    return languageCodes
-      .map((code) => languageForCode(code))
-      .filter((language) => language) as string[];
+    return selectedLanguages.value.map((lang) => lang.code);
   },
   set(newInstanceLanguages: string[]) {
-    const newFilteredInstanceLanguages = newInstanceLanguages
-      .map((language) => {
-        return codeForLanguage(language);
-      })
-      .filter((code) => code !== undefined) as string[];
-    settingsToWrite.value = {
-      ...settingsToWrite.value,
-      instanceLanguages: newFilteredInstanceLanguages,
-    };
+    if (languages.value?.length) {
+      selectedLanguages.value =
+        (languages.value || []).filter(({ code }) =>
+          newInstanceLanguages.includes(code)
+        ) || [];
+    } else {
+      // fallback to code-only objects if languages not yet loaded
+      selectedLanguages.value = newInstanceLanguages.map((code) => ({ code, name: code }));
+    }
   },
 });
 
@@ -597,21 +653,29 @@ const updateSettings = async (): Promise<void> => {
     return undefined;
   };
 
+  // Remove multilingual fields from settingsToWrite before spreading
+  const { instanceTerms, instancePrivacyPolicy, instanceRules, ...restSettings } = settingsToWrite.value;
+
+  console.log("Before save - instanceRules:", instanceRules, "type:", typeof instanceRules);
+  console.log("Before save - instanceTerms:", instanceTerms, "type:", typeof instanceTerms);
+  console.log("Before save - instancePrivacyPolicy:", instancePrivacyPolicy, "type:", typeof instancePrivacyPolicy);
+
   const variables = {
-    ...settingsToWrite.value,
-    // Remove the old string fields and add i18n versions if multilingual
-    instanceTerms: typeof settingsToWrite.value.instanceTerms === "string" 
-      ? settingsToWrite.value.instanceTerms 
+    ...restSettings,
+    instanceLanguages: selectedLanguages.value.map((lang) => lang.code),
+    // Send either the string field OR the i18n field, never both
+    instanceTerms: typeof instanceTerms === "string" 
+      ? instanceTerms 
       : undefined,
-    instanceTermsI18n: convertToMultilingualInput(settingsToWrite.value.instanceTerms),
-    instancePrivacyPolicy: typeof settingsToWrite.value.instancePrivacyPolicy === "string"
-      ? settingsToWrite.value.instancePrivacyPolicy
+    instanceTermsI18n: convertToMultilingualInput(instanceTerms),
+    instancePrivacyPolicy: typeof instancePrivacyPolicy === "string"
+      ? instancePrivacyPolicy
       : undefined,
-    instancePrivacyPolicyI18n: convertToMultilingualInput(settingsToWrite.value.instancePrivacyPolicy),
-    instanceRules: typeof settingsToWrite.value.instanceRules === "string"
-      ? settingsToWrite.value.instanceRules
+    instancePrivacyPolicyI18n: convertToMultilingualInput(instancePrivacyPolicy),
+    instanceRules: typeof instanceRules === "string"
+      ? instanceRules
       : undefined,
-    instanceRulesI18n: convertToMultilingualInput(settingsToWrite.value.instanceRules),
+    instanceRulesI18n: convertToMultilingualInput(instanceRules),
     ...asMediaInput(
       instanceLogo,
       "instanceLogo",
@@ -628,44 +692,28 @@ const updateSettings = async (): Promise<void> => {
       adminSettings.value?.defaultPicture?.id
     ),
   };
+  console.log("Sending variables to GraphQL:", variables);
+  console.log("instanceRulesI18n:", variables.instanceRulesI18n);
+  console.log("instanceTermsI18n:", variables.instanceTermsI18n);
   saveAdminSettings(variables);
 };
 
 const maxSize = useDefaultMaxSize();
 
-const getFilteredLanguages = (text: string): void => {
-  filteredLanguages.value = languages.value
-    ? languages.value
-        .filter((language: ILanguage) => {
-          return (
-            language.name
-              .toString()
-              .toLowerCase()
-              .indexOf(text.toLowerCase()) >= 0
-          );
-        })
-        .map(({ name }) => name)
-    : [];
+const filterLanguages = (text: string): void => {
+  const search = (text || "").toLowerCase();
+  filteredLanguages.value =
+    (languages.value || []).filter(({ name }) =>
+      name.toLowerCase().includes(search)
+    ) || [];
 };
 
-const codeForLanguage = (language: string): string | undefined => {
-  if (languages.value) {
-    const lang = languages.value.find(({ name }) => name === language);
-    if (lang) return lang.code;
-  }
-  return undefined;
-};
-
-const languageForCode = (codeGiven: string): string | undefined => {
-  if (languages.value) {
-    const lang = languages.value.find(({ code }) => code === codeGiven);
-    if (lang) return lang.name;
-  }
-  return undefined;
-};
+const instanceLanguageCodes = computed(() =>
+  selectedLanguages.value.map((lang) => lang.code)
+);
 
 const defaultLanguageCode = computed(() => {
-  return adminSettings.value?.instanceLanguages?.[0] || "en";
+  return instanceLanguageCodes.value?.[0] || "en";
 });
 </script>
 <style lang="scss" scoped>

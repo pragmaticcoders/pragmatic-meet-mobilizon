@@ -60,6 +60,7 @@
         :id="fieldId"
         :placeholder="placeholder"
         :rows="rows"
+        expanded
       />
 
       <!-- Remove language button (only for non-default languages) -->

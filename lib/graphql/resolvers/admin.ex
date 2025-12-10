@@ -253,7 +253,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
         context: %{current_user: %User{role: role}}
       })
       when is_admin(role) do
-    {:ok, Config.admin_settings()}
+    settings = Config.admin_settings() |> serialize_multilingual_fields()
+    Logger.debug("Get settings - instance_rules: #{inspect(Map.get(settings, :instance_rules))}")
+    {:ok, settings}
   end
 
   def get_settings(_parent, _args, _resolution) do
@@ -269,9 +271,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
       when is_admin(role) do
     # Convert multilingual input to JSON format
     args = convert_multilingual_args(args)
-    
+    Logger.debug("Args after converting multilingual: #{inspect(args)}")
+
     with {:ok, res} <- Admin.save_settings("instance", args),
-         res <-
+         res_before_serialize <-
            res
            |> Enum.map(fn {key, val} ->
              case val do
@@ -280,6 +283,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
              end
            end)
            |> Enum.into(%{}),
+         _ <- Logger.debug("Before serialize: instance_rules = #{inspect(Map.get(res_before_serialize, :instance_rules))}"),
+         res <- serialize_multilingual_fields(res_before_serialize),
+         _ <- Logger.debug("After serialize: instance_rules = #{inspect(Map.get(res, :instance_rules))}"),
          :ok <- eventually_update_instance_actor(res) do
       Config.clear_config_cache()
 
@@ -854,6 +860,26 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
 
       _ ->
         args
+    end
+  end
+
+  @spec serialize_multilingual_fields(map()) :: map()
+  defp serialize_multilingual_fields(res) do
+    # Convert multilingual map fields back to JSON strings for GraphQL response
+    res
+    |> serialize_field_if_map(:instance_terms)
+    |> serialize_field_if_map(:instance_privacy_policy)
+    |> serialize_field_if_map(:instance_rules)
+  end
+
+  @spec serialize_field_if_map(map(), atom()) :: map()
+  defp serialize_field_if_map(res, field) do
+    case Map.get(res, field) do
+      value when is_map(value) ->
+        Map.put(res, field, Jason.encode!(value))
+
+      _ ->
+        res
     end
   end
 end

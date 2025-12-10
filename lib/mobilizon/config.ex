@@ -462,13 +462,13 @@ defmodule Mobilizon.Config do
       primary_color: primary_color(),
       secondary_color: secondary_color(),
       instance_logo: instance_logo(),
-      instance_terms: instance_terms(),
+      instance_terms: config_cached_value("instance", "instance_terms", nil),
       instance_terms_type: instance_terms_type(),
       instance_terms_url: instance_terms_url(),
-      instance_privacy_policy: instance_privacy(),
+      instance_privacy_policy: config_cached_value("instance", "instance_privacy_policy", nil),
       instance_privacy_policy_type: instance_privacy_type(),
       instance_privacy_policy_url: instance_privacy_url(),
-      instance_rules: instance_rules(),
+      instance_rules: config_cached_value("instance", "instance_rules"),
       instance_languages: instance_languages()
     }
   end
