@@ -253,10 +253,13 @@ export const SAVE_ADMIN_SETTINGS = gql`
     $instanceTerms: String
     $instanceTermsType: InstanceTermsType
     $instanceTermsUrl: String
+    $instanceTermsI18n: MultilingualString
     $instancePrivacyPolicy: String
     $instancePrivacyPolicyType: InstancePrivacyType
     $instancePrivacyPolicyUrl: String
+    $instancePrivacyPolicyI18n: MultilingualString
     $instanceRules: String
+    $instanceRulesI18n: MultilingualString
     $registrationsOpen: Boolean
     $instanceLanguages: [String]
   ) {
@@ -274,10 +277,13 @@ export const SAVE_ADMIN_SETTINGS = gql`
       instanceTerms: $instanceTerms
       instanceTermsType: $instanceTermsType
       instanceTermsUrl: $instanceTermsUrl
+      instanceTermsI18n: $instanceTermsI18n
       instancePrivacyPolicy: $instancePrivacyPolicy
       instancePrivacyPolicyType: $instancePrivacyPolicyType
       instancePrivacyPolicyUrl: $instancePrivacyPolicyUrl
+      instancePrivacyPolicyI18n: $instancePrivacyPolicyI18n
       instanceRules: $instanceRules
+      instanceRulesI18n: $instanceRulesI18n
       registrationsOpen: $registrationsOpen
       instanceLanguages: $instanceLanguages
     ) {

@@ -183,10 +183,13 @@
               )
             }}
           </small>
-          <o-input
-            type="textarea"
+          <MultilingualTextarea
             v-model="settingsToWrite.instanceRules"
-            id="instance-rules"
+            :instanceLanguages="adminSettings?.instanceLanguages || []"
+            :defaultLanguage="defaultLanguageCode"
+            fieldId="instance-rules"
+            :placeholder="t('Enter your instance rules...')"
+            :rows="10"
           />
         </div>
         <o-field :label="t('Instance Terms Source')">
@@ -304,10 +307,13 @@
           label-for="instanceTerms"
           v-if="settingsToWrite.instanceTermsType === InstanceTermsType.CUSTOM"
         >
-          <o-input
-            type="textarea"
+          <MultilingualTextarea
             v-model="settingsToWrite.instanceTerms"
-            id="instanceTerms"
+            :instanceLanguages="adminSettings?.instanceLanguages || []"
+            :defaultLanguage="defaultLanguageCode"
+            fieldId="instanceTerms"
+            :placeholder="t('Enter your instance terms...')"
+            :rows="15"
           />
         </o-field>
         <o-field :label="t('Instance Privacy Policy Source')">
@@ -428,10 +434,13 @@
             InstancePrivacyType.CUSTOM
           "
         >
-          <o-input
-            type="textarea"
+          <MultilingualTextarea
             v-model="settingsToWrite.instancePrivacyPolicy"
-            id="instancePrivacyPolicy"
+            :instanceLanguages="adminSettings?.instanceLanguages || []"
+            :defaultLanguage="defaultLanguageCode"
+            fieldId="instancePrivacyPolicy"
+            :placeholder="t('Enter your instance privacy policy...')"
+            :rows="15"
           />
         </o-field>
         <o-button native-type="submit" variant="primary">{{
@@ -458,12 +467,14 @@ import type { Notifier } from "@/plugins/notifier";
 
 // Media upload related
 import PictureUpload from "@/components/PictureUpload.vue";
+import MultilingualTextarea from "@/components/Admin/MultilingualTextarea.vue";
 import {
   initWrappedMedia,
   loadWrappedMedia,
   asMediaInput,
 } from "@/utils/image";
 import { useDefaultMaxSize } from "@/composition/config";
+import type { IMultilingualString, IMultilingualStringInput } from "@/types/admin.model";
 
 const defaultAdminSettings: IAdminSettings = {
   instanceName: "",
@@ -571,8 +582,36 @@ saveAdminSettingsError((e) => {
 });
 
 const updateSettings = async (): Promise<void> => {
+  // Convert multilingual strings to the format expected by GraphQL
+  const convertToMultilingualInput = (
+    value: string | IMultilingualString
+  ): IMultilingualStringInput | undefined => {
+    if (typeof value === "object" && value !== null) {
+      return {
+        translations: Object.entries(value).map(([language, content]) => ({
+          language,
+          content,
+        })),
+      };
+    }
+    return undefined;
+  };
+
   const variables = {
     ...settingsToWrite.value,
+    // Remove the old string fields and add i18n versions if multilingual
+    instanceTerms: typeof settingsToWrite.value.instanceTerms === "string" 
+      ? settingsToWrite.value.instanceTerms 
+      : undefined,
+    instanceTermsI18n: convertToMultilingualInput(settingsToWrite.value.instanceTerms),
+    instancePrivacyPolicy: typeof settingsToWrite.value.instancePrivacyPolicy === "string"
+      ? settingsToWrite.value.instancePrivacyPolicy
+      : undefined,
+    instancePrivacyPolicyI18n: convertToMultilingualInput(settingsToWrite.value.instancePrivacyPolicy),
+    instanceRules: typeof settingsToWrite.value.instanceRules === "string"
+      ? settingsToWrite.value.instanceRules
+      : undefined,
+    instanceRulesI18n: convertToMultilingualInput(settingsToWrite.value.instanceRules),
     ...asMediaInput(
       instanceLogo,
       "instanceLogo",
@@ -624,6 +663,10 @@ const languageForCode = (codeGiven: string): string | undefined => {
   }
   return undefined;
 };
+
+const defaultLanguageCode = computed(() => {
+  return adminSettings.value?.instanceLanguages?.[0] || "en";
+});
 </script>
 <style lang="scss" scoped>
 label.label.has-help {

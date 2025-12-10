@@ -58,6 +58,11 @@ defmodule Mobilizon.GraphQL.Resolvers.Config do
     {:ok, %{body_html: body_html, type: type, url: url}}
   end
 
+  @spec rules(any(), map(), Absinthe.Resolution.t()) :: {:ok, String.t() | nil}
+  def rules(_parent, %{locale: locale}, _resolution) do
+    {:ok, Config.instance_rules(locale)}
+  end
+
   @spec event_categories(any(), map(), Absinthe.Resolution.t()) :: {:ok, [map()]}
   def event_categories(_parent, _args, _resolution) do
     categories =

@@ -20,6 +20,20 @@ export interface ILanguage {
   code: string;
   name: string;
 }
+
+export interface IMultilingualString {
+  [languageCode: string]: string;
+}
+
+export interface ITranslationInput {
+  language: string;
+  content: string;
+}
+
+export interface IMultilingualStringInput {
+  translations: ITranslationInput[];
+}
+
 export interface IAdminSettings {
   instanceName: string;
   instanceDescription: string;
@@ -30,13 +44,13 @@ export interface IAdminSettings {
   defaultPicture: IMedia | null;
   primaryColor: string;
   secondaryColor: string;
-  instanceTerms: string;
+  instanceTerms: string | IMultilingualString;
   instanceTermsType: InstanceTermsType;
   instanceTermsUrl: string | null;
-  instancePrivacyPolicy: string;
+  instancePrivacyPolicy: string | IMultilingualString;
   instancePrivacyPolicyType: InstancePrivacyType;
   instancePrivacyPolicyUrl: string | null;
-  instanceRules: string;
+  instanceRules: string | IMultilingualString;
   registrationsOpen: boolean;
   instanceLanguages: string[];
 }

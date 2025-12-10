@@ -177,6 +177,21 @@ defmodule Mobilizon.GraphQL.Schema.AdminType do
     value(:custom, as: "CUSTOM", description: "Custom privacy policy text")
   end
 
+  @desc """
+  A translation entry for multilingual content
+  """
+  input_object :translation_input do
+    field(:language, non_null(:string), description: "ISO 639-1 language code (e.g., 'en', 'pl')")
+    field(:content, non_null(:string), description: "Translated content")
+  end
+
+  @desc """
+  Multilingual string with translations in multiple languages
+  """
+  input_object :multilingual_string do
+    field(:translations, list_of(:translation_input), description: "Translations by language code")
+  end
+
   enum :instance_follow_status do
     value(:approved, description: "The instance follow was approved")
     value(:pending, description: "The instance follow is still pending")
@@ -457,12 +472,13 @@ defmodule Mobilizon.GraphQL.Schema.AdminType do
       arg(:primary_color, :string, description: "The instance's primary color")
       arg(:secondary_color, :string, description: "The instance's secondary color")
 
-      arg(:instance_terms, :string, description: "The instance's terms body text")
+      arg(:instance_terms, :string, description: "The instance's terms body text (legacy single language)")
       arg(:instance_terms_type, :instance_terms_type, description: "The instance's terms type")
       arg(:instance_terms_url, :string, description: "The instance's terms URL")
+      arg(:instance_terms_i18n, :multilingual_string, description: "The instance's terms (multilingual)")
 
       arg(:instance_privacy_policy, :string,
-        description: "The instance's privacy policy body text"
+        description: "The instance's privacy policy body text (legacy single language)"
       )
 
       arg(:instance_privacy_policy_type, :instance_privacy_type,
@@ -470,7 +486,11 @@ defmodule Mobilizon.GraphQL.Schema.AdminType do
       )
 
       arg(:instance_privacy_policy_url, :string, description: "The instance's privacy policy URL")
-      arg(:instance_rules, :string, description: "The instance's rules")
+      arg(:instance_privacy_policy_i18n, :multilingual_string, description: "The instance's privacy policy (multilingual)")
+      
+      arg(:instance_rules, :string, description: "The instance's rules (legacy single language)")
+      arg(:instance_rules_i18n, :multilingual_string, description: "The instance's rules (multilingual)")
+      
       arg(:registrations_open, :boolean, description: "Whether the registrations are opened")
       arg(:instance_languages, list_of(:string), description: "The instance's languages")
       middleware(Rajska.QueryAuthorization, permit: :administrator)

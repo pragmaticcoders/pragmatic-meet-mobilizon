@@ -86,7 +86,15 @@ defmodule Mobilizon.GraphQL.Schema.ConfigType do
       resolve(&Config.privacy/3)
     end
 
-    field(:rules, :string, description: "The instance's rules")
+    field(:rules, :string, description: "The instance's rules") do
+      arg(:locale, :string,
+        default_value: "en",
+        description:
+          "The user's locale. The rules will be translated in their language, if available."
+      )
+
+      resolve(&Config.rules/3)
+    end
 
     field(:auth, :auth, description: "The instance auth methods")
     field(:instance_feeds, :instance_feeds, description: "The instance's feed settings")

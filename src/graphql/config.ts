@@ -215,9 +215,9 @@ export const CONTACT = gql`
 `;
 
 export const RULES = gql`
-  query Rules {
+  query Rules($locale: String) {
     config {
-      rules
+      rules(locale: $locale)
     }
   }
 `;

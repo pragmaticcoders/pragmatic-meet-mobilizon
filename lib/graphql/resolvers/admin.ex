@@ -267,6 +267,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
         context: %{current_user: %User{role: role}}
       })
       when is_admin(role) do
+    # Convert multilingual input to JSON format
+    args = convert_multilingual_args(args)
+    
     with {:ok, res} <- Admin.save_settings("instance", args),
          res <-
            res
@@ -822,4 +825,35 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
   end
 
   defp csv_encode_field(field), do: to_string(field)
+
+  # Convert multilingual input format to JSON map for storage
+  @spec convert_multilingual_args(map()) :: map()
+  defp convert_multilingual_args(args) do
+    args
+    |> convert_multilingual_field(:instance_terms_i18n, :instance_terms)
+    |> convert_multilingual_field(:instance_privacy_policy_i18n, :instance_privacy_policy)
+    |> convert_multilingual_field(:instance_rules_i18n, :instance_rules)
+  end
+
+  @spec convert_multilingual_field(map(), atom(), atom()) :: map()
+  defp convert_multilingual_field(args, i18n_key, legacy_key) do
+    case Map.get(args, i18n_key) do
+      nil ->
+        args
+
+      %{translations: translations} when is_list(translations) ->
+        # Convert list of %{language: "en", content: "..."} to %{"en" => "..."}
+        translation_map =
+          translations
+          |> Enum.map(fn %{language: lang, content: content} -> {lang, content} end)
+          |> Enum.into(%{})
+
+        args
+        |> Map.delete(i18n_key)
+        |> Map.put(legacy_key, translation_map)
+
+      _ ->
+        args
+    end
+  end
 end

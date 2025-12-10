@@ -255,6 +255,7 @@ defmodule Mobilizon.Admin do
   @spec convert_to_string(any()) :: String.t()
   defp convert_to_string(val) do
     case val do
+      val when is_map(val) -> Jason.encode!(val)
       val when is_list(val) -> Jason.encode!(val)
       val -> to_string(val)
     end

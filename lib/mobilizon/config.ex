@@ -98,7 +98,11 @@ defmodule Mobilizon.Config do
 
   @spec instance_terms(String.t()) :: String.t()
   def instance_terms(locale \\ "en") do
-    config_cached_value("instance", "instance_terms", generate_terms(locale))
+    case config_cached_value("instance", "instance_terms", nil) do
+      nil -> generate_terms(locale)
+      value when is_map(value) -> get_translation(value, locale) || generate_terms(locale)
+      value when is_binary(value) -> value
+    end
   end
 
   @spec instance_terms_type :: String.t()
@@ -113,11 +117,11 @@ defmodule Mobilizon.Config do
 
   @spec instance_privacy(String.t()) :: String.t()
   def instance_privacy(locale \\ "en") do
-    config_cached_value(
-      "instance",
-      "instance_privacy_policy",
-      generate_privacy(locale)
-    )
+    case config_cached_value("instance", "instance_privacy_policy", nil) do
+      nil -> generate_privacy(locale)
+      value when is_map(value) -> get_translation(value, locale) || generate_privacy(locale)
+      value when is_binary(value) -> value
+    end
   end
 
   @spec instance_privacy_type :: String.t()
@@ -130,9 +134,12 @@ defmodule Mobilizon.Config do
     config_cached_value("instance", "instance_privacy_policy_url")
   end
 
-  @spec instance_rules :: String.t()
-  def instance_rules do
-    config_cached_value("instance", "instance_rules")
+  @spec instance_rules(String.t()) :: String.t() | nil
+  def instance_rules(locale \\ "en") do
+    case config_cached_value("instance", "instance_rules") do
+      value when is_map(value) -> get_translation(value, locale)
+      value -> value
+    end
   end
 
   @spec instance_version :: String.t()
@@ -495,6 +502,16 @@ defmodule Mobilizon.Config do
       "privacy.html",
       %{instance_name: instance_name()}
     )
+  end
+
+  # Helper function to get translation with fallback chain:
+  # requested locale → default instance language → English → first available
+  @spec get_translation(map(), String.t()) :: String.t() | nil
+  defp get_translation(translations, locale) when is_map(translations) do
+    translations[locale] ||
+      translations[default_language()] ||
+      translations["en"] ||
+      (translations |> Map.values() |> List.first())
   end
 
   @spec instance_contact_html :: String.t()
