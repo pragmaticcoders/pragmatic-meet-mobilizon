@@ -144,7 +144,7 @@
           </small>
           <o-taginput
             v-model="selectedLanguages"
-            :data="languages || []"
+            :data="filteredLanguages"
             allow-autocomplete
             :open-on-focus="true"
             :remove-on-keys="[]"
@@ -152,6 +152,7 @@
             :placeholder="t('Select languages')"
             field="name"
             id="instance-languages"
+            @typing="languageSearchText = $event"
           />
         </div>
         <div class="field flex flex-col">
@@ -557,7 +558,11 @@ const { file: defaultPictureFile } = defaultPicture;
 const { result: languageResult } = useQuery<{ languages: ILanguage[] }>(
   LANGUAGES
 );
-const languages = computed(() => languageResult.value?.languages);
+const languages = computed(() => {
+  const langs = languageResult.value?.languages || [];
+  // Sort languages alphabetically by name
+  return [...langs].sort((a, b) => a.name.localeCompare(b.name));
+});
 
 const { t } = useI18n({ useScope: "global" });
 useHead({
@@ -585,6 +590,18 @@ watch(adminSettings, () => {
 });
 
 const selectedLanguages = ref<ILanguage[]>([]);
+const languageSearchText = ref<string>("");
+
+// Filtered languages for autocomplete
+const filteredLanguages = computed(() => {
+  if (!languageSearchText.value) {
+    return languages.value || [];
+  }
+  const search = languageSearchText.value.toLowerCase();
+  return (languages.value || []).filter(({ name }) =>
+    name.toLowerCase().includes(search)
+  );
+});
 
 // Initialize language list when loaded
 watch(
@@ -699,14 +716,6 @@ const updateSettings = async (): Promise<void> => {
 };
 
 const maxSize = useDefaultMaxSize();
-
-const filterLanguages = (text: string): void => {
-  const search = (text || "").toLowerCase();
-  filteredLanguages.value =
-    (languages.value || []).filter(({ name }) =>
-      name.toLowerCase().includes(search)
-    ) || [];
-};
 
 const instanceLanguageCodes = computed(() =>
   selectedLanguages.value.map((lang) => lang.code)
