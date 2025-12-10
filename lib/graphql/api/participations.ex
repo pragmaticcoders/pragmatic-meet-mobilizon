@@ -275,12 +275,9 @@ defmodule Mobilizon.GraphQL.API.Participations do
            {:auto_promote, Map.get(event.options, :waitlist_auto_promote, true)},
          {:has_capacity, true} <-
            {:has_capacity, event.options.maximum_attendee_capacity > 0},
-         current_participant_count <-
-           Events.count_participants_by_role(event_id, [
-             :participant,
-             :administrator,
-             :moderator
-           ]),
+         # Use the same counting logic as when checking if someone can join
+         # (only count :participant role, not administrators/moderators/creators)
+         current_participant_count <- Events.count_participant_participants(event_id),
          available_spots <- event.options.maximum_attendee_capacity - current_participant_count,
          {:spots_available, true} <- {:spots_available, available_spots > 0} do
       Logger.info(

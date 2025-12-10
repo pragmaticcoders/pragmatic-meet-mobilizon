@@ -12,76 +12,75 @@ env:
   IMAGE_NAME: mobilizon-app
 
 jobs:
-  # TEMPORARILY DISABLED FOR FAST TESTING
-  # test-backend:
-  #   runs-on: ubuntu-latest
-  #   # Skip tests on manual trigger for fast deployment
-  #   if: github.event_name != 'workflow_dispatch'
-  #
-  #   services:
-  #     postgres:
-  #       image: postgis/postgis:15-3.4
-  #       env:
-  #         POSTGRES_USER: mobilizon_test
-  #         POSTGRES_PASSWORD: mobilizon
-  #         POSTGRES_DB: mobilizon_test
-  #       ports:
-  #         - 5432:5432
-  #       options: >-
-  #         --health-cmd pg_isready
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
-  #
-  #   env:
-  #     MIX_ENV: test
-  #     MOBILIZON_DATABASE_HOST: localhost
-  #     MOBILIZON_DATABASE_USERNAME: mobilizon_test
-  #     MOBILIZON_DATABASE_PASSWORD: mobilizon
-  #     MOBILIZON_DATABASE_DBNAME: mobilizon_test
-  #
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Set up Elixir
-  #       uses: erlef/setup-beam@v1
-  #       with:
-  #         elixir-version: '1.15'
-  #         otp-version: '26'
-  #
-  #     - name: Cache dependencies
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           deps
-  #           _build
-  #         key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-  #         restore-keys: ${{ runner.os }}-mix-
-  #
-  #     - name: Install system dependencies
-  #       run: |
-  #         sudo apt-get update
-  #         sudo apt-get install -y imagemagick
-  #         which identify
-  #         identify -version
-  #
-  #     - name: Install dependencies
-  #       run: mix deps.get
-  #
-  #     - name: Prepare test database
-  #       run: mix prepare_test
-  #
-  #     - name: Run tests
-  #       run: mix test
-  #
-  #     - name: Run Credo (informational)
-  #       run: mix credo
-  #       continue-on-error: true
-  #
-  #     - name: Run Sobelow security scan (informational)
-  #       run: mix sobelow --config
-  #       continue-on-error: true
+  test-backend:
+    runs-on: ubuntu-latest
+    # Skip tests on manual trigger for fast deployment
+    if: github.event_name != 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_USER: mobilizon_test
+          POSTGRES_PASSWORD: mobilizon
+          POSTGRES_DB: mobilizon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      MIX_ENV: test
+      MOBILIZON_DATABASE_HOST: localhost
+      MOBILIZON_DATABASE_USERNAME: mobilizon_test
+      MOBILIZON_DATABASE_PASSWORD: mobilizon
+      MOBILIZON_DATABASE_DBNAME: mobilizon_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.15'
+          otp-version: '26'
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          which identify
+          identify -version
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Prepare test database
+        run: mix prepare_test
+
+      - name: Run tests
+        run: mix test
+
+      - name: Run Credo (informational)
+        run: mix credo
+        continue-on-error: true
+
+      - name: Run Sobelow security scan (informational)
+        run: mix sobelow --config
+        continue-on-error: true
 
   test-frontend:
     runs-on: ubuntu-latest
@@ -109,7 +108,7 @@ jobs:
 
   # Build for PRs (without push) - used for E2E testing
   build-pr:
-    needs: [test-frontend]  # TEMPORARILY REMOVED test-backend dependency
+    needs: [test-frontend, test-backend]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     outputs:
@@ -148,7 +147,7 @@ jobs:
 
   # Build for main/test branches (with push) - for deployment and E2E testing
   build:
-    needs: [test-frontend]  # TEMPORARILY REMOVED test-backend dependency
+    needs: [test-frontend, test-backend]
     runs-on: ubuntu-latest
     # Run on push to main/test OR on workflow_dispatch from main (skip tests, build directly)
     # Use always() to allow running when tests are skipped on workflow_dispatch
@@ -156,7 +155,8 @@ jobs:
       always() &&
       ((github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test')) ||
        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) &&
-      (needs.test-frontend.result == 'success' || needs.test-frontend.result == 'skipped')
+      (needs.test-frontend.result == 'success' || needs.test-frontend.result == 'skipped') &&
+      (needs.test-backend.result == 'success' || needs.test-backend.result == 'skipped')
     outputs:
       environment: ${{ steps.env.outputs.environment }}
       tag: ${{ steps.env.outputs.tag }}
