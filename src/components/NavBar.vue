@@ -8,11 +8,9 @@
           class="flex items-center flex-shrink-0"
         >
           <img
-            src="/img/pragmatic_logo.svg"
-            alt="Pragmatic Meet"
-            width="176"
-            height="32"
-            class="w-[176px] h-8"
+            :src="instanceLogoUrl ?? '/img/logo.svg'"
+            :alt="instanceName ?? 'Mobilizon'"
+            class="max-h-10"
           />
         </router-link>
 
@@ -387,7 +385,11 @@ import Plus from "vue-material-design-icons/Plus.vue";
 import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useLazyQuery } from "@vue/apollo-composable";
-import { useRegistrationConfig } from "@/composition/apollo/config";
+import {
+  useRegistrationConfig,
+  useInstanceLogoUrl,
+  useInstanceName,
+} from "@/composition/apollo/config";
 import { useOruga } from "@oruga-ui/oruga-next";
 import {
   UNREAD_ACTOR_CONVERSATIONS,
@@ -403,6 +405,9 @@ const route = useRoute();
 
 const { registrationsOpen, registrationsAllowlist, databaseLogin } =
   useRegistrationConfig();
+
+const { instanceLogoUrl } = useInstanceLogoUrl();
+const { instanceName } = useInstanceName();
 
 const canRegister = computed(() => {
   return (

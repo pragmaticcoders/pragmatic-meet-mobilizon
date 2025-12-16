@@ -42,25 +42,25 @@
     "
   >
     <figure
-      class="w-full relative mx-auto my-4"
+      class="relative my-4"
       v-if="imageSrc && !imagePreviewLoadingError"
     >
       <img
-        class="w-full h-48 object-cover border border-gray-300"
+        class="max-w-full max-h-48 object-contain border border-gray-300"
         :src="imageSrc"
         @error="showImageLoadingError"
       />
-      <o-button
-        class="!absolute right-2 bottom-2"
-        variant="danger"
-        size="small"
-        v-if="imageSrc"
-        @click="removeOrClearPicture"
-        @keyup.enter="removeOrClearPicture"
-      >
-        {{ $t("Clear") }}
-      </o-button>
     </figure>
+    <o-button
+      class="mt-2"
+      variant="danger"
+      size="small"
+      v-if="imageSrc"
+      @click="removeOrClearPicture"
+      @keyup.enter="removeOrClearPicture"
+    >
+      {{ $t("Clear") }}
+    </o-button>
   </div>
 </template>
 

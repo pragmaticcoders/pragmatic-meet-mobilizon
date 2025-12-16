@@ -5,11 +5,9 @@
     >
       <!-- Brand -->
       <img
-        src="/img/pragmatic_logo.svg"
-        alt="Pragmatic Meet"
-        width="176"
-        height="32"
-        class="w-[176px] h-8"
+        :src="instanceLogoUrl ?? '/img/logo.svg'"
+        :alt="instanceName ?? 'Mobilizon'"
+        class="max-h-10"
       />
 
       <!-- Language selector -->
@@ -77,8 +75,15 @@ import { loadLanguageAsync } from "@/utils/i18n";
 import RouteName from "../router/name";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
+import {
+  useInstanceLogoUrl,
+  useInstanceName,
+} from "@/composition/apollo/config";
 
 const { locale, t } = useI18n({ useScope: "global" });
+
+const { instanceLogoUrl } = useInstanceLogoUrl();
+const { instanceName } = useInstanceName();
 
 watch(locale, async () => {
   if (locale) {
