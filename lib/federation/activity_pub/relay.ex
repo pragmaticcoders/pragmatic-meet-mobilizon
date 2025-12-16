@@ -37,8 +37,9 @@ defmodule Mobilizon.Federation.ActivityPub.Relay do
       {:ok, %Actor{} = actor} ->
         actor
 
-      {:error, %Ecto.Changeset{} = _err} ->
-        raise("Relay actor not found")
+      {:error, %Ecto.Changeset{} = err} ->
+        Logger.error("Failed to get or create Relay actor: #{inspect(err)}")
+        raise "Relay actor not found. Please ensure your instance is properly configured. Error: #{inspect(err.errors)}"
     end
   end
 

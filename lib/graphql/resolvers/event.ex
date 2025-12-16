@@ -260,14 +260,16 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
           {:ok, Event.t()} | {:error, String.t() | Ecto.Changeset.t()}
   def create_event(
         _parent,
-        %{organizer_actor_id: organizer_actor_id} = args,
-        %{context: %{current_user: %User{email: email} = user} = context} = _resolution
+        args,
+        %{context: %{current_user: %User{email: email} = user, current_actor: %Actor{} = organizer_actor} = context} = _resolution
       ) do
     current_ip = Map.get(context, :ip)
     user_agent = Map.get(context, :user_agent, "")
 
-    with {:is_owned, %Actor{} = organizer_actor} <- User.owns_actor(user, organizer_actor_id),
-         {:can_create_event, true} <- can_create_event(args),
+    # Use the current_actor (user's default actor) as the organizer
+    args = Map.put(args, :organizer_actor_id, organizer_actor.id)
+
+    with {:can_create_event, true} <- can_create_event(args),
          {:event_external, true} <- edit_event_external_checker(args),
          {:organizer_group_member, true} <-
            {:organizer_group_member, organizer_group_member?(args)},
@@ -286,9 +288,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
            API.Events.create_event(args_with_organizer) do
       {:ok, event}
     else
-      {:is_owned, nil} ->
-        {:error, dgettext("errors", "Organizer profile is not owned by the user")}
-
       {:can_create_event, false} ->
         {:error,
          dgettext(
@@ -329,6 +328,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
            "Unknown error while creating event"
          )}
     end
+  end
+
+  def create_event(_parent, _args, %{context: %{current_user: %User{}}}) do
+    {:error, dgettext("errors", "You need to have a profile to create events")}
   end
 
   def create_event(_parent, _args, _resolution) do

@@ -78,7 +78,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       $ends_on: DateTime,
       $status: EventStatus,
       $visibility: EventVisibility,
-      $organizer_actor_id: ID!,
       $attributed_to_id: ID,
       $online_address: String,
       $options: EventOptionsInput,
@@ -96,7 +95,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           ends_on: $ends_on,
           status: $status,
           visibility: $visibility,
-          organizer_actor_id: $organizer_actor_id,
           attributed_to_id: $attributed_to_id,
           online_address: $online_address,
           options: $options,
@@ -149,36 +147,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
     }
     """
 
-    test "create_event/3 should check the organizer_actor_id is owned by the user", %{
-      conn: conn,
-      user: user
-    } do
-      another_actor = insert(:actor)
-
-      begins_on = DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
-
-      res =
-        conn
-        |> auth_conn(user)
-        |> AbsintheHelpers.graphql_query(
-          query: @create_event_mutation,
-          variables: %{
-            title: "come to my event",
-            description: "it will be fine",
-            begins_on: "#{begins_on}",
-            organizer_actor_id: "#{another_actor.id}"
-          }
-        )
-
-      assert res["data"]["createEvent"] == nil
-
-      assert hd(res["errors"])["message"] ==
-               "Organizer profile is not owned by the user"
-    end
-
     test "create_event/3 should check that end time is after start time", %{
       conn: conn,
-      actor: actor,
       user: user
     } do
       begins_on = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -193,8 +163,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description: "it will be fine",
             begins_on: "#{begins_on}",
-            ends_on: "#{ends_on}",
-            organizer_actor_id: "#{actor.id}"
+            ends_on: "#{ends_on}"
           }
         )
 
@@ -213,8 +182,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           variables: %{
             title: "come to my event",
             description: "it will be fine",
-            begins_on: "#{DateTime.add(begins_on, 3600 * 24)}",
-            organizer_actor_id: "#{actor.id}"
+            begins_on: "#{DateTime.add(begins_on, 3600 * 24)}"
           }
         )
 
@@ -249,8 +217,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
               "My Event title <img src=\"http://placekitten.com/g/200/300\" onclick=\"alert('aaa')\" >",
             description:
               "<b>My description</b> <img src=\"http://placekitten.com/g/200/300\" onclick=\"alert('aaa')\" >",
-            begins_on: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601(),
-            organizer_actor_id: "#{actor.id}"
+            begins_on: DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()
           }
         )
 
@@ -280,7 +247,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description: "it will be fine",
             begins_on: "#{DateTime.utc_now()}",
-            organizer_actor_id: "#{actor.id}",
             draft: true
           }
         )
@@ -360,7 +326,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description: "it will be fine",
             begins_on: "#{DateTime.utc_now()}",
-            organizer_actor_id: "#{actor.id}",
             attributed_to_id: group_id,
             draft: true
           }
@@ -409,7 +374,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             ends_on: "#{ends_on}",
             status: "TENTATIVE",
             visibility: "UNLISTED",
-            organizer_actor_id: "#{actor.id}",
             online_address: "toto@example.com",
             options: %{
               maximumAttendeeCapacity: 30,
@@ -458,7 +422,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description: "it will be fine",
             begins_on: "#{begins_on}",
-            organizer_actor_id: "#{actor.id}",
             options: %{
               maximumAttendeeCapacity: -5
             }
@@ -481,7 +444,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             description: "with tags!",
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
-            organizer_actor_id: "#{actor.id}",
             category: "SOCIAL_ACTIVITIES",
             tags: ["nicolas", "birthday", "bad tag"]
           }
@@ -516,7 +478,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             description: "with tags!",
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
-            organizer_actor_id: "#{actor.id}",
             category: "SOCIAL_ACTIVITIES",
             physicalAddress: %{
               street: "#{address.street}",
@@ -545,7 +506,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             description: "with tags!",
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
-            organizer_actor_id: "#{actor.id}",
             category: "SOCIAL_ACTIVITIES",
             physicalAddress: %{
               id: "#{address_id}"
@@ -579,7 +539,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           description: "it will be fine",
           begins_on:
             "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
-          organizer_actor_id: "#{actor.id}",
           category: "SOCIAL_ACTIVITIES",
           picture: %{
             media: %{
@@ -669,7 +628,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             description: "it will be fine",
             begins_on:
               "#{DateTime.utc_now() |> DateTime.truncate(:second) |> DateTime.to_iso8601()}",
-            organizer_actor_id: "#{actor.id}",
             category: "SOCIAL_ACTIVITIES",
             picture: %{
               media_uuid: "#{media_uuid}"
@@ -698,7 +656,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           variables: %{
             title: "Come to my event",
             description: "This should be long enough to get detected",
-            organizer_actor_id: actor_id,
             begins_on: "2021-07-26T09:00:00Z"
           }
         )
@@ -709,7 +666,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
     test "create_event/3 creates an event with manually set language", %{
       conn: conn,
-      actor: %Actor{id: actor_id},
       user: user
     } do
       res =
@@ -720,7 +676,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           variables: %{
             title: "Come to my event",
             description: "This should be long enough to get detected",
-            organizer_actor_id: actor_id,
             begins_on: "2021-07-26T09:00:00Z",
             language: "it"
           }
@@ -741,70 +696,77 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
     test "create_event/3 should check the member has permission to create a group event", %{
       conn: conn
     } do
-      %User{} = user = insert(:user)
+      # Test with a user whose default actor is a moderator of the group
       %Actor{id: group_id} = group = insert(:group)
-
-      %Actor{id: member_not_approved_actor_id} =
-        member_not_approved_actor = insert(:actor, user: user)
-
-      insert(:member, parent: group, actor: member_not_approved_actor)
-      %Actor{id: member_actor_id} = member_actor = insert(:actor, user: user)
-      insert(:member, parent: group, actor: member_actor, role: :member)
-      %Actor{id: moderator_actor_id} = moderator_actor = insert(:actor, user: user)
+      moderator_actor = insert(:actor)
+      %User{} = moderator_user = insert(:user, default_actor: moderator_actor)
       insert(:member, parent: group, actor: moderator_actor, role: :moderator)
-      %Actor{id: not_member_actor_id} = insert(:actor, user: user)
 
       variables = Map.put(@variables, :attributed_to_id, "#{group_id}")
 
       res =
         conn
-        |> auth_conn(user)
+        |> auth_conn(moderator_user)
         |> AbsintheHelpers.graphql_query(
           query: @create_event_mutation,
-          variables: Map.put(variables, :organizer_actor_id, "#{member_not_approved_actor_id}")
-        )
-
-      assert res["data"]["createEvent"] == nil
-
-      assert hd(res["errors"])["message"] ==
-               "Organizer profile doesn't have permission to create an event on behalf of this group"
-
-      res =
-        conn
-        |> auth_conn(user)
-        |> AbsintheHelpers.graphql_query(
-          query: @create_event_mutation,
-          variables: Map.put(variables, :organizer_actor_id, "#{not_member_actor_id}")
-        )
-
-      assert res["data"]["createEvent"] == nil
-
-      assert hd(res["errors"])["message"] ==
-               "Organizer profile doesn't have permission to create an event on behalf of this group"
-
-      res =
-        conn
-        |> auth_conn(user)
-        |> AbsintheHelpers.graphql_query(
-          query: @create_event_mutation,
-          variables: Map.put(variables, :organizer_actor_id, "#{member_actor_id}")
-        )
-
-      assert res["data"]["createEvent"] == nil
-
-      assert hd(res["errors"])["message"] ==
-               "Organizer profile doesn't have permission to create an event on behalf of this group"
-
-      res =
-        conn
-        |> auth_conn(user)
-        |> AbsintheHelpers.graphql_query(
-          query: @create_event_mutation,
-          variables: Map.put(variables, :organizer_actor_id, "#{moderator_actor_id}")
+          variables: variables
         )
 
       assert res["errors"] == nil
       assert res["data"]["createEvent"] != nil
+
+      # Test with a user whose default actor is not approved
+      member_not_approved_actor = insert(:actor)
+      %User{} = not_approved_user = insert(:user, default_actor: member_not_approved_actor)
+      insert(:member, parent: group, actor: member_not_approved_actor)
+
+      res =
+        conn
+        |> auth_conn(not_approved_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: variables
+        )
+
+      assert res["data"]["createEvent"] == nil
+
+      assert hd(res["errors"])["message"] ==
+               "Organizer profile doesn't have permission to create an event on behalf of this group"
+
+      # Test with a user whose default actor is a regular member (not moderator)
+      member_actor = insert(:actor)
+      %User{} = member_user = insert(:user, default_actor: member_actor)
+      insert(:member, parent: group, actor: member_actor, role: :member)
+
+      res =
+        conn
+        |> auth_conn(member_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: variables
+        )
+
+      assert res["data"]["createEvent"] == nil
+
+      assert hd(res["errors"])["message"] ==
+               "Organizer profile doesn't have permission to create an event on behalf of this group"
+
+      # Test with a user whose default actor is not a member at all
+      not_member_actor = insert(:actor)
+      %User{} = not_member_user = insert(:user, default_actor: not_member_actor)
+
+      res =
+        conn
+        |> auth_conn(not_member_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: variables
+        )
+
+      assert res["data"]["createEvent"] == nil
+
+      assert hd(res["errors"])["message"] ==
+               "Organizer profile doesn't have permission to create an event on behalf of this group"
     end
   end
 
@@ -821,7 +783,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description: "it will be fine",
             begins_on: "#{DateTime.add(begins_on, 3600 * 24)}",
-            organizer_actor_id: "#{actor.id}",
             tags: ["Hello", "hello"]
           }
         )
@@ -830,7 +791,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       assert res["data"]["createEvent"]["tags"] == [%{"slug" => "hello", "title" => "Hello"}]
     end
 
-    test "too long tags", %{conn: conn, actor: actor, user: user} do
+    test "too long tags", %{conn: conn, user: user} do
       begins_on = DateTime.utc_now()
 
       res =
@@ -842,8 +803,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             title: "come to my event",
             description:
               "<p>it will be fine, what do you think? <br>#Detected <br>#ThisIsAVeryLongHashTagThatWillNotBeDetectedByTheParser</p>",
-            begins_on: "#{DateTime.add(begins_on, 3600 * 24)}",
-            organizer_actor_id: "#{actor.id}"
+            begins_on: "#{DateTime.add(begins_on, 3600 * 24)}"
           }
         )
 

@@ -22,7 +22,8 @@ defmodule Mobilizon.Web.Upload.Filter.Resize do
           width: width,
           height: height
         } = upload
-      ) do
+      )
+      when is_integer(width) and is_integer(height) do
     {new_width, new_height} = sizes = limit_sizes({width, height})
 
     file
@@ -31,6 +32,11 @@ defmodule Mobilizon.Web.Upload.Filter.Resize do
     |> Mogrify.save(in_place: true)
 
     {:ok, :filtered, %Upload{upload | width: new_width, height: new_height}}
+  rescue
+    e in ErlangError ->
+      require Logger
+      Logger.warning("#{__MODULE__}: #{inspect(e)}")
+      {:ok, :noop}
   end
 
   def filter(_), do: {:ok, :noop}
