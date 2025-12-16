@@ -99,6 +99,12 @@ defmodule Mobilizon.Service.MetadataTest do
                |> Floki.attribute("content")
                |> hd
 
+      assert "@pragmaticcoders" ==
+               document
+               |> Floki.find("meta[property=\"twitter:site\"]")
+               |> Floki.attribute("content")
+               |> hd
+
       event_json_ld = "event.json" |> ObjectView.render(%{event: event}) |> Jason.encode!()
 
       breadcrumbs = """

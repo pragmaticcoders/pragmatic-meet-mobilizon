@@ -97,6 +97,7 @@ defimpl Mobilizon.Service.Metadata, for: Mobilizon.Events.Event do
     tags ++
       [
         Tag.tag(:meta, property: "twitter:card", content: "summary_large_image"),
+        Tag.tag(:meta, property: "twitter:site", content: "@pragmaticcoders"),
         ~s{<script type="application/ld+json">#{Jason.encode!(breadcrumbs)}</script>}
         |> HTML.raw(),
         ~s{<script type="application/ld+json">#{json(event)}</script>} |> HTML.raw()
