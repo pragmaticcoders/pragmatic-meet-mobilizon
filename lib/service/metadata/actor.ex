@@ -21,7 +21,7 @@ defimpl Mobilizon.Service.Metadata, for: Mobilizon.Actors.Actor do
       end)
 
     [
-      Tag.tag(:meta, property: "og:title", content: actor_display_name_escaped(group)),
+      Tag.tag(:meta, property: "og:title", content: actor_display_name_escaped(group) <> " - PragmaticMeet"),
       Tag.tag(:meta,
         property: "og:url",
         content: ~p"/@#{Actor.preferred_username_and_domain(group)}" |> url() |> URI.decode()
@@ -33,7 +33,7 @@ defimpl Mobilizon.Service.Metadata, for: Mobilizon.Actors.Actor do
         content: group |> Actor.preferred_username_and_domain() |> escape_text()
       ),
       Tag.tag(:meta, property: "twitter:card", content: "summary"),
-      Tag.tag(:meta, property: "twitter:site", content: "@joinmobilizon")
+      Tag.tag(:meta, property: "twitter:site", content: "@pragmaticcoders")
     ]
     |> maybe_add_avatar(group)
     |> add_group_schema(group)

@@ -18,7 +18,7 @@ defmodule Mobilizon.Service.Metadata.Instance do
   @spec build_tags() :: list(Phoenix.HTML.safe())
   def build_tags do
     description = Utils.process_description(Config.instance_description())
-    title = "#{Config.instance_name()} - Mobilizon"
+    title = "#{Config.instance_name()}"
 
     json_ld = %{
       "@context" => "http://schema.org",
