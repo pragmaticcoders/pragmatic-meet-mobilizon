@@ -657,7 +657,6 @@ import {
   useRoute,
 } from "vue-router";
 import {
-  ActorType,
   CommentModeration,
   EventJoinOptions,
   EventStatus,
@@ -682,7 +681,7 @@ import {
 import { LOGGED_USER_DRAFTS, LOGGED_USER_MEMBERSHIPS } from "@/graphql/actor";
 import { LOGGED_USER_PARTICIPATIONS } from "@/graphql/participant";
 import { IMember } from "@/types/actor/member.model";
-import { IActor, IGroup, IPerson, usernameWithDomain } from "@/types/actor";
+import { IGroup, IPerson, usernameWithDomain } from "@/types/actor";
 import {
   buildFileFromIMedia,
   buildFileVariable,
