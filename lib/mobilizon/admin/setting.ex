@@ -94,7 +94,8 @@ defmodule Mobilizon.Admin.SettingMedia do
   import Mobilizon.Web.Gettext
   @spec upload_media(map) :: {:ok, Media.t()} | {:error, any}
   defp upload_media(%{file: %Plug.Upload{} = file} = args) do
-    with {:ok,
+    with {:ok, actor_id} <- get_actor_id_for_upload(args),
+         {:ok,
           %{
             name: _name,
             url: url,
@@ -110,7 +111,7 @@ defmodule Mobilizon.Admin.SettingMedia do
          {:ok, media = %Media{}} <-
            Medias.create_media(%{
              file: args,
-             actor_id: Map.get(args, :actor_id, Relay.get_actor().id),
+             actor_id: actor_id,
              metadata: Map.take(uploaded, [:width, :height, :blurhash])
            }) do
       {:ok, media}
@@ -118,8 +119,26 @@ defmodule Mobilizon.Admin.SettingMedia do
       {:error, :mime_type_not_allowed} ->
         {:error, dgettext("errors", "File doesn't have an allowed MIME type.")}
 
+      {:error, :no_actor_for_upload} ->
+        {:error, dgettext("errors", "Unable to find an actor to associate with the uploaded media.")}
+
       error ->
         {:error, error}
+    end
+  end
+
+  @spec get_actor_id_for_upload(map) :: {:ok, String.t()} | {:error, :no_actor_for_upload}
+  defp get_actor_id_for_upload(args) do
+    case Map.get(args, :actor_id) do
+      nil ->
+        try do
+          {:ok, Relay.get_actor().id}
+        rescue
+          _ -> {:error, :no_actor_for_upload}
+        end
+
+      actor_id ->
+        {:ok, actor_id}
     end
   end
 end

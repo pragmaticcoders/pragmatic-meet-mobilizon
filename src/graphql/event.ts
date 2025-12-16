@@ -167,7 +167,6 @@ export const FETCH_EVENTS = gql`
 
 export const CREATE_EVENT = gql`
   mutation createEvent(
-    $organizerActorId: ID!
     $attributedToId: ID
     $title: String!
     $description: String!
@@ -189,7 +188,6 @@ export const CREATE_EVENT = gql`
     $metadata: [EventMetadataInput]
   ) {
     createEvent(
-      organizerActorId: $organizerActorId
       attributedToId: $attributedToId
       title: $title
       description: $description

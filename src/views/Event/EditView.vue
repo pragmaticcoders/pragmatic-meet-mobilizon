@@ -1460,27 +1460,9 @@ const postRefetchQueries = (
 
 /**
  * Build variables for Event GraphQL creation query
+ * Note: organizerActorId is no longer needed - the backend uses the current user's default profile
  */
 const buildVariables = async () => {
-  // For group events: organizer should be the USER (who creates on behalf of group)
-  // For personal events: organizer should be the user
-  const localOrganizerActor = event.value?.organizerActor?.id
-    ? event.value.organizerActor // Use the user as organizer (they create on behalf of group)
-    : currentActor.value || organizerActor.value;
-
-  if (!localOrganizerActor?.id) {
-    // No organizer actor found - this can happen with LinkedIn login issues
-    notification.open({
-      message: t(
-        "Unable to create event: No organizer profile found. Please create or select a profile first."
-      ) as string,
-      variant: "danger",
-      position: "bottom-right",
-      duration: 5000,
-    });
-    throw new Error("No organizer actor found");
-  }
-
   // Clean the options object to remove Apollo Client metadata like __typename
   const cleanOptions = { ...event.value.options };
   delete (cleanOptions as any).__typename;
@@ -1494,8 +1476,6 @@ const buildVariables = async () => {
   if (!res.category) {
     res.category = "SOCIAL_ACTIVITIES";
   }
-
-  res = { ...res, organizerActorId: localOrganizerActor.id };
 
   const attributedToId = event.value?.attributedTo?.id
     ? event.value?.attributedTo.id

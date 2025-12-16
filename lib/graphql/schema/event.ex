@@ -476,8 +476,8 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       arg(:online_address, :string, description: "Online address of the event")
       arg(:phone_address, :string, description: "Phone address for the event")
 
-      arg(:organizer_actor_id, non_null(:id),
-        description: "The event's organizer ID (as a person)"
+      arg(:organizer_actor_id, :id,
+        description: "The event's organizer ID (as a person) - optional, defaults to current user's profile"
       )
 
       arg(:attributed_to_id, :id,
@@ -501,12 +501,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       arg(:contacts, list_of(:contact), default_value: [], description: "The events contacts")
       arg(:language, :string, description: "The event language", default_value: "und")
 
-      middleware(Rajska.QueryAuthorization,
-        permit: :user,
-        scope: Mobilizon.Events.Event,
-        rule: :"write:event:create",
-        args: %{organizer_actor_id: :organizer_actor_id}
-      )
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
 
       middleware(Rajska.RateLimiter, limit: event_rate_limiting(@env))
 
