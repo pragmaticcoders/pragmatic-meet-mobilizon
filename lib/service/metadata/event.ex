@@ -21,9 +21,9 @@ defimpl Mobilizon.Service.Metadata, for: Mobilizon.Events.Event do
     formatted_description = description(event, locale)
 
     tags = [
-      Tag.content_tag(:title, escape_text(event.title) <> " - Mobilizon"),
+      Tag.content_tag(:title, escape_text(event.title) <> " - PragmaticMeet"),
       Tag.tag(:meta, name: "description", content: process_description(event.description, locale)),
-      Tag.tag(:meta, property: "og:title", content: escape_text(event.title)),
+      Tag.tag(:meta, property: "og:title", content: escape_text(event.title) <> " - PragmaticMeet"),
       Tag.tag(:meta, property: "og:url", content: event.url),
       Tag.tag(:meta, property: "og:description", content: formatted_description),
       Tag.tag(:meta, property: "og:type", content: "website"),

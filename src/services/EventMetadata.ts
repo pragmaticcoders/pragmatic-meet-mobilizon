@@ -189,7 +189,7 @@ export const eventMetaDataList: IEventMetadataDescription[] = [
       "A twitter account handle to follow for event updates"
     ) as string,
     value: "",
-    placeholder: "@JoinMobilizon",
+    placeholder: "",
     type: EventMetadataType.STRING,
     keyType: EventMetadataKeyType.HANDLE,
     category: EventMetadataCategories.SOCIAL,

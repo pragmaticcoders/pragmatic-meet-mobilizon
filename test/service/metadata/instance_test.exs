@@ -6,7 +6,7 @@ defmodule Mobilizon.Service.Metadata.InstanceTest do
 
   describe "build_tags/0 for the instance" do
     test "gives tags" do
-      title = "#{Config.instance_name()} - Mobilizon"
+      title = "#{Config.instance_name()}"
       description = Utils.process_description(Config.instance_description())
 
       assert Instance.build_tags() |> Utils.stringify_tags() ==
