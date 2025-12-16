@@ -837,27 +837,6 @@ const initializeNewEvent = () => {
   }
 };
 
-const organizerActor = computed({
-  get(): IActor | undefined {
-    if (event.value?.attributedTo?.id) {
-      return event.value.attributedTo;
-    }
-    if (event.value?.organizerActor?.id) {
-      return event.value.organizerActor;
-    }
-    return currentActor.value;
-  },
-  set(actor: IActor | undefined) {
-    if (actor?.type === ActorType.GROUP) {
-      event.value.attributedTo = actor as IGroup;
-      event.value.organizerActor = currentActor.value;
-    } else {
-      event.value.attributedTo = undefined;
-      event.value.organizerActor = actor;
-    }
-  },
-});
-
 onMounted(async () => {
   observer.value = new IntersectionObserver(
     (entries) => {
