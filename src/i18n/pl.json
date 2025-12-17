@@ -831,6 +831,8 @@
   "Move resource to the root folder": "Przeniesienie zasobów do katalogu głównego",
   "Move resource to {folder}": "Przenieś zasób do {folder}",
   "Move to waitlist": "Przenieś na listę oczekujących",
+  "You're on the waitlist": "Jesteś na liście oczekujących",
+  "You'll be notified if a spot becomes available for this event.": "Otrzymasz powiadomienie, gdy zwolni się miejsce na to wydarzenie.",
   "Waitlist-only mode": "Tryb tylko z listą oczekujących",
   "All participants must join the waitlist first. You will need to manually approve each participant.": "Wszyscy uczestnicy muszą najpierw dołączyć do listy oczekujących. Musisz ręcznie zatwierdzić każdego uczestnika.",
   "In waitlist-only mode, you must manually promote participants. Automatic promotion is not available.": "W trybie tylko z listą oczekujących musisz ręcznie promować uczestników. Automatyczna promocja nie jest dostępna.",
