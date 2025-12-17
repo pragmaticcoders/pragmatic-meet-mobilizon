@@ -182,8 +182,8 @@
                   </p>
                 <% end %>
                 <p style="margin: 0;">
-                  <%= gettext("<b>%{instance}</b> is powered by Pragmatic Meet.",
-                    instance: @instance_name
+                  <%= gettext("%{instance} is powered by Pragmatic Meet.",
+                    instance: "<b>#{escape_html(@instance_name)}</b>"
                   )
                   |> raw %>
                   <br />

@@ -15,7 +15,7 @@
           style="padding: 40px 20px 20px 20px; border-radius: 4px 4px 0px 0px; color: #3A384C; font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 48px; font-weight: 400; line-height: 48px;"
         >
           <h1 style="font-size: 48px; font-weight: 400; margin: 0;">
-            <%= gettext("New report on <b>%{instance}</b>", instance: @instance_name) |> raw %>
+            <%= gettext("New report on %{instance}", instance: "<b>#{escape_html(@instance_name)}</b>") |> raw %>
           </h1>
         </td>
       </tr>
