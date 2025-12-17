@@ -212,12 +212,17 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
   defp check_attendee_capacity_or_waitlist(%Event{options: options} = event) do
     maximum_attendee_capacity = Map.get(options, :maximum_attendee_capacity) || 0
     enable_waitlist = Map.get(options, :enable_waitlist) || false
+    waitlist_only = Map.get(options, :waitlist_only) || false
     block_new_registrations = Map.get(options, :block_new_registrations) || false
 
     cond do
       # New registrations are blocked
       block_new_registrations ->
         :registrations_blocked
+
+      # Waitlist-only mode: all participants go to waitlist (requires enable_waitlist)
+      waitlist_only and enable_waitlist ->
+        :waitlist
 
       # No capacity limit set
       maximum_attendee_capacity == 0 ->

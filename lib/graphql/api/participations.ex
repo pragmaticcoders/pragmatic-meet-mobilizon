@@ -271,6 +271,8 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
     with {:event, {:ok, event}} <- {:event, Events.get_event_with_preload(event_id)},
          {:waitlist_enabled, true} <- {:waitlist_enabled, event.options.enable_waitlist},
+         {:waitlist_only, false} <-
+           {:waitlist_only, Map.get(event.options, :waitlist_only, false)},
          {:auto_promote, true} <-
            {:auto_promote, Map.get(event.options, :waitlist_auto_promote, true)},
          {:has_capacity, true} <-
@@ -334,6 +336,10 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
       {:waitlist_enabled, false} ->
         Logger.info("Event #{event_id}: waitlist not enabled")
+        :ok
+
+      {:waitlist_only, true} ->
+        Logger.info("Event #{event_id}: waitlist-only mode enabled, auto-promote disabled")
         :ok
 
       {:auto_promote, false} ->

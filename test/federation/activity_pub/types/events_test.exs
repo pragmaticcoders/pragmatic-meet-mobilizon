@@ -447,5 +447,66 @@ defmodule Mobilizon.Federation.ActivityPub.Types.EventsTest do
                data
              )
     end
+
+    test "join event with waitlist_only enabled places participant on waitlist" do
+      %Actor{} = organizer_actor = insert(:actor, domain: nil)
+      %Actor{} = actor = insert(:actor, domain: nil)
+
+      %Event{} =
+        event =
+        insert(:event,
+          organizer_actor: organizer_actor,
+          options: %{
+            maximum_attendee_capacity: 100,
+            enable_waitlist: true,
+            waitlist_only: true
+          }
+        )
+
+      # When waitlist_only is enabled, joining should result in waitlist role
+      assert {:ok, _data, %Participant{role: :waitlist}, :waitlist} =
+               Events.join(event, actor, true, %{})
+    end
+
+    test "join event with waitlist_only but enable_waitlist false joins normally" do
+      %Actor{url: organizer_actor_url} = organizer_actor = insert(:actor, domain: nil)
+      %Actor{} = actor = insert(:actor, domain: nil)
+
+      %Event{} =
+        event =
+        insert(:event,
+          organizer_actor: organizer_actor,
+          options: %{
+            maximum_attendee_capacity: 100,
+            enable_waitlist: false,
+            waitlist_only: true
+          }
+        )
+
+      # When enable_waitlist is false, waitlist_only has no effect
+      # Participant should join normally
+      assert {:accept, {:ok, %Activity{}, %Participant{role: :participant}}} =
+               Events.join(event, actor, true, %{})
+    end
+
+    test "join event returns :registrations_blocked when block_new_registrations is true (takes precedence over waitlist_only)" do
+      %Actor{} = organizer_actor = insert(:actor, domain: nil)
+      %Actor{} = actor = insert(:actor, domain: nil)
+
+      %Event{} =
+        event =
+        insert(:event,
+          organizer_actor: organizer_actor,
+          options: %{
+            maximum_attendee_capacity: 100,
+            enable_waitlist: true,
+            waitlist_only: true,
+            block_new_registrations: true
+          }
+        )
+
+      # block_new_registrations takes precedence
+      assert {:error, :registrations_blocked} = Events.join(event, actor, true, %{})
+    end
   end
 end
