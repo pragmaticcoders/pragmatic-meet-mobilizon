@@ -1772,4 +1772,91 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
 
     assert Enum.sort(participants_ids) == Enum.sort([actor.id, anonymous_actor.id])
   end
+
+  describe "joinEvent with waitlist_only events" do
+    test "actor_join_event/3 places participant on waitlist when waitlist_only is enabled", %{
+      conn: conn
+    } do
+      user = insert(:user)
+      actor = insert(:actor, user: user)
+
+      event =
+        insert(:event,
+          options: %{
+            maximum_attendee_capacity: 100,
+            enable_waitlist: true,
+            waitlist_only: true
+          }
+        )
+
+      mutation = """
+          mutation {
+            joinEvent(
+              actor_id: #{actor.id},
+              event_id: #{event.id}
+            ) {
+                role,
+                actor {
+                  id
+                },
+                event {
+                  id
+                }
+              }
+            }
+      """
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
+
+      assert json_response(res, 200)["errors"] == nil
+      # Participant should be placed on WAITLIST, not PARTICIPANT
+      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "WAITLIST"
+      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
+    end
+
+    test "actor_join_event/3 joins normally when waitlist_only is true but enable_waitlist is false",
+         %{conn: conn} do
+      user = insert(:user)
+      actor = insert(:actor, user: user)
+
+      event =
+        insert(:event,
+          options: %{
+            maximum_attendee_capacity: 100,
+            enable_waitlist: false,
+            waitlist_only: true
+          }
+        )
+
+      mutation = """
+          mutation {
+            joinEvent(
+              actor_id: #{actor.id},
+              event_id: #{event.id}
+            ) {
+                role,
+                actor {
+                  id
+                },
+                event {
+                  id
+                }
+              }
+            }
+      """
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
+
+      assert json_response(res, 200)["errors"] == nil
+      # When enable_waitlist is false, waitlist_only has no effect
+      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "PARTICIPANT"
+    end
+  end
 end

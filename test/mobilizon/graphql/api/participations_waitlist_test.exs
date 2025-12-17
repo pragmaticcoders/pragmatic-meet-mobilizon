@@ -292,6 +292,127 @@ defmodule Mobilizon.GraphQL.API.ParticipationsWaitlistTest do
       assert Enum.at(waitlist_participants, 3).id == w4.id
       assert Enum.at(waitlist_participants, 4).id == w5.id
     end
+
+    test "does not auto-promote when waitlist_only is enabled" do
+      # Create an event with waitlist_only enabled - auto_promote should be ignored
+      event =
+        insert(:event,
+          options: %{
+            maximum_attendee_capacity: 10,
+            enable_waitlist: true,
+            waitlist_only: true,
+            waitlist_auto_promote: true
+          }
+        )
+
+      organizer = insert(:actor)
+      waitlist_user = insert(:actor)
+
+      # Set organizer
+      insert(:participant, event: event, actor: organizer, role: :creator)
+
+      # Add user to waitlist
+      w1 =
+        insert(:participant,
+          event: event,
+          actor: waitlist_user,
+          role: :waitlist,
+          inserted_at: ~U[2024-01-01 11:00:00Z]
+        )
+
+      # Verify initial state
+      assert Events.count_participants_by_role(event.id, [:waitlist]) == 1
+      assert Events.count_participants_by_role(event.id, [:participant]) == 0
+
+      # Try to trigger auto-promotion - should NOT promote because waitlist_only is enabled
+      Participations.promote_from_waitlist_if_needed(event.id)
+
+      # Small delay
+      Process.sleep(100)
+
+      # Verify participant is still on waitlist (not promoted)
+      still_waitlist = Events.get_participant(w1.id)
+      assert still_waitlist.role == :waitlist
+
+      # Verify counts unchanged
+      assert Events.count_participants_by_role(event.id, [:waitlist]) == 1
+      assert Events.count_participants_by_role(event.id, [:participant]) == 0
+    end
+
+    test "allows manual promotion in waitlist_only mode" do
+      # Create an event with waitlist_only enabled
+      event =
+        insert(:event,
+          options: %{
+            maximum_attendee_capacity: 10,
+            enable_waitlist: true,
+            waitlist_only: true
+          }
+        )
+
+      waitlist_user = insert(:actor)
+
+      # Add user to waitlist
+      w1 =
+        insert(:participant,
+          event: event,
+          actor: waitlist_user,
+          role: :waitlist
+        )
+
+      # Verify initial state
+      assert Events.get_participant(w1.id).role == :waitlist
+
+      # Manually promote the participant (simulating admin action)
+      {:ok, promoted} = Events.update_participant(w1, %{role: :participant})
+
+      # Verify promotion worked
+      assert promoted.role == :participant
+      assert Events.count_participants_by_role(event.id, [:participant]) == 1
+      assert Events.count_participants_by_role(event.id, [:waitlist]) == 0
+    end
+  end
+
+  describe "waitlist_only mode" do
+    test "waitlist_only requires enable_waitlist to be true to have effect" do
+      # Create event with waitlist_only but enable_waitlist false
+      # In this case, waitlist_only should have no effect
+      event =
+        insert(:event,
+          options: %{
+            maximum_attendee_capacity: 10,
+            enable_waitlist: false,
+            waitlist_only: true,
+            waitlist_auto_promote: true
+          }
+        )
+
+      organizer = insert(:actor)
+      waitlist_user = insert(:actor)
+
+      # Set organizer
+      insert(:participant, event: event, actor: organizer, role: :creator)
+
+      # Add user to waitlist manually
+      w1 =
+        insert(:participant,
+          event: event,
+          actor: waitlist_user,
+          role: :waitlist
+        )
+
+      # Verify user is on waitlist
+      assert Events.get_participant(w1.id).role == :waitlist
+
+      # Try to trigger auto-promotion
+      # Since enable_waitlist is false, the promotion should be skipped entirely
+      Participations.promote_from_waitlist_if_needed(event.id)
+
+      Process.sleep(100)
+
+      # User should still be on waitlist because waitlist is not enabled
+      assert Events.get_participant(w1.id).role == :waitlist
+    end
   end
 end
 

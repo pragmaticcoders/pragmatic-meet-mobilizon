@@ -27,6 +27,7 @@ export const EVENT_OPTIONS_FRAGMENT = gql`
     hideOrganizerWhenGroupEvent
     isOnline
     enableWaitlist
+    waitlistOnly
     waitlistAutoPromote
     blockNewRegistrations
   }
