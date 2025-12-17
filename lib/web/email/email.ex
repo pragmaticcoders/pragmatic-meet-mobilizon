@@ -7,8 +7,11 @@ defmodule Mobilizon.Web.Email do
 
   alias Mobilizon.{Config, Events}
   alias Mobilizon.Events.Event
+  alias Mobilizon.Medias.Media
   alias Mobilizon.Service.Export.ICalendar
   alias Mobilizon.Web.EmailView
+
+  @default_email_logo_path "/img/pragmatic_logo_email.png"
 
   @spec base_email(keyword()) :: Swoosh.Email.t()
   def base_email(args) do
@@ -18,8 +21,20 @@ defmodule Mobilizon.Web.Email do
     |> from({Config.instance_name(), Config.instance_email_from()})
     |> assign(:jsonLDMetadata, nil)
     |> assign(:instance_name, Config.instance_name())
+    |> assign(:instance_logo_url, get_instance_logo_url())
     |> assign(:offer_unsupscription, true)
     |> put_layout({EmailView, :email})
+  end
+
+  @spec get_instance_logo_url() :: String.t()
+  defp get_instance_logo_url do
+    case Config.instance_logo() do
+      %Media{file: %{url: url}} when is_binary(url) and url != "" ->
+        url
+
+      _ ->
+        "#{Mobilizon.Web.Endpoint.url()}#{@default_email_logo_path}"
+    end
   end
 
   @spec add_event_attachment(Swoosh.Email.t(), Event.t()) :: Swoosh.Email.t()
