@@ -133,6 +133,33 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
     }
   """
 
+  @create_user_with_marketing_consent_mutation """
+  mutation CreateUser($email: String!, $password: String!, $locale: String, $marketingConsent: Boolean) {
+    createUser(
+      email: $email
+      password: $password
+      locale: $locale
+      marketingConsent: $marketingConsent
+    ) {
+      id
+      email
+      locale
+      marketingConsent
+      marketingConsentUpdatedAt
+    }
+  }
+  """
+
+  @set_marketing_consent_mutation """
+  mutation SetMarketingConsent($consent: Boolean!) {
+    setMarketingConsent(consent: $consent) {
+      id
+      marketingConsent
+      marketingConsentUpdatedAt
+    }
+  }
+  """
+
   @valid_actor_params %{email: "test@test.tld", password: "testest", username: "test"}
   @valid_single_actor_params %{preferred_username: "test2", keys: "yolo"}
 
@@ -1563,6 +1590,133 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       assert hd(res["errors"])["message"] ==
                "You need to be logged in"
+    end
+  end
+
+  describe "Resolver: Marketing consent" do
+    @marketing_consent_user %{
+      email: "marketing@test.tld",
+      password: "long password",
+      locale: "en_US"
+    }
+
+    test "create_user/3 with marketing_consent true stores consent and timestamp", %{conn: conn} do
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @create_user_with_marketing_consent_mutation,
+          variables: Map.put(@marketing_consent_user, :marketingConsent, true)
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createUser"]["email"] == @marketing_consent_user.email
+      assert res["data"]["createUser"]["marketingConsent"] == true
+      assert res["data"]["createUser"]["marketingConsentUpdatedAt"] != nil
+
+      {:ok, user} = Users.get_user_by_email(@marketing_consent_user.email)
+      assert user.marketing_consent == true
+      assert user.marketing_consent_updated_at != nil
+    end
+
+    test "create_user/3 with marketing_consent false stores consent", %{conn: conn} do
+      user_params = %{@marketing_consent_user | email: "marketing2@test.tld"}
+
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @create_user_with_marketing_consent_mutation,
+          variables: Map.put(user_params, :marketingConsent, false)
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createUser"]["marketingConsent"] == false
+
+      {:ok, user} = Users.get_user_by_email(user_params.email)
+      assert user.marketing_consent == false
+    end
+
+    test "create_user/3 without marketing_consent param defaults to false", %{conn: conn} do
+      user_params = %{@marketing_consent_user | email: "marketing3@test.tld"}
+
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @create_user_with_marketing_consent_mutation,
+          variables: user_params
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createUser"]["marketingConsent"] == false
+
+      {:ok, user} = Users.get_user_by_email(user_params.email)
+      assert user.marketing_consent == false
+    end
+
+    test "set_marketing_consent/3 allows logged user to enable consent", %{conn: conn} do
+      user = insert(:user)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @set_marketing_consent_mutation,
+          variables: %{consent: true}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["setMarketingConsent"]["marketingConsent"] == true
+      assert res["data"]["setMarketingConsent"]["marketingConsentUpdatedAt"] != nil
+
+      updated_user = Users.get_user!(user.id)
+      assert updated_user.marketing_consent == true
+      assert updated_user.marketing_consent_updated_at != nil
+    end
+
+    test "set_marketing_consent/3 allows logged user to disable consent", %{conn: conn} do
+      user = insert(:user, marketing_consent: true, marketing_consent_updated_at: DateTime.utc_now())
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @set_marketing_consent_mutation,
+          variables: %{consent: false}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["setMarketingConsent"]["marketingConsent"] == false
+
+      updated_user = Users.get_user!(user.id)
+      assert updated_user.marketing_consent == false
+    end
+
+    test "set_marketing_consent/3 updates timestamp on each change", %{conn: conn} do
+      original_time = DateTime.utc_now() |> DateTime.add(-3600) |> DateTime.truncate(:second)
+      user = insert(:user, marketing_consent: true, marketing_consent_updated_at: original_time)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @set_marketing_consent_mutation,
+          variables: %{consent: false}
+        )
+
+      assert res["errors"] == nil
+
+      updated_user = Users.get_user!(user.id)
+      assert DateTime.compare(updated_user.marketing_consent_updated_at, original_time) == :gt
+    end
+
+    test "set_marketing_consent/3 fails for anonymous user", %{conn: conn} do
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @set_marketing_consent_mutation,
+          variables: %{consent: true}
+        )
+
+      assert hd(res["errors"])["message"] == "You need to be logged in"
     end
   end
 end

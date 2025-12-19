@@ -424,6 +424,17 @@ const metadata = computed(
         key: t("Uploaded media total size"),
         value: formatBytes(user.value.mediaSize),
       },
+      {
+        key: t("Marketing consent"),
+        value: user.value.marketingConsent
+          ? user.value.marketingConsentUpdatedAt
+            ? t("Yes") +
+              " (" +
+              formatDateTimeString(user.value.marketingConsentUpdatedAt) +
+              ")"
+            : t("Yes")
+          : t("No"),
+      },
     ];
   }
 );

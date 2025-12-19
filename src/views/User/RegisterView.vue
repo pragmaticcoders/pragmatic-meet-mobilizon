@@ -453,7 +453,10 @@ const submit = async (): Promise<void> => {
     emailErrors.value = [];
     passwordErrors.value = [];
 
-    mutate(credentials);
+    mutate({
+      ...credentials,
+      marketingConsent: acceptMarketing.value,
+    });
   } catch (error: any) {
     console.error(error);
     sendingForm.value = false;

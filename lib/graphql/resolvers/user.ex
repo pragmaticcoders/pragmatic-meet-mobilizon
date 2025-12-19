@@ -163,7 +163,14 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   def create_user(_parent, %{email: email} = args, %{context: context}) do
     current_ip = Map.get(context, :ip)
     user_agent = Map.get(context, :user_agent, "")
-    now = DateTime.utc_now()
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    # Handle marketing consent with timestamp
+    marketing_attrs =
+      case Map.get(args, :marketing_consent) do
+        nil -> %{}
+        consent -> %{marketing_consent: consent, marketing_consent_updated_at: now}
+      end
 
     with {:ok, email} <- lowercase_domain(email),
          :registration_ok <- check_registration_config(email),
@@ -173,6 +180,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
          {:ok, %User{} = user} <-
            args
            |> Map.merge(%{email: email, current_sign_in_ip: current_ip, current_sign_in_at: now})
+           |> Map.merge(marketing_attrs)
            |> Users.register() do
       Email.User.send_confirmation_email(user, Map.get(args, :locale, "en"))
       {:ok, user}
@@ -701,6 +709,28 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     else
       {:ok, user}
     end
+  end
+
+  @doc """
+  Set marketing consent for the current user
+  """
+  @spec set_marketing_consent(any(), %{consent: boolean()}, Absinthe.Resolution.t()) ::
+          {:ok, User.t()} | {:error, String.t()}
+  def set_marketing_consent(_parent, %{consent: consent}, %{
+        context: %{current_user: %User{} = user}
+      }) do
+    case Users.update_marketing_consent(user, consent) do
+      {:ok, %User{} = updated_user} ->
+        {:ok, updated_user}
+
+      {:error, %Ecto.Changeset{} = err} ->
+        Logger.debug(inspect(err))
+        {:error, dgettext("errors", "Error while updating marketing consent")}
+    end
+  end
+
+  def set_marketing_consent(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "You need to be logged-in to change your marketing consent")}
   end
 
   def user_medias(%User{id: user_id}, %{page: page, limit: limit}, %{

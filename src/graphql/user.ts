@@ -2,8 +2,18 @@ import gql from "graphql-tag";
 import { ACTOR_FRAGMENT } from "./actor";
 
 export const CREATE_USER = gql`
-  mutation CreateUser($email: String!, $password: String!, $locale: String) {
-    createUser(email: $email, password: $password, locale: $locale) {
+  mutation CreateUser(
+    $email: String!
+    $password: String!
+    $locale: String
+    $marketingConsent: Boolean
+  ) {
+    createUser(
+      email: $email
+      password: $password
+      locale: $locale
+      marketingConsent: $marketingConsent
+    ) {
       email
       confirmationSentAt
     }
@@ -45,6 +55,16 @@ export const CHANGE_PASSWORD = gql`
   mutation ChangePassword($oldPassword: String!, $newPassword: String!) {
     changePassword(oldPassword: $oldPassword, newPassword: $newPassword) {
       id
+    }
+  }
+`;
+
+export const SET_MARKETING_CONSENT = gql`
+  mutation SetMarketingConsent($consent: Boolean!) {
+    setMarketingConsent(consent: $consent) {
+      id
+      marketingConsent
+      marketingConsentUpdatedAt
     }
   }
 `;
@@ -132,6 +152,8 @@ export const LOGGED_USER_AND_SETTINGS = gql`
       email
       locale
       provider
+      marketingConsent
+      marketingConsentUpdatedAt
       defaultActor {
         ...ActorFragment
       }
@@ -282,6 +304,8 @@ export const LIST_USERS = gql`
         currentSignInIp
         currentSignInAt
         disabled
+        marketingConsent
+        marketingConsentUpdatedAt
         actors {
           ...ActorFragment
         }
@@ -308,6 +332,8 @@ export const GET_USER = gql`
       locale
       disabled
       mediaSize
+      marketingConsent
+      marketingConsentUpdatedAt
       defaultActor {
         id
       }

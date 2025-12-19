@@ -91,6 +91,20 @@
         >
           {{ getLanguageNameForCode(props.row.locale) }}
         </o-table-column>
+        <o-table-column
+          field="marketingConsent"
+          :label="$t('Marketing')"
+          :centered="true"
+          v-slot="props"
+        >
+          <span
+            :class="
+              props.row.marketingConsent ? 'text-green-600' : 'text-gray-400'
+            "
+          >
+            {{ props.row.marketingConsent ? $t("Yes") : $t("No") }}
+          </span>
+        </o-table-column>
         <template #empty>
           <empty-content
             v-if="!usersLoading && emailFilter"

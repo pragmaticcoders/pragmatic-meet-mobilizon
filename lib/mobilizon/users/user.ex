@@ -35,7 +35,9 @@ defmodule Mobilizon.Users.User do
           current_sign_in_at: DateTime.t() | nil,
           activity_settings: [ActivitySetting.t()],
           settings: Setting.t(),
-          unconfirmed_email: String.t() | nil
+          unconfirmed_email: String.t() | nil,
+          marketing_consent: boolean(),
+          marketing_consent_updated_at: DateTime.t() | nil
         }
 
   @required_attrs [:email]
@@ -56,7 +58,9 @@ defmodule Mobilizon.Users.User do
     :last_sign_in_at,
     :last_sign_in_ip,
     :current_sign_in_ip,
-    :current_sign_in_at
+    :current_sign_in_at,
+    :marketing_consent,
+    :marketing_consent_updated_at
   ]
   @attrs @required_attrs ++ @optional_attrs
 
@@ -88,6 +92,8 @@ defmodule Mobilizon.Users.User do
     field(:last_sign_in_ip, :string)
     field(:current_sign_in_ip, :string)
     field(:current_sign_in_at, :utc_datetime)
+    field(:marketing_consent, :boolean, default: false)
+    field(:marketing_consent_updated_at, :utc_datetime)
 
     belongs_to(:default_actor, Actor)
     has_many(:actors, Actor)
@@ -224,5 +230,16 @@ defmodule Mobilizon.Users.User do
       _ ->
         changeset
     end
+  end
+
+  @doc """
+  Changeset to update marketing consent with automatic timestamp
+  """
+  @spec marketing_consent_changeset(t, boolean()) :: Ecto.Changeset.t()
+  def marketing_consent_changeset(%__MODULE__{} = user, consent) when is_boolean(consent) do
+    user
+    |> change()
+    |> put_change(:marketing_consent, consent)
+    |> put_change(:marketing_consent_updated_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 end
