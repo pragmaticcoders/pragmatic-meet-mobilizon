@@ -359,7 +359,7 @@ useHead({
 
 const notificationOnDay = ref<boolean | undefined>(true);
 const notificationEachWeek = ref<boolean | undefined>(false);
-const notificationBeforeEvent = ref<boolean | undefined>(false);
+const notificationBeforeEvent = ref<boolean | undefined>(true);
 const notificationPendingParticipation = ref<
   INotificationPendingEnum | undefined
 >(INotificationPendingEnum.NONE);
