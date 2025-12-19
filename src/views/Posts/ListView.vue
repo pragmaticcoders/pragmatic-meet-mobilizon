@@ -48,16 +48,17 @@
         v-model:active="loading"
         class="o-loading--enhanced o-loading--page"
       />
-      <o-notification
+      <empty-content
         v-if="
           group.posts.elements.length === 0 &&
           membershipsLoading === false &&
           groupLoading === false
         "
-        variant="danger"
+        icon="bullhorn"
+        :inline="true"
       >
         {{ $t("No posts found") }}
-      </o-notification>
+      </empty-content>
       <o-pagination
         :total="group.posts.total"
         v-model:current="postsPage"
@@ -83,6 +84,7 @@ import {
 } from "../../types/actor";
 import RouteName from "../../router/name";
 import MultiPostListItem from "../../components/Post/MultiPostListItem.vue";
+import EmptyContent from "../../components/Utils/EmptyContent.vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useQuery } from "@vue/apollo-composable";
 import { computed } from "vue";
