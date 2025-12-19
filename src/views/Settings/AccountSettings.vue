@@ -82,6 +82,44 @@
         </button>
       </div>
 
+      <!-- Marketing Consent Section -->
+      <div class="mb-8">
+        <div class="mb-4">
+          <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
+            {{ t("Marketing Communications") }}
+          </h2>
+          <p class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]">
+            {{
+              t(
+                "Receive news, updates, and promotional emails from Pragmatic Coders."
+              )
+            }}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <o-switch
+            v-model="marketingConsent"
+            @update:modelValue="updateMarketingConsent"
+            :disabled="isUpdatingMarketingConsent"
+          />
+          <span class="text-[17px] text-[#1c1b1f]">
+            {{ marketingConsent ? t("Enabled") : t("Disabled") }}
+          </span>
+        </div>
+
+        <p
+          v-if="loggedUser?.marketingConsentUpdatedAt"
+          class="mt-2 text-sm text-gray-500"
+        >
+          {{
+            t("Last updated: {date}", {
+              date: formatDate(loggedUser.marketingConsentUpdatedAt),
+            })
+          }}
+        </p>
+      </div>
+
       <!-- Delete Account Section -->
       <div>
         <div class="mb-4">
@@ -360,13 +398,14 @@ import { IAuthProvider } from "@/types/enums";
 import { useMutation } from "@vue/apollo-composable";
 import { useHead } from "@/utils/head";
 import { GraphQLError } from "graphql/error/GraphQLError";
-import { computed, inject, ref } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import {
   CHANGE_EMAIL,
   CHANGE_PASSWORD,
   DELETE_ACCOUNT,
+  SET_MARKETING_CONSENT,
 } from "../../graphql/user";
 import RouteName from "../../router/name";
 import { logout, SELECTED_PROVIDERS } from "../../utils/auth";
@@ -396,6 +435,54 @@ const isChangePasswordModalActive = ref(false);
 const passwordForAccountDeletion = ref("");
 
 const notifier = inject<Notifier>("notifier");
+
+// Marketing consent
+const marketingConsent = ref(false);
+const isUpdatingMarketingConsent = ref(false);
+
+// Initialize marketing consent from logged user
+watch(
+  () => loggedUser.value?.marketingConsent,
+  (newValue) => {
+    if (newValue !== undefined) {
+      marketingConsent.value = newValue;
+    }
+  },
+  { immediate: true }
+);
+
+const {
+  mutate: setMarketingConsentMutation,
+  onDone: setMarketingConsentDone,
+  onError: setMarketingConsentError,
+} = useMutation(SET_MARKETING_CONSENT);
+
+setMarketingConsentDone(() => {
+  isUpdatingMarketingConsent.value = false;
+  notifier?.success(t("Marketing consent updated successfully"));
+});
+
+setMarketingConsentError((err) => {
+  isUpdatingMarketingConsent.value = false;
+  // Revert the toggle on error
+  marketingConsent.value = !marketingConsent.value;
+  notifier?.error(t("Failed to update marketing consent"));
+  console.error(err);
+});
+
+const updateMarketingConsent = (consent: boolean): void => {
+  isUpdatingMarketingConsent.value = true;
+  setMarketingConsentMutation({ consent });
+};
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 const {
   mutate: changeEmailMutation,

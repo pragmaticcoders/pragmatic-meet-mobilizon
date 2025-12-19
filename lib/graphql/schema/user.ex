@@ -175,6 +175,14 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
       description: "The IP adress the user's currently signed-in with"
     )
 
+    field(:marketing_consent, :boolean,
+      description: "Whether the user has consented to receive marketing emails"
+    )
+
+    field(:marketing_consent_updated_at, :datetime,
+      description: "When the marketing consent was last updated"
+    )
+
     field(:media, :paginated_media_list,
       description: "The user's media objects",
       meta: [private: true, rule: :"read:user:media"]
@@ -367,6 +375,7 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
       arg(:email, non_null(:string), description: "The new user's email")
       arg(:password, non_null(:string), description: "The new user's password")
       arg(:locale, :string, description: "The new user's locale")
+      arg(:marketing_consent, :boolean, description: "Whether the user consents to marketing emails")
       middleware(Rajska.QueryAuthorization, permit: :all)
       middleware(Rajska.RateLimiter, limit: user_ip_limiter(@env))
       middleware(Rajska.RateLimiter, keys: :email, limit: user_email_limiter(@env))
@@ -523,6 +532,13 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
       arg(:locale, :string, description: "The user's new locale")
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&User.update_locale/3)
+    end
+
+    @desc "Set marketing consent for the current user"
+    field :set_marketing_consent, :user do
+      arg(:consent, non_null(:boolean), description: "Whether the user consents to marketing emails")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
+      resolve(&User.set_marketing_consent/3)
     end
   end
 

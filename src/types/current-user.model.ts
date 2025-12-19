@@ -71,4 +71,6 @@ export interface IUser extends ICurrentUser {
   feedTokens: IFeedToken[];
   authAuthorizedApplications: IApplicationToken[];
   conversations: Paginate<IConversation>;
+  marketingConsent?: boolean;
+  marketingConsentUpdatedAt?: string;
 }

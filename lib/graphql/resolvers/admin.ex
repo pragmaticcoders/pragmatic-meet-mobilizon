@@ -728,7 +728,14 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
 
       # Generate CSV header
       csv_content =
-        csv_encode(["User Name", "User Email", "Registration Date", "Groups Joined"]) <> "\n"
+        csv_encode([
+          "User Name",
+          "User Email",
+          "Registration Date",
+          "Groups Joined",
+          "Marketing Consent",
+          "Marketing Consent Date"
+        ]) <> "\n"
 
       # Process each user and add to CSV
       csv_rows =
@@ -739,8 +746,17 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
           user_name = get_user_display_name(actors)
           registration_date = format_datetime(user.inserted_at)
           groups_str = format_groups(groups)
+          marketing_consent = if user.marketing_consent, do: "Yes", else: "No"
+          marketing_consent_date = format_datetime(user.marketing_consent_updated_at)
 
-          csv_encode([user_name, user.email, registration_date, groups_str])
+          csv_encode([
+            user_name,
+            user.email,
+            registration_date,
+            groups_str,
+            marketing_consent,
+            marketing_consent_date
+          ])
         end)
         |> Enum.join("\n")
 

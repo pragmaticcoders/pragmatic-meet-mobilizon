@@ -145,6 +145,17 @@ defmodule Mobilizon.Users do
     end
   end
 
+  @doc """
+  Updates user's marketing consent with automatic timestamp.
+  """
+  @spec update_marketing_consent(User.t(), boolean()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()}
+  def update_marketing_consent(%User{} = user, consent) when is_boolean(consent) do
+    user
+    |> User.marketing_consent_changeset(consent)
+    |> Repo.update()
+  end
+
   @spec update_user_email(User.t(), String.t()) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
   def update_user_email(%User{} = user, new_email) do
     user

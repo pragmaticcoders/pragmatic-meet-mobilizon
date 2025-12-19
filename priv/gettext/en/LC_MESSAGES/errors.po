@@ -1399,3 +1399,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "There are no participants matching the audience you've selected."
 msgstr ""
+
+#: lib/graphql/resolvers/user.ex
+#, elixir-autogen, elixir-format
+msgid "You need to be logged-in to change your marketing consent"
+msgstr ""
+
+#: lib/graphql/resolvers/user.ex
+#, elixir-autogen, elixir-format
+msgid "Error while updating marketing consent"
+msgstr ""
