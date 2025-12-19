@@ -30,7 +30,7 @@ defmodule Mobilizon.Factory do
       timezone: nil,
       notification_on_day: false,
       notification_each_week: false,
-      notification_before_event: false,
+      notification_before_event: true,
       notification_pending_participation: :one_day,
       notification_pending_membership: :one_day,
       group_notifications: :one_day,

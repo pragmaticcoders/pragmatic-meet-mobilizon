@@ -140,6 +140,24 @@ defmodule Mobilizon.UsersTest do
       assert setting.notification_each_week == true
     end
 
+    test "create_setting/1 sets notification_before_event to true by default" do
+      %User{id: user_id} = insert(:user)
+
+      assert {:ok, %Setting{} = setting} =
+               Users.create_setting(%{user_id: user_id})
+
+      assert setting.notification_before_event == true
+    end
+
+    test "create_setting/1 allows overriding notification_before_event default" do
+      %User{id: user_id} = insert(:user)
+
+      assert {:ok, %Setting{} = setting} =
+               Users.create_setting(%{user_id: user_id, notification_before_event: false})
+
+      assert setting.notification_before_event == false
+    end
+
     test "create_setting/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Users.create_setting(@invalid_attrs)
     end

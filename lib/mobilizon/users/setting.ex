@@ -46,7 +46,7 @@ defmodule Mobilizon.Users.Setting do
     field(:timezone, :string)
     field(:notification_on_day, :boolean)
     field(:notification_each_week, :boolean)
-    field(:notification_before_event, :boolean)
+    field(:notification_before_event, :boolean, default: true)
 
     field(:notification_pending_participation, NotificationPendingNotificationDelay,
       default: :one_day
