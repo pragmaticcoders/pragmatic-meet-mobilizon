@@ -1716,8 +1716,7 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
           variables: %{consent: true}
         )
 
-      assert hd(res["errors"])["message"] ==
-               "You need to be logged-in to change your marketing consent"
+      assert hd(res["errors"])["message"] == "You need to be logged in"
     end
   end
 end
