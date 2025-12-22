@@ -437,11 +437,11 @@ defmodule Mobilizon.Web.AuthController do
     Logger.debug("Creating LinkedIn user with locale: #{locale}")
     
     with {:ok, %User{} = user} <- Users.create_external(email, "linkedin", %{locale: locale}),
-         {:ok, actor} <- create_actor_from_linkedin(user, user_info),
-         # Set the newly created actor as the user's default actor
-         {:ok, updated_user} <-
-           user |> User.changeset(%{default_actor_id: actor.id}) |> Repo.update() do
-      {:ok, updated_user}
+         # create_actor_from_linkedin calls Actors.new_person with default_actor=true,
+         # which already sets the user's default_actor_id in its Multi transaction
+         {:ok, _actor} <- create_actor_from_linkedin(user, user_info) do
+      # Reload the user to get the updated default_actor_id set by new_person
+      {:ok, Users.get_user_with_actors!(user.id)}
     else
       {:error, error} -> {:error, error}
     end
@@ -456,16 +456,11 @@ defmodule Mobilizon.Web.AuthController do
 
         case create_actor_from_linkedin(user, user_info) do
           {:ok, actor} ->
-            # Update user's default_actor_id
-            case user |> User.changeset(%{default_actor_id: actor.id}) |> Repo.update() do
-              {:ok, updated_user} ->
-                Logger.info("Successfully created and linked actor #{actor.id} for user #{user.email}")
-                {:ok, updated_user}
-              
-              {:error, error} ->
-                Logger.error("Failed to link actor #{actor.id} to user #{user.email}: #{inspect(error)}")
-                {:error, error}
-            end
+            # create_actor_from_linkedin calls Actors.new_person with default_actor=true,
+            # which already sets the user's default_actor_id in its Multi transaction
+            # Reload the user to get the updated default_actor_id
+            Logger.info("Successfully created and linked actor #{actor.id} for user #{user.email}")
+            {:ok, Users.get_user_with_actors!(user.id)}
 
           {:error, error} ->
             Logger.error("Failed to create actor for user #{user.email}: #{inspect(error)}")

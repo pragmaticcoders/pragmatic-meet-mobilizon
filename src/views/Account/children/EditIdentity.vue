@@ -237,7 +237,11 @@ onPersonResult(async ({ data }) => {
   }
 });
 
-onPersonError((err) => handleErrors(err as unknown as AbsintheGraphQLErrors));
+onPersonError((err) => {
+  if (err.graphQLErrors) {
+    handleErrors(err.graphQLErrors as AbsintheGraphQLErrors);
+  }
+});
 
 const person = computed(() => personResult.value?.fetchPerson);
 
