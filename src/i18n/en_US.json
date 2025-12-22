@@ -782,6 +782,7 @@
   "No languages found": "No languages found",
   "Your participation still has to be approved by the organisers.": "Your participation still has to be approved by the organisers.",
   "Your email": "Your email",
+  "You've registered your account using {provider}. You can log-in only using {provider} account.": "You've registered your account using {provider}. You can log-in only using {provider} account.",
   "Go to the event page": "Go to the event page",
   "Request for participation confirmation sent": "Request for participation confirmation sent",
   "Check your inbox (and your junk mail folder).": "Check your inbox (and your junk mail folder).",

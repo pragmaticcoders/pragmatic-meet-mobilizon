@@ -1777,6 +1777,7 @@
   "Your current email is {email}. You use it to log in.": "Twój obecny adres e-mail to {email}. Używasz go, aby się zalogować.",
   "Your e-mail has been denied registration or uses a disallowed e-mail provider": "Twój adres e-mail został odrzucony podczas rejestracji lub używa niedozwolonego dostawcy e-mail",
   "Your email": "Twój adres e-mail",
+  "You've registered your account using {provider}. You can log-in only using {provider} account.": "Twoje konto zostało zarejestrowane przy użyciu {provider}. Możesz zalogować się tylko za pomocą konta {provider}.",
   "Your email address from your {provider} account is {email}.": "Twój adres e-mail z konta {provider} to {email}.",
   "Your email address was automatically set based on your {provider} account.": "Twój adres e-mail został ustawiony automatycznie na podstawie konta {provider}.",
   "Your email has been changed": "Twój adres e-mail został zmieniony",
