@@ -39,7 +39,10 @@ import {
   AUTH_USER_ID,
   AUTH_USER_ROLE,
 } from "@/constants";
-import { UPDATE_CURRENT_USER_CLIENT } from "@/graphql/user";
+import { UPDATE_CURRENT_USER_CLIENT, SET_MARKETING_CONSENT } from "@/graphql/user";
+import MarketingConsentPopup from "@/components/User/MarketingConsentPopup.vue";
+import { useLoggedUser } from "@/composition/apollo/user";
+import { useOruga } from "@oruga-ui/oruga-next";
 import MobilizonFooter from "@/components/PageFooter.vue";
 import { jwtDecode } from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
@@ -162,6 +165,57 @@ onBeforeMount(async () => {
 
 const snackbar = inject<Snackbar>("snackbar");
 const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
+
+// Marketing consent popup logic
+const { loggedUser } = useLoggedUser();
+const { modal } = useOruga();
+
+const {
+  mutate: setMarketingConsentMutation,
+  onDone: setMarketingConsentDone,
+  onError: setMarketingConsentError,
+} = useMutation(SET_MARKETING_CONSENT);
+
+const marketingConsentPopupShown = ref(false);
+
+const showMarketingConsentPopup = () => {
+  if (marketingConsentPopupShown.value) return;
+  marketingConsentPopupShown.value = true;
+
+  const modalInstance = modal.open({
+    component: MarketingConsentPopup,
+    props: {
+      onConsent: (consent: boolean) => {
+        setMarketingConsentMutation({ consent });
+        modalInstance.close();
+      },
+    },
+    trapFocus: true,
+    closable: false,
+    contentClass: "!w-auto !max-w-xl !bg-transparent",
+    overlayClass: "bg-black bg-opacity-50",
+  });
+};
+
+setMarketingConsentDone(() => {
+  notifier?.success(t("Marketing consent updated successfully"));
+});
+
+setMarketingConsentError((err) => {
+  notifier?.error(t("Failed to update marketing consent"));
+  console.error(err);
+});
+
+// Watch for logged user and show popup if consent never set
+watch(
+  () => loggedUser.value,
+  (user) => {
+    if (user && user.marketingConsentUpdatedAt === null) {
+      showMarketingConsentPopup();
+    }
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   online.value = window.navigator.onLine;
