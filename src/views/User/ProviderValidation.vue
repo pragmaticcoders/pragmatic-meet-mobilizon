@@ -6,7 +6,6 @@
 import { ICurrentUserRole } from "@/types/enums";
 import { UPDATE_CURRENT_USER_CLIENT, LOGGED_USER } from "../../graphql/user";
 import { GET_PERSON } from "../../graphql/actor";
-import { HOME_USER_QUERIES } from "../../graphql/home";
 import RouteName from "../../router/name";
 import { saveUserData } from "../../utils/auth";
 import { changeIdentity } from "../../utils/identity";
@@ -18,11 +17,11 @@ import {
   useMutation,
   useApolloClient,
 } from "@vue/apollo-composable";
-import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useI18n } from "vue-i18n";
 import { useHead } from "@/utils/head";
 import { computed, onMounted } from "vue";
 import { getValueFromMetaWithRetry } from "@/utils/html";
+import { AUTH_ACCESS_TOKEN } from "@/constants";
 
 const { t } = useI18n({ useScope: "global" });
 useHead({
@@ -31,9 +30,6 @@ useHead({
 
 const router = useRouter();
 const { client: apolloClient } = useApolloClient();
-
-// Get currentUser composable at the top level of setup to maintain proper context
-const { currentUser } = useCurrentUserClient();
 
 const {
   onDone: onUpdateCurrentUserClientDone,
@@ -178,6 +174,18 @@ onMounted(async () => {
     // Save authentication data
     saveUserData(login);
 
+    // Verify token was properly stored in localStorage before making GraphQL queries
+    const storedToken = localStorage.getItem(AUTH_ACCESS_TOKEN);
+    if (storedToken !== accessToken) {
+      console.error("OAuth callback: Token storage verification failed!", {
+        expectedTokenPresent: !!accessToken,
+        storedTokenPresent: !!storedToken,
+        tokensMatch: storedToken === accessToken,
+      });
+    } else {
+      console.log("OAuth callback: Token successfully verified in localStorage");
+    }
+
     console.log("OAuth callback: Updating Apollo currentUser cache", {
       id: userId,
       email: userEmail,
@@ -239,83 +247,19 @@ onMounted(async () => {
       );
     }
 
-    // Wait a bit to ensure cache updates are processed
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Verify that currentUser is now populated in the cache
-    console.log("OAuth callback: Verifying currentUser cache state", {
-      hasCurrentUser: !!currentUser.value,
-      currentUserId: currentUser.value?.id,
-      isLoggedIn: currentUser.value?.isLoggedIn,
-    });
-
-    if (!currentUser.value?.id) {
-      console.warn(
-        "OAuth callback: currentUser not found in cache after first update, retrying..."
-      );
-
-      // Retry the cache update
-      try {
-        await updateCurrentUserClient({
-          id: userId,
-          email: userEmail,
-          isLoggedIn: true,
-          role: userRole as ICurrentUserRole,
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        console.log("OAuth callback: After retry - currentUser cache state", {
-          hasCurrentUser: !!currentUser.value,
-          currentUserId: currentUser.value?.id,
-          isLoggedIn: currentUser.value?.isLoggedIn,
-        });
-
-        if (!currentUser.value?.id) {
-          console.error(
-            "OAuth callback: currentUser still not in cache after retry, events may not load properly"
-          );
-        }
-      } catch (retryError) {
-        console.error(
-          "OAuth callback: Failed to retry currentUser cache update",
-          retryError
-        );
-      }
-    }
-
-    console.log("OAuth callback: Authentication completed successfully");
-
-    // Trigger a refetch of user queries to ensure events are loaded
-    // This helps in case there are any remaining cache timing issues
-    if (currentUser.value?.id) {
-      console.log(
-        "OAuth callback: Triggering HOME_USER_QUERIES refetch to ensure events are loaded"
-      );
-      try {
-        await apolloClient.query({
-          query: HOME_USER_QUERIES,
-          variables: { afterDateTime: new Date().toISOString() },
-          fetchPolicy: "network-only",
-        });
-        console.log("OAuth callback: HOME_USER_QUERIES refetch completed");
-      } catch (refetchError) {
-        console.warn(
-          "OAuth callback: Failed to refetch HOME_USER_QUERIES, events may need manual refresh",
-          refetchError
-        );
-      }
-    }
+    console.log("OAuth callback: Authentication data saved successfully");
 
     // Redirect to profile settings if coming from LinkedIn, otherwise go to home
+    // Use window.location for a hard navigation to ensure all Vue components
+    // properly initialize with the new auth state from localStorage
     if (redirectUrl) {
       console.log(
         "OAuth callback: Redirecting to profile settings for LinkedIn data review"
       );
-      await router.push(redirectUrl);
+      window.location.href = redirectUrl;
     } else {
       console.log("OAuth callback: Redirecting to home page");
-      await router.push({ name: RouteName.HOME });
+      window.location.href = "/";
     }
   } catch (error) {
     console.error("OAuth callback: Error processing authentication", error);
