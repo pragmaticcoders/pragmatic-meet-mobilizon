@@ -2,85 +2,93 @@
   <div v-if="loggedUser">
     <!-- Main Content Area -->
     <div class="bg-white">
-      <!-- Email Section -->
-      <div class="mb-8">
-        <div class="mb-4">
-          <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
-            {{ t("Email") }}
-          </h2>
+      <!-- OAuth User Section - For users logged in via OAuth provider -->
+      <div v-if="loggedUser.provider" class="mb-8">
+        <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
+          {{ t("Account") }}
+        </h2>
+
+        <div>
+          <!-- Avatar with provider logo - floated left -->
+          <div class="float-left mr-4 mb-2 relative">
+            <img
+              v-if="loggedUser.defaultActor?.avatar?.url"
+              :src="loggedUser.defaultActor.avatar.url"
+              :alt="loggedUser.defaultActor.name || ''"
+              class="w-16 h-16 rounded-full object-cover"
+            />
+            <div
+              v-else
+              class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center"
+            >
+              <span class="text-2xl text-gray-500">{{
+                loggedUser.defaultActor?.preferredUsername
+                  ?.charAt(0)
+                  ?.toUpperCase()
+              }}</span>
+            </div>
+            <LinkedInIcon
+              class="absolute -bottom-1 -right-1 w-6 h-6 text-[#0A66C2] bg-white rounded-full"
+            />
+          </div>
+
+          <!-- Text wrapping around avatar -->
           <p
-            class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+            class="text-[17px] leading-[26px] text-[#1c1b1f]"
             v-html="
-              loggedUser.provider
-                ? t(
-                    'Your email address from your {provider} account is {email}.',
-                    {
-                      email: `<b class='font-bold'>${loggedUser.email}</b>`,
-                      provider: providerName(loggedUser.provider),
-                    }
-                  )
-                : t('Your current email is {email}. You use it to log in.', {
-                    email: `<b class='font-bold'>${loggedUser.email}</b>`,
-                  })
+              t(
+                `You've registered your account using {provider}. You can log-in only using {provider} account.`,
+                {
+                  provider: `<b class='font-bold'>${providerName(loggedUser.provider)}</b>`,
+                }
+              )
             "
           ></p>
         </div>
-
-        <o-notification
-          v-if="!canChangeEmail && loggedUser.provider"
-          variant="warning"
-          :closable="false"
-          class="mb-4"
-        >
-          {{
-            t(
-              "Your email address was automatically set based on your {provider} account.",
-              {
-                provider: providerName(loggedUser.provider),
-              }
-            )
-          }}
-        </o-notification>
-
-        <button
-          v-if="canChangeEmail"
-          @click="openChangeEmailModal"
-          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
-        >
-          {{ t("Change") }}
-        </button>
       </div>
 
-      <!-- Password Section -->
-      <div class="mb-8">
-        <h2 class="text-[20px] leading-[30px] mb-4">
-          {{ t("Password") }}
-        </h2>
+      <!-- Regular User Sections - Email and Password with change buttons -->
+      <template v-else>
+        <!-- Email Section -->
+        <div class="mb-8">
+          <div class="mb-4">
+            <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
+              {{ t("Email") }}
+            </h2>
+            <p
+              class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+              v-html="
+                t('Your current email is {email}. You use it to log in.', {
+                  email: `<b class='font-bold'>${loggedUser.email}</b>`,
+                })
+              "
+            ></p>
+          </div>
 
-        <o-notification
-          v-if="!canChangePassword && loggedUser.provider"
-          variant="warning"
-          :closable="false"
-          class="mb-4"
-        >
-          {{
-            t(
-              "You can't change your password because you are registered through {provider}.",
-              {
-                provider: providerName(loggedUser.provider),
-              }
-            )
-          }}
-        </o-notification>
+          <button
+            v-if="canChangeEmail"
+            @click="openChangeEmailModal"
+            class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
+          >
+            {{ t("Change") }}
+          </button>
+        </div>
 
-        <button
-          v-if="canChangePassword"
-          @click="openChangePasswordModal"
-          class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
-        >
-          {{ t("Change") }}
-        </button>
-      </div>
+        <!-- Password Section -->
+        <div class="mb-8">
+          <h2 class="text-[20px] leading-[30px] mb-4">
+            {{ t("Password") }}
+          </h2>
+
+          <button
+            v-if="canChangePassword"
+            @click="openChangePasswordModal"
+            class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
+          >
+            {{ t("Change") }}
+          </button>
+        </div>
+      </template>
 
       <!-- Marketing Consent Section -->
       <div class="mb-8">
@@ -410,6 +418,7 @@ import {
 import RouteName from "../../router/name";
 import { logout, SELECTED_PROVIDERS } from "../../utils/auth";
 import { useOruga } from "@oruga-ui/oruga-next";
+import LinkedInIcon from "vue-material-design-icons/Linkedin.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
