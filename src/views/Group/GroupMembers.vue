@@ -65,21 +65,22 @@
           >
         </div>
       </div>
-      <div v-if="isGroupPendingApproval" class="mb-4">
-        <p
-          class="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200"
-        >
-          <span class="font-medium">{{
-            t("Member invitations are disabled")
-          }}</span>
-          -
-          {{
-            t(
-              "You can invite members once your group is approved by administrators"
-            )
-          }}
-        </p>
-      </div>
+      <o-notification
+        v-if="isGroupPendingApproval"
+        variant="warning"
+        :closable="false"
+        class="mb-4"
+      >
+        <span class="font-medium">{{
+          t("Member invitations are disabled")
+        }}</span>
+        -
+        {{
+          t(
+            "You can invite members once your group is approved by administrators"
+          )
+        }}
+      </o-notification>
       <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
     </section>

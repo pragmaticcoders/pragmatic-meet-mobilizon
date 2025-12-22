@@ -444,7 +444,7 @@ import { useHead } from "@/utils/head";
 import { formatList } from "@/utils/i18n";
 import { ApolloCache, InMemoryCache } from "@apollo/client/core";
 import { useMutation, useQuery } from "@vue/apollo-composable";
-import { format, isToday, isYesterday, parseISO } from "date-fns";
+import { format, isToday, isYesterday, parseISO, Locale } from "date-fns";
 import {
   computed,
   defineAsyncComponent,
@@ -476,6 +476,7 @@ const COMMENTS_PER_PAGE = 10000; // Load all comments at once
 
 const { currentActor } = useCurrentActorClient();
 const notifier = inject<Notifier>("notifier");
+const dateFnsLocale = inject<Locale>("dateFnsLocale");
 
 const {
   result: conversationResult,
@@ -839,14 +840,14 @@ const formatMessageDate = (date: string | Date): string => {
   } else if (isYesterday(dateObj)) {
     return t("Yesterday");
   } else {
-    return format(dateObj, "EEEE, d MMMM");
+    return format(dateObj, "EEEE, d MMMM", { locale: dateFnsLocale });
   }
 };
 
 // Format time for messages
 const formatTime = (date: string | Date): string => {
   const dateObj = typeof date === "string" ? parseISO(date) : date;
-  return format(dateObj, "HH:mm");
+  return format(dateObj, "HH:mm", { locale: dateFnsLocale });
 };
 
 // Editor reference

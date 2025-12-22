@@ -7,24 +7,22 @@
       </h1>
 
       <!-- LinkedIn prefill notification -->
-      <div
+      <o-notification
         v-if="isFromLinkedIn"
-        class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm mb-6 rounded-md"
+        variant="info"
+        :closable="false"
+        has-icon
+        class="mb-6"
       >
-        <div class="flex items-start">
-          <o-icon icon="linkedin" size="small" class="mr-2 mt-0.5" />
-          <div>
-            <p class="font-medium">{{ t("Profile data from LinkedIn") }}</p>
-            <p class="text-blue-600 text-xs mt-1">
-              {{
-                t(
-                  "Your profile has been prefilled with information from your LinkedIn account. Please review and modify as needed."
-                )
-              }}
-            </p>
-          </div>
-        </div>
-      </div>
+        <p class="font-medium">{{ t("Profile data from LinkedIn") }}</p>
+        <p class="text-sm opacity-90 mt-1">
+          {{
+            t(
+              "Your profile has been prefilled with information from your LinkedIn account. Please review and modify as needed."
+            )
+          }}
+        </p>
+      </o-notification>
 
       <!-- Avatar Section -->
       <div class="mb-8">
