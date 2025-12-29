@@ -17,7 +17,15 @@ How to add administator (via SQL)
 
 
 Important: For now mix commands does work ONLY for local environment. For dev/prod db changes you need to write sql queries and execute them directly
-How to create a new user (via mix task)
+
+How to create a new user in Docker development environment
+1. cd docker/development
+2. docker compose exec api mix mobilizon.users.new email@example.com --password YourPassword123 --admin
+
+Example (create admin user):
+  docker compose exec api mix mobilizon.users.new admin@example.com --password Pass123 --admin
+
+How to create a new user (via mix task - native local)
 1. mix mobilizon.users.new email@example.com --password YourPassword123
 
 Options:
