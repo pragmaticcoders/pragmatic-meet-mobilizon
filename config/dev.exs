@@ -121,7 +121,11 @@ config :mobilizon, Mobilizon.Web.Auth.Guardian,
 
 config :mobilizon, Mobilizon.Web.Upload.Uploader.Local, uploads: "uploads"
 
-config :mobilizon, :exports, path: "uploads/exports"
+config :mobilizon, :exports,
+  path: "uploads/exports",
+  formats: [
+    Mobilizon.Service.Export.Participants.CSV
+  ]
 
 config :mobilizon, Mobilizon.Service.SiteMap,
   path: System.get_env("MOBILIZON_SITEMAP_PATH", "priv/static")
