@@ -462,6 +462,7 @@ const eventsQuery = useQuery<{
         if (geoHash.value) {
           params.location = geoHash.value;
           params.radius = radius.value;
+          params.type = "IN_PERSON";
         }
         break;
       case "online_only":

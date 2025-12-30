@@ -31,8 +31,10 @@ export const i18n = createI18n({
   locale: locale, // set locale
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  // messages, // set locale messages
-  messages: en, // set locale messages
+  messages: {
+    en_US: en,
+    en: en, // Also provide 'en' as fallback for when locale is detected as 'en'
+  },
   fallbackLocale: DEFAULT_LOCALE,
   fallbackFormat: true,
   pluralizationRules,

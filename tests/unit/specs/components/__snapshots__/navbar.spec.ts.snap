@@ -1,33 +1,25 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`App component > renders a Vue component 1`] = `
-"<nav class="bg-white border-b border-gray-200" id="navbar">
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <div class="flex items-center justify-between h-16">
-      <!-- Logo -->
-      <router-link to="[object Object]" class="flex items-center flex-shrink-0"><img src="/img/pragmatic_logo.svg" alt="Pragmatic Meet" width="176" height="32" class="w-[176px] h-8"></router-link><!-- Desktop Navigation - Logged In -->
+"<nav data-v-c3ceb15a="" class="bg-white border-b border-gray-200 md:sticky md:top-0 md:z-50" id="navbar">
+  <div data-v-c3ceb15a="" class="max-w-screen-xl mx-auto px-4 md:px-16">
+    <div data-v-c3ceb15a="" class="flex items-center justify-between h-16">
+      <!-- Logo --><a data-v-c3ceb15a="" class="flex items-center flex-shrink-0"><img data-v-c3ceb15a="" src="/img/logo.svg" alt="Mobilizon" class="max-h-10"></a><!-- Desktop Navigation - Logged In -->
       <!-- Desktop Navigation - Not Logged In -->
-      <div class="hidden md:flex md:items-center md:space-x-6">
-        <nav class="flex items-center space-x-6">
-          <router-link to="[object Object]" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Search</router-link>
-          <router-link to="[object Object]" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors relative">Calendar</router-link>
-        </nav>
-        <div class="flex items-center space-x-4">
-          <router-link to="[object Object]" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Login</router-link>
+      <div data-v-c3ceb15a="" class="hidden md:flex md:items-center md:space-x-6">
+        <nav data-v-c3ceb15a="" class="flex items-center space-x-6"><a data-v-c3ceb15a="" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Search</a><a data-v-c3ceb15a="" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors relative">Calendar</a></nav>
+        <div data-v-c3ceb15a="" class="flex items-center space-x-4"><a data-v-c3ceb15a="" class="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors">Login</a>
           <!--v-if-->
         </div>
-      </div><!-- Mobile menu button --><button type="button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false"><span class="sr-only">Open main menu</span><svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </div><!-- Mobile menu button --><button data-v-c3ceb15a="" type="button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false"><span data-v-c3ceb15a="" class="sr-only">Open main menu</span><svg data-v-c3ceb15a="" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path data-v-c3ceb15a="" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
         </svg></button>
     </div><!-- Mobile menu -->
-    <div class="md:hidden" id="mobile-menu" style="display: none;">
-      <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
+    <div data-v-c3ceb15a="" class="md:hidden" id="mobile-menu" style="display: none;">
+      <div data-v-c3ceb15a="" class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
         <!-- Logged In Mobile Menu -->
-        <!-- Not Logged In Mobile Menu -->
-        <router-link to="[object Object]" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Search</router-link>
-        <router-link to="[object Object]" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Calendar</router-link>
-        <div class="border-t border-gray-200 my-2"></div>
-        <router-link to="[object Object]" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Login</router-link>
+        <!-- Not Logged In Mobile Menu --><a data-v-c3ceb15a="" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Search</a><a data-v-c3ceb15a="" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Calendar</a>
+        <div data-v-c3ceb15a="" class="border-t border-gray-200 my-2"></div><a data-v-c3ceb15a="" class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-md">Login</a>
         <!--v-if-->
       </div>
     </div>
