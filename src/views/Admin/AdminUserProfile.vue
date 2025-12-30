@@ -752,17 +752,17 @@ const roleName = (role: ICurrentUserRole): string => {
 
 const router = useRouter();
 
-const { mutate: suspendUserMutation, loading: suspendLoading } = useMutation<
+const { mutate: suspendUserMutation } = useMutation<
   { suspendUser: { id: string; suspended: boolean } },
   { userId: string }
 >(SUSPEND_USER);
 
-const { mutate: unsuspendUserMutation, loading: unsuspendLoading } = useMutation<
+const { mutate: unsuspendUserMutation } = useMutation<
   { unsuspendUser: { id: string; suspended: boolean } },
   { userId: string }
 >(UNSUSPEND_USER);
 
-const { mutate: deleteUserMutation, loading: deleteLoading } = useMutation<
+const { mutate: deleteUserMutation } = useMutation<
   { deleteAccount: { id: string } },
   { userId: string; permanent: boolean }
 >(DELETE_USER);
