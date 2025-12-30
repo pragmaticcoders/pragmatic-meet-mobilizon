@@ -85,6 +85,8 @@ export enum LoginError {
   LOGIN_PROVIDER_ERROR = "Error with Login Provider",
   LOGIN_PROVIDER_NOT_FOUND = "Login Provider not found",
   USER_DISABLED = "This user has been disabled",
+  USER_DELETED = "This account has been deleted",
+  USER_SUSPENDED = "This account has been suspended",
 }
 
 export enum ResetError {

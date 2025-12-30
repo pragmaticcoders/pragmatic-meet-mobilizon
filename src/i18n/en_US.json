@@ -1448,6 +1448,8 @@
   "Delete permanently": "Delete permanently",
   "Delete account permanently": "Delete account permanently",
   "This account has been deleted": "This account has been deleted",
+  "This account has been deleted. Please contact the administrator if you believe this is an error.": "This account has been deleted. Please contact the administrator if you believe this is an error.",
+  "This account has been suspended. Please contact the administrator for more information.": "This account has been suspended. Please contact the administrator for more information.",
   "This account is suspended. The user cannot log in.": "This account is suspended. The user cannot log in.",
   "Account status": "Account status",
   "Suspended": "Suspended",
