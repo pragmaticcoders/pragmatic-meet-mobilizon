@@ -80,6 +80,26 @@
           }}
         </div>
         <div
+          v-else-if="errorCode === LoginError.USER_DELETED"
+          class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
+        >
+          {{
+            t(
+              "This account has been deleted. Please contact the administrator if you believe this is an error."
+            )
+          }}
+        </div>
+        <div
+          v-else-if="errorCode === LoginError.USER_SUSPENDED"
+          class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
+        >
+          {{
+            t(
+              "This account has been suspended. Please contact the administrator for more information."
+            )
+          }}
+        </div>
+        <div
           v-for="error in errors"
           :key="error"
           class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm"
@@ -306,7 +326,7 @@ import RouteName from "@/router/name";
 import { LoginError, LoginErrorCode } from "@/types/enums";
 import { useCurrentUserClient } from "@/composition/apollo/user";
 import { useHead } from "@/utils/head";
-import { enumTransformer, useRouteQuery } from "vue-use-route-query";
+import { useRouteQuery } from "vue-use-route-query";
 import { useLazyCurrentUserIdentities } from "@/composition/apollo/actor";
 
 const { t } = useI18n({ useScope: "global" });
@@ -342,7 +362,21 @@ const credentials = reactive({
 });
 
 const redirect = useRouteQuery("redirect", "");
-const errorCode = useRouteQuery("code", null, enumTransformer(LoginErrorCode));
+// Read raw code first, then try to match against both enums
+const rawErrorCode = useRouteQuery("code", "");
+const errorCode = computed(() => {
+  const code = rawErrorCode.value;
+  if (!code) return null;
+  // Check LoginErrorCode enum
+  if (Object.values(LoginErrorCode).includes(code as LoginErrorCode)) {
+    return code as LoginErrorCode;
+  }
+  // Check LoginError enum
+  if (Object.values(LoginError).includes(code as LoginError)) {
+    return code as LoginError;
+  }
+  return null;
+});
 
 const hasErrors = computed(() => {
   return errorCode.value || errors.value.length > 0;
