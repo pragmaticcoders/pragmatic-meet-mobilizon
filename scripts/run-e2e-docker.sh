@@ -56,6 +56,10 @@ if npx wait-on http://localhost:4000 -t 60000; then
     echo ""
     echo -e "${GREEN}✅ Application is ready${NC}"
     echo ""
+    # Give Docker Desktop networking a moment to stabilize (macOS workaround)
+    echo -e "${YELLOW}⏳ Waiting 3s for Docker networking to stabilize...${NC}"
+    sleep 3
+    echo ""
     echo -e "${YELLOW}📋 Checking startup logs...${NC}"
     docker compose -f docker/e2e/docker-compose.yml logs mobilizon | tail -20
     echo ""
