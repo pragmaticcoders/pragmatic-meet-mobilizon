@@ -10,6 +10,14 @@ test("User can update their profile information", async ({ page }) => {
   // Wait for redirect to home page
   await page.waitForURL("/");
 
+  // Dismiss marketing consent popup if it appears (for legacy users)
+  const consentPopup = page.getByText("I consent to receiving messages, updates, and promotional emails");
+  if (await consentPopup.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.getByRole("button", { name: "Yes, I agree" }).click();
+    // Wait for modal to close
+    await expect(consentPopup).not.toBeVisible({ timeout: 3000 });
+  }
+
   // Step 2: Navigate directly to profile edit page
   await page.goto("/identity/update/test_user");
 
