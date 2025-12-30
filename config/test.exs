@@ -67,7 +67,11 @@ config :mobilizon, Mobilizon.Web.Upload, filters: [], link_name: false
 
 config :mobilizon, Mobilizon.Web.Upload.Uploader.Local, uploads: "test/uploads"
 
-config :mobilizon, :exports, path: "test/uploads/exports"
+config :mobilizon, :exports,
+  path: "test/uploads/exports",
+  formats: [
+    Mobilizon.Service.Export.Participants.CSV
+  ]
 
 config :mobilizon, Mobilizon.Service.SiteMap,
   path: System.get_env("MOBILIZON_SITEMAP_PATH", "test/sitemap")
