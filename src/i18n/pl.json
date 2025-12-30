@@ -2002,5 +2002,8 @@
   "{user}'s follow request was accepted": "Prośba o subskrypcję od {user} została zaakceptowana",
   "{user}'s follow request was rejected": "Prośba o subskrypcję od {user} została odrzucona",
   "© The OpenStreetMap Contributors": "© Współtwórcy OpenStreetMap",
-  "Conversation": "Konwersacja"
+  "Conversation": "Konwersacja",
+  "Enter your email": "Wpisz swój email",
+  "Enter your password": "Wpisz swoje hasło",
+  "Don't have an account?": "Nie masz konta?"
 }

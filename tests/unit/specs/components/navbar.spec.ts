@@ -4,21 +4,53 @@ const useRouterMock = vi.fn(() => ({
   },
 }));
 
-import { shallowMount, VueWrapper } from "@vue/test-utils";
+const useRouteMock = vi.fn(() => ({
+  path: "/",
+  name: "Home",
+  params: {},
+  query: {},
+}));
+
+import { shallowMount, VueWrapper, RouterLinkStub } from "@vue/test-utils";
+import { createRouter, createMemoryHistory } from "vue-router";
 import NavBar from "@/components/NavBar.vue";
 import { createMockClient, MockApolloClient } from "mock-apollo-client";
 import buildCurrentUserResolver from "@/apollo/user";
 import { InMemoryCache } from "@apollo/client/cache";
-import { describe, it, vi, expect, afterEach } from "vitest";
+import { describe, it, vi, expect, afterEach, beforeEach } from "vitest";
 import { DefaultApolloClient } from "@vue/apollo-composable";
 
 vi.mock("vue-router/dist/vue-router.mjs", () => ({
   useRouter: useRouterMock,
+  useRoute: useRouteMock,
 }));
 
 describe("App component", () => {
   let wrapper: VueWrapper;
   let mockClient: MockApolloClient | null;
+  let router: ReturnType<typeof createRouter>;
+
+  beforeEach(async () => {
+    router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: "/", name: "Home", component: { template: "<div>Home</div>" } },
+        {
+          path: "/search",
+          name: "SEARCH",
+          component: { template: "<div>Search</div>" },
+        },
+        {
+          path: "/login",
+          name: "Login",
+          component: { template: "<div>Login</div>" },
+        },
+      ],
+    });
+
+    await router.push("/");
+    await router.isReady();
+  });
 
   const createComponent = () => {
     const cache = new InMemoryCache({ addTypename: false });
@@ -29,10 +61,16 @@ describe("App component", () => {
     });
 
     wrapper = shallowMount(NavBar, {
-      // stubs: ["router-link", "router-view", "o-dropdown", "o-dropdown-item"],
       global: {
+        plugins: [router],
         provide: {
           [DefaultApolloClient]: mockClient,
+        },
+        stubs: {
+          RouterLink: RouterLinkStub,
+          "o-dropdown": true,
+          "o-dropdown-item": true,
+          "o-tooltip": true,
         },
       },
     });

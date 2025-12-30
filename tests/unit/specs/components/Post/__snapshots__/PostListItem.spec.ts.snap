@@ -3,10 +3,10 @@
 exports[`PostListItem > renders post list item with basic informations 1`] = `
 "<a data-v-6ca7cc69="" href="/p/my-blog-post-some-uuid" class="block md:flex bg-white dark:bg-violet-2 dark:text-white dark:hover:text-white rounded-lg shadow-md" dir="auto">
   <div data-v-6ca7cc69="" class="flex-1 object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg">
-    <div class="w-full aspect-video">
+    <div class="w-full">
       <!-- Show the placeholder as background -->
       <!--v-if-->
-      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 object-cover h-full w-full opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
+      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 w-full h-auto opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
     </div>
   </div>
   <div data-v-6ca7cc69="" class="flex flex-col gap-1 bg-inherit p-2 rounded-lg flex-1">
@@ -22,10 +22,10 @@ exports[`PostListItem > renders post list item with basic informations 1`] = `
 exports[`PostListItem > renders post list item with publisher name 1`] = `
 "<a data-v-6ca7cc69="" href="/p/my-blog-post-some-uuid" class="block md:flex bg-white dark:bg-violet-2 dark:text-white dark:hover:text-white rounded-lg shadow-md" dir="auto">
   <div data-v-6ca7cc69="" class="flex-1 object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg">
-    <div class="w-full aspect-video">
+    <div class="w-full">
       <!-- Show the placeholder as background -->
       <!--v-if-->
-      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 object-cover h-full w-full opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
+      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 w-full h-auto opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
     </div>
   </div>
   <div data-v-6ca7cc69="" class="flex flex-col gap-1 bg-inherit p-2 rounded-lg flex-1">
@@ -41,10 +41,10 @@ exports[`PostListItem > renders post list item with publisher name 1`] = `
 exports[`PostListItem > renders post list item with tags 1`] = `
 "<a data-v-6ca7cc69="" href="/p/my-blog-post-some-uuid" class="block md:flex bg-white dark:bg-violet-2 dark:text-white dark:hover:text-white rounded-lg shadow-md" dir="auto">
   <div data-v-6ca7cc69="" class="flex-1 object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg object-cover flex-none h-48 md:h-auto md:w-48 rounded-t-lg md:rounded-none md:rounded-l-lg">
-    <div class="w-full aspect-video">
+    <div class="w-full">
       <!-- Show the placeholder as background -->
       <!--v-if-->
-      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 object-cover h-full w-full opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
+      <!-- Show the real image on the top and fade in after loading --><img class="transition-opacity duration-500 w-full h-auto opacity-0" alt="" src="" loading="eager" fetchpriority="high" decoding="async">
     </div>
   </div>
   <div data-v-6ca7cc69="" class="flex flex-col gap-1 bg-inherit p-2 rounded-lg flex-1">
