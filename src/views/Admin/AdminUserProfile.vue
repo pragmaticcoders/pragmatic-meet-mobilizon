@@ -58,6 +58,21 @@
                         {{ value }}
                       </span>
                     </td>
+                    <td
+                      v-else-if="type === 'status'"
+                      class="py-4 px-2 whitespace-nowrap"
+                    >
+                      <span
+                        :class="{
+                          'bg-red-100 text-red-800': user.disabled,
+                          'bg-yellow-100 text-yellow-800': user.suspended && !user.disabled,
+                          'bg-green-100 text-green-800': !user.suspended && !user.disabled,
+                        }"
+                        class="text-sm font-medium mr-2 px-2.5 py-0.5 rounded"
+                      >
+                        {{ value }}
+                      </span>
+                    </td>
                     <td v-else class="py-4 px-2 align-middle">
                       {{ value }}
                     </td>
@@ -140,42 +155,292 @@
         </div>
       </div>
     </section>
-    <section class="my-4">
-      <h2 class="text-lg font-bold mb-3">{{ t("Profiles") }}</h2>
-      <div
-        class="flex flex-wrap justify-center sm:justify-start gap-4"
-        v-if="profiles && profiles.length > 0"
-      >
-        <router-link
-          v-for="profile in profiles"
-          :key="profile.id"
-          :to="{ name: RouteName.ADMIN_PROFILE, params: { id: profile.id } }"
-        >
-          <actor-card
-            :actor="profile"
-            :full="true"
-            :popover="false"
-            :limit="true"
-          />
-        </router-link>
+    <!-- Profile Section - Single profile mode -->
+    <section class="my-4" v-if="profile">
+      <h2 class="text-lg font-bold mb-3">{{ t("Profile") }}</h2>
+      <div class="flex justify-center mb-4">
+        <actor-card
+          :actor="profile"
+          :full="true"
+          :popover="false"
+          :limit="false"
+        />
       </div>
-      <empty-content v-else-if="!loadingUser" :inline="true" icon="account">
+      
+      <!-- Profile Details Table -->
+      <div class="flex flex-col mb-4">
+        <div class="overflow-x-auto">
+          <div class="inline-block py-2 min-w-full sm:px-2">
+            <div class="overflow-hidden shadow-md sm:rounded-lg">
+              <table v-if="profileMetadata.length > 0" class="table w-full">
+                <tbody>
+                  <tr
+                    v-for="{ key, value, link } in profileMetadata"
+                    :key="key"
+                    class="odd:bg-white dark:odd:bg-zinc-800 even:bg-gray-50 dark:even:bg-zinc-700 border-b"
+                  >
+                    <td class="py-4 px-2 whitespace-nowrap">
+                      {{ key }}
+                    </td>
+                    <td
+                      v-if="link"
+                      class="py-4 px-2 text-sm text-gray-500 dark:text-gray-200 whitespace-nowrap"
+                    >
+                      <router-link :to="link">
+                        {{ value }}
+                      </router-link>
+                    </td>
+                    <td
+                      v-else
+                      class="py-4 px-2 text-sm text-gray-500 dark:text-gray-200 whitespace-nowrap"
+                    >
+                      {{ value }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Organized Events -->
+      <div class="mt-4 mb-3">
+        <h3 class="font-semibold mb-2">{{ t("Organized events") }}</h3>
+        <o-table
+          :data="profile.organizedEvents?.elements"
+          :loading="loadingUser"
+          paginated
+          backend-pagination
+          v-model:current-page="organizedEventsPage"
+          :aria-next-label="t('Next page')"
+          :aria-previous-label="t('Previous page')"
+          :aria-page-label="t('Page')"
+          :aria-current-label="t('Current page')"
+          :total="profile.organizedEvents?.total"
+          :per-page="EVENTS_PER_PAGE"
+          @page-change="onOrganizedEventsPageChange"
+        >
+          <o-table-column
+            field="beginsOn"
+            :label="t('Begins on')"
+            v-slot="props"
+          >
+            {{ formatDateTimeString(props.row.beginsOn) }}
+          </o-table-column>
+          <o-table-column field="title" :label="t('Title')" v-slot="props">
+            <router-link
+              :to="{ name: RouteName.EVENT, params: { uuid: props.row.uuid } }"
+            >
+              {{ props.row.title }}
+            </router-link>
+          </o-table-column>
+          <template #empty>
+            <empty-content icon="calendar" :inline="true">
+              {{ t("No organized events listed") }}
+            </empty-content>
+          </template>
+        </o-table>
+      </div>
+
+      <!-- Participations -->
+      <div class="mt-4 mb-3">
+        <h3 class="font-semibold mb-2">{{ t("Participations") }}</h3>
+        <o-table
+          :data="
+            profile.participations?.elements.map(
+              (participation: { event: unknown }) => participation.event
+            )
+          "
+          :loading="loadingUser"
+          paginated
+          backend-pagination
+          v-model:current-page="participationsPage"
+          :aria-next-label="t('Next page')"
+          :aria-previous-label="t('Previous page')"
+          :aria-page-label="t('Page')"
+          :aria-current-label="t('Current page')"
+          :total="profile.participations?.total"
+          :per-page="EVENTS_PER_PAGE"
+          @page-change="onParticipationsPageChange"
+        >
+          <o-table-column
+            field="beginsOn"
+            :label="t('Begins on')"
+            v-slot="props"
+          >
+            {{ formatDateTimeString(props.row.beginsOn) }}
+          </o-table-column>
+          <o-table-column field="title" :label="t('Title')" v-slot="props">
+            <router-link
+              :to="{ name: RouteName.EVENT, params: { uuid: props.row.uuid } }"
+            >
+              {{ props.row.title }}
+            </router-link>
+          </o-table-column>
+          <template #empty>
+            <empty-content icon="calendar" :inline="true">
+              {{ t("No participations listed") }}
+            </empty-content>
+          </template>
+        </o-table>
+      </div>
+
+      <!-- Memberships -->
+      <div class="mt-4 mb-3">
+        <h3 class="font-semibold mb-2">{{ t("Memberships") }}</h3>
+        <o-table
+          :data="profile.memberships?.elements"
+          :loading="loadingUser"
+          paginated
+          backend-pagination
+          v-model:current-page="membershipsPage"
+          :aria-next-label="t('Next page')"
+          :aria-previous-label="t('Previous page')"
+          :aria-page-label="t('Page')"
+          :aria-current-label="t('Current page')"
+          :total="profile.memberships?.total"
+          :per-page="EVENTS_PER_PAGE"
+          @page-change="onMembershipsPageChange"
+        >
+          <o-table-column
+            field="parent.preferredUsername"
+            :label="t('Group')"
+            v-slot="props"
+          >
+            <article class="flex gap-2">
+              <router-link
+                class="no-underline"
+                :to="{
+                  name: RouteName.ADMIN_GROUP_PROFILE,
+                  params: { id: props.row.parent.id },
+                }"
+              >
+                <figure class="" v-if="props.row.parent.avatar">
+                  <img
+                    class="rounded-full"
+                    :src="props.row.parent.avatar.url"
+                    alt=""
+                    width="48"
+                    height="48"
+                  />
+                </figure>
+                <AccountCircle v-else :size="48" />
+              </router-link>
+              <div class="">
+                <div class="prose dark:prose-invert">
+                  <router-link
+                    class="no-underline"
+                    :to="{
+                      name: RouteName.ADMIN_GROUP_PROFILE,
+                      params: { id: props.row.parent.id },
+                    }"
+                    v-if="props.row.parent.name"
+                    >{{ props.row.parent.name }}</router-link
+                  ><br />
+                  <router-link
+                    class="no-underline"
+                    :to="{
+                      name: RouteName.ADMIN_GROUP_PROFILE,
+                      params: { id: props.row.parent.id },
+                    }"
+                    >@{{ usernameWithDomain(props.row.parent) }}</router-link
+                  >
+                </div>
+              </div>
+            </article>
+          </o-table-column>
+          <o-table-column field="role" :label="t('Role')" v-slot="props">
+            <tag
+              variant="primary"
+              v-if="props.row.role === MemberRole.ADMINISTRATOR"
+            >
+              {{ t("Administrator") }}
+            </tag>
+            <tag
+              variant="primary"
+              v-else-if="props.row.role === MemberRole.MODERATOR"
+            >
+              {{ t("Moderator") }}
+            </tag>
+            <tag v-else-if="props.row.role === MemberRole.MEMBER">
+              {{ t("Member") }}
+            </tag>
+            <tag
+              variant="warning"
+              v-else-if="props.row.role === MemberRole.NOT_APPROVED"
+            >
+              {{ t("Not approved") }}
+            </tag>
+            <tag
+              variant="danger"
+              v-else-if="props.row.role === MemberRole.REJECTED"
+            >
+              {{ t("Rejected") }}
+            </tag>
+            <tag
+              variant="danger"
+              v-else-if="props.row.role === MemberRole.INVITED"
+            >
+              {{ t("Invited") }}
+            </tag>
+          </o-table-column>
+          <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
+            <span class="has-text-centered">
+              {{ formatDateString(props.row.insertedAt) }}<br />{{
+                formatTimeString(props.row.insertedAt)
+              }}
+            </span>
+          </o-table-column>
+          <template #empty>
+            <empty-content icon="account-group" :inline="true">
+              {{ t("No memberships found") }}
+            </empty-content>
+          </template>
+        </o-table>
+      </div>
+    </section>
+    <section class="my-4" v-else-if="!loadingUser">
+      <h2 class="text-lg font-bold mb-3">{{ t("Profile") }}</h2>
+      <empty-content :inline="true" icon="account">
         {{ t("This user doesn't have any profiles") }}
       </empty-content>
     </section>
     <section class="my-4">
       <h2 class="text-lg font-bold mb-3">{{ t("Actions") }}</h2>
-      <div class="buttons" v-if="!user.disabled">
-        <o-button @click="suspendAccount" variant="danger">{{
-          t("Suspend")
-        }}</o-button>
-      </div>
+      <!-- User is disabled (deleted) -->
       <div
-        v-else
+        v-if="user.disabled"
         class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg"
         role="alert"
       >
-        {{ t("The user has been disabled") }}
+        {{ t("This account has been deleted") }}
+      </div>
+      <!-- User is suspended -->
+      <div v-else-if="user.suspended" class="space-y-4">
+        <div
+          class="p-4 mb-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg"
+          role="alert"
+        >
+          {{ t("This account is suspended. The user cannot log in.") }}
+        </div>
+        <div class="buttons flex gap-2">
+          <o-button @click="unsuspendAccount" variant="success">{{
+            t("Unsuspend account")
+          }}</o-button>
+          <o-button @click="deleteAccount" variant="danger">{{
+            t("Delete account permanently")
+          }}</o-button>
+        </div>
+      </div>
+      <!-- User is active -->
+      <div v-else class="buttons flex gap-2">
+        <o-button @click="suspendAccount" variant="warning">{{
+          t("Suspend account")
+        }}</o-button>
+        <o-button @click="deleteAccount" variant="danger">{{
+          t("Delete account permanently")
+        }}</o-button>
       </div>
     </section>
     <o-modal
@@ -317,8 +582,8 @@
 </template>
 <script lang="ts" setup>
 import { formatBytes } from "@/utils/datetime";
-import { ICurrentUserRole } from "@/types/enums";
-import { GET_USER, SUSPEND_USER } from "../../graphql/user";
+import { ICurrentUserRole, MemberRole } from "@/types/enums";
+import { GET_USER, SUSPEND_USER, UNSUSPEND_USER, DELETE_USER } from "../../graphql/user";
 import RouteName from "../../router/name";
 import { IUser } from "../../types/current-user.model";
 import EmptyContent from "../../components/Utils/EmptyContent.vue";
@@ -329,19 +594,48 @@ import { ILanguage } from "@/types/admin.model";
 import { computed, inject, reactive, ref, watch } from "vue";
 import { useHead } from "@/utils/head";
 import { useI18n } from "vue-i18n";
-import { formatDateTimeString } from "@/filters/datetime";
+import {
+  formatDateString,
+  formatTimeString,
+  formatDateTimeString,
+} from "@/filters/datetime";
 import { useRouter } from "vue-router";
 import { IPerson } from "@/types/actor";
+import { usernameWithDomain } from "@/types/actor/actor.model";
 import { Dialog } from "@/plugins/dialog";
+import { integerTransformer, useRouteQuery } from "vue-use-route-query";
+import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
+import Tag from "@/components/TagElement.vue";
+
+const EVENTS_PER_PAGE = 10;
 
 const props = defineProps<{ id: string }>();
 
-const { result: userResult, loading: loadingUser } = useQuery<{ user: IUser }>(
-  GET_USER,
-  () => ({
-    id: props.id,
-  })
+const organizedEventsPage = useRouteQuery(
+  "organizedEventsPage",
+  1,
+  integerTransformer
 );
+const participationsPage = useRouteQuery(
+  "participationsPage",
+  1,
+  integerTransformer
+);
+const membershipsPage = useRouteQuery("membershipsPage", 1, integerTransformer);
+
+const {
+  result: userResult,
+  loading: loadingUser,
+  fetchMore,
+} = useQuery<{ user: IUser }>(GET_USER, () => ({
+  id: props.id,
+  organizedEventsPage: organizedEventsPage.value,
+  organizedEventsLimit: EVENTS_PER_PAGE,
+  participationsPage: participationsPage.value,
+  participationsLimit: EVENTS_PER_PAGE,
+  membershipsPage: membershipsPage.value,
+  membershipsLimit: EVENTS_PER_PAGE,
+}));
 
 const user = computed(() => userResult.value?.user);
 
@@ -395,8 +689,13 @@ const metadata = computed(
         type: "role",
       },
       {
-        key: t("Login status"),
-        value: user.value.disabled ? t("Disabled") : t("Activated"),
+        key: t("Account status"),
+        value: user.value.disabled
+          ? t("Deleted")
+          : user.value.suspended
+            ? t("Suspended")
+            : t("Active"),
+        type: "status",
       },
       {
         key: t("Confirmed"),
@@ -453,10 +752,20 @@ const roleName = (role: ICurrentUserRole): string => {
 
 const router = useRouter();
 
-const { mutate: suspendUser } = useMutation<
-  { suspendProfile: { id: string } },
+const { mutate: suspendUserMutation, loading: suspendLoading } = useMutation<
+  { suspendUser: { id: string; suspended: boolean } },
   { userId: string }
 >(SUSPEND_USER);
+
+const { mutate: unsuspendUserMutation, loading: unsuspendLoading } = useMutation<
+  { unsuspendUser: { id: string; suspended: boolean } },
+  { userId: string }
+>(UNSUSPEND_USER);
+
+const { mutate: deleteUserMutation, loading: deleteLoading } = useMutation<
+  { deleteAccount: { id: string } },
+  { userId: string; permanent: boolean }
+>(DELETE_USER);
 
 const dialog = inject<Dialog>("dialog");
 
@@ -464,23 +773,125 @@ const suspendAccount = async (): Promise<void> => {
   dialog?.confirm({
     title: t("Suspend the account?"),
     message: t(
-      "Do you really want to suspend this account? All of the user's profiles will be deleted."
+      "Do you really want to suspend this account? The user will not be able to log in, but all their data will be preserved."
     ),
     confirmText: t("Suspend the account"),
     cancelText: t("Cancel"),
+    variant: "warning",
+    onConfirm: async () => {
+      await suspendUserMutation({
+        userId: props.id,
+      });
+      // Refresh user data to show updated status
+      window.location.reload();
+    },
+  });
+};
+
+const unsuspendAccount = async (): Promise<void> => {
+  dialog?.confirm({
+    title: t("Unsuspend the account?"),
+    message: t(
+      "Do you really want to unsuspend this account? The user will be able to log in again."
+    ),
+    confirmText: t("Unsuspend the account"),
+    cancelText: t("Cancel"),
+    variant: "success",
+    onConfirm: async () => {
+      await unsuspendUserMutation({
+        userId: props.id,
+      });
+      // Refresh user data to show updated status
+      window.location.reload();
+    },
+  });
+};
+
+const deleteAccount = async (): Promise<void> => {
+  dialog?.confirm({
+    title: t("Delete the account permanently?"),
+    message: t(
+      "Do you really want to permanently delete this account? All of the user's profiles and data will be deleted. This action cannot be undone!"
+    ),
+    confirmText: t("Delete permanently"),
+    cancelText: t("Cancel"),
     variant: "danger",
     onConfirm: async () => {
-      suspendUser({
+      await deleteUserMutation({
         userId: props.id,
+        permanent: true,
       });
       return router.push({ name: RouteName.USERS });
     },
   });
 };
 
-const profiles = computed((): IPerson[] | undefined => {
-  return user.value?.actors;
+// Get the user's default actor (single profile mode)
+const profile = computed((): IPerson | undefined => {
+  return user.value?.defaultActor as IPerson | undefined;
 });
+
+// Profile metadata for the profile details table
+const profileMetadata = computed(
+  (): Array<{
+    key: string;
+    value: string;
+    link?: { name: string; params: Record<string, unknown> };
+  }> => {
+    if (!profile.value) return [];
+    return [
+      {
+        key: t("Profile status"),
+        value: profile.value.suspended ? t("Suspended") : t("Active"),
+      },
+      {
+        key: t("Domain"),
+        value: profile.value.domain ? profile.value.domain : t("Local"),
+        link: profile.value.domain
+          ? {
+              name: RouteName.INSTANCE,
+              params: { domain: profile.value.domain },
+            }
+          : undefined,
+      },
+      {
+        key: t("Uploaded media size"),
+        value: formatBytes(profile.value.mediaSize ?? 0),
+      },
+    ];
+  }
+);
+
+// Pagination handlers for profile tables
+const onOrganizedEventsPageChange = async (): Promise<void> => {
+  await fetchMore({
+    variables: {
+      id: props.id,
+      organizedEventsPage: organizedEventsPage.value,
+      organizedEventsLimit: EVENTS_PER_PAGE,
+    },
+  });
+};
+
+const onParticipationsPageChange = async (): Promise<void> => {
+  await fetchMore({
+    variables: {
+      id: props.id,
+      participationsPage: participationsPage.value,
+      participationsLimit: EVENTS_PER_PAGE,
+    },
+  });
+};
+
+const onMembershipsPageChange = async (): Promise<void> => {
+  await fetchMore({
+    variables: {
+      id: props.id,
+      membershipsPage: membershipsPage.value,
+      membershipsLimit: EVENTS_PER_PAGE,
+    },
+  });
+};
 
 const confirmUser = async () => {
   isConfirmationModalActive.value = false;

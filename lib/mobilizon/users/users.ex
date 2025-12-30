@@ -133,6 +133,17 @@ defmodule Mobilizon.Users do
   end
 
   @doc """
+  Get a user by their default actor ID.
+  Used to restore the user-actor relationship during unsuspension.
+  """
+  @spec get_user_by_default_actor_id(integer | String.t()) :: User.t() | nil
+  def get_user_by_default_actor_id(actor_id) do
+    User
+    |> where([u], u.default_actor_id == ^actor_id)
+    |> Repo.one()
+  end
+
+  @doc """
   Updates an user.
   """
   @spec update_user(User.t(), map) :: {:ok, User.t()} | {:error, Ecto.Changeset.t()}
@@ -270,11 +281,16 @@ defmodule Mobilizon.Users do
 
   @doc """
   Gets actors for an user.
+
+  Options:
+  - `include_suspended`: Include suspended actors (default: false)
   """
-  @spec get_actors_for_user(User.t()) :: [Actor.t()]
-  def get_actors_for_user(%User{} = user) do
+  @spec get_actors_for_user(User.t(), Keyword.t()) :: [Actor.t()]
+  def get_actors_for_user(%User{} = user, opts \\ []) do
+    include_suspended = Keyword.get(opts, :include_suspended, false)
+    
     user
-    |> actors_for_user_query()
+    |> actors_for_user_query(include_suspended)
     |> Repo.all()
   end
 
@@ -534,9 +550,13 @@ defmodule Mobilizon.Users do
     )
   end
 
-  @spec actors_for_user_query(User.t()) :: Ecto.Query.t()
-  defp actors_for_user_query(%User{id: user_id}) do
+  @spec actors_for_user_query(User.t(), boolean()) :: Ecto.Query.t()
+  defp actors_for_user_query(%User{id: user_id}, true = _include_suspended) do
     from(a in Actor, where: a.user_id == ^user_id)
+  end
+
+  defp actors_for_user_query(%User{id: user_id}, false = _include_suspended) do
+    from(a in Actor, where: a.user_id == ^user_id and a.suspended == false)
   end
 
   @spec update_user_default_actor_query(integer | String.t()) ::

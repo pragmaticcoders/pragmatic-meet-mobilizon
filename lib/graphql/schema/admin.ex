@@ -47,6 +47,8 @@ defmodule Mobilizon.GraphQL.Schema.AdminType do
     value(:actor_suspension, description: "An actor was suspended")
     value(:actor_unsuspension, description: "An actor was unsuspended")
     value(:user_deletion, description: "An user was deleted")
+    value(:user_suspension, description: "A user account was suspended")
+    value(:user_unsuspension, description: "A user account was unsuspended")
   end
 
   @desc "The objects that can be in an action log"

@@ -21,20 +21,67 @@ defmodule Mobilizon.Service.ActorSuspension do
   import Ecto.Query
 
   @actor_preloads [:user, :organized_events, :participations, :comments]
-  @delete_actor_default_options [reserve_username: true, suspension: false]
+  @delete_actor_default_options [reserve_username: true, suspension: false, soft_suspend: false]
   @valid_actor_types [:Person, :Group]
 
   @doc """
-  Deletes an actor.
+  Deletes or suspends an actor.
+
+  Options:
+  - `reserve_username`: Keep the username reserved (default: true)
+  - `suspension`: Send suspension notifications (default: false)
+  - `soft_suspend`: Only mark as suspended without deleting data (default: false)
+    When true for Person actors, preserves user_id, profile data, and content.
   """
   @spec suspend_actor(Actor.t(), Keyword.t()) :: {:ok, Actor.t()} | {:error, Ecto.Changeset.t()}
   def suspend_actor(%Actor{} = actor, options \\ @delete_actor_default_options) do
-    Logger.info("Going to delete actor #{actor.url}")
+    Logger.info("Going to suspend/delete actor #{actor.url}")
     actor = Repo.preload(actor, @actor_preloads)
 
     delete_actor_options = Keyword.merge(@delete_actor_default_options, options)
     Logger.debug(inspect(delete_actor_options))
 
+    # Check if we should use soft suspension (for Person actors in single-profile mode)
+    use_soft_suspend = 
+      actor.type == :Person and Keyword.get(delete_actor_options, :soft_suspend, false)
+
+    if use_soft_suspend do
+      # Soft suspension: only mark as suspended, preserve all data and relationships
+      Logger.info("Using soft suspension for Person actor #{actor.url}")
+      do_soft_suspend(actor, delete_actor_options)
+    else
+      # Full suspension: delete content and clear profile data
+      do_full_suspend(actor, delete_actor_options)
+    end
+  end
+
+  # Soft suspension - only marks the actor as suspended without deleting any data
+  @spec do_soft_suspend(Actor.t(), Keyword.t()) :: {:ok, Actor.t()} | {:error, Ecto.Changeset.t()}
+  defp do_soft_suspend(%Actor{} = actor, options) do
+    # Only send suspension notifications if explicitly requested
+    if Keyword.get(options, :suspension, false) do
+      send_suspension_notification(actor)
+    end
+
+    multi =
+      Multi.new()
+      |> Multi.update(:actor, Actor.suspend_changeset(actor))
+
+    case Repo.transaction(multi) do
+      {:ok, %{actor: %Actor{} = actor}} ->
+        {:ok, true} = Cachex.del(:activity_pub, "actor_#{actor.preferred_username}")
+        Logger.info("Soft suspended actor #{actor.url}")
+        {:ok, actor}
+
+      {:error, _step, error, _} ->
+        Logger.error("Error while soft suspending actor: #{inspect(error)}")
+        {:error, error}
+    end
+  end
+
+  # Full suspension - deletes content and clears profile data (original behavior)
+  @spec do_full_suspend(Actor.t(), Keyword.t()) :: {:ok, Actor.t()} | {:error, Ecto.Changeset.t()}
+  defp do_full_suspend(%Actor{} = actor, delete_actor_options) do
     # Only send suspension notifications if we actually are suspending the actor
     if Keyword.get(delete_actor_options, :suspension, false) do
       send_suspension_notification(actor)
@@ -68,13 +115,13 @@ defmodule Mobilizon.Service.ActorSuspension do
         Multi.delete(multi, :actor, actor)
       end
 
-    Logger.debug("Going to run the transaction")
+    Logger.debug("Going to run the full suspension transaction")
 
     case Repo.transaction(multi, timeout: 60_000) do
       {:ok, %{actor: %Actor{} = actor}} ->
         {:ok, true} = Cachex.del(:activity_pub, "actor_#{actor.preferred_username}")
         Cachable.clear_all_caches(actor)
-        Logger.info("Deleted actor #{actor.url}")
+        Logger.info("Full suspended/deleted actor #{actor.url}")
         {:ok, actor}
 
       {:error, remove, error, _} when remove in [:remove_banner, :remove_avatar] ->

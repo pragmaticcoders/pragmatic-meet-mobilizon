@@ -16,6 +16,8 @@ defmodule Mobilizon.Service.Auth.MobilizonAuthenticator do
     with {:user, %User{password_hash: password_hash, provider: nil} = user}
          when not is_nil(password_hash) <-
            {:user, fetch_user(email)},
+         {:not_disabled, false} <- {:not_disabled, user.disabled},
+         {:not_suspended, false} <- {:not_suspended, user.suspended},
          {:acceptable_password, true} <-
            {:acceptable_password, not (is_nil(password) || password == "")},
          {:checkpw, true} <- {:checkpw, Argon2.verify_pass(password, password_hash)} do
@@ -27,6 +29,12 @@ defmodule Mobilizon.Service.Auth.MobilizonAuthenticator do
 
       {:user, {:error, :user_not_found}} ->
         {:error, :user_not_found}
+
+      {:not_disabled, true} ->
+        {:error, :disabled_user}
+
+      {:not_suspended, true} ->
+        {:error, :suspended_user}
 
       {:acceptable_password, false} ->
         {:error, :bad_password}

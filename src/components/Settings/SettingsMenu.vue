@@ -52,10 +52,6 @@
         />
         <SettingMenuItem :title="t('Users')" :to="{ name: RouteName.USERS }" />
         <SettingMenuItem
-          :title="t('Profiles')"
-          :to="{ name: RouteName.PROFILES }"
-        />
-        <SettingMenuItem
           :title="t('Groups')"
           :to="{ name: RouteName.ADMIN_GROUPS }"
         />

@@ -734,6 +734,15 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
     }
     """
 
+    @unsuspend_profile_mutation """
+    mutation UnsuspendProfile($id: ID!) {
+      unsuspendProfile(id: $id) {
+        id
+        suspended
+      }
+    }
+    """
+
     @person_query """
     query Person($id: ID!) {
         person(id: $id) {
@@ -818,7 +827,8 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
           variables: %{id: profile_id}
         )
 
-      assert hd(res["errors"])["message"] == "No remote profile found with this ID"
+      # Local profiles should be suspended via user account, not directly
+      assert hd(res["errors"])["message"] == "Local profiles cannot be suspended directly. Suspend the user account instead."
     end
 
     test "doesn't suspend if user is not at least moderator", %{conn: conn} do
@@ -836,6 +846,106 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
 
       assert hd(res["errors"])["message"] ==
                "You don't have permission to do this"
+    end
+  end
+
+  describe "unsuspend_profile/3" do
+    test "unsuspends a remote profile", %{conn: conn} do
+      modo = insert(:user, role: :moderator)
+      %Actor{id: modo_actor_id} = insert(:actor, user: modo)
+      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
+
+      res =
+        conn
+        |> auth_conn(modo)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_profile_mutation,
+          variables: %{id: remote_profile_id}
+        )
+
+      assert is_nil(res["errors"])
+      assert res["data"]["unsuspendProfile"]["id"] == to_string(remote_profile_id)
+      assert res["data"]["unsuspendProfile"]["suspended"] == false
+
+      res =
+        conn
+        |> auth_conn(modo)
+        |> AbsintheHelpers.graphql_query(query: @moderation_logs_query)
+
+      actionlog = hd(res["data"]["actionLogs"]["elements"])
+      refute is_nil(actionlog)
+      assert actionlog["action"] == "ACTOR_UNSUSPENSION"
+      assert actionlog["actor"]["id"] == to_string(modo_actor_id)
+      assert actionlog["object"]["id"] == to_string(remote_profile_id)
+    end
+
+    test "restores user_id when unsuspending a local person with broken relationship", %{conn: conn} do
+      modo = insert(:user, role: :moderator)
+      %Actor{} = insert(:actor, user: modo)
+      
+      # Create a user with an actor, then simulate broken relationship
+      user = insert(:user)
+      %Actor{id: actor_id} = actor = insert(:actor, user: user, suspended: true)
+      
+      # Explicitly set default_actor_id on user (simulating what would happen in production)
+      {:ok, user} = Mobilizon.Users.update_user(user, %{default_actor_id: actor_id})
+      
+      # Simulate the broken state: actor has user_id = nil but user has default_actor_id = actor_id
+      # This happens when old-style suspension cleared user_id
+      Mobilizon.Storage.Repo.update!(Ecto.Changeset.change(actor, %{user_id: nil}))
+      
+      # Verify the broken state
+      broken_actor = Mobilizon.Actors.get_actor(actor_id)
+      assert broken_actor.user_id == nil
+      assert user.default_actor_id == actor_id
+
+      res =
+        conn
+        |> auth_conn(modo)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_profile_mutation,
+          variables: %{id: actor_id}
+        )
+
+      assert is_nil(res["errors"])
+      assert res["data"]["unsuspendProfile"]["suspended"] == false
+
+      # Verify user_id was restored
+      restored_actor = Mobilizon.Actors.get_actor(actor_id)
+      assert restored_actor.user_id == user.id
+    end
+
+    test "doesn't unsuspend if user is not at least moderator", %{conn: conn} do
+      fake_modo = insert(:user)
+      %Actor{} = insert(:actor, user: fake_modo)
+      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
+
+      res =
+        conn
+        |> auth_conn(fake_modo)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_profile_mutation,
+          variables: %{id: remote_profile_id}
+        )
+
+      assert hd(res["errors"])["message"] ==
+               "You don't have permission to do this"
+    end
+
+    test "doesn't unsuspend if profile is not suspended", %{conn: conn} do
+      modo = insert(:user, role: :moderator)
+      %Actor{} = insert(:actor, user: modo)
+      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: false)
+
+      res =
+        conn
+        |> auth_conn(modo)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_profile_mutation,
+          variables: %{id: remote_profile_id}
+        )
+
+      assert hd(res["errors"])["message"] == "Profile is not suspended"
     end
   end
 end

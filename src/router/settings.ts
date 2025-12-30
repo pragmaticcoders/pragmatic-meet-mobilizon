@@ -149,19 +149,18 @@ export const settingsRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        // Profiles list redirects to users list (single-profile mode)
         path: "admin/profiles",
         name: SettingsRouteName.PROFILES,
-        component: (): Promise<any> => import("@/views/Admin/ProfilesView.vue"),
-        props: true,
-        meta: {
-          requiredAuth: true,
-          announcer: { message: (): string => t("Profiles") as string },
-        },
+        redirect: { name: SettingsRouteName.USERS },
+        meta: { requiredAuth: true, announcer: { skip: true } },
       },
       {
+        // Profile details redirects to user details via lookup component
         path: "admin/profiles/:id",
         name: SettingsRouteName.ADMIN_PROFILE,
-        component: (): Promise<any> => import("@/views/Admin/AdminProfile.vue"),
+        component: (): Promise<any> =>
+          import("@/views/Admin/AdminProfileRedirect.vue"),
         props: true,
         meta: { requiredAuth: true, announcer: { skip: true } },
       },

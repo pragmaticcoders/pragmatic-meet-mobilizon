@@ -494,6 +494,7 @@ export const SUSPEND_PROFILE = gql`
   mutation SuspendProfile($id: ID!) {
     suspendProfile(id: $id) {
       id
+      suspended
     }
   }
 `;
@@ -501,6 +502,15 @@ export const SUSPEND_PROFILE = gql`
 export const UNSUSPEND_PROFILE = gql`
   mutation UnSuspendProfile($id: ID!) {
     unsuspendProfile(id: $id) {
+      id
+      suspended
+    }
+  }
+`;
+
+export const ADMIN_DELETE_GROUP = gql`
+  mutation AdminDeleteGroup($id: ID!) {
+    adminDeleteGroup(id: $id) {
       id
     }
   }

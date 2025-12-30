@@ -250,6 +250,36 @@ defmodule Mobilizon.ActorsTest do
       assert {:error, %Ecto.Changeset{}} = Actors.create_actor(@invalid_attrs)
     end
 
+    test "suspend_changeset/1 only sets suspended flag without clearing data", %{
+      actor: %Actor{} = actor
+    } do
+      changeset = Actor.suspend_changeset(actor)
+      
+      # Should only change suspended to true
+      assert Ecto.Changeset.get_change(changeset, :suspended) == true
+      
+      # Should NOT change user_id, name, summary, avatar, banner
+      assert is_nil(Ecto.Changeset.get_change(changeset, :user_id))
+      assert is_nil(Ecto.Changeset.get_change(changeset, :name))
+      assert is_nil(Ecto.Changeset.get_change(changeset, :summary))
+      assert is_nil(Ecto.Changeset.get_change(changeset, :avatar))
+      assert is_nil(Ecto.Changeset.get_change(changeset, :banner))
+    end
+
+    test "delete_changeset/1 clears data and user_id", %{
+      actor: %Actor{} = actor
+    } do
+      changeset = Actor.delete_changeset(actor)
+      
+      # Should set suspended to true AND clear other fields
+      assert Ecto.Changeset.get_change(changeset, :suspended) == true
+      assert Ecto.Changeset.get_change(changeset, :user_id) == nil
+      assert Ecto.Changeset.get_change(changeset, :name) == nil
+      assert Ecto.Changeset.get_change(changeset, :summary) == nil
+      assert Ecto.Changeset.get_change(changeset, :avatar) == nil
+      assert Ecto.Changeset.get_change(changeset, :banner) == nil
+    end
+
     test "update_actor/2 with valid data updates the actor", %{
       actor: %Actor{} = actor
     } do

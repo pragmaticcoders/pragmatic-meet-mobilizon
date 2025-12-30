@@ -96,6 +96,9 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
       {:error, :disabled_user} ->
         {:error, dgettext("errors", "This user has been disabled")}
 
+      {:error, :suspended_user} ->
+        {:error, dgettext("errors", "This account has been suspended")}
+
       {:error, _error} ->
         {:error,
          dgettext(
@@ -586,16 +589,18 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     end
   end
 
-  def delete_account(_parent, %{user_id: user_id}, %{
+  def delete_account(_parent, %{user_id: user_id} = args, %{
         context: %{
           current_user: %User{role: role},
           current_actor: %Actor{} = moderator_actor
         }
       })
       when is_moderator(role) do
+    permanent = Map.get(args, :permanent, false)
+    
     with %User{disabled: false} = user <- Users.get_user(user_id),
          {:ok, %User{}} <-
-           do_delete_account(%User{} = user) do
+           do_delete_account(%User{} = user, reserve_email: not permanent) do
       Admin.log_action(moderator_actor, "delete", user)
       {:ok, %{id: to_string(user.id)}}
     else
@@ -630,8 +635,101 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     {:error, dgettext("errors", "You need to be logged-in to delete your account")}
   end
 
+  @doc """
+  Suspend a user account. Only moderators and administrators can do this.
+  Suspended users cannot log in but their data is preserved and can be restored.
+  """
+  @spec suspend_user(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, User.t()} | {:error, String.t()}
+  def suspend_user(_parent, %{user_id: user_id}, %{
+        context: %{
+          current_user: %User{role: role},
+          current_actor: %Actor{} = moderator_actor
+        }
+      })
+      when is_moderator(role) do
+    with %User{suspended: false, disabled: false} = user <- Users.get_user(user_id),
+         {:ok, %User{} = updated_user} <- Users.update_user(user, %{suspended: true}),
+         # Also suspend the user's actors
+         :ok <- suspend_user_actors(user),
+         {:ok, _} <- Admin.log_action(moderator_actor, "suspend", user) do
+      {:ok, updated_user}
+    else
+      %User{suspended: true} ->
+        {:error, dgettext("errors", "User is already suspended")}
+
+      %User{disabled: true} ->
+        {:error, dgettext("errors", "User has been deleted")}
+
+      nil ->
+        {:error, dgettext("errors", "User not found")}
+
+      {:error, error} ->
+        {:error, inspect(error)}
+    end
+  end
+
+  def suspend_user(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "Only moderators and administrators can suspend users")}
+  end
+
+  @doc """
+  Unsuspend a user account. Only moderators and administrators can do this.
+  """
+  @spec unsuspend_user(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, User.t()} | {:error, String.t()}
+  def unsuspend_user(_parent, %{user_id: user_id}, %{
+        context: %{
+          current_user: %User{role: role},
+          current_actor: %Actor{} = moderator_actor
+        }
+      })
+      when is_moderator(role) do
+    with %User{suspended: true} = user <- Users.get_user(user_id),
+         {:ok, %User{} = updated_user} <- Users.update_user(user, %{suspended: false}),
+         # Also unsuspend the user's actors
+         :ok <- unsuspend_user_actors(user),
+         {:ok, _} <- Admin.log_action(moderator_actor, "unsuspend", user) do
+      {:ok, updated_user}
+    else
+      %User{suspended: false} ->
+        {:error, dgettext("errors", "User is not suspended")}
+
+      nil ->
+        {:error, dgettext("errors", "User not found")}
+
+      {:error, error} ->
+        {:error, inspect(error)}
+    end
+  end
+
+  def unsuspend_user(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "Only moderators and administrators can unsuspend users")}
+  end
+
+  # Suspend all actors belonging to a user
+  @spec suspend_user_actors(User.t()) :: :ok
+  defp suspend_user_actors(%User{} = user) do
+    actors = Users.get_actors_for_user(user)
+    Enum.each(actors, fn actor ->
+      Actors.update_actor(actor, %{suspended: true})
+    end)
+    :ok
+  end
+
+  # Unsuspend all actors belonging to a user
+  @spec unsuspend_user_actors(User.t()) :: :ok
+  defp unsuspend_user_actors(%User{} = user) do
+    # Get all actors including suspended ones
+    actors = Users.get_actors_for_user(user, include_suspended: true)
+    Enum.each(actors, fn actor ->
+      Actors.update_actor(actor, %{suspended: false})
+    end)
+    :ok
+  end
+
   @spec do_delete_account(User.t(), Keyword.t()) :: {:ok, User.t()}
-  defp do_delete_account(%User{} = user, options \\ []) do
+  defp do_delete_account(%User{} = user, options) do
     with actors <- Users.get_actors_for_user(user),
          activated <- not is_nil(user.confirmed_at),
          # Detach actors from user

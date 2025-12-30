@@ -81,7 +81,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Person do
       )
       when is_moderator(role) do
     {:ok,
-     Actors.list_actors(:Person, preferred_username, name, domain, local, suspended, page, limit)}
+     Actors.list_actors(:Person, preferred_username, name, domain, local, suspended, nil, page, limit)}
   end
 
   def list_persons(_parent, _args, %{

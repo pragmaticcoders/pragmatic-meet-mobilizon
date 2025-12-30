@@ -63,18 +63,25 @@ defmodule Mobilizon.GraphQL.Schema.ActorInterface do
   end
 
   object :actor_mutations do
-    @desc "Suspend an actor"
-    field :suspend_profile, :deleted_object do
-      arg(:id, non_null(:id), description: "The remote profile ID to suspend")
+    @desc "Suspend a group (soft suspend - preserves data). Person profiles cannot be suspended directly."
+    field :suspend_profile, :actor do
+      arg(:id, non_null(:id), description: "The group ID to suspend")
       middleware(Rajska.QueryAuthorization, permit: :moderator, scope: false)
       resolve(&ActorResolver.suspend_profile/3)
     end
 
-    @desc "Unsuspend an actor"
+    @desc "Unsuspend a group"
     field :unsuspend_profile, :actor do
-      arg(:id, non_null(:id), description: "The remote profile ID to unsuspend")
+      arg(:id, non_null(:id), description: "The group ID to unsuspend")
       middleware(Rajska.QueryAuthorization, permit: :moderator, scope: false)
       resolve(&ActorResolver.unsuspend_profile/3)
+    end
+
+    @desc "Permanently delete a group and all its data (admin/moderator only)"
+    field :admin_delete_group, :deleted_object do
+      arg(:id, non_null(:id), description: "The group ID to permanently delete")
+      middleware(Rajska.QueryAuthorization, permit: :moderator, scope: false)
+      resolve(&ActorResolver.admin_delete_group/3)
     end
 
     @desc "Refresh a profile"
