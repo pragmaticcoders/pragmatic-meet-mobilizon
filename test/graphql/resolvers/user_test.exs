@@ -1719,4 +1719,159 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
       assert hd(res["errors"])["message"] == "You need to be logged in"
     end
   end
+
+  describe "Resolver: Admin suspends and unsuspends users" do
+    @suspend_user_mutation """
+    mutation SuspendUser($userId: ID!) {
+      suspendUser(userId: $userId) {
+        id
+        email
+        suspended
+      }
+    }
+    """
+
+    @unsuspend_user_mutation """
+    mutation UnsuspendUser($userId: ID!) {
+      unsuspendUser(userId: $userId) {
+        id
+        email
+        suspended
+      }
+    }
+    """
+
+    test "suspend_user/3 as admin suspends a user", %{conn: conn} do
+      admin = insert(:user, role: :administrator)
+      insert(:actor, user: admin)
+      target_user = insert(:user)
+      target_actor = insert(:actor, user: target_user)
+
+      res =
+        conn
+        |> auth_conn(admin)
+        |> AbsintheHelpers.graphql_query(
+          query: @suspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      assert is_nil(res["errors"])
+      assert res["data"]["suspendUser"]["id"] == to_string(target_user.id)
+      assert res["data"]["suspendUser"]["suspended"] == true
+
+      # User should be suspended in database
+      assert Users.get_user!(target_user.id).suspended == true
+
+      # Actor should also be suspended
+      assert Actors.get_actor!(target_actor.id).suspended == true
+    end
+
+    test "suspend_user/3 as moderator suspends a user", %{conn: conn} do
+      moderator = insert(:user, role: :moderator)
+      insert(:actor, user: moderator)
+      target_user = insert(:user)
+
+      res =
+        conn
+        |> auth_conn(moderator)
+        |> AbsintheHelpers.graphql_query(
+          query: @suspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      assert is_nil(res["errors"])
+      assert res["data"]["suspendUser"]["suspended"] == true
+    end
+
+    test "suspend_user/3 fails for regular user", %{conn: conn} do
+      regular_user = insert(:user, role: :user)
+      insert(:actor, user: regular_user)
+      target_user = insert(:user)
+
+      res =
+        conn
+        |> auth_conn(regular_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @suspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      # Rajska middleware intercepts and returns permission error
+      assert hd(res["errors"])["message"] == "You don't have permission to do this"
+    end
+
+    test "suspend_user/3 fails for already suspended user", %{conn: conn} do
+      admin = insert(:user, role: :administrator)
+      insert(:actor, user: admin)
+      target_user = insert(:user, suspended: true)
+
+      res =
+        conn
+        |> auth_conn(admin)
+        |> AbsintheHelpers.graphql_query(
+          query: @suspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      assert hd(res["errors"])["message"] == "User is already suspended"
+    end
+
+    test "unsuspend_user/3 as admin unsuspends a user", %{conn: conn} do
+      admin = insert(:user, role: :administrator)
+      insert(:actor, user: admin)
+      target_user = insert(:user, suspended: true)
+      target_actor = insert(:actor, user: target_user, suspended: true)
+
+      res =
+        conn
+        |> auth_conn(admin)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      assert is_nil(res["errors"])
+      assert res["data"]["unsuspendUser"]["id"] == to_string(target_user.id)
+      assert res["data"]["unsuspendUser"]["suspended"] == false
+
+      # User should be unsuspended in database
+      assert Users.get_user!(target_user.id).suspended == false
+
+      # Actor should also be unsuspended
+      assert Actors.get_actor!(target_actor.id).suspended == false
+    end
+
+    test "unsuspend_user/3 fails for non-suspended user", %{conn: conn} do
+      admin = insert(:user, role: :administrator)
+      insert(:actor, user: admin)
+      target_user = insert(:user, suspended: false)
+
+      res =
+        conn
+        |> auth_conn(admin)
+        |> AbsintheHelpers.graphql_query(
+          query: @unsuspend_user_mutation,
+          variables: %{userId: target_user.id}
+        )
+
+      assert hd(res["errors"])["message"] == "User is not suspended"
+    end
+
+    test "suspended user cannot login", %{conn: conn} do
+      suspended_user = insert(:user, suspended: true, password: "testpassword")
+      
+      # Need to create the password hash
+      {:ok, user_with_password} = Users.update_user(suspended_user, %{password: "testpassword123"})
+      Users.update_user(user_with_password, %{suspended: true})
+
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(
+          query: @login_mutation,
+          variables: %{email: suspended_user.email, password: "testpassword123"}
+        )
+
+      assert hd(res["errors"])["message"] == "This account has been suspended"
+    end
+  end
 end

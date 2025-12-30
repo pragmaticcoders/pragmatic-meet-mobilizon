@@ -114,6 +114,25 @@ defmodule Mobilizon.UsersTest do
 
       assert {:ok, %User{}} = Users.get_user_by_email(@unconfirmed_email, unconfirmed: true)
     end
+
+    test "get_user_by_default_actor_id/1 finds a user by their default actor" do
+      user = insert(:user)
+      actor = insert(:actor, user: user)
+      
+      # Update user to have this actor as default
+      {:ok, user} = Users.update_user(user, %{default_actor_id: actor.id})
+
+      # Should find the user by their default actor id
+      found_user = Users.get_user_by_default_actor_id(actor.id)
+      assert found_user.id == user.id
+
+      # Should return nil for non-existent actor id
+      assert is_nil(Users.get_user_by_default_actor_id(999999))
+
+      # Should return nil for an actor that is not anyone's default
+      other_actor = insert(:actor)
+      assert is_nil(Users.get_user_by_default_actor_id(other_actor.id))
+    end
   end
 
   describe "user_settings" do

@@ -61,7 +61,7 @@
         </tr>
       </tbody>
     </table>
-    <div class="flex gap-1 flex-wrap">
+    <div class="flex gap-2 flex-wrap">
       <!-- Approval/Rejection buttons -->
       <o-button
         @click="approveGroup"
@@ -77,25 +77,29 @@
         >{{ t("Reject Group") }}</o-button
       >
 
-      <!-- Suspend/Unsuspend buttons -->
+      <!-- Suspend/Unsuspend buttons (soft suspend - preserves data) -->
       <o-button
-        @click="confirmSuspendProfile"
-        v-if="!group.suspended"
-        variant="primary"
-        >{{ t("Suspend") }}</o-button
+        @click="confirmSuspendGroup"
+        v-if="!group.suspended && !group.domain"
+        variant="warning"
+        >{{ t("Suspend group") }}</o-button
       >
       <o-button
-        @click="
-          unsuspendProfile({
-            id,
-          })
-        "
+        @click="confirmUnsuspendGroup"
         v-if="group.suspended"
-        variant="primary"
-        >{{ t("Unsuspend") }}</o-button
+        variant="success"
+        >{{ t("Unsuspend group") }}</o-button
       >
 
-      <!-- Refresh button -->
+      <!-- Delete button (permanent deletion) -->
+      <o-button
+        @click="confirmDeleteGroup"
+        v-if="!group.domain"
+        variant="danger"
+        >{{ t("Delete group permanently") }}</o-button
+      >
+
+      <!-- Refresh button (remote groups) -->
       <o-button
         @click="
           refreshProfile({
@@ -107,6 +111,19 @@
         outlined
         >{{ t("Refresh profile") }}</o-button
       >
+
+      <!-- Suspend remote group (actually deletes local copy) -->
+      <o-button
+        @click="confirmSuspendRemoteGroup"
+        v-if="group.domain && !group.suspended"
+        variant="danger"
+        >{{ t("Remove from instance") }}</o-button
+      >
+    </div>
+    
+    <!-- Status alerts -->
+    <div v-if="group.suspended" class="mt-4 p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg" role="alert">
+      {{ t("This group is suspended. Members cannot access the group, but all data is preserved.") }}
     </div>
     <section>
       <h2>
@@ -355,7 +372,7 @@ import {
 } from "@/graphql/group";
 import { formatBytes } from "@/utils/datetime";
 import { MemberRole } from "@/types/enums";
-import { SUSPEND_PROFILE, UNSUSPEND_PROFILE } from "../../graphql/actor";
+import { SUSPEND_PROFILE, UNSUSPEND_PROFILE, ADMIN_DELETE_GROUP } from "../../graphql/actor";
 import { IGroup } from "../../types/actor";
 import {
   usernameWithDomain,
@@ -365,9 +382,9 @@ import {
 import RouteName from "../../router/name";
 import ActorCard from "../../components/Account/ActorCard.vue";
 import EmptyContent from "../../components/Utils/EmptyContent.vue";
-import { ApolloCache, FetchResult } from "@apollo/client/core";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { computed, inject } from "vue";
+import { useRouter } from "vue-router";
 import { useHead } from "@/utils/head";
 import { integerTransformer, useRouteQuery } from "vue-use-route-query";
 import { useI18n } from "vue-i18n";
@@ -464,76 +481,116 @@ const metadata = computed((): Array<Record<string, string>> => {
   return res;
 });
 
+const router = useRouter();
 const dialog = inject<Dialog>("dialog");
 const notifier = inject<Notifier>("notifier");
 
-const confirmSuspendProfile = (): void => {
-  const message = group.value.domain
-    ? t(
-        "Are you sure you want to <b>suspend</b> this group? As this group originates from instance {instance}, this will only remove local members and delete the local data, as well as rejecting all the future data.",
-        { instance: group.value.domain }
-      )
-    : t(
-        "Are you sure you want to <b>suspend</b> this group? All members - including remote ones - will be notified and removed from the group, and <b>all of the group data (events, posts, discussions, todos…) will be irretrievably destroyed</b>."
-      );
-
+// Soft suspend local group (preserves data)
+const confirmSuspendGroup = (): void => {
   dialog?.confirm({
-    title: t("Suspend group"),
-    message,
+    title: t("Suspend group?"),
+    message: t(
+      "Do you want to suspend this group? Members will not be able to access the group, but all data will be preserved and can be restored later."
+    ),
     confirmText: t("Suspend group"),
+    cancelText: t("Cancel"),
+    variant: "warning",
+    hasIcon: true,
+    onConfirm: async () => {
+      await suspendProfile({ id: props.id });
+      notifier?.success(t("Group suspended successfully"));
+    },
+  });
+};
+
+// Unsuspend group
+const confirmUnsuspendGroup = (): void => {
+  dialog?.confirm({
+    title: t("Unsuspend group?"),
+    message: t(
+      "Do you want to unsuspend this group? Members will be able to access the group again."
+    ),
+    confirmText: t("Unsuspend group"),
+    cancelText: t("Cancel"),
+    variant: "success",
+    hasIcon: true,
+    onConfirm: async () => {
+      await unsuspendProfile({ id: props.id });
+      notifier?.success(t("Group unsuspended successfully"));
+    },
+  });
+};
+
+// Permanently delete local group
+const confirmDeleteGroup = (): void => {
+  dialog?.confirm({
+    title: t("Delete group permanently?"),
+    message: t(
+      "Are you sure you want to <b>permanently delete</b> this group? All members will be notified and removed, and <b>all group data (events, posts, discussions, resources…) will be irretrievably destroyed</b>. This action cannot be undone!"
+    ),
+    confirmText: t("Delete permanently"),
     cancelText: t("Cancel"),
     variant: "danger",
     hasIcon: true,
-    onConfirm: () =>
-      suspendProfile({
-        id: props.id,
-      }),
+    onConfirm: async () => {
+      await adminDeleteGroup({ id: props.id });
+      notifier?.success(t("Group deleted permanently"));
+      router.push({ name: RouteName.ADMIN_GROUPS });
+    },
+  });
+};
+
+// Suspend/remove remote group (deletes local copy)
+const confirmSuspendRemoteGroup = (): void => {
+  dialog?.confirm({
+    title: t("Remove remote group from instance?"),
+    message: t(
+      "Are you sure you want to remove this remote group from your instance? As this group originates from instance {instance}, this will only remove local members and delete the local data, as well as rejecting all future data from this group.",
+      { instance: group.value.domain }
+    ),
+    confirmText: t("Remove from instance"),
+    cancelText: t("Cancel"),
+    variant: "danger",
+    hasIcon: true,
+    onConfirm: async () => {
+      await suspendProfile({ id: props.id });
+      notifier?.success(t("Remote group removed from instance"));
+    },
   });
 };
 
 const { mutate: suspendProfile, onError: onSuspendProfileError } = useMutation<{
-  suspendProfile: { id: string };
+  suspendProfile: { id: string; suspended: boolean };
 }>(SUSPEND_PROFILE, () => ({
-  update: (
-    store: ApolloCache<{ suspendProfile: { id: string } }>,
-    { data }: FetchResult
-  ) => {
-    if (data == null) return;
-    const profileId = props.id;
-
-    const profileData = store.readQuery<{ getGroup: IGroup }>({
+  refetchQueries: [
+    {
       query: GET_GROUP,
       variables: {
-        id: profileId,
+        id: props.id,
         organizedEventsPage: organizedEventsPage.value,
         organizedEventsLimit: EVENTS_PER_PAGE,
         postsPage: postsPage.value,
         postsLimit: POSTS_PER_PAGE,
+        membersLimit: MEMBERS_PER_PAGE,
+        membersPage: membersPage.value,
       },
-    });
-
-    if (!profileData) return;
-    store.writeQuery({
-      query: GET_GROUP,
-      variables: {
-        id: profileId,
-      },
-      data: {
-        getGroup: {
-          ...profileData.getGroup,
-          suspended: true,
-          avatar: null,
-          name: "",
-          summary: "",
-        },
-      },
-    });
-  },
+    },
+  ],
 }));
 
 onSuspendProfileError((e) => {
   console.error(e);
   notifier?.error(t("Error while suspending group"));
+});
+
+// Admin delete group mutation
+const { mutate: adminDeleteGroup, onError: onAdminDeleteGroupError } = useMutation<{
+  adminDeleteGroup: { id: string };
+}>(ADMIN_DELETE_GROUP);
+
+onAdminDeleteGroupError((e) => {
+  console.error(e);
+  notifier?.error(t("Error while deleting group"));
 });
 
 const { mutate: unsuspendProfile, onError: onUnsuspendProfileError } =

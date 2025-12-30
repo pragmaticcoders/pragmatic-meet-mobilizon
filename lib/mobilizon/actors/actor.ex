@@ -323,6 +323,17 @@ defmodule Mobilizon.Actors.Actor do
   end
 
   @doc """
+  Soft suspension changeset - only marks as suspended without clearing data.
+  Used for single-profile systems where we want to preserve the user-actor relationship.
+  """
+  @spec suspend_changeset(t) :: Ecto.Changeset.t()
+  def suspend_changeset(%__MODULE__{} = actor) do
+    actor
+    |> change()
+    |> put_change(:suspended, true)
+  end
+
+  @doc """
   Changeset for person registration.
   """
   @spec registration_changeset(t | Ecto.Schema.t(), map) :: Ecto.Changeset.t()

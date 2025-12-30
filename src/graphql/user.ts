@@ -94,8 +94,28 @@ export const DELETE_ACCOUNT = gql`
 `;
 
 export const SUSPEND_USER = gql`
-  mutation SuspendUser($userId: ID) {
-    deleteAccount(userId: $userId) {
+  mutation SuspendUser($userId: ID!) {
+    suspendUser(userId: $userId) {
+      id
+      email
+      suspended
+    }
+  }
+`;
+
+export const UNSUSPEND_USER = gql`
+  mutation UnsuspendUser($userId: ID!) {
+    unsuspendUser(userId: $userId) {
+      id
+      email
+      suspended
+    }
+  }
+`;
+
+export const DELETE_USER = gql`
+  mutation DeleteUser($userId: ID!, $permanent: Boolean) {
+    deleteAccount(userId: $userId, permanent: $permanent) {
       id
     }
   }
@@ -319,7 +339,15 @@ export const LIST_USERS = gql`
 `;
 
 export const GET_USER = gql`
-  query GetUser($id: ID!) {
+  query GetUser(
+    $id: ID!
+    $organizedEventsPage: Int
+    $organizedEventsLimit: Int
+    $participationsPage: Int
+    $participationsLimit: Int
+    $membershipsPage: Int
+    $membershipsLimit: Int
+  ) {
     user(id: $id) {
       id
       email
@@ -331,11 +359,61 @@ export const GET_USER = gql`
       currentSignInAt
       locale
       disabled
+      suspended
       mediaSize
       marketingConsent
       marketingConsentUpdatedAt
       defaultActor {
-        id
+        ...ActorFragment
+        suspended
+        mediaSize
+        avatar {
+          uuid
+          name
+          url
+          alt
+        }
+        banner {
+          uuid
+          url
+        }
+        organizedEvents(
+          page: $organizedEventsPage
+          limit: $organizedEventsLimit
+        ) {
+          total
+          elements {
+            id
+            uuid
+            title
+            beginsOn
+            status
+          }
+        }
+        participations(page: $participationsPage, limit: $participationsLimit) {
+          total
+          elements {
+            id
+            event {
+              id
+              uuid
+              title
+              beginsOn
+              status
+            }
+          }
+        }
+        memberships(page: $membershipsPage, limit: $membershipsLimit) {
+          total
+          elements {
+            id
+            role
+            insertedAt
+            parent {
+              ...ActorFragment
+            }
+          }
+        }
       }
       actors {
         ...ActorFragment

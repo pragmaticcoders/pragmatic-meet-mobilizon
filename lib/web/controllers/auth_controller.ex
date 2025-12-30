@@ -6,7 +6,6 @@ defmodule Mobilizon.Web.AuthController do
   alias Mobilizon.Users.User
   alias Mobilizon.Actors
   alias Mobilizon.Actors.Actor
-  alias Mobilizon.Storage.Repo
   alias Mobilizon.Web.OAuth.LinkedInOAuth
   alias Mobilizon.Web.Upload
   alias Mix.Tasks.Mobilizon.Actors.Utils
@@ -282,8 +281,18 @@ defmodule Mobilizon.Web.AuthController do
 
     # First, check if user exists
     case Users.get_user_by_email(email) do
+      {:ok, %User{disabled: true}} ->
+        # User account has been deleted
+        Logger.warning("LinkedIn login attempt for disabled user #{email}")
+        redirect_to_error(conn, :user_disabled, "linkedin")
+
+      {:ok, %User{suspended: true}} ->
+        # User account has been suspended
+        Logger.warning("LinkedIn login attempt for suspended user #{email}")
+        redirect_to_error(conn, :user_suspended, "linkedin")
+
       {:ok, %User{} = user} ->
-        # User exists - update profile if needed and proceed with login
+        # User exists and is active - update profile if needed and proceed with login
         Logger.info("Found existing user for #{email}")
         
         case update_user_profile_from_linkedin(user, user_info) do
@@ -773,6 +782,14 @@ defmodule Mobilizon.Web.AuthController do
 
   defp redirect_to_error(conn, :processing_failed, provider_name) do
     redirect(conn, to: "/login?code=Error with Login Provider&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :user_disabled, provider_name) do
+    redirect(conn, to: "/login?code=This account has been deleted&provider=#{provider_name}")
+  end
+
+  defp redirect_to_error(conn, :user_suspended, provider_name) do
+    redirect(conn, to: "/login?code=This account has been suspended&provider=#{provider_name}")
   end
 
   # Redirect to Vue component for retry handling

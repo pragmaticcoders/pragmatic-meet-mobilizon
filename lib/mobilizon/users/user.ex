@@ -27,6 +27,7 @@ defmodule Mobilizon.Users.User do
           locale: String.t(),
           default_actor: Actor.t(),
           disabled: boolean(),
+          suspended: boolean(),
           actors: [Actor.t()],
           feed_tokens: [FeedToken.t()],
           last_sign_in_at: DateTime.t(),
@@ -54,6 +55,7 @@ defmodule Mobilizon.Users.User do
     :locale,
     :unconfirmed_email,
     :disabled,
+    :suspended,
     :provider,
     :last_sign_in_at,
     :last_sign_in_ip,
@@ -87,6 +89,7 @@ defmodule Mobilizon.Users.User do
     field(:unconfirmed_email, :string)
     field(:locale, :string, default: Config.default_language())
     field(:disabled, :boolean, default: false)
+    field(:suspended, :boolean, default: false)
     field(:provider, :string)
     field(:last_sign_in_at, :utc_datetime)
     field(:last_sign_in_ip, :string)

@@ -61,7 +61,8 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
 
     field(:provider, :string, description: "The user's login provider")
 
-    field(:disabled, :boolean, description: "Whether the user is disabled")
+    field(:disabled, :boolean, description: "Whether the user is disabled (deleted)")
+    field(:suspended, :boolean, description: "Whether the user is suspended")
 
     field(:participations, :paginated_participant_list,
       description: "The list of participations this user has",
@@ -485,8 +486,23 @@ defmodule Mobilizon.GraphQL.Schema.UserType do
     field :delete_account, :deleted_object do
       arg(:password, :string, description: "The user's password")
       arg(:user_id, :id, description: "The user's ID")
+      arg(:permanent, :boolean, default_value: false, description: "Permanently delete the account and all data (admin only)")
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&User.delete_account/3)
+    end
+
+    @desc "Suspend a user account (admin only)"
+    field :suspend_user, :user do
+      arg(:user_id, non_null(:id), description: "The user's ID to suspend")
+      middleware(Rajska.QueryAuthorization, permit: [:administrator, :moderator], scope: false)
+      resolve(&User.suspend_user/3)
+    end
+
+    @desc "Unsuspend a user account (admin only)"
+    field :unsuspend_user, :user do
+      arg(:user_id, non_null(:id), description: "The user's ID to unsuspend")
+      middleware(Rajska.QueryAuthorization, permit: [:administrator, :moderator], scope: false)
+      resolve(&User.unsuspend_user/3)
     end
 
     @desc "Set user settings"

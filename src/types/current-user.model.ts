@@ -55,6 +55,7 @@ export interface IUser extends ICurrentUser {
   confirmationSendAt: string;
   actors: IPerson[];
   disabled: boolean;
+  suspended: boolean;
   participations: Paginate<IParticipant>;
   mediaSize: number;
   drafts: Paginate<IEvent>;

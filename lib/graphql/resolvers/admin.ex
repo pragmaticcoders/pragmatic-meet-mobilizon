@@ -135,6 +135,20 @@ defmodule Mobilizon.GraphQL.Resolvers.Admin do
     }
   end
 
+  defp transform_action_log(User, :suspend, %ActionLog{changes: changes}) do
+    %{
+      action: :user_suspension,
+      object: convert_changes_to_struct(User, changes)
+    }
+  end
+
+  defp transform_action_log(User, :unsuspend, %ActionLog{changes: changes}) do
+    %{
+      action: :user_unsuspension,
+      object: convert_changes_to_struct(User, changes)
+    }
+  end
+
   defp transform_action_log(_, _, _), do: nil
 
   # Changes are stored as %{"key" => "value"} so we need to convert them back as struct
