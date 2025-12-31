@@ -1326,6 +1326,8 @@
   "Delete permanently": "Usuń na stałe",
   "Delete account permanently": "Usuń konto na stałe",
   "This account has been deleted": "To konto zostało usunięte",
+  "This account has been deleted. Please contact the administrator if you believe this is an error.": "To konto zostało usunięte. Skontaktuj się z administratorem, jeśli uważasz, że to błąd.",
+  "This account has been suspended. Please contact the administrator for more information.": "To konto zostało zawieszone. Skontaktuj się z administratorem, aby uzyskać więcej informacji.",
   "This account is suspended. The user cannot log in.": "To konto jest zawieszone. Użytkownik nie może się zalogować.",
   "Account status": "Status konta",
   "Suspended": "Zawieszone",
