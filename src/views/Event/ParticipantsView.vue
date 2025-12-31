@@ -112,49 +112,23 @@
             <span class="hidden xs:inline">{{ t("Reject") }}</span>
             <span class="xs:hidden">{{ t("Reject") }}</span>
           </o-button>
-          <o-dropdown
-            aria-role="list"
-            v-if="
-              exportFormats.length > 0 && (canManageEvent || authDataLoading)
+          <o-button
+            v-if="canManageEvent || authDataLoading"
+            @click="
+              exportParticipants({
+                eventId: event.id ?? '',
+                format: 'CSV',
+              })
             "
+            variant="primary"
             :disabled="authDataLoading"
+            :loading="authDataLoading"
+            icon-left="file-delimited"
+            size="small"
+            class="text-xs sm:text-sm"
           >
-            <template #trigger="{ active }">
-              <o-button
-                :label="t('Export')"
-                variant="primary"
-                :icon-right="active ? 'menu-up' : 'menu-down'"
-                size="small"
-                class="text-xs sm:text-sm"
-                :disabled="authDataLoading"
-                :loading="authDataLoading"
-              />
-            </template>
-
-            <o-dropdown-item
-              has-link
-              v-for="format in exportFormats"
-              :key="format"
-              aria-role="listitem"
-              @click="
-                exportParticipants({
-                  eventId: event.id ?? '',
-                  format,
-                })
-              "
-              @keyup.enter="
-                exportParticipants({
-                  eventId: event.id ?? '',
-                  format,
-                })
-              "
-            >
-              <button class="dropdown-button">
-                <o-icon :icon="formatToIcon(format)"></o-icon>
-                {{ format }}
-              </button>
-            </o-dropdown-item>
-          </o-dropdown>
+            {{ t("Export CSV") }}
+          </o-button>
         </div>
       </div>
     </div>
@@ -628,7 +602,6 @@ import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
-import { useParticipantsExportFormats } from "@/composition/config";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import {
   EVENT_PERSON_PARTICIPATION,
@@ -659,8 +632,6 @@ import {
 const PARTICIPANTS_PER_PAGE = 10;
 const MESSAGE_ELLIPSIS_LENGTH = 130;
 
-type exportFormat = "CSV" | "PDF" | "ODS";
-
 const props = defineProps<{
   eventId: string;
 }>();
@@ -671,7 +642,6 @@ const { t } = useI18n({ useScope: "global" });
 const router = useRouter();
 
 const { currentActor } = useCurrentActorClient();
-const participantsExportFormats = useParticipantsExportFormats();
 
 const ellipsize = (text?: string) =>
   text && text.substring(0, MESSAGE_ELLIPSIS_LENGTH).concat("…");
@@ -1206,7 +1176,7 @@ const {
   onError: onExportParticipantsMutationError,
 } = useMutation<
   { exportEventParticipants: { path: string; format: string } },
-  { eventId: string; format?: exportFormat; roles?: string[] }
+  { eventId: string; format?: string; roles?: string[] }
 >(EXPORT_EVENT_PARTICIPATIONS);
 
 onExportParticipantsMutationDone(({ data }) => {
@@ -1230,23 +1200,6 @@ onExportParticipantsMutationError((e) => {
     notifier?.error(e.graphQLErrors[0].message);
   }
 });
-
-const exportFormats = computed((): exportFormat[] => {
-  return (participantsExportFormats ?? []).map(
-    (key) => key.toUpperCase() as exportFormat
-  );
-});
-
-const formatToIcon = (format: exportFormat): string => {
-  switch (format) {
-    case "CSV":
-      return "file-delimited";
-    case "PDF":
-      return "file-pdf-box";
-    case "ODS":
-      return "google-spreadsheet";
-  }
-};
 
 /**
  * We can accept participants if at least one of them is not approved
