@@ -1148,13 +1148,17 @@ defmodule Mobilizon.Events do
 
   defp increase_participant_stats(participant_stats, nil), do: participant_stats
 
-  defp increase_participant_stats(participant_stats, role),
-    do: Map.update(participant_stats, role, 1, &(&1 + 1))
+  defp increase_participant_stats(participant_stats, role) do
+    current = Map.get(participant_stats, role) || 0
+    Map.put(participant_stats, role, current + 1)
+  end
 
   defp decrease_participant_stats(participant_stats, nil), do: participant_stats
 
-  defp decrease_participant_stats(participant_stats, role),
-    do: Map.update(participant_stats, role, 0, &(&1 - 1))
+  defp decrease_participant_stats(participant_stats, role) do
+    current = Map.get(participant_stats, role) || 0
+    Map.put(participant_stats, role, max(0, current - 1))
+  end
 
   @doc """
   Gets a single session.
@@ -1698,6 +1702,30 @@ defmodule Mobilizon.Events do
       select: count(p.id)
     )
     |> Repo.one()
+  end
+
+  @doc """
+  Get the waitlist position for a participant.
+  Returns the 1-based position in the waitlist, or nil if not on waitlist.
+  Position is determined by insertion time (earlier = lower position number).
+  """
+  @spec get_waitlist_position(integer, integer) :: integer | nil
+  def get_waitlist_position(event_id, actor_id) do
+    case get_participant(event_id, actor_id) do
+      {:ok, %Participant{role: :waitlist, inserted_at: inserted_at}} ->
+        from(p in Participant,
+          where:
+            p.event_id == ^event_id and
+              p.role == :waitlist and
+              p.inserted_at < ^inserted_at,
+          select: count(p.id)
+        )
+        |> Repo.one()
+        |> Kernel.+(1)
+
+      _ ->
+        nil
+    end
   end
 
   @spec event_participations_for_actor_query(integer, DateTime.t() | nil) :: Ecto.Query.t()

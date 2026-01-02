@@ -56,6 +56,7 @@ const FULL_EVENT_FRAGMENT = gql`
       going
       notApproved
       participant
+      waitlist
     }
     tags {
       ...TagFragment
@@ -97,6 +98,7 @@ export const FETCH_EVENT_BASIC = gql`
         notApproved
         notConfirmed
         participant
+        waitlist
       }
     }
   }
@@ -352,6 +354,7 @@ export const PARTICIPANTS = gql`
         notApproved
         rejected
         participant
+        waitlist
       }
       organizerActor {
         ...ActorFragment
@@ -374,6 +377,7 @@ export const EVENT_PERSON_PARTICIPATION = gql`
         elements {
           id
           role
+          waitlistPosition
           actor {
             id
           }
@@ -398,6 +402,7 @@ export const EVENT_PERSON_PARTICIPATION_SUBSCRIPTION_CHANGED = gql`
         elements {
           id
           role
+          waitlistPosition
           actor {
             id
           }

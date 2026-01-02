@@ -13,7 +13,8 @@ defmodule Mobilizon.Events.EventParticipantStats do
           participant: integer(),
           moderator: integer(),
           administrator: integer(),
-          creator: integer()
+          creator: integer(),
+          waitlist: integer()
         }
 
   @attrs [
@@ -24,7 +25,8 @@ defmodule Mobilizon.Events.EventParticipantStats do
     :moderator,
     :administrator,
     :moderator,
-    :creator
+    :creator,
+    :waitlist
   ]
 
   @primary_key false
@@ -37,6 +39,7 @@ defmodule Mobilizon.Events.EventParticipantStats do
     field(:moderator, :integer, default: 0)
     field(:administrator, :integer, default: 0)
     field(:creator, :integer, default: 0)
+    field(:waitlist, :integer, default: 0)
   end
 
   @doc false
@@ -56,6 +59,7 @@ defmodule Mobilizon.Events.EventParticipantStats do
     |> validate_number(:moderator, greater_than_or_equal_to: 0)
     |> validate_number(:administrator, greater_than_or_equal_to: 0)
     |> validate_number(:creator, greater_than_or_equal_to: 0)
+    |> validate_number(:waitlist, greater_than_or_equal_to: 0)
 
     # TODO: Replace me with something like the following
     # Enum.reduce(@attrs, fn key, changeset -> validate_number(changeset, key, greater_than_or_equal_to: 0) end)

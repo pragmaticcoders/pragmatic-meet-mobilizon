@@ -449,6 +449,24 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     |> Checker.valid?()
   end
 
+  @doc """
+  Resolve the waitlist position for a participant.
+  Returns the 1-based position in the waitlist, or nil if not on waitlist.
+  """
+  @spec resolve_waitlist_position(Participant.t(), map(), Absinthe.Resolution.t()) ::
+          {:ok, integer() | nil}
+  def resolve_waitlist_position(
+        %Participant{role: :waitlist, event_id: event_id, actor_id: actor_id},
+        _args,
+        _resolution
+      ) do
+    {:ok, Events.get_waitlist_position(event_id, actor_id)}
+  end
+
+  def resolve_waitlist_position(_participant, _args, _resolution) do
+    {:ok, nil}
+  end
+
   @spec export_format(atom(), Event.t(), list(), String.t()) ::
           {:ok, String.t()}
           | {:error,
