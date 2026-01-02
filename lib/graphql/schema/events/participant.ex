@@ -36,6 +36,11 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     )
 
     field(:inserted_at, :datetime, description: "The datetime this participant was created")
+
+    field(:waitlist_position, :integer,
+      description: "The position in the waitlist (1-based), or null if not on waitlist",
+      resolve: &Participant.resolve_waitlist_position/3
+    )
   end
 
   @desc """

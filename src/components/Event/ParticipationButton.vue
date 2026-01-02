@@ -100,7 +100,13 @@
           <o-button variant="warning" size="large" type="button">
             <template class="flex items-center">
               <TimerSandEmpty />
-              <span>{{ t("On waitlist") }}</span>
+              <span v-if="participation.waitlistPosition && event.participantStats?.waitlist">
+                {{ t("Waitlist #{position}/{total}", { position: participation.waitlistPosition, total: event.participantStats.waitlist }) }}
+              </span>
+              <span v-else-if="participation.waitlistPosition">
+                {{ t("Waitlist #{position}", { position: participation.waitlistPosition }) }}
+              </span>
+              <span v-else>{{ t("On waitlist") }}</span>
               <MenuDown />
             </template>
           </o-button>
@@ -118,7 +124,15 @@
       <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="flex-shrink-0">
+            <div
+              v-if="participation.waitlistPosition"
+              class="flex items-center justify-center bg-blue-200 text-blue-800 rounded-full font-bold"
+              style="width: 36px; height: 36px; font-size: 14px"
+            >
+              #{{ participation.waitlistPosition }}
+            </div>
             <svg
+              v-else
               width="20"
               height="20"
               viewBox="0 0 24 24"
@@ -144,7 +158,15 @@
           </div>
           <div class="min-w-[200px]">
             <h3 class="font-medium text-blue-800 text-sm mb-1">
-              {{ t("You're on the waitlist") }}
+              <template v-if="participation.waitlistPosition && event.participantStats?.waitlist">
+                {{ t("You're #{position} of {total} on the waitlist", { position: participation.waitlistPosition, total: event.participantStats.waitlist }) }}
+              </template>
+              <template v-else-if="participation.waitlistPosition">
+                {{ t("You're #{position} on the waitlist", { position: participation.waitlistPosition }) }}
+              </template>
+              <template v-else>
+                {{ t("You're on the waitlist") }}
+              </template>
             </h3>
             <p class="text-blue-700 text-sm leading-relaxed">
               {{

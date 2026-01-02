@@ -31,6 +31,7 @@ export interface IEventParticipantStats {
   moderator: number;
   administrator: number;
   going: number;
+  waitlist: number;
 }
 
 export type EventType = "IN_PERSON" | "ONLINE" | null;

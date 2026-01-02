@@ -220,6 +220,7 @@ export const PARTICIPANT_QUERY_FRAGMENT = gql`
       message
     }
     insertedAt
+    waitlistPosition
   }
   ${ACTOR_FRAGMENT}
 `;

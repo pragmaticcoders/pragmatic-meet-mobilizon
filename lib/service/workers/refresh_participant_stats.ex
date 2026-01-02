@@ -35,7 +35,8 @@ defmodule Mobilizon.Service.Workers.RefreshParticipantStats do
               participant: 0,
               moderator: 0,
               administrator: 0,
-              creator: 0
+              creator: 0,
+              waitlist: 0
             },
             fn %Participant{role: role}, acc ->
               Map.update(acc, role, 1, &(&1 + 1))

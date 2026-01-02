@@ -11,6 +11,7 @@ export interface IParticipant {
   event: IEvent;
   metadata: { cancellationToken?: string; message?: string };
   insertedAt?: Date;
+  waitlistPosition?: number | null;
 }
 
 export class Participant implements IParticipant {
@@ -26,6 +27,8 @@ export class Participant implements IParticipant {
 
   insertedAt?: Date;
 
+  waitlistPosition?: number | null;
+
   constructor(hash?: IParticipant) {
     if (!hash) return;
 
@@ -35,5 +38,6 @@ export class Participant implements IParticipant {
     this.role = hash.role;
     this.metadata = hash.metadata;
     this.insertedAt = hash.insertedAt;
+    this.waitlistPosition = hash.waitlistPosition;
   }
 }

@@ -455,6 +455,175 @@
                 </div>
               </div>
             </div>
+
+            <!-- Waitlist Section in Sidebar -->
+            <div
+              v-if="event && !eventLoading && event.options?.enableWaitlist && (waitlistParticipants.length > 0 || (event.participantStats?.waitlist ?? 0) > 0)"
+              class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+              style="margin-top: 16px"
+            >
+              <div style="padding: 20px">
+                <h3
+                  class="text-gray-700 mb-4"
+                  style="
+                    font-size: 20px;
+                    line-height: 1.5;
+                    font-weight: 700;
+                    font-family: var(--font-family-primary);
+                  "
+                >
+                  {{ t("Waitlist") }}
+                  <span
+                    class="text-gray-500"
+                    style="
+                      font-weight: 500;
+                      font-size: 15px;
+                      font-family: var(--font-family-primary);
+                    "
+                  >
+                    ({{ waitlistParticipants.length || event.participantStats?.waitlist || 0 }})
+                  </span>
+                </h3>
+
+                <!-- Waitlist participants list -->
+                <div
+                  v-if="waitlistLoading"
+                  class="text-gray-500 text-center py-4"
+                  style="
+                    font-size: 15px;
+                    line-height: 1.53;
+                    font-weight: 500;
+                    font-family: var(--font-family-primary);
+                  "
+                >
+                  {{ t("Loading waitlist...") }}
+                </div>
+
+                <div
+                  v-else-if="waitlistParticipants.length > 0"
+                  style="display: flex; flex-direction: column; gap: 8px"
+                >
+                  <div
+                    v-for="(participant, index) in showAllWaitlist
+                      ? waitlistParticipants
+                      : waitlistParticipants.slice(0, 5)"
+                    :key="participant.id"
+                    class="flex items-center"
+                    style="gap: 12px"
+                  >
+                    <!-- Position number -->
+                    <div
+                      class="flex-shrink-0 flex items-center justify-center bg-amber-100 text-amber-700 rounded-full font-bold"
+                      style="width: 28px; height: 28px; font-size: 12px"
+                    >
+                      {{ participant.waitlistPosition ?? (index + 1) }}
+                    </div>
+                    <img
+                      v-if="participant.actor.avatar"
+                      :src="participant.actor.avatar.url"
+                      :alt="displayName(participant.actor)"
+                      class="rounded-full object-cover"
+                      style="width: 32px; height: 32px"
+                    />
+                    <div
+                      v-else
+                      class="rounded-full bg-gray-300 flex items-center justify-center"
+                      style="width: 32px; height: 32px"
+                    >
+                      <span
+                        class="font-semibold text-gray-600"
+                        style="font-size: 12px"
+                      >
+                        {{
+                          displayName(participant.actor).charAt(0).toUpperCase()
+                        }}
+                      </span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div
+                        class="text-gray-900 truncate"
+                        style="
+                          font-size: 15px;
+                          line-height: 1.53;
+                          font-weight: 600;
+                          font-family: var(--font-family-primary);
+                        "
+                      >
+                        {{ displayName(participant.actor) }}
+                      </div>
+                      <div
+                        v-if="
+                          participant.actor.preferredUsername &&
+                          participant.actor.preferredUsername !== 'anonymous'
+                        "
+                        class="text-gray-500 truncate"
+                        style="
+                          font-size: 13px;
+                          line-height: 1.53;
+                          font-weight: 500;
+                          font-family: var(--font-family-primary);
+                        "
+                      >
+                        @{{ participant.actor.preferredUsername }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Show All Waitlist Button -->
+                  <div
+                    v-if="waitlistParticipants.length > 5"
+                    class="border-t border-gray-100"
+                    style="padding-top: 16px; margin-top: 8px"
+                  >
+                    <button
+                      class="btn btn-secondary w-full"
+                      style="
+                        padding: 10px 14px;
+                        font-size: 15px;
+                        font-weight: 600;
+                        font-family: var(--font-family-primary);
+                      "
+                      @click="showAllWaitlist = !showAllWaitlist"
+                    >
+                      {{
+                        showAllWaitlist
+                          ? t("Show less")
+                          : t("Show all on waitlist")
+                      }}
+                      <svg
+                        class="ml-2 transition-transform duration-200"
+                        style="width: 14px; height: 14px"
+                        :class="{ 'rotate-180': showAllWaitlist }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Waitlist info text -->
+                <div
+                  v-else
+                  class="text-gray-500 text-center py-4"
+                  style="
+                    font-size: 15px;
+                    line-height: 1.53;
+                    font-weight: 500;
+                    font-family: var(--font-family-primary);
+                  "
+                >
+                  {{ t("Waitlist information will appear here.") }}
+                </div>
+              </div>
+            </div>
           </div>
         </aside>
         <div class="flex-1 md:order-1">
@@ -732,6 +901,16 @@ const {
   roles: "participant,moderator,administrator,creator",
 });
 
+// Fetch waitlist participants
+const {
+  participants: waitlistParticipants,
+  loading: waitlistLoading,
+  refetch: refetchWaitlist,
+} = useEventParticipants(propsUUID, {
+  limit: 50,
+  roles: "waitlist",
+});
+
 const identity = ref<IPerson | undefined | null>(null);
 
 const oldParticipationRole = ref<string | undefined>(undefined);
@@ -821,9 +1000,10 @@ onMounted(async () => {
 const notifier = inject<Notifier>("notifier");
 
 watch(participations, (newParticipations, oldParticipations) => {
-  // Refresh participants list when participation status changes
+  // Refresh participants and waitlist when participation status changes
   if (newParticipations.length !== oldParticipations?.length) {
     refetchParticipants();
+    refetchWaitlist();
   }
 
   if (newParticipations.length > 0) {
@@ -843,13 +1023,15 @@ watch(participations, (newParticipations, oldParticipations) => {
           participationChangedMessage();
           break;
       }
-      // Refresh participants list when role changes
+      // Refresh participants and waitlist when role changes
       refetchParticipants();
+      refetchWaitlist();
     }
     oldParticipationRole.value = newParticipations[0].role;
   } else if (oldParticipationRole.value !== undefined) {
-    // User left the event, refresh participants list and clear the old role
+    // User left the event, refresh participants/waitlist and clear the old role
     refetchParticipants();
+    refetchWaitlist();
     oldParticipationRole.value = undefined;
   }
 });
@@ -909,6 +1091,7 @@ const integrations = computed((): Record<string, IEventMetadataDescription> => {
 
 const showMap = ref(false);
 const showAllAttendees = ref(false);
+const showAllWaitlist = ref(false);
 
 const { routingType } = useRoutingType();
 

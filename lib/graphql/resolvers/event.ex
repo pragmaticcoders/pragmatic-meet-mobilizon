@@ -190,24 +190,27 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
         _args,
         %{context: %{current_user: %User{id: user_id} = _user}} = _resolution
       ) do
+    # Handle nil waitlist values (from events created before waitlist was added)
+    waitlist_count = stats.waitlist || 0
+
     if Events.user_moderator_for_event?(user_id, event_id) do
       {:ok,
-       Map.put(
-         stats,
-         :going,
-         stats.participant + stats.moderator + stats.administrator + stats.creator
-       )}
+       stats
+       |> Map.put(:going, stats.participant + stats.moderator + stats.administrator + stats.creator)
+       |> Map.put(:waitlist, waitlist_count)}
     else
-      {:ok, %EventParticipantStats{participant: stats.participant}}
+      # Return participant count and waitlist count for all users
+      {:ok, %EventParticipantStats{participant: stats.participant, waitlist: waitlist_count}}
     end
   end
 
   def stats_participants(
-        %Event{participant_stats: %EventParticipantStats{participant: participant}},
+        %Event{participant_stats: %EventParticipantStats{participant: participant, waitlist: waitlist}},
         _args,
         _resolution
       ) do
-    {:ok, %EventParticipantStats{participant: participant}}
+    # Return participant count and waitlist count for all users (handle nil)
+    {:ok, %EventParticipantStats{participant: participant, waitlist: waitlist || 0}}
   end
 
   def stats_participants(_event, _args, _resolution) do
