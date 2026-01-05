@@ -177,6 +177,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
     field(:moderator, :integer, description: "The number of moderators")
     field(:administrator, :integer, description: "The number of administrators")
     field(:creator, :integer, description: "The number of creators")
+    field(:waitlist, :integer, description: "The number of participants on the waitlist")
   end
 
   @desc """
