@@ -68,8 +68,9 @@ defmodule Mobilizon.Service.ActorSuspension do
       |> Multi.update(:actor, Actor.suspend_changeset(actor))
 
     case Repo.transaction(multi) do
-      {:ok, %{actor: %Actor{} = actor}} ->
+      {:ok, %{actor: %Actor{type: actor_type} = actor}} ->
         {:ok, true} = Cachex.del(:activity_pub, "actor_#{actor.preferred_username}")
+        if actor_type == :Group, do: clear_group_statistics_cache()
         Logger.info("Soft suspended actor #{actor.url}")
         {:ok, actor}
 
@@ -118,9 +119,10 @@ defmodule Mobilizon.Service.ActorSuspension do
     Logger.debug("Going to run the full suspension transaction")
 
     case Repo.transaction(multi, timeout: 60_000) do
-      {:ok, %{actor: %Actor{} = actor}} ->
+      {:ok, %{actor: %Actor{type: actor_type} = actor}} ->
         {:ok, true} = Cachex.del(:activity_pub, "actor_#{actor.preferred_username}")
         Cachable.clear_all_caches(actor)
+        if actor_type == :Group, do: clear_group_statistics_cache()
         Logger.info("Full suspended/deleted actor #{actor.url}")
         {:ok, actor}
 
@@ -353,4 +355,10 @@ defmodule Mobilizon.Service.ActorSuspension do
   end
 
   defp send_suspension_notification(%Actor{} = _actor), do: :ok
+
+  @spec clear_group_statistics_cache() :: {:ok, true}
+  defp clear_group_statistics_cache do
+    Cachex.del(:statistics, :local_groups)
+    Cachex.del(:statistics, :federation_groups)
+  end
 end
