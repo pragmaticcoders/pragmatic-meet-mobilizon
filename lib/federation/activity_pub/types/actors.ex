@@ -29,6 +29,7 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Actors do
           actor_id: args.creator_actor_id
         )
 
+        clear_group_statistics_cache()
         actor_as_data = Convertible.model_to_as(actor)
         audience = %{"to" => ["https://www.w3.org/ns/activitystreams#Public"], "cc" => []}
         create_data = make_create_data(actor_as_data, Map.merge(audience, additional))
@@ -316,5 +317,11 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Actors do
     end
 
     {:ok, follow_as_data, follower}
+  end
+
+  @spec clear_group_statistics_cache() :: {:ok, true}
+  defp clear_group_statistics_cache do
+    Cachex.del(:statistics, :local_groups)
+    Cachex.del(:statistics, :federation_groups)
   end
 end

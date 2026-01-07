@@ -1595,6 +1595,7 @@ defmodule Mobilizon.Actors do
       where: a.type == ^:Group,
       where: a.visibility == ^:public
     )
+    |> filter_suspended(false)
   end
 
   @spec external_groups_query :: Ecto.Query.t()

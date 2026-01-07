@@ -58,6 +58,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Actor do
       %Actor{suspended: false, type: :Group, domain: nil} = actor ->
         Logger.debug("Soft suspending a local group")
         with {:ok, %Actor{} = updated_actor} <- Actors.update_actor(actor, %{suspended: true}),
+             :ok <- maybe_clear_group_statistics_cache(:Group),
              {:ok, _} <- Admin.log_action(moderator_actor, "suspend", actor) do
           {:ok, updated_actor}
         end
@@ -125,13 +126,14 @@ defmodule Mobilizon.GraphQL.Resolvers.Actor do
       })
       when is_moderator(role) do
     case Actors.get_actor_with_preload(id, true) do
-      %Actor{suspended: true} = actor ->
+      %Actor{suspended: true, type: actor_type} = actor ->
         with {:delete_tombstones, {_, nil}} <-
                {:delete_tombstones, Mobilizon.Tombstone.delete_actor_tombstones(id)},
              # Build updates including restoring user_id if it was cleared during old-style suspension
              actor_updates <- build_unsuspend_updates(actor),
              {:ok, %Actor{} = updated_actor} <- Actors.update_actor(actor, actor_updates),
              :ok <- refresh_if_remote(updated_actor),
+             :ok <- maybe_clear_group_statistics_cache(actor_type),
              {:ok, _} <- Admin.log_action(moderator_actor, "unsuspend", updated_actor) do
           {:ok, updated_actor}
         else
@@ -180,4 +182,13 @@ defmodule Mobilizon.GraphQL.Resolvers.Actor do
 
     :ok
   end
+
+  @spec maybe_clear_group_statistics_cache(atom()) :: :ok
+  defp maybe_clear_group_statistics_cache(:Group) do
+    Cachex.del(:statistics, :local_groups)
+    Cachex.del(:statistics, :federation_groups)
+    :ok
+  end
+
+  defp maybe_clear_group_statistics_cache(_), do: :ok
 end

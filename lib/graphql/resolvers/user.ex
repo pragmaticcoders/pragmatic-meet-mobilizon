@@ -722,10 +722,21 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   defp unsuspend_user_actors(%User{} = user) do
     # Get all actors including suspended ones
     actors = Users.get_actors_for_user(user, include_suspended: true)
-    Enum.each(actors, fn actor ->
-      Actors.update_actor(actor, %{suspended: false})
-    end)
+
+    has_groups =
+      Enum.any?(actors, fn actor ->
+        Actors.update_actor(actor, %{suspended: false})
+        actor.type == :Group
+      end)
+
+    if has_groups, do: clear_group_statistics_cache()
     :ok
+  end
+
+  @spec clear_group_statistics_cache() :: {:ok, true}
+  defp clear_group_statistics_cache do
+    Cachex.del(:statistics, :local_groups)
+    Cachex.del(:statistics, :federation_groups)
   end
 
   @spec do_delete_account(User.t(), Keyword.t()) :: {:ok, User.t()}
