@@ -470,7 +470,8 @@ const eventsQuery = useQuery<{
         break;
       case "entire_poland":
       default:
-        // No location or type filter - shows all events
+        // Show only in-person events for location-based searches
+        params.type = "IN_PERSON";
         break;
     }
 

@@ -38,7 +38,8 @@ describe("CloseEvents - Query Parameter Logic", () => {
         break;
       case "entire_poland":
       default:
-        // No location or type filter - shows all events
+        // Show only in-person events for location-based searches
+        params.type = "IN_PERSON";
         break;
     }
 
@@ -116,27 +117,27 @@ describe("CloseEvents - Query Parameter Logic", () => {
   });
 
   describe("Entire Poland mode", () => {
-    it("has no type or location filters", () => {
+    it("includes type: IN_PERSON but no location filters", () => {
       const params = buildQueryParams("entire_poland", undefined, 25);
 
-      expect(params.type).toBeUndefined();
+      expect(params.type).toBe("IN_PERSON");
       expect(params.location).toBeUndefined();
       expect(params.radius).toBeUndefined();
     });
 
-    it("ignores geohash even if provided", () => {
+    it("includes type: IN_PERSON and ignores geohash even if provided", () => {
       const params = buildQueryParams("entire_poland", "u3ybp", 25);
 
-      expect(params.type).toBeUndefined();
+      expect(params.type).toBe("IN_PERSON");
       expect(params.location).toBeUndefined();
     });
   });
 
   describe("Default/unknown mode", () => {
-    it("has no type or location filters for unknown mode", () => {
+    it("defaults to IN_PERSON type with no location filters for unknown mode", () => {
       const params = buildQueryParams("unknown_mode", "u3ybp", 25);
 
-      expect(params.type).toBeUndefined();
+      expect(params.type).toBe("IN_PERSON");
       expect(params.location).toBeUndefined();
       expect(params.radius).toBeUndefined();
     });
@@ -210,13 +211,14 @@ describe("CloseEvents - Event Type Filtering Behavior", () => {
     expect(params.location).toBeUndefined();
   });
 
-  it("entire country mode should return all events (both online and in-person)", () => {
+  it("entire country mode should return only in-person events", () => {
     const params: any = {
       longEvents: false,
       limit: 93,
+      type: "IN_PERSON",
     };
 
-    expect(params.type).toBeUndefined();
+    expect(params.type).toBe("IN_PERSON");
     expect(params.location).toBeUndefined();
   });
 });
