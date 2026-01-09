@@ -61,6 +61,7 @@ services:
       MOBILIZON_INSTANCE_SCHEME: "http"
       MOBILIZON_INSTANCE_SECRET_KEY_BASE: "changethis"
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
+      # Note: Google Analytics env vars are passed through via env_file (../../.env)
 volumes:
   pgdata:
   deps_cache:
