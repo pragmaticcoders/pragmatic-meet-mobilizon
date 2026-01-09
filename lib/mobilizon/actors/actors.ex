@@ -1592,8 +1592,7 @@ defmodule Mobilizon.Actors do
   defp groups_query do
     from(
       a in Actor,
-      where: a.type == ^:Group,
-      where: a.visibility == ^:public
+      where: a.type == ^:Group
     )
     |> filter_suspended(false)
   end
