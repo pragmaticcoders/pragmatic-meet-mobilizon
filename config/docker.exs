@@ -237,8 +237,6 @@ analytics_providers =
     analytics_providers
   end
 
-config :mobilizon, :analytics, providers: analytics_providers
-
 matomo_csp =
   if matomo_enabled and matomo_host do
     [
@@ -267,6 +265,36 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.Sentry,
   csp: [
     connect_src:
       System.get_env("MOBILIZON_ERROR_REPORTING_SENTRY_HOST", "") |> String.split(" ", trim: true)
+  ]
+
+# Google Analytics Configuration
+google_analytics_enabled =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_ENABLED", "false") == "true"
+
+google_analytics_measurement_id =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_MEASUREMENT_ID", nil)
+
+google_analytics_anonymize_ip =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_ANONYMIZE_IP", "true") == "true"
+
+analytics_providers =
+  if google_analytics_enabled and google_analytics_measurement_id do
+    analytics_providers ++ [Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics]
+  else
+    analytics_providers
+  end
+
+config :mobilizon, :analytics, providers: analytics_providers
+
+config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
+  enabled: google_analytics_enabled,
+  measurementId: google_analytics_measurement_id,
+  anonymizeIp: google_analytics_anonymize_ip,
+  sendPageView: true,
+  csp: [
+    connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    script_src: ["www.googletagmanager.com"],
+    img_src: ["www.google-analytics.com"]
   ]
 
 # OAuth Configuration

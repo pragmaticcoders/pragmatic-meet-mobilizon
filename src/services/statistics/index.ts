@@ -22,6 +22,18 @@ export const statistics = async (
     const { sentry } = (await import("./sentry")) as any;
     sentry({ ...environement, app }, convertConfig(sentryConfig.configuration));
   }
+
+  const googleAnalyticsConfig = checkProviderConfig(
+    configAnalytics,
+    "google_analytics"
+  );
+  if (googleAnalyticsConfig?.enabled === true) {
+    const { googleAnalytics } = await import("./google_analytics");
+    googleAnalytics(
+      { ...environement, app },
+      convertConfig(googleAnalyticsConfig.configuration) as any
+    );
+  }
 };
 
 export const checkProviderConfig = (
