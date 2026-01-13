@@ -1,7 +1,8 @@
 declare global {
   interface Window {
-    dataLayer: any[];
+    dataLayer: IArguments[];
     gtag: (...args: any[]) => void;
+    __GA_INITIALIZED__?: boolean;
   }
 }
 
@@ -9,13 +10,18 @@ interface GoogleAnalyticsConfig {
   measurementId: string;
   anonymizeIp?: boolean;
   sendPageView?: boolean;
-  debug?: boolean;
 }
 
 export const googleAnalytics = (
   environment: any,
   config: GoogleAnalyticsConfig
 ) => {
+  // Prevent multiple initializations
+  if (window.__GA_INITIALIZED__) {
+    console.debug("Google Analytics already initialized, skipping");
+    return;
+  }
+
   console.debug("Loading Google Analytics");
 
   if (!config.measurementId) {
@@ -23,14 +29,29 @@ export const googleAnalytics = (
     return;
   }
 
-  // Initialize dataLayer
+  // Validate measurement ID format (should start with G- for GA4)
+  if (!config.measurementId.startsWith("G-")) {
+    console.warn(
+      "Google Analytics: measurementId should start with 'G-' for GA4. Got:",
+      config.measurementId
+    );
+  }
+
+  // Mark as initialized
+  window.__GA_INITIALIZED__ = true;
+
+  // Initialize dataLayer (Google's standard pattern)
   window.dataLayer = window.dataLayer || [];
 
-  // Define gtag function
-  window.gtag = function gtag(...args: unknown[]) {
-    window.dataLayer.push(args);
-  };
+  // Define gtag function exactly as Google specifies
+  // Must use 'arguments' object, not rest parameters
+  function gtag(..._args: any[]) {
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer.push(arguments);
+  }
+  window.gtag = gtag;
 
+  // Initialize GA4 with timestamp
   window.gtag("js", new Date());
 
   // Configure with options
@@ -44,46 +65,34 @@ export const googleAnalytics = (
     configOptions.send_page_view = false;
   }
 
-  // Enable debug mode for testing in GA4 DebugView
-  // Can be enabled via URL parameter: ?gtag_debug=1
-  const urlParams = new URLSearchParams(window.location.search);
-  if (config.debug || urlParams.get("gtag_debug") === "1") {
-    configOptions.debug_mode = true;
-    console.debug("Google Analytics: Debug mode enabled - events will appear in GA4 DebugView");
-  }
-
   window.gtag("config", config.measurementId, configOptions);
 
   // Load the Google Analytics script
   const script = document.createElement("script");
   script.async = true;
   script.src = `https://www.googletagmanager.com/gtag/js?id=${config.measurementId}`;
-  
+
   script.onload = () => {
-    console.debug("Google Analytics: gtag.js script loaded successfully");
+    console.debug("Google Analytics script loaded successfully");
   };
-  
-  script.onerror = (error) => {
-    console.error("Google Analytics: Failed to load gtag.js script", error);
-    console.error("This might be caused by: ad blockers, CSP restrictions, or network issues");
+
+  script.onerror = () => {
+    console.error(
+      "Google Analytics script failed to load. Check if it's blocked by ad blocker or CSP."
+    );
   };
-  
+
   document.head.appendChild(script);
 
   // Track route changes if router is available
   if (environment.router) {
     environment.router.afterEach((to: any) => {
-      console.debug("Google Analytics: Tracking page view", {
+      window.gtag("event", "page_view", {
         page_path: to.fullPath,
         page_title: to.meta?.title || document.title,
-      });
-      window.gtag("config", config.measurementId, {
-        page_path: to.fullPath,
-        page_title: to.meta?.title || document.title,
+        page_location: window.location.href,
       });
     });
-  } else {
-    console.warn("Google Analytics: Router not available, page view tracking disabled");
   }
 
   console.debug(
@@ -91,3 +100,6 @@ export const googleAnalytics = (
     config.measurementId
   );
 };
+
+
+
