@@ -40,14 +40,30 @@ registerRoute(
   })
 );
 
+// Third-party domains that should NOT be cached by service worker
+// These need to run fresh each time (analytics, consent, etc.)
+const THIRD_PARTY_DOMAINS = [
+  "googletagmanager.com",
+  "google-analytics.com",
+  "cookiebot.com",
+  "consent.cookiebot.com",
+];
+
+const isThirdPartyRequest = (url: URL): boolean => {
+  return THIRD_PARTY_DOMAINS.some((domain) => url.hostname.includes(domain));
+};
+
 // Cache CSS, JS, and Web Worker requests with a Stale While Revalidate strategy
+// Exclude third-party scripts (analytics, consent managers) which need fresh execution
 registerRoute(
   // Check to see if the request's destination is style for stylesheets, script for JavaScript, font, or worker for web worker
-  ({ request }) =>
-    request.destination === "style" ||
-    request.destination === "script" ||
-    request.destination === "font" ||
-    request.destination === "worker",
+  // AND it's NOT a third-party request
+  ({ request, url }) =>
+    (request.destination === "style" ||
+      request.destination === "script" ||
+      request.destination === "font" ||
+      request.destination === "worker") &&
+    !isThirdPartyRequest(url),
   // Use a Stale While Revalidate caching strategy
   new StaleWhileRevalidate({
     // Put all cached files in a cache named 'assets'
