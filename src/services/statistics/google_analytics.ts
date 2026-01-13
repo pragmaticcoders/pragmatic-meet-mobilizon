@@ -2,7 +2,7 @@ declare global {
   interface Window {
     dataLayer: IArguments[];
     gtag: (...args: any[]) => void;
-    __GA_INITIALIZED__?: boolean;
+    gaInitialized?: boolean;
   }
 }
 
@@ -17,7 +17,7 @@ export const googleAnalytics = (
   config: GoogleAnalyticsConfig
 ) => {
   // Prevent multiple initializations
-  if (window.__GA_INITIALIZED__) {
+  if (window.gaInitialized) {
     console.debug("Google Analytics already initialized, skipping");
     return;
   }
@@ -38,14 +38,15 @@ export const googleAnalytics = (
   }
 
   // Mark as initialized
-  window.__GA_INITIALIZED__ = true;
+  window.gaInitialized = true;
 
   // Initialize dataLayer (Google's standard pattern)
   window.dataLayer = window.dataLayer || [];
 
   // Define gtag function exactly as Google specifies
   // Must use 'arguments' object, not rest parameters
-  function gtag(..._args: any[]) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function gtag(...args: any[]) {
     // eslint-disable-next-line prefer-rest-params
     window.dataLayer.push(arguments);
   }
