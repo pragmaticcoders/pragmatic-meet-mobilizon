@@ -292,7 +292,7 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
   anonymizeIp: google_analytics_anonymize_ip,
   sendPageView: true,
   csp: [
-    connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    connect_src: ["www.google-analytics.com", "www.googletagmanager.com", "region1.google-analytics.com"],
     script_src: ["www.googletagmanager.com"],
     img_src: ["www.google-analytics.com"]
   ]
