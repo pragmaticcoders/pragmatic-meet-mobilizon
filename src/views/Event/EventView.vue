@@ -898,7 +898,6 @@ const {
   loading: participantsLoading,
   refetch: refetchParticipants,
 } = useEventParticipants(propsUUID, {
-  limit: 50, // Show up to 50 attendees initially
   roles: "participant,moderator,administrator,creator",
 });
 
@@ -908,7 +907,6 @@ const {
   loading: waitlistLoading,
   refetch: refetchWaitlist,
 } = useEventParticipants(propsUUID, {
-  limit: 50,
   roles: "waitlist",
 });
 

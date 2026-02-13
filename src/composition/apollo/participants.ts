@@ -28,7 +28,7 @@ export function useEventParticipants(
     () => ({
       uuid: unref(eventUuid) as string,
       page: options.page ?? 1,
-      limit: options.limit ?? 10,
+      limit: options.limit ?? 999,
       roles: options.roles ?? "",
     }),
     () => ({
