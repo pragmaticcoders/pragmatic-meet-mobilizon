@@ -46,9 +46,14 @@ export function useEventParticipants(
     () => result.value?.event?.participantStats
   );
 
+  const participantsTotal = computed(
+    () => result.value?.event?.participants?.total ?? 0
+  );
+
   return {
     event,
     participants,
+    participantsTotal,
     participantStats,
     error,
     loading,

@@ -267,7 +267,7 @@
                       font-family: var(--font-family-primary);
                     "
                   >
-                    ({{ eventParticipants.length }})
+                    ({{ participantsTotal }})
                   </span>
                   <span
                     v-else-if="
@@ -894,6 +894,7 @@ const { eventCategories } = useEventCategories();
 // Fetch event participants
 const {
   participants: eventParticipants,
+  participantsTotal,
   loading: participantsLoading,
   refetch: refetchParticipants,
 } = useEventParticipants(propsUUID, {
