@@ -28,7 +28,7 @@ export function useEventParticipants(
     () => ({
       uuid: unref(eventUuid) as string,
       page: options.page ?? 1,
-      limit: options.limit ?? 10,
+      limit: options.limit ?? 999,
       roles: options.roles ?? "",
     }),
     () => ({
@@ -46,9 +46,14 @@ export function useEventParticipants(
     () => result.value?.event?.participantStats
   );
 
+  const participantsTotal = computed(
+    () => result.value?.event?.participants?.total ?? 0
+  );
+
   return {
     event,
     participants,
+    participantsTotal,
     participantStats,
     error,
     loading,
