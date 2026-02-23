@@ -1923,7 +1923,7 @@ msgstr "Tytuł: %{title}"
 #: lib/web/email/group.ex:47
 #, elixir-autogen, elixir-format
 msgid "📅 Just scheduled by %{group}: %{event}"
-msgstr "📅 Właśnie zaplanowane przez %{group}: %{event}"
+msgstr "📅 Zaplanowano nowe wydarzenie w grupie %{group}: %{event}"
 
 #: lib/web/templates/email/event_updated.text.eex:9
 #, elixir-autogen, elixir-format
