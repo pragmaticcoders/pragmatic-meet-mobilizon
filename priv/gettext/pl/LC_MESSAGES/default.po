@@ -1920,7 +1920,7 @@ msgstr "Weź udział:"
 msgid "Title: %{title}"
 msgstr "Tytuł: %{title}"
 
-#: lib/web/email/group.ex:48
+#: lib/web/email/group.ex:47
 #, elixir-autogen, elixir-format
 msgid "📅 Just scheduled by %{group}: %{event}"
 msgstr "📅 Zaplanowano nowe wydarzenie w grupie %{group}: %{event}"
