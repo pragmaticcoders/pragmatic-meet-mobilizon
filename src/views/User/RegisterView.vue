@@ -168,6 +168,21 @@
           <div class="flex items-start space-x-2">
             <input
               type="checkbox"
+              id="accept_all"
+              v-model="acceptAll"
+              class="w-4 h-4 mt-0.5 border border-gray-300 text-blue-600 bg-gray-50 focus:ring-2 focus:ring-blue-500"
+            />
+            <label
+              for="accept_all"
+              class="text-xs text-gray-700 leading-4 font-medium"
+            >
+              {{ t("Agree to all") }}
+            </label>
+          </div>
+
+          <div class="flex items-start space-x-2 ml-4">
+            <input
+              type="checkbox"
               id="accept_terms"
               v-model="acceptTerms"
               required
@@ -192,7 +207,7 @@
             </label>
           </div>
 
-          <div class="flex items-start space-x-2">
+          <div class="flex items-start space-x-2 ml-4">
             <input
               type="checkbox"
               id="accept_marketing"
@@ -385,6 +400,14 @@ const route = useRoute();
 const validationSent = ref(false);
 const acceptTerms = ref(false);
 const acceptMarketing = ref(false);
+
+const acceptAll = computed({
+  get: () => acceptTerms.value && acceptMarketing.value,
+  set: (value: boolean) => {
+    acceptTerms.value = value;
+    acceptMarketing.value = value;
+  },
+});
 
 const { result: configResult } = useQuery<{ config: IConfig }>(CONFIG);
 
