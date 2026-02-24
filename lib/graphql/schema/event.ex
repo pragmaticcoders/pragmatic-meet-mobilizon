@@ -116,6 +116,10 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
     field(:metadata, list_of(:event_metadata), description: "A key-value list of metadata")
     field(:language, :string, description: "The event language")
 
+    field(:registration_questions, list_of(:event_registration_question),
+      description: "Custom registration form questions for this event"
+    )
+
     field(:conversations, :paginated_conversation_list,
       description: "The list of conversations started on this event"
     ) do
@@ -397,8 +401,65 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
     field(:type, :event_metadata_type, description: "The metadata type")
   end
 
+  @desc "Registration form question type"
+  enum :event_registration_question_type do
+    value(:short_text, description: "Short text answer")
+    value(:long_text, description: "Long text answer")
+    value(:single_choice, description: "Single choice from options")
+    value(:multiple_choice, description: "Multiple choices from options")
+  end
+
+  @desc "A registration form question for an event"
+  object :event_registration_question do
+    meta(:authorize, :all)
+    field(:id, :id, description: "The question ID")
+    field(:position, :integer, description: "Display order")
+    field(:question_type, :event_registration_question_type, description: "Type of question")
+    field(:title, :string, description: "Question text")
+    field(:required, :boolean, description: "Whether the question is required")
+    field(:options, list_of(:event_registration_question_option),
+      description: "Options for single/multiple choice questions"
+    )
+  end
+
+  @desc "An option for a choice-type registration question"
+  object :event_registration_question_option do
+    meta(:authorize, :all)
+    field(:id, :id, description: "The option ID")
+    field(:position, :integer, description: "Display order")
+    field(:label, :string, description: "Option label")
+  end
+
+  input_object :event_registration_question_option_input do
+    field(:position, :integer, description: "Display order")
+    field(:label, non_null(:string), description: "Option label")
+  end
+
+  input_object :event_registration_question_input do
+    field(:position, :integer, description: "Display order")
+    field(:question_type, non_null(:event_registration_question_type), description: "Type of question")
+    field(:title, non_null(:string), description: "Question text")
+    field(:required, :boolean, description: "Whether the question is required")
+    field(:options, list_of(:event_registration_question_option_input),
+      description: "Options for single/multiple choice questions"
+    )
+  end
+
+  input_object :participant_registration_answer_input do
+    field(:question_id, non_null(:id), description: "The question ID")
+    field(:value, non_null(:string), description: "The answer value")
+  end
+
+  @desc "A participant's answer to a registration question"
+  object :participant_registration_answer do
+    meta(:authorize, :all)
+    field(:id, :id, description: "The answer ID")
+    field(:question_id, :id, description: "The question ID")
+    field(:value, :string, description: "The answer value")
+  end
+
   @desc """
-  A event contact
+  An event contact
   """
   input_object :contact do
     field(:id, :string, description: "The Contact Actor ID")
@@ -511,6 +572,9 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
       arg(:contacts, list_of(:contact), default_value: [], description: "The events contacts")
       arg(:language, :string, description: "The event language", default_value: "und")
+      arg(:registration_questions, list_of(:event_registration_question_input),
+        description: "Custom registration form questions for participants"
+      )
 
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
 
@@ -563,6 +627,9 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       arg(:draft, :boolean, description: "Whether or not the event is a draft")
       arg(:contacts, list_of(:contact), default_value: [], description: "The events contacts")
       arg(:language, :string, description: "The event language", default_value: "und")
+      arg(:registration_questions, list_of(:event_registration_question_input),
+        description: "Custom registration form questions for participants"
+      )
 
       middleware(Rajska.QueryAuthorization,
         permit: :user,

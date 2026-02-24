@@ -12,6 +12,7 @@ import type { IEventOptions } from "./event-options.model";
 import { EventJoinOptions, EventStatus, EventVisibility } from "./enums";
 import { IEventMetadata, IEventMetadataDescription } from "./event-metadata";
 import { IConversation } from "./conversation";
+import type { IEventRegistrationQuestion } from "./event-registration.model";
 
 export interface IEventCardOptions {
   hideDate?: boolean;
@@ -58,6 +59,7 @@ interface IEventEditJSON {
   contacts: { id?: string }[];
   metadata: IEventMetadata[];
   category: string;
+  registrationQuestions?: IEventRegistrationQuestion[];
 }
 
 export interface IEvent {
@@ -100,7 +102,7 @@ export interface IEvent {
   contacts: IActor[];
   language: string;
   category: string;
-
+  registrationQuestions?: IEventRegistrationQuestion[];
   toEditJSON?(): IEventEditJSON;
 }
 
@@ -159,6 +161,7 @@ export class EventModel implements IEvent {
     administrator: 0,
     creator: 0,
     going: 0,
+    waitlist: 0,
   };
 
   participants!: Paginate<IParticipant>;
@@ -182,6 +185,8 @@ export class EventModel implements IEvent {
   metadata: IEventMetadataDescription[] = [];
 
   category = "SOCIAL_ACTIVITIES";
+
+  registrationQuestions: IEventRegistrationQuestion[] = [];
 
   constructor(hash?: IEvent | IEditableEvent) {
     if (!hash) return;
@@ -233,6 +238,7 @@ export class EventModel implements IEvent {
     this.metadata = hash.metadata;
     this.language = hash.language;
     this.category = hash.category;
+    this.registrationQuestions = hash.registrationQuestions ?? [];
     if (hash.options) this.options = hash.options;
   }
 
@@ -280,6 +286,16 @@ export function toEditJSON(event: IEditableEvent): IEventEditJSON {
         : null,
     contacts: event.contacts.map(({ id }) => ({
       id,
+    })),
+    registrationQuestions: event.registrationQuestions?.map((q) => ({
+      position: q.position,
+      questionType: q.questionType,
+      title: q.title,
+      required: q.required ?? false,
+      options: q.options?.map((opt, idx) => ({
+        position: opt.position ?? idx,
+        label: opt.label,
+      })),
     })),
   };
 }

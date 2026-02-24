@@ -35,6 +35,10 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
       description: "The metadata associated to this participant"
     )
 
+    field(:registration_answers, list_of(:participant_registration_answer),
+      description: "Answers to event registration form questions"
+    )
+
     field(:inserted_at, :datetime, description: "The datetime this participant was created")
 
     field(:waitlist_position, :integer,
@@ -109,6 +113,9 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
       arg(:message, :string, description: "The anonymous participant's message")
       arg(:locale, :string, description: "The anonymous participant's locale")
       arg(:timezone, :timezone, description: "The anonymous participant's timezone")
+      arg(:registration_answers, list_of(:participant_registration_answer_input),
+        description: "Answers to event registration form questions"
+      )
       middleware(Rajska.QueryAuthorization, permit: :all, rule: :"write:participation")
       resolve(&Participant.actor_join_event/3)
     end

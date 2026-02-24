@@ -59,6 +59,9 @@ defmodule Mobilizon.GraphQL.API.Participations do
             # Notify group administrators/moderators about waitlist join
             notify_group_admins_of_new_participant(event, participant, :waitlist)
 
+            # Save registration form answers if provided
+            save_registration_answers(participant, args)
+
             result
 
           {:ok, _activity, participant} = result ->
@@ -67,6 +70,9 @@ defmodule Mobilizon.GraphQL.API.Participations do
 
             # Notify group administrators/moderators
             notify_group_admins_of_new_participant(event, participant)
+
+            # Save registration form answers if provided
+            save_registration_answers(participant, args)
 
             result
 
@@ -416,5 +422,13 @@ defmodule Mobilizon.GraphQL.API.Participations do
   def notify_group_admins_of_new_participant(%Event{}, %Participant{}, _participation_type) do
     # Event is not attributed to a group, skip notification
     :ok
+  end
+
+  defp save_registration_answers(%Participant{id: participant_id}, args) do
+    answers = Map.get(args, "registration_answers", Map.get(args, :registration_answers, [])) |> List.wrap()
+    case Events.save_participant_registration_answers(participant_id, answers) do
+      :ok -> :ok
+      {:error, _changeset} -> :ok
+    end
   end
 end

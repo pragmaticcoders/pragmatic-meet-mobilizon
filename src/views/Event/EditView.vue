@@ -18,31 +18,47 @@
       <p class="text-sm text-gray-600 mb-4">
         {{ t("Choose who will organize this event") }}
       </p>
-      
+
       <!-- Selected organizer preview -->
-      <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div
+        class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+      >
         <img
           v-if="selectedOrganizerData?.avatar?.url"
           :src="selectedOrganizerData.avatar.url"
-          :alt="selectedOrganizerData.name || selectedOrganizerData.preferredUsername"
+          :alt="
+            selectedOrganizerData.name ||
+            selectedOrganizerData.preferredUsername
+          "
           class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
         />
         <div
           v-else
           class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-sm"
         >
-          {{ (selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || "P")[0].toUpperCase() }}
+          {{
+            (selectedOrganizerData?.name ||
+              selectedOrganizerData?.preferredUsername ||
+              "P")[0].toUpperCase()
+          }}
         </div>
         <div class="flex-1">
           <p class="text-sm font-semibold text-gray-900">
-            {{ selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || t("Personal event") }}
+            {{
+              selectedOrganizerData?.name ||
+              selectedOrganizerData?.preferredUsername ||
+              t("Personal event")
+            }}
           </p>
-          <p v-if="selectedOrganizer !== 'personal'" class="text-xs text-gray-500">
+          <p
+            v-if="selectedOrganizer !== 'personal'"
+            class="text-xs text-gray-500"
+          >
             @{{ selectedOrganizerData?.preferredUsername }}
           </p>
         </div>
       </div>
-      
+
       <div class="relative w-full md:w-1/2">
         <select
           id="eventOrganizer"
@@ -60,9 +76,17 @@
             {{ t("Group:") }} {{ group.name || group.preferredUsername }}
           </option>
         </select>
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+        <div
+          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+        >
+          <svg
+            class="fill-current h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+            />
           </svg>
         </div>
       </div>
@@ -448,6 +472,124 @@
               }}
             </p>
           </div>
+        </div>
+      </section>
+
+      <section class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+          {{ t("Registration form") }}
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          {{
+            t(
+              "Add custom questions that participants will answer when they register. Questions are shown as a second step after clicking 'Participate'."
+            )
+          }}
+        </p>
+        <div class="space-y-6">
+          <div
+            v-for="(q, qIndex) in event.registrationQuestions"
+            :key="qIndex"
+            class="p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3"
+          >
+            <div class="flex justify-between items-start gap-2">
+              <span class="text-sm font-medium text-gray-500"
+                >{{ t("Question") }} {{ qIndex + 1 }}</span
+              >
+              <o-button
+                size="small"
+                variant="danger"
+                icon-left="delete"
+                @click="event.registrationQuestions?.splice(qIndex, 1)"
+              >
+                {{ t("Remove") }}
+              </o-button>
+            </div>
+            <o-field :label="t('Question type')">
+              <o-select
+                v-model="q.questionType"
+                expanded
+                :placeholder="t('Select type')"
+              >
+                <option value="SHORT_TEXT">{{ t("Short text") }}</option>
+                <option value="LONG_TEXT">{{ t("Long text") }}</option>
+                <option value="SINGLE_CHOICE">{{ t("Single choice") }}</option>
+                <option value="MULTIPLE_CHOICE">
+                  {{ t("Multiple choice") }}
+                </option>
+              </o-select>
+            </o-field>
+            <o-field :label="t('Question text')" :required="true">
+              <o-input
+                v-model="q.title"
+                expanded
+                :placeholder="t('e.g. Dietary requirements')"
+              />
+            </o-field>
+            <o-field>
+              <o-checkbox v-model="q.required">
+                {{ t("Required") }}
+              </o-checkbox>
+            </o-field>
+            <template
+              v-if="
+                q.questionType === 'SINGLE_CHOICE' ||
+                q.questionType === 'MULTIPLE_CHOICE'
+              "
+            >
+              <div class="pl-4 border-l-2 border-gray-200">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{
+                  t("Options")
+                }}</label>
+                <div
+                  v-for="(opt, optIndex) in q.options || []"
+                  :key="optIndex"
+                  class="flex gap-2 mb-2"
+                >
+                  <o-input
+                    v-model="opt.label"
+                    expanded
+                    size="small"
+                    :placeholder="t('Option label')"
+                  />
+                  <o-button
+                    size="small"
+                    variant="danger"
+                    icon-left="close"
+                    @click="q.options?.splice(optIndex, 1)"
+                  />
+                </div>
+                <o-button
+                  size="small"
+                  variant="primary"
+                  icon-left="plus"
+                  @click="
+                    (q.options ||= []).push({
+                      position: q.options?.length ?? 0,
+                      label: '',
+                    })
+                  "
+                >
+                  {{ t("Add option") }}
+                </o-button>
+              </div>
+            </template>
+          </div>
+          <o-button
+            variant="primary"
+            icon-left="plus"
+            @click="
+              (event.registrationQuestions ||= []).push({
+                position: event.registrationQuestions.length,
+                questionType: 'SHORT_TEXT',
+                title: '',
+                required: false,
+                options: [],
+              })
+            "
+          >
+            {{ t("Add question") }}
+          </o-button>
         </div>
       </section>
 
@@ -983,7 +1125,8 @@ const { result: userMembershipsResult } = useQuery<{
 
 // Filter groups where user has moderator or administrator role
 const administeredGroups = computed<IGroup[]>(() => {
-  const memberships = userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
+  const memberships =
+    userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
   return memberships
     .filter((membership: IMember) =>
       [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)

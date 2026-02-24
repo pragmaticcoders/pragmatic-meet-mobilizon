@@ -13,8 +13,8 @@
       :anonymousParticipation="anonymousParticipation"
       :currentActor="currentActor"
       :anonymousParticipationConfig="anonymousParticipationConfig"
-      @join-event="joinEvent"
-      @join-event-with-confirmation="joinEventWithConfirmation"
+      @join-event="onJoinEvent"
+      @join-event-with-confirmation="onJoinEventWithConfirmation"
       @confirm-leave="confirmLeave"
       @cancel-anonymous-participation="cancelAnonymousParticipation"
     />
@@ -317,6 +317,139 @@
       </section>
     </div>
   </o-modal>
+  <o-modal
+    v-model:active="isRegistrationFormModalActive"
+    has-modal-card
+    :close-button-aria-label="t('Close')"
+    :width="640"
+  >
+    <div class="modal-card max-w-xl w-full">
+      <header class="modal-card-head">
+        <p class="modal-card-title text-xl font-semibold text-gray-900">
+          {{ t("Additional questions") }}
+        </p>
+      </header>
+      <section class="modal-card-body p-6 md:p-8">
+        <p class="text-sm text-gray-600 leading-relaxed mb-6">
+          {{
+            t(
+              "Please answer the following questions to complete your registration."
+            )
+          }}
+        </p>
+        <form @submit.prevent="submitRegistrationForm" class="space-y-6">
+          <div
+            v-for="(q, qIndex) in event?.registrationQuestions || []"
+            :key="q.id"
+            class="pb-6"
+            :class="
+              qIndex < (event?.registrationQuestions?.length ?? 1) - 1
+                ? 'border-b border-gray-200'
+                : ''
+            "
+          >
+            <o-field
+              :message="
+                registrationFormErrors.has(q.id)
+                  ? t('This field is required')
+                  : undefined
+              "
+              :type="registrationFormErrors.has(q.id) ? 'danger' : undefined"
+              class="mb-0"
+            >
+              <template #label>
+                <span>{{ q.title }}</span>
+                <span v-if="q.required" class="text-red-500"> *</span>
+              </template>
+              <o-input
+                v-if="q.questionType === 'SHORT_TEXT'"
+                v-model="registrationFormAnswers[q.id]"
+                expanded
+                :placeholder="q.title"
+                size="default"
+                @input="clearRegistrationFieldError(q.id)"
+              />
+              <o-input
+                v-else-if="q.questionType === 'LONG_TEXT'"
+                type="textarea"
+                v-model="registrationFormAnswers[q.id]"
+                expanded
+                :placeholder="q.title"
+                size="default"
+                @input="clearRegistrationFieldError(q.id)"
+              />
+              <o-select
+                v-else-if="q.questionType === 'SINGLE_CHOICE'"
+                v-model="registrationFormAnswers[q.id]"
+                expanded
+                :placeholder="t('Select an option')"
+                @input="clearRegistrationFieldError(q.id)"
+              >
+                <option
+                  v-for="opt in q.options || []"
+                  :key="opt.id"
+                  :value="opt.label"
+                >
+                  {{ opt.label }}
+                </option>
+              </o-select>
+              <div
+                v-else-if="q.questionType === 'MULTIPLE_CHOICE'"
+                class="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-2"
+              >
+                <label
+                  v-for="opt in q.options || []"
+                  :key="opt.id"
+                  class="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-100 cursor-pointer"
+                >
+                  <o-checkbox
+                    :model-value="
+                      (registrationFormAnswers[q.id] || '')
+                        .split(',')
+                        .includes(opt.label)
+                    "
+                    @update:model-value="
+                      (v: boolean) => {
+                        toggleMultiChoice(q.id, opt.label, v);
+                        clearRegistrationFieldError(q.id);
+                      }
+                    "
+                  />
+                  <span class="text-gray-800">{{ opt.label }}</span>
+                </label>
+              </div>
+            </o-field>
+          </div>
+          <template v-if="event?.joinOptions === EventJoinOptions.RESTRICTED">
+            <div class="pt-4 border-t border-gray-200">
+              <o-field :label="t('Message (optional)')">
+                <o-input
+                  type="textarea"
+                  v-model="messageForConfirmation"
+                  size="medium"
+                  :placeholder="t('Add a note for the organizer…')"
+                />
+              </o-field>
+            </div>
+          </template>
+          <footer
+            class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 mt-6 border-t border-gray-200"
+          >
+            <o-button
+              variant="cancel"
+              native-type="button"
+              @click="isRegistrationFormModalActive = false"
+            >
+              {{ t("Cancel") }}
+            </o-button>
+            <o-button variant="primary" native-type="submit">
+              {{ t("Confirm my participation") }}
+            </o-button>
+          </footer>
+        </form>
+      </section>
+    </div>
+  </o-modal>
 </template>
 
 <script lang="ts" setup>
@@ -421,6 +554,11 @@ const isReportModalActive = ref(false);
 const isShareModalActive = ref(false);
 const isJoinConfirmationModalActive = ref(false);
 
+const isRegistrationFormModalActive = ref(false);
+const actorForJoin = ref<IPerson | null>(null);
+const registrationFormAnswers = ref<Record<string, string>>({});
+const registrationFormErrors = ref<Set<string>>(new Set());
+
 const actorForConfirmation = ref<IPerson | null>(null);
 const messageForConfirmation = ref("");
 
@@ -491,9 +629,96 @@ const hasGroupPrivileges = computed((): boolean => {
 });
 
 const joinEventWithConfirmation = (actor: IPerson): void => {
-  isJoinConfirmationModalActive.value = true;
-  actorForConfirmation.value = actor;
+  if (event.value?.registrationQuestions?.length) {
+    actorForJoin.value = actor;
+    registrationFormAnswers.value = {};
+    registrationFormErrors.value = new Set();
+    (event.value.registrationQuestions || []).forEach((q) => {
+      if (q.id) registrationFormAnswers.value[q.id] = "";
+    });
+    isRegistrationFormModalActive.value = true;
+  } else {
+    isJoinConfirmationModalActive.value = true;
+    actorForConfirmation.value = actor;
+  }
 };
+
+const onJoinEvent = (actor: IPerson): void => {
+  if (event.value?.registrationQuestions?.length) {
+    actorForJoin.value = actor;
+    registrationFormAnswers.value = {};
+    registrationFormErrors.value = new Set();
+    (event.value.registrationQuestions || []).forEach((q) => {
+      if (q.id) registrationFormAnswers.value[q.id] = "";
+    });
+    isRegistrationFormModalActive.value = true;
+  } else {
+    joinEvent(actor);
+  }
+};
+
+const onJoinEventWithConfirmation = (actor: IPerson): void => {
+  joinEventWithConfirmation(actor);
+};
+
+function toggleMultiChoice(
+  questionId: string,
+  label: string,
+  checked: boolean
+): void {
+  const current = (registrationFormAnswers.value[questionId] || "")
+    .split(",")
+    .filter(Boolean);
+  if (checked) {
+    if (!current.includes(label)) current.push(label);
+  } else {
+    const i = current.indexOf(label);
+    if (i !== -1) current.splice(i, 1);
+  }
+  registrationFormAnswers.value[questionId] = current.join(",");
+}
+
+function clearRegistrationFieldError(questionId: string): void {
+  registrationFormErrors.value = new Set(
+    [...registrationFormErrors.value].filter((id) => id !== questionId)
+  );
+}
+
+function submitRegistrationForm(): void {
+  const actor = actorForJoin.value;
+  if (!actor?.id || !event.value?.id) return;
+  const questions = event.value.registrationQuestions || [];
+  const missing = questions.filter(
+    (q) => q.required && !registrationFormAnswers.value[q.id!]?.trim()
+  );
+  if (missing.length > 0) {
+    registrationFormErrors.value = new Set(
+      missing.map((q) => q.id!).filter(Boolean)
+    );
+    notification.open({
+      message: t("Please answer all required questions"),
+      variant: "danger",
+      position: "bottom-right",
+    });
+    return;
+  }
+  registrationFormErrors.value = new Set();
+  const answers = questions
+    .filter((q) => q.id && registrationFormAnswers.value[q.id] !== undefined)
+    .map((q) => ({
+      questionId: q.id!,
+      value: registrationFormAnswers.value[q.id!] ?? "",
+    }));
+  const message =
+    event.value.joinOptions === EventJoinOptions.RESTRICTED
+      ? messageForConfirmation.value
+      : null;
+  isRegistrationFormModalActive.value = false;
+  actorForJoin.value = null;
+  registrationFormAnswers.value = {};
+  registrationFormErrors.value = new Set();
+  joinEvent(actor, message, answers);
+}
 
 const {
   mutate: joinEventMutation,
@@ -583,7 +808,9 @@ const {
           variables: { afterDateTime },
         });
       } catch (readError) {
-        console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+        console.debug(
+          "HOME_USER_QUERIES not in cache, will evict to force refetch"
+        );
         homeData = null;
       }
 
@@ -608,11 +835,15 @@ const {
           variables: { afterDateTime },
           data: updatedHomeData,
         });
-        console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+        console.debug(
+          "Successfully updated HOME_USER_QUERIES cache with new participation"
+        );
       } else {
         // Query not in cache or doesn't have expected structure
         // Evict to force refetch when user navigates to home page
-        console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
+        console.debug(
+          "HOME_USER_QUERIES cache miss, evicting to force refetch"
+        );
         store.evict({ fieldName: "loggedUser" });
         store.gc();
       }
@@ -627,13 +858,17 @@ const {
 
 const joinEvent = (
   identityForJoin: IPerson,
-  message: string | null = null
+  message: string | null = null,
+  registrationAnswers: { questionId: string; value: string }[] = []
 ): void => {
   isJoinConfirmationModalActive.value = false;
   joinEventMutation({
     eventId: event.value?.id,
     actorId: identityForJoin?.id,
-    message,
+    message: message ?? undefined,
+    registrationAnswers: registrationAnswers.length
+      ? registrationAnswers
+      : undefined,
   });
 };
 
@@ -844,9 +1079,10 @@ const {
       });
 
       if (homeData?.loggedUser?.participations?.elements) {
-        const updatedElements = homeData.loggedUser.participations.elements.filter(
-          (p: any) => p.event.id !== localEventId
-        );
+        const updatedElements =
+          homeData.loggedUser.participations.elements.filter(
+            (p: any) => p.event.id !== localEventId
+          );
 
         const updatedHomeData = {
           ...homeData,

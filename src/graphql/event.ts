@@ -9,6 +9,23 @@ import {
 import { TAG_FRAGMENT } from "./tags";
 import { CONVERSATIONS_QUERY_FRAGMENT } from "./conversations";
 
+const REGISTRATION_QUESTIONS_FRAGMENT = gql`
+  fragment EventRegistrationQuestions on Event {
+    registrationQuestions {
+      id
+      position
+      questionType
+      title
+      required
+      options {
+        id
+        position
+        label
+      }
+    }
+  }
+`;
+
 const FULL_EVENT_FRAGMENT = gql`
   fragment FullEvent on Event {
     id
@@ -70,11 +87,13 @@ const FULL_EVENT_FRAGMENT = gql`
       value
       type
     }
+    ...EventRegistrationQuestions
   }
   ${ADDRESS_FRAGMENT}
   ${TAG_FRAGMENT}
   ${EVENT_OPTIONS_FRAGMENT}
   ${ACTOR_FRAGMENT}
+  ${REGISTRATION_QUESTIONS_FRAGMENT}
 `;
 
 export const FETCH_EVENT = gql`
@@ -188,6 +207,7 @@ export const CREATE_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $registrationQuestions: [EventRegistrationQuestionInput]
   ) {
     createEvent(
       attributedToId: $attributedToId
@@ -209,6 +229,7 @@ export const CREATE_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      registrationQuestions: $registrationQuestions
     ) {
       ...FullEvent
     }
@@ -239,6 +260,7 @@ export const EDIT_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $registrationQuestions: [EventRegistrationQuestionInput]
   ) {
     updateEvent(
       eventId: $id
@@ -262,6 +284,7 @@ export const EDIT_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      registrationQuestions: $registrationQuestions
     ) {
       ...FullEvent
     }
@@ -277,6 +300,7 @@ export const JOIN_EVENT = gql`
     $message: String
     $locale: String
     $timezone: Timezone
+    $registrationAnswers: [ParticipantRegistrationAnswerInput]
   ) {
     joinEvent(
       eventId: $eventId
@@ -285,6 +309,7 @@ export const JOIN_EVENT = gql`
       message: $message
       locale: $locale
       timezone: $timezone
+      registrationAnswers: $registrationAnswers
     ) {
       ...ParticipantQuery
     }

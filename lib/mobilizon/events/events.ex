@@ -24,8 +24,11 @@ defmodule Mobilizon.Events do
   alias Mobilizon.Events.{
     Event,
     EventParticipantStats,
+    EventRegistrationQuestion,
+    EventRegistrationQuestionOption,
     FeedToken,
     Participant,
+    ParticipantRegistrationAnswer,
     Session,
     Tag,
     TagRelation,
@@ -85,10 +88,11 @@ defmodule Mobilizon.Events do
     :physical_address,
     :picture,
     :contacts,
-    :media
+    :media,
+    [registration_questions: :options]
   ]
 
-  @participant_preloads [:event, :actor]
+  @participant_preloads [:event, :actor, :registration_answers]
 
   @doc """
   Gets a single event.
@@ -232,7 +236,11 @@ defmodule Mobilizon.Events do
           | {:error, Changeset.t()}
           | {:error, :update | :write, Changeset.t(), map()}
   def create_event(attrs \\ %{}) do
-    with {:ok, %{insert: %Event{} = event}} <- do_create_event(attrs),
+    questions = get_registration_questions_from_attrs(attrs)
+    attrs_without_questions = drop_registration_questions(attrs)
+
+    with {:ok, %{insert: %Event{} = event}} <- do_create_event(attrs_without_questions),
+         :ok <- save_registration_questions(event.id, questions),
          %Event{} = event <- Repo.preload(event, @event_preloads) do
       unless event.draft do
         BuildSearch.enqueue(:insert_search_event, %{"event_id" => event.id})
@@ -282,9 +290,12 @@ defmodule Mobilizon.Events do
           | {:error, Changeset.t()}
           | {:error, :update | :write, Changeset.t(), map()}
   def update_event(%Event{draft: old_draft} = old_event, attrs) do
+    questions = get_registration_questions_from_attrs(attrs)
+    attrs_without_questions = drop_registration_questions(attrs)
+
     with %Event{} = old_event <- Repo.preload(old_event, @event_preloads),
          %Changeset{changes: changes} = changeset <-
-           Event.update_changeset(old_event, attrs),
+           Event.update_changeset(old_event, attrs_without_questions),
          {:ok, %{update: %Event{} = new_event}} <-
            Multi.new()
            |> Multi.update(:update, changeset)
@@ -306,6 +317,7 @@ defmodule Mobilizon.Events do
              end
            end)
            |> Repo.transaction(),
+         :ok <- save_registration_questions(new_event.id, questions),
          %Event{} = new_event <- Repo.preload(new_event, @event_preloads, force: true) do
       Cachable.clear_all_caches(new_event)
 
@@ -355,6 +367,105 @@ defmodule Mobilizon.Events do
       _ ->
         Map.drop(changes, [field])
     end
+  end
+
+  defp get_registration_questions_from_attrs(attrs) do
+    attrs
+    |> Map.get("registration_questions", Map.get(attrs, :registration_questions, []))
+    |> List.wrap()
+  end
+
+  defp drop_registration_questions(attrs) do
+    attrs
+    |> Map.drop(["registration_questions", :registration_questions])
+  end
+
+  @doc """
+  Replaces all registration questions for an event with the given list.
+  Each question map should have :question_type, :title, :required, :position, and optionally :options (list of %{label: "", position: 0}).
+  """
+  @spec save_registration_questions(integer(), list(map())) :: :ok | {:error, Ecto.Changeset.t()}
+  def save_registration_questions(_event_id, []), do: :ok
+
+  def save_registration_questions(event_id, questions) when is_list(questions) do
+    # Delete existing questions (cascade deletes options and answers)
+    from(q in EventRegistrationQuestion, where: q.event_id == ^event_id)
+    |> Repo.delete_all()
+
+    # Insert new questions then their options
+    Enum.reduce_while(questions, :ok, fn q_attrs, _acc ->
+      options = Map.get(q_attrs, "options", Map.get(q_attrs, :options, [])) |> List.wrap()
+      position = Map.get(q_attrs, "position", Map.get(q_attrs, :position, 0))
+      question_type_str = Map.get(q_attrs, "question_type", Map.get(q_attrs, :question_type))
+      question_type =
+        case question_type_str do
+          t when is_atom(t) -> t
+          t when is_binary(t) -> String.to_existing_atom(t)
+        end
+      title = Map.get(q_attrs, "title", Map.get(q_attrs, :title, ""))
+      required = Map.get(q_attrs, "required", Map.get(q_attrs, :required, false))
+
+      question_attrs = %{
+        event_id: event_id,
+        position: position,
+        question_type: question_type,
+        title: title,
+        required: required
+      }
+
+      case %EventRegistrationQuestion{}
+           |> EventRegistrationQuestion.changeset(question_attrs)
+           |> Repo.insert() do
+        {:ok, question} ->
+          # Insert options
+          Enum.each(Enum.with_index(options), fn {opt, idx} ->
+            opt_attrs = %{
+              question_id: question.id,
+              position: Map.get(opt, "position", Map.get(opt, :position, idx)),
+              label: Map.get(opt, "label", Map.get(opt, :label, ""))
+            }
+            %EventRegistrationQuestionOption{}
+            |> EventRegistrationQuestionOption.changeset(opt_attrs)
+            |> Repo.insert!()
+          end)
+          {:cont, :ok}
+
+        {:error, changeset} ->
+          {:halt, {:error, changeset}}
+      end
+    end)
+  end
+
+  @doc """
+  Saves registration answers for a participant. Called after participant is created.
+  answers: list of %{question_id: id, value: "..."}
+  """
+  @spec save_participant_registration_answers(Ecto.UUID.t(), list(map())) ::
+          :ok | {:error, Ecto.Changeset.t()}
+  def save_participant_registration_answers(_participant_id, []), do: :ok
+
+  def save_participant_registration_answers(participant_id, answers) when is_list(answers) do
+    Enum.reduce_while(answers, :ok, fn a, _acc ->
+      value = Map.get(a, "value", Map.get(a, :value, ""))
+      question_id = Map.get(a, "question_id", Map.get(a, :question_id))
+
+      if is_nil(question_id) or value == "" do
+        {:cont, :ok}
+      else
+        attrs = %{
+          participant_id: participant_id,
+          question_id: question_id,
+          value: to_string(value)
+        }
+
+        case %ParticipantRegistrationAnswer{}
+             |> ParticipantRegistrationAnswer.changeset(attrs)
+             |> Repo.insert() do
+          {:ok, _} -> {:cont, :ok}
+          {:error, changeset} -> {:halt, {:error, changeset}}
+        end
+      end
+    end)
   end
 
   @doc """

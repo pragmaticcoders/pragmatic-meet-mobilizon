@@ -41,6 +41,8 @@ defmodule Mobilizon.Events.Participant do
     belongs_to(:event, Event, primary_key: true)
     belongs_to(:actor, Actor, primary_key: true)
 
+    has_many(:registration_answers, Mobilizon.Events.ParticipantRegistrationAnswer)
+
     timestamps()
   end
 
