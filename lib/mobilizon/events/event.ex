@@ -175,7 +175,6 @@ defmodule Mobilizon.Events.Event do
     |> put_picture(attrs)
     |> validate_lengths()
     |> validate_end_time()
-    |> validate_capacity_not_below_participant_count()
     |> unique_constraint(:url)
   end
 
@@ -200,36 +199,6 @@ defmodule Mobilizon.Events.Event do
 
       :error ->
         changeset
-    end
-  end
-
-  # On update, do not allow reducing maximum_attendee_capacity below current participant count.
-  # When already over capacity, organizer can still change other options (e.g. waitlist_auto_promote).
-  defp validate_capacity_not_below_participant_count(%Changeset{data: %__MODULE__{id: nil}} = changeset),
-    do: changeset
-
-  defp validate_capacity_not_below_participant_count(%Changeset{} = changeset) do
-    event_id = changeset.data.id
-    new_options = get_change(changeset, :options)
-    new_cap = new_options && Map.get(new_options, :maximum_attendee_capacity)
-    old_cap = changeset.data.options && changeset.data.options.maximum_attendee_capacity
-
-    if is_integer(new_cap) and new_cap > 0 do
-      count = Events.count_participant_participants(event_id)
-      # Reject only when reducing capacity below current count; allow when already over capacity
-      already_over_capacity = is_integer(old_cap) and old_cap < count
-
-      if new_cap < count and not already_over_capacity do
-        add_error(
-          changeset,
-          :options,
-          dgettext("errors", "Cannot set participant limit below current participant count")
-        )
-      else
-        changeset
-      end
-    else
-      changeset
     end
   end
 
