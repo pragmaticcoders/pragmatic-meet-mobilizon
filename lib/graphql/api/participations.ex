@@ -82,8 +82,12 @@ defmodule Mobilizon.GraphQL.API.Participations do
   def leave(%Event{id: event_id} = event, %Actor{} = actor, args \\ %{}) do
     case Actions.Leave.leave(event, actor, Map.get(args, :local, true), %{metadata: args}) do
       {:ok, _activity, _participant} = result ->
-        # When someone leaves, check if we can promote someone from waitlist
-        Task.start(fn -> promote_from_waitlist_if_needed(event_id) end)
+        # When someone leaves, check if we can promote someone from waitlist (delay so leave transaction is committed)
+        Task.start(fn ->
+          Process.sleep(100)
+          promote_from_waitlist_if_needed(event_id)
+        end)
+
         result
 
       error ->
