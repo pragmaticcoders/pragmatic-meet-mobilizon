@@ -358,26 +358,24 @@
                 class="w-32"
                 placeholder="Enter limit"
               />
-              <p
-                v-if="currentParticipantCount > 0"
-                class="text-sm mt-1"
-                :class="
-                  currentParticipantCount >
-                  event.options.maximumAttendeeCapacity
-                    ? 'text-amber-700'
-                    : 'text-gray-500'
-                "
-              >
-                {{
-                  currentParticipantCount >
-                  event.options.maximumAttendeeCapacity
-                    ? t("Participant count exceeds limit.")
-                    : t(
-                        "Current participants: {count}. Limit cannot be lower than current participants.",
-                        { count: currentParticipantCount }
-                      )
-                }}
-              </p>
+              <template v-if="currentParticipantCount > 0">
+                <p class="text-sm mt-1 text-gray-500">
+                  {{
+                    t("Current participants: {count}", {
+                      count: currentParticipantCount,
+                    })
+                  }}
+                </p>
+                <p
+                  v-if="
+                    currentParticipantCount >
+                    event.options.maximumAttendeeCapacity
+                  "
+                  class="text-sm mt-0.5 text-amber-700"
+                >
+                  {{ t("Limit exceeded") }}
+                </p>
+              </template>
             </div>
 
             <div>
@@ -1109,6 +1107,10 @@ const validateForm = () => {
     });
     return false;
   }
+  console.log(
+    "!!!!!!!!!!!!!!!!!!!!!!!! currentCount",
+    currentParticipantCount.value
+  );
 
   // Check participant capacity validation
   if (limitedPlaces.value) {
