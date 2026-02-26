@@ -119,6 +119,8 @@
   "Create": "Create",
   "Current identity has been changed to {identityName} in order to manage this event.": "Current identity has been changed to {identityName} in order to manage this event.",
   "Current page": "Current page",
+  "Current participants: {count}": "Current participants: {count}",
+  "Limit exceeded": "Limit exceeded",
   "Marketing Banner Location URL": "Marketing Banner Location URL",
   "Marketing Banner Location URL is required": "Marketing Banner Location URL is required",
   "Required: Add a marketing banner location URL for your group (e.g., your website or social media)": "Required: Add a marketing banner location URL for your group (e.g., your website or social media)",

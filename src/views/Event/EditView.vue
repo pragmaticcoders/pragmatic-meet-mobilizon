@@ -18,31 +18,47 @@
       <p class="text-sm text-gray-600 mb-4">
         {{ t("Choose who will organize this event") }}
       </p>
-      
+
       <!-- Selected organizer preview -->
-      <div class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+      <div
+        class="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+      >
         <img
           v-if="selectedOrganizerData?.avatar?.url"
           :src="selectedOrganizerData.avatar.url"
-          :alt="selectedOrganizerData.name || selectedOrganizerData.preferredUsername"
+          :alt="
+            selectedOrganizerData.name ||
+            selectedOrganizerData.preferredUsername
+          "
           class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm"
         />
         <div
           v-else
           class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-sm"
         >
-          {{ (selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || "P")[0].toUpperCase() }}
+          {{
+            (selectedOrganizerData?.name ||
+              selectedOrganizerData?.preferredUsername ||
+              "P")[0].toUpperCase()
+          }}
         </div>
         <div class="flex-1">
           <p class="text-sm font-semibold text-gray-900">
-            {{ selectedOrganizerData?.name || selectedOrganizerData?.preferredUsername || t("Personal event") }}
+            {{
+              selectedOrganizerData?.name ||
+              selectedOrganizerData?.preferredUsername ||
+              t("Personal event")
+            }}
           </p>
-          <p v-if="selectedOrganizer !== 'personal'" class="text-xs text-gray-500">
+          <p
+            v-if="selectedOrganizer !== 'personal'"
+            class="text-xs text-gray-500"
+          >
             @{{ selectedOrganizerData?.preferredUsername }}
           </p>
         </div>
       </div>
-      
+
       <div class="relative w-full md:w-1/2">
         <select
           id="eventOrganizer"
@@ -60,9 +76,17 @@
             {{ t("Group:") }} {{ group.name || group.preferredUsername }}
           </option>
         </select>
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-          <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+        <div
+          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+        >
+          <svg
+            class="fill-current h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+          >
+            <path
+              d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+            />
           </svg>
         </div>
       </div>
@@ -334,17 +358,24 @@
                 class="w-32"
                 placeholder="Enter limit"
               />
-              <p
-                v-if="currentParticipantCount > 0"
-                class="text-sm text-gray-500 mt-1"
-              >
-                {{
-                  t(
-                    "Current participants: {count}. Limit cannot be lower than current participants.",
-                    { count: currentParticipantCount }
-                  )
-                }}
-              </p>
+              <template v-if="currentParticipantCount > 0">
+                <p class="text-sm mt-1 text-gray-500">
+                  {{
+                    t("Current participants: {count}", {
+                      count: currentParticipantCount,
+                    })
+                  }}
+                </p>
+                <p
+                  v-if="
+                    currentParticipantCount >
+                    event.options.maximumAttendeeCapacity
+                  "
+                  class="text-sm mt-0.5 text-amber-700"
+                >
+                  {{ t("Limit exceeded") }}
+                </p>
+              </template>
             </div>
 
             <div>
@@ -983,7 +1014,8 @@ const { result: userMembershipsResult } = useQuery<{
 
 // Filter groups where user has moderator or administrator role
 const administeredGroups = computed<IGroup[]>(() => {
-  const memberships = userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
+  const memberships =
+    userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
   return memberships
     .filter((membership: IMember) =>
       [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
@@ -1093,7 +1125,14 @@ const validateForm = () => {
       return false;
     }
 
-    if (currentCount > 0 && maxCapacity < currentCount) {
+    // When participants exceed limit, allow save so organizer can change options
+    // (e.g. switch to "Require manual approval"). Only block when reducing capacity below current count
+    // and we're not already over capacity (backend will reject capacity < count on update).
+    const isOverCapacity = currentCount > 0 && maxCapacity < currentCount;
+    if (isOverCapacity && event.value.id) {
+      // Editing existing event that is over capacity: allow save so they can update
+      // waitlist_auto_promote, block_new_registrations, etc.
+    } else if (currentCount > 0 && maxCapacity < currentCount) {
       notification.open({
         message: t(
           "Cannot set participant limit below current participant count ({count})",
