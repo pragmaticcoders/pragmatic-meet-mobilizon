@@ -1107,10 +1107,6 @@ const validateForm = () => {
     });
     return false;
   }
-  console.log(
-    "!!!!!!!!!!!!!!!!!!!!!!!! currentCount",
-    currentParticipantCount.value
-  );
 
   // Check participant capacity validation
   if (limitedPlaces.value) {

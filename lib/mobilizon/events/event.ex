@@ -34,8 +34,6 @@ defmodule Mobilizon.Events.Event do
 
   use Mobilizon.Web, :verified_routes
 
-  import Mobilizon.Web.Gettext, only: [dgettext: 2]
-
   @type t :: %__MODULE__{
           id: integer(),
           url: String.t(),
