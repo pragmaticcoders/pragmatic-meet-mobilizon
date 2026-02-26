@@ -1049,8 +1049,7 @@ defmodule Mobilizon.Events do
            |> Multi.run(:update_event_participation_stats, fn _repo,
                                                               %{
                                                                 participant:
-                                                                  %Participant{role: _new_role} =
-                                                                    participant
+                                                                  %Participant{} = participant
                                                               } ->
              update_participant_stats(
                participant.event_id,
@@ -1068,15 +1067,14 @@ defmodule Mobilizon.Events do
   @spec update_participant(Participant.t(), map) ::
           {:ok, Participant.t()}
           | {:error, :participant | :update_event_participation_stats, Changeset.t(), map()}
-  def update_participant(%Participant{role: _old_role} = participant, attrs) do
+  def update_participant(%Participant{} = participant, attrs) do
     with {:ok, %{participant: %Participant{} = participant}} <-
            Multi.new()
            |> Multi.update(:participant, Participant.changeset(participant, attrs))
            |> Multi.run(:update_event_participation_stats, fn _repo,
                                                               %{
                                                                 participant:
-                                                                  %Participant{role: _new_role} =
-                                                                    participant
+                                                                  %Participant{} = participant
                                                               } ->
              update_participant_stats(participant.event_id)
            end)
@@ -1091,7 +1089,7 @@ defmodule Mobilizon.Events do
   @spec delete_participant(Participant.t()) ::
           {:ok, %{participant: Participant.t()}}
           | {:error, :participant | :update_event_participation_stats, Changeset.t(), map()}
-  def delete_participant(%Participant{role: _old_role} = participant) do
+  def delete_participant(%Participant{} = participant) do
     Multi.new()
     |> Multi.delete(:participant, participant)
     |> Multi.run(:update_event_participation_stats, fn _repo,
