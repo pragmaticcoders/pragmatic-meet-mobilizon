@@ -8,6 +8,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
   alias Mobilizon.Actors.{Actor, Member}
   alias Mobilizon.Federation.ActivityPub.Actions
   alias Mobilizon.Federation.ActivityPub.Actor, as: ActivityPubActor
+  alias Mobilizon.Invitations
   alias Mobilizon.Storage.Page
   alias Mobilizon.Users.User
   import Mobilizon.Web.Gettext
@@ -95,6 +96,84 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
       # Remove me ?
       {:ok, %Member{}} ->
         {:error, dgettext("errors", "Profile is already a member of this group")}
+    end
+  end
+
+  @spec invite_group_member_by_email(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, %{success: boolean()}} | {:error, String.t()}
+  def invite_group_member_by_email(
+        _parent,
+        %{group_id: group_id, email: email, confirm_non_existing_user: confirm},
+        %{context: %{current_actor: %Actor{id: invited_by_id}}}
+      ) do
+    case Invitations.create_group_invitation(group_id, email, invited_by_id, confirm) do
+      {:ok, _invitation} ->
+        {:ok, %{success: true}}
+
+      {:error, :user_not_found} ->
+        {:error,
+         dgettext("errors", "No account with this email. Check the box to invite them to sign up.")}
+
+      {:error, :not_eligible} ->
+        {:error, dgettext("errors", "You cannot invite to this group")}
+
+      {:error, :already_member} ->
+        {:error, dgettext("errors", "This person is already a member of the group")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        message =
+          Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+            Mobilizon.Web.ErrorHelpers.translate_error({msg, opts})
+          end)
+          |> Enum.flat_map(fn {field, messages} ->
+            Enum.map(messages, &"#{field}: #{&1}")
+          end)
+          |> Enum.join(", ")
+
+        {:error, if(message != "", do: message, else: dgettext("errors", "Invalid invitation"))}
+    end
+  end
+
+  def invite_group_member_by_email(_parent, _args, _resolution) do
+    {:error, dgettext("errors", "You must be logged in to invite by email")}
+  end
+
+  @spec accept_group_invitation(any(), map(), Absinthe.Resolution.t()) ::
+          {:ok, map()} | {:error, String.t()}
+  def accept_group_invitation(_parent, %{token: token}, %{
+        context: %{current_actor: %Actor{} = current_actor}
+      }) do
+    case Invitations.use_invitation_token(token, current_actor) do
+      {:ok, member} ->
+        {:ok, %{member: member, requires_registration: false, invitation_token: nil}}
+
+      {:error, :not_found} ->
+        {:error, dgettext("errors", "Invitation not found")}
+
+      {:error, :expired} ->
+        {:error, dgettext("errors", "Invitation has expired")}
+
+      {:error, :already_used} ->
+        {:error, dgettext("errors", "Invitation has already been used")}
+
+      {:error, :email_mismatch} ->
+        {:ok, %{member: nil, requires_registration: true, invitation_token: token}}
+    end
+  end
+
+  def accept_group_invitation(_parent, %{token: token}, _resolution) do
+    case Invitations.get_invitation_by_token(token) do
+      {:ok, _inv} ->
+        {:ok, %{member: nil, requires_registration: true, invitation_token: token}}
+
+      {:error, :not_found} ->
+        {:error, dgettext("errors", "Invitation not found")}
+
+      {:error, :expired} ->
+        {:error, dgettext("errors", "Invitation has expired")}
+
+      {:error, :already_used} ->
+        {:error, dgettext("errors", "Invitation has already been used")}
     end
   end
 

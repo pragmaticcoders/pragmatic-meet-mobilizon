@@ -40,6 +40,7 @@ defmodule Mobilizon.GraphQL.Schema do
   import_types(Schema.Actors.PersonType)
   import_types(Schema.Actors.GroupType)
   import_types(Schema.Actors.ApplicationType)
+  import_types(Schema.InvitationType)
   import_types(Schema.Discussions.CommentType)
   import_types(Schema.Discussions.DiscussionType)
   import_types(Schema.SearchType)
@@ -158,6 +159,7 @@ defmodule Mobilizon.GraphQL.Schema do
   """
   query do
     import_fields(:search_queries)
+    import_fields(:invitation_queries)
     import_fields(:user_queries)
     import_fields(:person_queries)
     import_fields(:group_queries)

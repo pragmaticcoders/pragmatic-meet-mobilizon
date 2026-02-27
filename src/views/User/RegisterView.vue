@@ -504,6 +504,22 @@ watch(credentials, () => {
 
 // Handle LinkedIn login redirect with message
 onMounted(() => {
+  const invitationToken = route.query.invitation as string | undefined;
+  const emailFromQuery = route.query.email as string | undefined;
+
+  if (invitationToken) {
+    try {
+      sessionStorage.setItem("pendingGroupInvitation", invitationToken);
+    } catch (_) {}
+  }
+
+  // Pre-fill email when coming from group invitation link
+  if (emailFromQuery && invitationToken) {
+    try {
+      credentials.email = decodeURIComponent(emailFromQuery);
+    } catch (_) {}
+  }
+
   const message = route.query.message as string | undefined;
   const provider = route.query.provider as string | undefined;
   const email = route.query.email as string | undefined;

@@ -6,10 +6,82 @@ defmodule Mobilizon.Web.Email.Member do
 
   import Mobilizon.Web.Gettext
 
-  alias Mobilizon.{Actors, Users}
+  alias Mobilizon.{Actors, Invitations, Users}
   alias Mobilizon.Actors.{Actor, Member}
+  alias Mobilizon.Invitations.GroupInvitationToken
   alias Mobilizon.Users.User
   alias Mobilizon.Web.Email
+
+  @doc """
+  Send group invitation email to an existing user (token-based link).
+  """
+  @spec send_group_invite_existing_user(String.t(), GroupInvitationToken.t(), Actor.t(), Actor.t()) ::
+          :ok
+  def send_group_invite_existing_user(email, invitation, group, inviter) do
+    invitation_url = Invitations.invitation_url(invitation)
+    locale = get_locale_for_email(email)
+
+    Gettext.put_locale(locale)
+
+    subject =
+      gettext(
+        "You have been invited by %{inviter} to join group %{group}",
+        inviter: Actor.display_name(inviter),
+        group: group.name
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:group_invite_by_token_existing, %{
+      locale: locale,
+      inviter: inviter,
+      group: group,
+      subject: subject,
+      invitation_url: invitation_url
+    })
+    |> Email.Mailer.send_email()
+
+    :ok
+  end
+
+  @doc """
+  Send group invitation email to a non-existing user (token-based link; register then join).
+  """
+  @spec send_group_invite_new_user(String.t(), GroupInvitationToken.t(), Actor.t(), Actor.t()) ::
+          :ok
+  def send_group_invite_new_user(email, invitation, group, inviter) do
+    invitation_url = Invitations.invitation_url(invitation)
+    locale = "en"
+
+    Gettext.put_locale(locale)
+
+    subject =
+      gettext(
+        "You have been invited to join %{group} on %{instance}",
+        group: group.name,
+        instance: Mobilizon.Config.instance_name()
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:group_invite_by_token_new_user, %{
+      locale: locale,
+      inviter: inviter,
+      group: group,
+      subject: subject,
+      invitation_url: invitation_url
+    })
+    |> Email.Mailer.send_email()
+
+    :ok
+  end
+
+  defp get_locale_for_email(email) do
+    case Users.get_user_by_email(email, activated: true, unconfirmed: false) do
+      {:ok, %User{locale: locale}} when is_binary(locale) -> locale
+      _ -> "en"
+    end
+  end
 
   @doc """
   Send emails to local user

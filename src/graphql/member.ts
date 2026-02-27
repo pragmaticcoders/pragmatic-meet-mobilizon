@@ -103,3 +103,51 @@ export const JOIN_GROUP = gql`
   }
   ${MEMBER_FRAGMENT}
 `;
+
+export const INVITE_GROUP_MEMBER_BY_EMAIL = gql`
+  mutation InviteGroupMemberByEmail(
+    $groupId: ID!
+    $email: String!
+    $confirmNonExistingUser: Boolean!
+  ) {
+    inviteGroupMemberByEmail(
+      groupId: $groupId
+      email: $email
+      confirmNonExistingUser: $confirmNonExistingUser
+    ) {
+      success
+    }
+  }
+`;
+
+export const GROUP_INVITATION_BY_TOKEN = gql`
+  query GroupInvitationByToken($token: String!) {
+    groupInvitationByToken(token: $token) {
+      group {
+        id
+        name
+        preferredUsername
+        domain
+      }
+      email
+      forNewUser
+    }
+  }
+`;
+
+export const ACCEPT_GROUP_INVITATION = gql`
+  mutation AcceptGroupInvitation($token: String!) {
+    acceptGroupInvitation(token: $token) {
+      member {
+        id
+        parent {
+          id
+          preferredUsername
+          domain
+        }
+      }
+      requiresRegistration
+      invitationToken
+    }
+  }
+`;

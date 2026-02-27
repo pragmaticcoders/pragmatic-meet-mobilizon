@@ -81,6 +81,41 @@
           )
         }}
       </o-notification>
+
+      <label class="block text-[17px] font-bold text-[#1c1b1f] mt-6 mb-2">{{
+        t("Or invite by email")
+      }}</label>
+      <form @submit.prevent="inviteByEmail" class="flex flex-col gap-3 max-w-md">
+        <o-input
+          v-model="inviteEmail"
+          type="email"
+          :placeholder="t('Email address')"
+          :disabled="isGroupPendingApproval"
+          class="w-full"
+        />
+        <div class="flex items-start space-x-2">
+          <input
+            id="confirm_non_existing"
+            v-model="confirmNonExistingUser"
+            type="checkbox"
+            class="w-4 h-4 mt-0.5 border border-gray-300 text-blue-600"
+          />
+          <label for="confirm_non_existing" class="text-sm text-gray-700">
+            {{ t("I confirm I am eligible to invite this person who is not yet on the platform") }}
+          </label>
+        </div>
+        <o-button
+          type="submit"
+          variant="primary"
+          :disabled="isGroupPendingApproval || !inviteEmail.trim() || sendingEmailInvite"
+        >
+          {{ sendingEmailInvite ? t("Sending...") : t("Send invitation by email") }}
+        </o-button>
+        <o-notification v-if="inviteEmailError" variant="danger" :closable="true">
+          {{ inviteEmailError }}
+        </o-notification>
+      </form>
+
       <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
     </section>
@@ -327,6 +362,7 @@ import { formatDateString, formatTimeString } from "@/filters/datetime";
 import {
   APPROVE_MEMBER,
   GROUP_MEMBERS,
+  INVITE_GROUP_MEMBER_BY_EMAIL,
   INVITE_MEMBER,
   REMOVE_MEMBER,
   UPDATE_MEMBER,
@@ -362,6 +398,10 @@ const { currentActor } = useCurrentActorClient();
 
 const selectedActors = ref<IActor[]>([]);
 const inviteError = ref("");
+const inviteEmail = ref("");
+const confirmNonExistingUser = ref(false);
+const inviteEmailError = ref("");
+const sendingEmailInvite = ref(false);
 const page = useRouteQuery("page", 1, integerTransformer);
 const MemberAllRoles = { ...MemberRole, EVERYTHING: "EVERYTHING" };
 const roles = useRouteQuery(
@@ -693,6 +733,35 @@ const inviteMember = async (): Promise<void> => {
       );
       // Continue with other invitations even if one fails
     }
+  }
+};
+
+const {
+  mutate: inviteByEmailMutation,
+} = useMutation<{ inviteGroupMemberByEmail: { success: boolean } }>(
+  INVITE_GROUP_MEMBER_BY_EMAIL
+);
+
+const inviteByEmail = async (): Promise<void> => {
+  inviteEmailError.value = "";
+  const email = inviteEmail.value?.trim();
+  if (!email || !group.value?.id) return;
+  sendingEmailInvite.value = true;
+  try {
+    await inviteByEmailMutation({
+      groupId: group.value.id,
+      email,
+      confirmNonExistingUser: confirmNonExistingUser.value,
+    });
+    notifier?.success(t("Invitation sent by email."));
+    inviteEmail.value = "";
+    confirmNonExistingUser.value = false;
+    refreshMembersData();
+  } catch (err: any) {
+    inviteEmailError.value =
+      err?.graphQLErrors?.[0]?.message || t("Failed to send invitation.");
+  } finally {
+    sendingEmailInvite.value = false;
   }
 };
 
