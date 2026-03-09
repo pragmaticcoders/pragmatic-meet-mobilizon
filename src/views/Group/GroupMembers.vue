@@ -32,25 +32,120 @@
       <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
         t("Invite a new member")
       }}</label>
-      <div class="flex flex-col md:flex-row gap-4 my-4 items-start">
-        <form @submit.prevent="inviteMember" class="flex-1 min-w-0">
-          <ActorAutoComplete
-            v-model="selectedActors"
-            :placeholder="
-              isGroupPendingApproval
-                ? t('Invites disabled during approval')
-                : t('Search for a user to invite')
-            "
-            :disabled="isGroupPendingApproval"
-          />
-        </form>
-        <div class="flex-shrink-0">
+      <form
+        @submit.prevent="onInviteSubmit"
+        class="flex flex-col gap-3 max-w-2xl"
+      >
+        <!-- Mode: invite existing member vs send email to person not on platform -->
+        <div class="flex flex-wrap gap-2 mb-1">
+          <label
+            class="inline-flex items-center gap-2 cursor-pointer select-none"
+          >
+            <input
+              v-model="inviteMode"
+              type="radio"
+              value="existing"
+              class="w-4 h-4 border border-gray-300 text-blue-600"
+            />
+            <span class="text-sm font-medium text-gray-800">{{
+              t("Existing user")
+            }}</span>
+          </label>
+          <label
+            class="inline-flex items-center gap-2 cursor-pointer select-none"
+          >
+            <input
+              v-model="inviteMode"
+              type="radio"
+              value="email_new"
+              class="w-4 h-4 border border-gray-300 text-blue-600"
+            />
+            <span class="text-sm font-medium text-gray-800">{{
+              t("Not on platform yet")
+            }}</span>
+          </label>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-4 md:items-start">
+          <!-- Mode: existing member — autocomplete or plain input when email-shaped -->
+          <template v-if="inviteMode === 'existing'">
+            <o-input
+              v-if="inviteInputLooksLikeEmail"
+              ref="inviteExistingEmailInputRef"
+              v-model="inviteInput"
+              type="text"
+              :placeholder="
+                isGroupPendingApproval
+                  ? t('Invites disabled during approval')
+                  : t('Username or email address')
+              "
+              :disabled="isGroupPendingApproval"
+              class="flex-1 min-w-0"
+            />
+            <o-autocomplete
+              v-else
+              ref="inviteExistingAutocompleteRef"
+              v-model="inviteInput"
+              :data="inviteActorSuggestionsWithDisplayName"
+              field="displayName"
+              :loading="inviteSearchLoading"
+              :placeholder="
+                isGroupPendingApproval
+                  ? t('Invites disabled during approval')
+                  : t('Username or email address')
+              "
+              :disabled="isGroupPendingApproval"
+              class="flex-1 min-w-0"
+              @select="onSelectInviteActor"
+            >
+              <template #default="props">
+                <ActorInline :actor="props.option" />
+              </template>
+              <template #empty>
+                <div
+                  v-if="inviteSearchLoading"
+                  class="p-3 text-center text-gray-500"
+                >
+                  {{ t("Searching...") }}
+                </div>
+                <div
+                  v-else-if="
+                    inviteInput.trim().length >= 2 &&
+                    inviteActorSuggestions.length === 0
+                  "
+                  class="p-3 text-center text-gray-500"
+                >
+                  {{ t("No users or groups found") }}
+                </div>
+              </template>
+            </o-autocomplete>
+          </template>
+          <!-- Mode: email invitation (no account) — email input only -->
+          <template v-else>
+            <o-input
+              v-model="inviteInput"
+              type="email"
+              :placeholder="
+                isGroupPendingApproval
+                  ? t('Invites disabled during approval')
+                  : t('Email address')
+              "
+              :disabled="isGroupPendingApproval"
+              class="flex-1 min-w-0"
+            />
+          </template>
+
           <o-button
+            type="submit"
             variant="primary"
-            native-type="submit"
-            :disabled="isGroupPendingApproval"
+            :disabled="
+              isGroupPendingApproval ||
+              !inviteInput.trim() ||
+              sendingInvite ||
+              (inviteMode === 'email_new' && !confirmNonExistingUser)
+            "
             :class="[
-              'px-8 py-[18px] font-bold whitespace-nowrap',
+              'px-8 py-[18px] font-bold whitespace-nowrap flex-shrink-0',
               isGroupPendingApproval
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                 : 'bg-[#155eef] text-white hover:bg-blue-600',
@@ -60,16 +155,43 @@
                 ? t('This group is pending approval from administrators')
                 : ''
             "
-            @click="inviteMember"
-            >{{ t("Invite member") }}</o-button
           >
+            {{ sendingInvite ? t("Sending...") : t("Invite member") }}
+          </o-button>
         </div>
-      </div>
+
+        <!-- Checkbox only for "email (person not on platform)" mode -->
+        <div
+          v-if="inviteMode === 'email_new'"
+          class="flex items-start space-x-2"
+        >
+          <input
+            id="confirm_non_existing"
+            v-model="confirmNonExistingUser"
+            type="checkbox"
+            class="w-4 h-4 mt-0.5 border border-gray-300 text-blue-600"
+          />
+          <label for="confirm_non_existing" class="text-sm text-gray-700">
+            {{
+              t("I confirm that I am eligible to invite this person by email")
+            }}
+          </label>
+        </div>
+
+        <o-notification
+          v-if="inviteError"
+          variant="danger"
+          :closable="true"
+          @close="inviteError = ''"
+        >
+          {{ inviteError }}
+        </o-notification>
+      </form>
       <o-notification
         v-if="isGroupPendingApproval"
         variant="warning"
         :closable="false"
-        class="mb-4"
+        class="mb-4 mt-4"
       >
         <span class="font-medium">{{
           t("Member invitations are disabled")
@@ -82,41 +204,6 @@
         }}
       </o-notification>
 
-      <label class="block text-[17px] font-bold text-[#1c1b1f] mt-6 mb-2">{{
-        t("Or invite by email")
-      }}</label>
-      <form @submit.prevent="inviteByEmail" class="flex flex-col gap-3 max-w-md">
-        <o-input
-          v-model="inviteEmail"
-          type="email"
-          :placeholder="t('Email address')"
-          :disabled="isGroupPendingApproval"
-          class="w-full"
-        />
-        <div class="flex items-start space-x-2">
-          <input
-            id="confirm_non_existing"
-            v-model="confirmNonExistingUser"
-            type="checkbox"
-            class="w-4 h-4 mt-0.5 border border-gray-300 text-blue-600"
-          />
-          <label for="confirm_non_existing" class="text-sm text-gray-700">
-            {{ t("I confirm I am eligible to invite this person who is not yet on the platform") }}
-          </label>
-        </div>
-        <o-button
-          type="submit"
-          variant="primary"
-          :disabled="isGroupPendingApproval || !inviteEmail.trim() || sendingEmailInvite"
-        >
-          {{ sendingEmailInvite ? t("Sending...") : t("Send invitation by email") }}
-        </o-button>
-        <o-notification v-if="inviteEmailError" variant="danger" :closable="true">
-          {{ inviteEmailError }}
-        </o-notification>
-      </form>
-
-      <!-- Gray separator line -->
       <hr class="border-t border-gray-200 my-6" />
     </section>
 
@@ -352,7 +439,6 @@
 </template>
 
 <script lang="ts" setup>
-import ActorAutoComplete from "@/components/Account/ActorAutoComplete.vue";
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
 import {
   useCurrentActorClient,
@@ -367,16 +453,26 @@ import {
   REMOVE_MEMBER,
   UPDATE_MEMBER,
 } from "@/graphql/member";
+import { SEARCH_PERSON_AND_GROUPS } from "@/graphql/search";
 import { Notifier } from "@/plugins/notifier";
 import RouteName from "@/router/name";
-import { displayName, IActor, IGroup, usernameWithDomain } from "@/types/actor";
+import {
+  displayName,
+  IGroup,
+  IActor,
+  IPerson,
+  usernameWithDomain,
+} from "@/types/actor";
+import { Paginate } from "@/types/paginate";
 import { IMember } from "@/types/actor/member.model";
 import { ApprovalStatus, MemberRole } from "@/types/enums";
 import { useHead } from "@/utils/head";
-import { useMutation, useQuery } from "@vue/apollo-composable";
-import { computed, inject, nextTick, ref } from "vue";
+import { useLazyQuery, useMutation, useQuery } from "@vue/apollo-composable";
+import { debounce } from "lodash";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
+import ActorInline from "@/components/Account/ActorInline.vue";
 import {
   enumTransformer,
   integerTransformer,
@@ -396,12 +492,114 @@ const emit = defineEmits(["sort"]);
 
 const { currentActor } = useCurrentActorClient();
 
-const selectedActors = ref<IActor[]>([]);
+const inviteMode = ref<"existing" | "email_new">("existing");
+const inviteExistingEmailInputRef = ref<{ $el?: HTMLElement } | null>(null);
+const inviteExistingAutocompleteRef = ref<{ $el?: HTMLElement } | null>(null);
+const inviteInput = ref("");
 const inviteError = ref("");
-const inviteEmail = ref("");
 const confirmNonExistingUser = ref(false);
-const inviteEmailError = ref("");
-const sendingEmailInvite = ref(false);
+const sendingInvite = ref(false);
+const lastInvitedLabel = ref("");
+const selectedInviteActor = ref<IActor | null>(null);
+const inviteActorSuggestions = ref<IActor[]>([]);
+const inviteSearchLoading = ref(false);
+
+const inviteInputLooksLikeEmail = computed(() =>
+  /^\S+@\S+\.\S+$/.test(inviteInput.value.trim())
+);
+
+const inviteActorSuggestionsWithDisplayName = computed(() =>
+  inviteActorSuggestions.value.map((actor) => ({
+    ...actor,
+    displayName: displayName(actor),
+  }))
+);
+
+const {
+  load: loadInviteSearch,
+  onResult: onInviteSearchResult,
+  onError: onInviteSearchError,
+} = useLazyQuery<
+  { searchPersons: Paginate<IPerson>; searchGroups: Paginate<IGroup> },
+  { searchText: string }
+>(SEARCH_PERSON_AND_GROUPS);
+
+onInviteSearchResult((result) => {
+  inviteSearchLoading.value = false;
+  if (result.data) {
+    const persons = result.data.searchPersons?.elements ?? [];
+    const groups = result.data.searchGroups?.elements ?? [];
+    const actors: IActor[] = [...persons, ...groups].filter(
+      (actor) => !currentActor.value || actor.id !== currentActor.value.id
+    );
+    inviteActorSuggestions.value = actors;
+  } else {
+    inviteActorSuggestions.value = [];
+  }
+});
+
+onInviteSearchError(() => {
+  inviteSearchLoading.value = false;
+  inviteActorSuggestions.value = [];
+});
+
+const performInviteSearch = (text: string) => {
+  const trimmed = text.trim();
+  if (!trimmed || inviteInputLooksLikeEmail.value) {
+    inviteActorSuggestions.value = [];
+    inviteSearchLoading.value = false;
+    return;
+  }
+  if (trimmed.length < 2) {
+    inviteActorSuggestions.value = [];
+    return;
+  }
+  inviteSearchLoading.value = true;
+  loadInviteSearch(SEARCH_PERSON_AND_GROUPS, { searchText: trimmed });
+};
+
+const debouncedInviteSearch = debounce(performInviteSearch, 300);
+
+watch(inviteInput, (newVal) => {
+  if (
+    selectedInviteActor.value &&
+    newVal !== displayName(selectedInviteActor.value)
+  ) {
+    selectedInviteActor.value = null;
+  }
+  if (inviteMode.value === "existing" && !inviteInputLooksLikeEmail.value) {
+    debouncedInviteSearch(newVal);
+  } else {
+    inviteActorSuggestions.value = [];
+  }
+});
+
+watch(inviteMode, () => {
+  inviteError.value = "";
+  inviteActorSuggestions.value = [];
+  selectedInviteActor.value = null;
+});
+
+// When we swap between o-input and o-autocomplete (email-shaped vs not), restore focus so typing/backspace isn't interrupted
+watch(inviteInputLooksLikeEmail, (isEmail) => {
+  if (inviteMode.value !== "existing") return;
+  nextTick(() => {
+    const targetRef = isEmail
+      ? inviteExistingEmailInputRef
+      : inviteExistingAutocompleteRef;
+    const el = targetRef.value?.$el ?? targetRef.value;
+    const input =
+      el instanceof HTMLInputElement
+        ? el
+        : (el as HTMLElement)?.querySelector?.("input");
+    (input as HTMLInputElement)?.focus();
+  });
+});
+
+function onSelectInviteActor(option: IActor & { displayName: string }) {
+  selectedInviteActor.value = option;
+  inviteInput.value = displayName(option);
+}
 const page = useRouteQuery("page", 1, integerTransformer);
 const MemberAllRoles = { ...MemberRole, EVERYTHING: "EVERYTHING" };
 const roles = useRouteQuery(
@@ -653,60 +851,43 @@ onInviteMemberError((error) => {
   if (error.graphQLErrors && error.graphQLErrors.length > 0) {
     inviteError.value = error.graphQLErrors[0].message;
   }
+  sendingInvite.value = false;
 });
 
 onInviteMemberDone(() => {
-  if (selectedActors.value.length === 1) {
-    const invitedActor = selectedActors.value[0];
-
-    // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
-    if (roles.value !== "EVERYTHING" && roles.value !== MemberRole.INVITED) {
-      // Auto-switch to INVITED filter to show the invited member
-      roles.value = MemberRole.INVITED;
-
-      notifier?.success(
-        t("{username} was invited to {group}. Showing invited members.", {
-          username: invitedActor?.name || invitedActor?.preferredUsername || "",
-          group: displayName(group.value),
-        })
-      );
-    } else {
-      notifier?.success(
-        t("{username} was invited to {group}", {
-          username: invitedActor?.name || invitedActor?.preferredUsername || "",
-          group: displayName(group.value),
-        })
-      );
-    }
-  } else if (selectedActors.value.length > 1) {
-    // If user is not viewing "INVITED" or "Everything" filter, auto-switch to INVITED
-    if (roles.value !== "EVERYTHING" && roles.value !== MemberRole.INVITED) {
-      // Auto-switch to INVITED filter to show the invited members
-      roles.value = MemberRole.INVITED;
-
-      notifier?.success(
-        t("{count} users were invited to {group}. Showing invited members.", {
-          count: selectedActors.value.length,
-          group: displayName(group.value),
-        })
-      );
-    } else {
-      notifier?.success(
-        t("{count} users were invited to {group}", {
-          count: selectedActors.value.length,
-          group: displayName(group.value),
-        })
-      );
-    }
+  const label = lastInvitedLabel.value || inviteInput.value;
+  if (roles.value !== "EVERYTHING" && roles.value !== MemberRole.INVITED) {
+    roles.value = MemberRole.INVITED;
+    notifier?.success(
+      t("{username} was invited to {group}. Showing invited members.", {
+        username: label,
+        group: displayName(group.value),
+      })
+    );
+  } else {
+    notifier?.success(
+      t("{username} was invited to {group}", {
+        username: label,
+        group: displayName(group.value),
+      })
+    );
   }
-  selectedActors.value = [];
+  inviteInput.value = "";
+  lastInvitedLabel.value = "";
+  selectedInviteActor.value = null;
+  inviteActorSuggestions.value = [];
   refreshMembersData();
+  sendingInvite.value = false;
 });
 
-const inviteMember = async (): Promise<void> => {
-  inviteError.value = "";
+const { mutate: inviteByEmailMutation } = useMutation<{
+  inviteGroupMemberByEmail: { success: boolean };
+}>(INVITE_GROUP_MEMBER_BY_EMAIL);
 
-  // Prevent invites if group is pending approval
+const onInviteSubmit = async (): Promise<void> => {
+  inviteError.value = "";
+  const value = inviteInput.value?.trim() || "";
+  if (!value || !group.value?.id) return;
   if (isGroupPendingApproval.value) {
     inviteError.value = t(
       "Cannot invite members while group is awaiting approval"
@@ -714,54 +895,71 @@ const inviteMember = async (): Promise<void> => {
     return;
   }
 
-  if (!selectedActors.value.length) {
-    inviteError.value = t("Please select a user to invite");
+  sendingInvite.value = true;
+  lastInvitedLabel.value = value;
+
+  // Mode: send invitation by email to person not on platform (checkbox was required)
+  if (inviteMode.value === "email_new") {
+    try {
+      await inviteByEmailMutation({
+        groupId: group.value.id,
+        email: value,
+        confirmNonExistingUser: true,
+      });
+      notifier?.success(t("Invitation sent by email."));
+      inviteInput.value = "";
+      lastInvitedLabel.value = "";
+      selectedInviteActor.value = null;
+      confirmNonExistingUser.value = false;
+      refreshMembersData();
+    } catch (err: any) {
+      inviteError.value =
+        err?.graphQLErrors?.[0]?.message || t("Failed to send invitation.");
+    } finally {
+      sendingInvite.value = false;
+    }
     return;
   }
 
-  // Process all selected actors, not just the first one
-  for (const actorToInvite of selectedActors.value) {
+  // Mode: invite existing member — by email or by username
+  if (inviteInputLooksLikeEmail.value) {
     try {
-      await inviteMemberMutation({
-        groupId: group.value?.id,
-        targetActorUsername: actorToInvite.preferredUsername,
+      await inviteByEmailMutation({
+        groupId: group.value.id,
+        email: value,
+        confirmNonExistingUser: false,
       });
-    } catch (error) {
-      console.error(
-        `Failed to invite ${actorToInvite.preferredUsername}:`,
-        error
-      );
-      // Continue with other invitations even if one fails
+      notifier?.success(t("Invitation sent."));
+      inviteInput.value = "";
+      lastInvitedLabel.value = "";
+      selectedInviteActor.value = null;
+      refreshMembersData();
+    } catch (err: any) {
+      const msg =
+        err?.graphQLErrors?.[0]?.message ?? t("Failed to send invitation.");
+      inviteError.value = msg;
+      // Hint if they might have meant "person not on platform"
+      if (
+        typeof msg === "string" &&
+        (msg.includes("No account") || msg.includes("not yet on the platform"))
+      ) {
+        inviteError.value = `${msg} ${t("Use «Send invitation by email» above to invite someone without an account.")}`;
+      }
+    } finally {
+      sendingInvite.value = false;
     }
+    return;
   }
-};
 
-const {
-  mutate: inviteByEmailMutation,
-} = useMutation<{ inviteGroupMemberByEmail: { success: boolean } }>(
-  INVITE_GROUP_MEMBER_BY_EMAIL
-);
-
-const inviteByEmail = async (): Promise<void> => {
-  inviteEmailError.value = "";
-  const email = inviteEmail.value?.trim();
-  if (!email || !group.value?.id) return;
-  sendingEmailInvite.value = true;
+  const usernameToInvite =
+    selectedInviteActor.value?.preferredUsername ?? value;
   try {
-    await inviteByEmailMutation({
+    await inviteMemberMutation({
       groupId: group.value.id,
-      email,
-      confirmNonExistingUser: confirmNonExistingUser.value,
+      targetActorUsername: usernameToInvite,
     });
-    notifier?.success(t("Invitation sent by email."));
-    inviteEmail.value = "";
-    confirmNonExistingUser.value = false;
-    refreshMembersData();
-  } catch (err: any) {
-    inviteEmailError.value =
-      err?.graphQLErrors?.[0]?.message || t("Failed to send invitation.");
-  } finally {
-    sendingEmailInvite.value = false;
+  } catch (_) {
+    sendingInvite.value = false;
   }
 };
 

@@ -38,8 +38,8 @@ defmodule Mobilizon.Invitations do
          :admin <- ensure_inviter_is_admin(inviter.id, group.id),
          {:ok, _} <- ensure_email_not_already_member(group, email) do
       case Users.get_user_by_email(email, activated: true, unconfirmed: false) do
-        {:ok, _user} ->
-          create_invitation_for_existing_user(group, email, inviter)
+        {:ok, user} ->
+          create_invitation_for_existing_user(group, email, user, inviter)
 
         {:error, :user_not_found} ->
           if confirm_non_existing_user do
@@ -88,7 +88,31 @@ defmodule Mobilizon.Invitations do
     end
   end
 
-  defp create_invitation_for_existing_user(group, email, inviter) do
+  defp create_invitation_for_existing_user(group, email, %User{default_actor_id: actor_id}, inviter)
+       when not is_nil(actor_id) do
+    # Add the user to the group with :invited role so they appear in the members list (same as invite by username)
+    case Actors.create_member(%{
+           parent_id: group.id,
+           actor_id: actor_id,
+           role: :invited,
+           invited_by_id: inviter.id,
+           url: nil
+         }) do
+      {:ok, _member} ->
+        do_create_invitation_for_existing_user(group, email, inviter)
+
+      {:error, _changeset} ->
+        # e.g. already invited; still create token and send email
+        do_create_invitation_for_existing_user(group, email, inviter)
+    end
+  end
+
+  defp create_invitation_for_existing_user(group, email, _user, inviter) do
+    # User has no default actor yet; only send email with token
+    do_create_invitation_for_existing_user(group, email, inviter)
+  end
+
+  defp do_create_invitation_for_existing_user(group, email, inviter) do
     expires_at = DateTime.utc_now() |> DateTime.add(@token_validity_days, :day)
     token_string = generate_token()
 
