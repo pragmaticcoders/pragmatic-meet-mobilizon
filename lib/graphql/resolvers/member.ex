@@ -140,6 +140,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
       {:error, :already_member} ->
         {:error, dgettext("errors", "This person is already a member of the group")}
 
+      {:error, :already_invited} ->
+        {:error, dgettext("errors", "This email has already been invited to the group")}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         message =
           Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
@@ -177,6 +180,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
       {:error, :already_used} ->
         {:error, dgettext("errors", "Invitation has already been used")}
 
+      {:error, :group_not_found} ->
+        {:error, dgettext("errors", "The group you were invited to no longer exists")}
+
       {:error, :email_mismatch} ->
         {:ok, %{member: nil, requires_registration: true, invitation_token: token}}
     end
@@ -195,6 +201,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
 
       {:error, :already_used} ->
         {:error, dgettext("errors", "Invitation has already been used")}
+
+      {:error, :group_not_found} ->
+        {:error, dgettext("errors", "The group you were invited to no longer exists")}
     end
   end
 

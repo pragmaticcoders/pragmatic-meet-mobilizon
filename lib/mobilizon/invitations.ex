@@ -30,7 +30,8 @@ defmodule Mobilizon.Invitations do
   """
   @spec create_group_invitation(integer | String.t(), String.t(), integer | String.t(), boolean()) ::
           {:ok, GroupInvitationToken.t()}
-          | {:error, :user_not_found | :not_eligible | :already_member | Changeset.t()}
+          | {:error,
+             :user_not_found | :not_eligible | :already_member | :already_invited | Changeset.t()}
   def create_group_invitation(group_id, email, invited_by_id, confirm_non_existing_user) do
     email = String.trim(String.downcase(email))
 
@@ -54,6 +55,7 @@ defmodule Mobilizon.Invitations do
       {:error, :actor_not_found} -> {:error, :user_not_found}
       :not_admin -> {:error, :not_eligible}
       {:error, :already_member} = err -> err
+      {:error, :already_invited} = err -> err
       err -> err
     end
   end
@@ -73,6 +75,14 @@ defmodule Mobilizon.Invitations do
   end
 
   defp ensure_email_not_already_member(%Actor{id: group_id}, email) do
+    # Already invited by email (pending member with this email)?
+    case Actors.get_pending_member_by_email(group_id, email) do
+      {:ok, _} -> {:error, :already_invited}
+      {:error, :not_found} -> check_existing_user_not_member(group_id, email)
+    end
+  end
+
+  defp check_existing_user_not_member(group_id, email) do
     case Users.get_user_by_email(email, activated: true, unconfirmed: false) do
       {:ok, user} ->
         default_actor_id = user.default_actor_id
@@ -82,6 +92,9 @@ defmodule Mobilizon.Invitations do
             {:ok, %Member{role: role}}
             when role in [:member, :moderator, :administrator, :creator] ->
               {:error, :already_member}
+
+            {:ok, %Member{role: :invited}} ->
+              {:error, :already_invited}
 
             _ ->
               {:ok, :ok}
@@ -199,9 +212,11 @@ defmodule Mobilizon.Invitations do
 
   @doc """
   Fetches an invitation by token. Returns the token struct if valid (not used, not expired).
+  Returns {:error, :group_not_found} when the invited group no longer exists.
   """
   @spec get_invitation_by_token(String.t()) ::
-          {:ok, GroupInvitationToken.t()} | {:error, :not_found | :expired | :already_used}
+          {:ok, GroupInvitationToken.t()}
+          | {:error, :not_found | :expired | :already_used | :group_not_found}
   def get_invitation_by_token(token) when is_binary(token) do
     case Repo.get_by(GroupInvitationToken, token: token) |> Repo.preload([:group, :invited_by]) do
       nil ->
@@ -209,6 +224,9 @@ defmodule Mobilizon.Invitations do
 
       %{used_at: %DateTime{}} ->
         {:error, :already_used}
+
+      %{group: nil} ->
+        {:error, :group_not_found}
 
       %{expires_at: expires_at} = inv when not is_nil(expires_at) ->
         if DateTime.compare(DateTime.utc_now(), expires_at) == :lt do
@@ -229,7 +247,8 @@ defmodule Mobilizon.Invitations do
   Returns {:ok, member} or {:error, reason}.
   """
   @spec use_invitation_token(String.t(), Actor.t()) ::
-          {:ok, Member.t()} | {:error, :not_found | :expired | :already_used | :email_mismatch}
+          {:ok, Member.t()}
+          | {:error, :not_found | :expired | :already_used | :group_not_found | :email_mismatch}
   def use_invitation_token(token, %Actor{id: actor_id} = _actor) when is_binary(token) do
     with {:ok, inv} <- get_invitation_by_token(token),
          {:ok, user} <- user_by_actor_id(actor_id),

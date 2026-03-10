@@ -513,6 +513,17 @@ const selectedInviteActor = ref<IActor | null>(null);
 const inviteActorSuggestions = ref<IActor[]>([]);
 const inviteSearchLoading = ref(false);
 
+/** Map invite-by-email API error message to a clear, translated message. */
+function inviteByEmailErrorMessage(apiMessage: string | undefined): string {
+  if (!apiMessage) return t("Failed to send invitation.");
+  const msg = apiMessage.toLowerCase();
+  if (msg.includes("already been invited"))
+    return t("This email has already been invited to the group.");
+  if (msg.includes("already a member"))
+    return t("This person is already a member of the group.");
+  return apiMessage;
+}
+
 const inviteInputLooksLikeEmail = computed(() =>
   /^\S+@\S+\.\S+$/.test(inviteInput.value.trim())
 );
@@ -922,8 +933,9 @@ const onInviteSubmit = async (): Promise<void> => {
       confirmNonExistingUser.value = false;
       refreshMembersData();
     } catch (err: any) {
-      inviteError.value =
-        err?.graphQLErrors?.[0]?.message || t("Failed to send invitation.");
+      inviteError.value = inviteByEmailErrorMessage(
+        err?.graphQLErrors?.[0]?.message
+      );
     } finally {
       sendingInvite.value = false;
     }
@@ -944,15 +956,15 @@ const onInviteSubmit = async (): Promise<void> => {
       selectedInviteActor.value = null;
       refreshMembersData();
     } catch (err: any) {
-      const msg =
-        err?.graphQLErrors?.[0]?.message ?? t("Failed to send invitation.");
-      inviteError.value = msg;
+      const apiMessage = err?.graphQLErrors?.[0]?.message;
+      inviteError.value = inviteByEmailErrorMessage(apiMessage);
       // Hint if they might have meant "person not on platform"
       if (
-        typeof msg === "string" &&
-        (msg.includes("No account") || msg.includes("not yet on the platform"))
+        typeof apiMessage === "string" &&
+        (apiMessage.includes("No account") ||
+          apiMessage.includes("not yet on the platform"))
       ) {
-        inviteError.value = `${msg} ${t("Use «Send invitation by email» above to invite someone without an account.")}`;
+        inviteError.value = `${inviteError.value} ${t("Use «Send invitation by email» above to invite someone without an account.")}`;
       }
     } finally {
       sendingInvite.value = false;

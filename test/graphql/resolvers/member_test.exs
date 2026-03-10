@@ -1,9 +1,11 @@
 defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
   use Mobilizon.Web.ConnCase
+  import Ecto.Query
   import Mox
   import Mobilizon.Factory
 
   alias Mobilizon.Actors.Member
+  alias Mobilizon.Invitations.GroupInvitationToken
   alias Mobilizon.GraphQL.AbsintheHelpers
   alias Mobilizon.Service.HTTP.HostMetaClient.Mock, as: HostMetaClientMock
   alias Mobilizon.Service.HTTP.WebfingerClient.Mock, as: WebfingerClientMock
@@ -553,6 +555,80 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
       res =
         conn
         |> auth_conn(member_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @group_members_query,
+          variables: %{preferredUsername: group.preferred_username}
+        )
+
+      assert res["errors"] == nil
+      elements = res["data"]["group"]["members"]["elements"]
+      invited = Enum.find(elements, &(&1["invitedEmail"] == email))
+      assert invited == nil
+    end
+
+    test "invite_group_member_by_email returns error when email already invited (pending)", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      group = insert(:group)
+      insert(:member, parent: group, actor: actor, role: :administrator)
+
+      email = "already-invited-#{Ecto.UUID.generate()}@example.com"
+
+      conn
+      |> auth_conn(user)
+      |> AbsintheHelpers.graphql_query(
+        query: @invite_by_email_mutation,
+        variables: %{
+          groupId: group.id,
+          email: email,
+          confirmNonExistingUser: true
+        }
+      )
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @invite_by_email_mutation,
+          variables: %{
+            groupId: group.id,
+            email: email,
+            confirmNonExistingUser: true
+          }
+        )
+
+      assert res["errors"] != nil
+      assert hd(res["errors"])["message"] =~ "already been invited"
+    end
+
+    test "pending member with expired invitation token is not shown in group members list", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      group = insert(:group)
+      insert(:member, parent: group, actor: actor, role: :administrator)
+
+      email = "expired-invite-#{Ecto.UUID.generate()}@example.com"
+
+      {:ok, _invitation} =
+        Mobilizon.Invitations.create_group_invitation(group.id, email, actor.id, true)
+
+      # Expire the token
+      [token] =
+        Mobilizon.Storage.Repo.all(
+          from(t in GroupInvitationToken, where: t.email == ^email and t.group_id == ^group.id)
+        )
+
+      token
+      |> Ecto.Changeset.change(%{expires_at: DateTime.add(DateTime.utc_now(), -1, :day)})
+      |> Mobilizon.Storage.Repo.update!()
+
+      res =
+        conn
+        |> auth_conn(user)
         |> AbsintheHelpers.graphql_query(
           query: @group_members_query,
           variables: %{preferredUsername: group.preferred_username}

@@ -15,6 +15,7 @@ defmodule Mobilizon.Actors do
   alias Mobilizon.Crypto
   alias Mobilizon.Events.Event
   alias Mobilizon.Events.FeedToken
+  alias Mobilizon.Invitations.GroupInvitationToken
   alias Mobilizon.Medias
   alias Mobilizon.Service.Workers
   alias Mobilizon.Storage.{Page, Repo}
@@ -891,6 +892,7 @@ defmodule Mobilizon.Actors do
     case Member
          |> where([m], m.parent_id == ^group_id and is_nil(m.actor_id))
          |> where([m], fragment("lower(?) = ?", m.invited_email, ^email_normalized))
+         |> limit(1)
          |> Repo.one() do
       nil -> {:error, :not_found}
       member -> {:ok, Repo.preload(member, [:parent, :invited_by])}
@@ -990,6 +992,7 @@ defmodule Mobilizon.Actors do
     |> members_for_group_query()
     |> maybe_exclude_pending_email_invites(include_pending)
     |> left_join_members_actor()
+    |> maybe_exclude_expired_pending_invites(include_pending)
     |> filter_members_by_actor_name_or_email(name)
     |> filter_member_role(roles)
     |> Page.build_page(page, limit)
@@ -1674,6 +1677,30 @@ defmodule Mobilizon.Actors do
 
   defp maybe_exclude_pending_email_invites(query, false) do
     where(query, [m], not is_nil(m.actor_id))
+  end
+
+  # When including pending email invites, exclude those whose invitation token has expired (or was used).
+  # Query bindings at this point are [m, a] (member, actor from left_join_members_actor).
+  defp maybe_exclude_expired_pending_invites(query, false), do: query
+
+  defp maybe_exclude_expired_pending_invites(query, true) do
+    now = DateTime.utc_now()
+
+    # Subquery: (group_id, email_lower) pairs that have at least one valid token (not used, not expired).
+    valid_tokens_subquery =
+      from(t in GroupInvitationToken,
+        where: is_nil(t.used_at) and t.expires_at > ^now,
+        select: %{group_id: t.group_id, email_lower: fragment("lower(?)", t.email)},
+        distinct: true
+      )
+
+    # Left join: keep member if they have actor_id (real member) or (group_id, email) appears in valid tokens.
+    query
+    |> join(:left, [m, a], v in subquery(valid_tokens_subquery),
+      on: v.group_id == m.parent_id and v.email_lower == fragment("lower(?)", m.invited_email)
+    )
+    |> where([m, a, v], not is_nil(m.actor_id) or not is_nil(v.group_id))
+    |> distinct([m, a, v], m.id)
   end
 
   @spec group_external_member_actor_query(integer()) :: Ecto.Query.t()

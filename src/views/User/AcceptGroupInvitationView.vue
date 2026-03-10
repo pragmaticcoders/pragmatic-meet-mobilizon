@@ -2,9 +2,14 @@
   <section class="max-w-screen-xl mx-auto px-4 md:px-16 py-8">
     <o-loading v-if="loading" :active="true" class="o-loading--enhanced" />
     <template v-else>
-      <o-notification v-if="error" variant="danger" :closable="false">
-        {{ error }}
-      </o-notification>
+      <template v-if="error">
+        <h1 class="text-2xl font-bold mb-4">
+          {{ t("Group invitation") }}
+        </h1>
+        <o-notification variant="danger" :closable="false">
+          {{ error }}
+        </o-notification>
+      </template>
       <div v-else-if="invitation" class="space-y-4">
         <h1 class="text-2xl font-bold">
           {{ t("You are invited to join") }} {{ invitation.group?.name }}
@@ -38,10 +43,16 @@ const error = ref("");
 const processing = ref(false);
 const acceptDone = ref(false);
 
-const { result: invitationResult, onResult: onInvitationResult } = useQuery(
+const {
+  result: invitationResult,
+  onResult: onInvitationResult,
+  onError: onInvitationError,
+} = useQuery(
   GROUP_INVITATION_BY_TOKEN,
   () => ({ token: token.value }),
-  () => ({ enabled: !!token.value })
+  () => ({
+    enabled: !!token.value,
+  })
 );
 
 const invitation = computed(
@@ -86,11 +97,25 @@ async function handleAccept() {
     }
     await router.push({ name: RouteName.MY_GROUPS });
   } catch (err: any) {
-    error.value =
-      err?.graphQLErrors?.[0]?.message || t("Failed to accept invitation.");
+    const apiMessage = err?.graphQLErrors?.[0]?.message;
+    error.value = apiMessage
+      ? invitationErrorMessage(apiMessage)
+      : t("Failed to accept invitation.");
   } finally {
     processing.value = false;
   }
+}
+
+/** Map API error message to a clear, translatable message for the user. */
+function invitationErrorMessage(apiMessage: string | undefined): string {
+  if (!apiMessage) return t("Failed to load invitation.");
+  const msg = apiMessage.toLowerCase();
+  if (msg.includes("expired")) return t("Invitation has expired.");
+  if (msg.includes("already been used"))
+    return t("Invitation has already been used.");
+  if (msg.includes("no longer exists"))
+    return t("The group you were invited to no longer exists.");
+  return apiMessage;
 }
 
 onInvitationResult((res) => {
@@ -101,9 +126,15 @@ onInvitationResult((res) => {
     error.value = t("Invitation not found or invalid.");
   }
   if (res.error) {
-    error.value =
-      res.error.graphQLErrors?.[0]?.message || t("Failed to load invitation.");
+    const apiMessage = res.error.graphQLErrors?.[0]?.message;
+    error.value = invitationErrorMessage(apiMessage);
   }
+});
+
+onInvitationError((err) => {
+  loading.value = false;
+  const apiMessage = err?.graphQLErrors?.[0]?.message;
+  error.value = invitationErrorMessage(apiMessage);
 });
 
 onMounted(() => {

@@ -3,6 +3,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Invitation do
   Resolvers for group invitation-by-email (token-based) query.
   """
   alias Mobilizon.Invitations
+  import Mobilizon.Web.Gettext
 
   @doc """
   Returns invitation details by token. Used when user opens the link from email.
@@ -23,10 +24,13 @@ defmodule Mobilizon.GraphQL.Resolvers.Invitation do
         {:ok, nil}
 
       {:error, :expired} ->
-        {:error, "Invitation has expired"}
+        {:error, dgettext("errors", "Invitation has expired")}
 
       {:error, :already_used} ->
-        {:error, "Invitation has already been used"}
+        {:error, dgettext("errors", "Invitation has already been used")}
+
+      {:error, :group_not_found} ->
+        {:error, dgettext("errors", "The group you were invited to no longer exists")}
     end
   end
 end
