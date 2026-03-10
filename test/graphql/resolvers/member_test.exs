@@ -616,14 +616,19 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
       {:ok, _invitation} =
         Mobilizon.Invitations.create_group_invitation(group.id, email, actor.id, true)
 
-      # Expire the token
+      # Expire the token (:utc_datetime has no microseconds)
       [token] =
         Mobilizon.Storage.Repo.all(
           from(t in GroupInvitationToken, where: t.email == ^email and t.group_id == ^group.id)
         )
 
+      expired_at =
+        DateTime.utc_now()
+        |> DateTime.add(-1, :day)
+        |> DateTime.truncate(:second)
+
       token
-      |> Ecto.Changeset.change(%{expires_at: DateTime.add(DateTime.utc_now(), -1, :day)})
+      |> Ecto.Changeset.change(%{expires_at: expired_at})
       |> Mobilizon.Storage.Repo.update!()
 
       res =
