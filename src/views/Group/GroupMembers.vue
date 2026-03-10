@@ -281,7 +281,7 @@
           cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
         >
           <article class="flex">
-            <figure v-if="props.row.actor.avatar" class="h-8 w-8">
+            <figure v-if="props.row.actor?.avatar" class="h-8 w-8">
               <img
                 class="rounded-full object-cover h-full w-full"
                 :src="props.row.actor.avatar.url"
@@ -294,12 +294,21 @@
 
             <div class="ml-2">
               <div class="text-start">
-                <span
-                  v-if="props.row.actor.name"
-                  class="font-bold text-[17px] text-[#1c1b1f]"
-                  >{{ props.row.actor.name }}</span
-                ><br />
-                <span class="">@{{ usernameWithDomain(props.row.actor) }}</span>
+                <template v-if="props.row.actor">
+                  <span
+                    v-if="props.row.actor.name"
+                    class="font-bold text-[17px] text-[#1c1b1f]"
+                    >{{ props.row.actor.name }}</span
+                  ><br />
+                  <span class="">
+                    @{{ usernameWithDomain(props.row.actor) }}
+                  </span>
+                </template>
+                <template v-else-if="props.row.invitedEmail">
+                  <span class="font-bold text-[17px] text-[#1c1b1f]">{{
+                    props.row.invitedEmail
+                  }}</span>
+                </template>
               </div>
             </div>
           </article>
@@ -370,7 +379,7 @@
         >
           <div
             class="flex flex-wrap gap-2"
-            v-if="props.row.actor.id !== currentActor?.id"
+            v-if="props.row.actor?.id !== currentActor?.id"
           >
             <o-button
               v-if="props.row.role === MemberRole.NOT_APPROVED"

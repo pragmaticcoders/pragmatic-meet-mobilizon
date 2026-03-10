@@ -135,9 +135,13 @@ defmodule Mobilizon.Invitations do
     expires_at = DateTime.utc_now() |> DateTime.add(@token_validity_days, :day)
     token_string = generate_token()
 
+    # Add to group members list with role :invited and display email until they register
+    email_normalized = String.trim(String.downcase(email))
+    create_pending_email_member(group.id, inviter.id, email_normalized)
+
     attrs = %{
       token: token_string,
-      email: email,
+      email: email_normalized,
       group_id: group.id,
       invited_by_id: inviter.id,
       expires_at: expires_at,
@@ -148,6 +152,17 @@ defmodule Mobilizon.Invitations do
          :ok <- Mobilizon.Web.Email.Member.send_group_invite_new_user(email, inv, group, inviter) do
       {:ok, Repo.preload(inv, [:group, :invited_by])}
     end
+  end
+
+  defp create_pending_email_member(group_id, invited_by_id, email) do
+    Actors.create_member(%{
+      parent_id: group_id,
+      actor_id: nil,
+      invited_email: email,
+      role: :invited,
+      invited_by_id: invited_by_id,
+      url: nil
+    })
   end
 
   defp insert_token(attrs) do
@@ -201,7 +216,7 @@ defmodule Mobilizon.Invitations do
          {:ok, user} <- user_by_actor_id(actor_id),
          :ok <- ensure_email_matches(user, inv.email),
          {:ok, _} <- mark_used(inv),
-         {:ok, member} <- add_actor_to_group(inv.group_id, actor_id, inv.invited_by_id) do
+         {:ok, member} <- add_actor_to_group(inv.group_id, actor_id, inv.invited_by_id, inv.email) do
       {:ok, member}
     else
       {:error, :user_not_found} -> {:error, :email_mismatch}
@@ -231,13 +246,20 @@ defmodule Mobilizon.Invitations do
     |> Repo.update()
   end
 
-  defp add_actor_to_group(group_id, actor_id, invited_by_id) do
-    Actors.create_member(%{
-      parent_id: group_id,
-      actor_id: actor_id,
-      role: :member,
-      invited_by_id: invited_by_id,
-      url: nil
-    })
+  defp add_actor_to_group(group_id, actor_id, invited_by_id, invited_email) do
+    # If there is a pending member (invited by email, not yet registered), update it to link the actor
+    case Actors.get_pending_member_by_email(group_id, invited_email) do
+      {:ok, pending_member} ->
+        Actors.update_member_to_actor(pending_member, actor_id)
+
+      {:error, :not_found} ->
+        Actors.create_member(%{
+          parent_id: group_id,
+          actor_id: actor_id,
+          role: :member,
+          invited_by_id: invited_by_id,
+          url: nil
+        })
+    end
   end
 end

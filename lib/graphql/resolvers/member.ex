@@ -9,7 +9,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
   alias Mobilizon.Federation.ActivityPub.Actions
   alias Mobilizon.Federation.ActivityPub.Actor, as: ActivityPubActor
   alias Mobilizon.Invitations
-  alias Mobilizon.Storage.Page
+  alias Mobilizon.Storage.{Page, Repo}
   alias Mobilizon.Users.User
   import Mobilizon.Web.Gettext
 
@@ -40,8 +40,25 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
             |> Enum.map(&String.to_existing_atom/1)
         end
 
+      # Pending email invites (actor_id nil) are visible only to group admins/moderators
+      include_pending =
+        case Actors.get_member(actor_id, group_id) do
+          {:ok, %Member{role: role}} when role in [:administrator, :creator, :moderator] -> true
+          _ -> false
+        end
+
+      opts = [include_pending_email_invites: include_pending]
+
       %Page{} =
-        page = Actors.list_members_for_group(group, Map.get(args, :name), roles, page, limit)
+        page =
+        Actors.list_members_for_group(
+          group,
+          Map.get(args, :name),
+          roles,
+          page,
+          limit,
+          opts
+        )
 
       {:ok, page}
     else
@@ -145,6 +162,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
       }) do
     case Invitations.use_invitation_token(token, current_actor) do
       {:ok, member} ->
+        member = Repo.preload(member, :parent)
         {:ok, %{member: member, requires_registration: false, invitation_token: nil}}
 
       {:error, :not_found} ->

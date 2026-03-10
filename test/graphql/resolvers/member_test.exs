@@ -7,6 +7,7 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
   alias Mobilizon.GraphQL.AbsintheHelpers
   alias Mobilizon.Service.HTTP.HostMetaClient.Mock, as: HostMetaClientMock
   alias Mobilizon.Service.HTTP.WebfingerClient.Mock, as: WebfingerClientMock
+  alias Mobilizon.Users
 
   setup %{conn: conn} do
     user = insert(:user)
@@ -422,6 +423,143 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
         )
 
       assert hd(res["errors"])["message"] == "You cannot invite to this group"
+    end
+  end
+
+  describe "invite_group_member_by_email and member list visibility" do
+    @invite_by_email_mutation """
+    mutation InviteGroupMemberByEmail($groupId: ID!, $email: String!, $confirmNonExistingUser: Boolean!) {
+      inviteGroupMemberByEmail(groupId: $groupId, email: $email, confirmNonExistingUser: $confirmNonExistingUser) {
+        success
+      }
+    }
+    """
+
+    @group_members_query """
+    query GroupMembers($preferredUsername: String!) {
+      group(preferredUsername: $preferredUsername) {
+        members(limit: 50) {
+          total
+          elements {
+            id
+            role
+            invitedEmail
+            actor { id preferredUsername }
+          }
+        }
+      }
+    }
+    """
+
+    test "invite_group_member_by_email adds non-existing user to group with role invited", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      group = insert(:group)
+      insert(:member, parent: group, actor: actor, role: :administrator)
+
+      email = "notexisting-#{Ecto.UUID.generate()}@example.com"
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @invite_by_email_mutation,
+          variables: %{
+            groupId: group.id,
+            email: email,
+            confirmNonExistingUser: true
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["inviteGroupMemberByEmail"]["success"] == true
+
+      assert {:ok, member} = Mobilizon.Actors.get_pending_member_by_email(group.id, email)
+      assert member.role == :invited
+      assert member.invited_email == email
+      assert member.actor_id == nil
+    end
+
+    test "group admin sees invited-by-email member in group members list", %{
+      conn: conn,
+      user: user,
+      actor: actor
+    } do
+      group = insert(:group)
+      insert(:member, parent: group, actor: actor, role: :administrator)
+
+      email = "pending-#{Ecto.UUID.generate()}@example.com"
+
+      conn
+      |> auth_conn(user)
+      |> AbsintheHelpers.graphql_query(
+        query: @invite_by_email_mutation,
+        variables: %{
+          groupId: group.id,
+          email: email,
+          confirmNonExistingUser: true
+        }
+      )
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @group_members_query,
+          variables: %{preferredUsername: group.preferred_username}
+        )
+
+      assert res["errors"] == nil
+      elements = res["data"]["group"]["members"]["elements"]
+      invited = Enum.find(elements, &(&1["invitedEmail"] == email))
+      assert invited != nil
+      assert invited["role"] == "INVITED"
+      assert invited["actor"] == nil
+    end
+
+    test "non-admin member does not see invited-by-email member in group members list", %{
+      conn: conn,
+      user: admin_user,
+      actor: admin_actor
+    } do
+      group = insert(:group)
+      insert(:member, parent: group, actor: admin_actor, role: :administrator)
+
+      # Plain member (non-admin)
+      member_user = insert(:user)
+      member_actor = insert(:actor, user: member_user, preferred_username: "plain_member")
+      Users.update_user_default_actor(member_user, member_actor)
+      insert(:member, parent: group, actor: member_actor, role: :member)
+
+      email = "hidden-#{Ecto.UUID.generate()}@example.com"
+
+      # Admin invites by email
+      conn
+      |> auth_conn(admin_user)
+      |> AbsintheHelpers.graphql_query(
+        query: @invite_by_email_mutation,
+        variables: %{
+          groupId: group.id,
+          email: email,
+          confirmNonExistingUser: true
+        }
+      )
+
+      # Query as plain member: must not see the invited-by-email row
+      res =
+        conn
+        |> auth_conn(member_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @group_members_query,
+          variables: %{preferredUsername: group.preferred_username}
+        )
+
+      assert res["errors"] == nil
+      elements = res["data"]["group"]["members"]["elements"]
+      invited = Enum.find(elements, &(&1["invitedEmail"] == email))
+      assert invited == nil
     end
   end
 

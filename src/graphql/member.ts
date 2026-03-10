@@ -60,6 +60,7 @@ export const GROUP_MEMBERS = gql`
           actor {
             ...ActorFragment
           }
+          invitedEmail
           insertedAt
         }
         total

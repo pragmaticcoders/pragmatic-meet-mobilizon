@@ -20,10 +20,20 @@ defmodule Mobilizon.GraphQL.Schema.InvitationType do
     field(:for_new_user, non_null(:boolean), description: "True if invitee must register first")
   end
 
+  # Member subset returned by accept_group_invitation; uses :all so token-based accept works when not logged in
+  @desc "Membership info returned when accepting a group invitation (public so invitation link works without login)"
+  object :accept_group_invitation_member do
+    meta(:authorize, :all)
+    field(:id, :id, description: "The member's ID")
+    field(:parent, :group, description: "The group the user joined")
+  end
+
   @desc "Result of accepting a group invitation (by token)"
   object :accept_group_invitation_result do
     meta(:authorize, :all)
-    field(:member, :member, description: "The new membership when already logged in and accepted")
+    field(:member, :accept_group_invitation_member,
+      description: "The new membership when already logged in and accepted"
+    )
     field(:requires_registration, non_null(:boolean),
       description: "True when user must register first; use invitation_token in register flow"
     )
