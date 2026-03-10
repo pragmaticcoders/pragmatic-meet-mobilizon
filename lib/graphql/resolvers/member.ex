@@ -129,7 +129,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Member do
 
       {:error, :user_not_found} ->
         {:error,
-         dgettext("errors", "No account with this email. Check the box to invite them to sign up.")}
+         dgettext(
+           "errors",
+           "No account with this email. Check the box to invite them to sign up."
+         )}
 
       {:error, :not_eligible} ->
         {:error, dgettext("errors", "You cannot invite to this group")}

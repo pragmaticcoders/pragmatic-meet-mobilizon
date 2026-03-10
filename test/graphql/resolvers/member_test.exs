@@ -182,7 +182,9 @@ defmodule Mobilizon.GraphQL.Resolvers.MemberTest do
     } do
       group = insert(:group)
       insert(:member, role: :administrator, parent: group)
-      %Member{id: member_id} = insert(:member, %{actor: actor, parent: group, role: :not_approved})
+
+      %Member{id: member_id} =
+        insert(:member, %{actor: actor, parent: group, role: :not_approved})
 
       res =
         conn

@@ -14,8 +14,15 @@ defmodule Mobilizon.GraphQL.Schema.Actors.MemberType do
     interfaces([:activity_object])
     field(:id, :id, description: "The member's ID")
     field(:parent, :group, description: "Of which the profile is member")
-    field(:actor, :person, description: "Which profile is member of (null when invited by email, not yet registered)")
-    field(:invited_email, :string, description: "Email when invited by email and not yet registered; display instead of actor")
+
+    field(:actor, :person,
+      description: "Which profile is member of (null when invited by email, not yet registered)"
+    )
+
+    field(:invited_email, :string,
+      description: "Email when invited by email and not yet registered; display instead of actor"
+    )
+
     field(:role, :member_role_enum, description: "The role of this membership")
     field(:invited_by, :person, description: "Who invited this member")
     field(:inserted_at, :naive_datetime, description: "When was this member created")
@@ -121,6 +128,7 @@ defmodule Mobilizon.GraphQL.Schema.Actors.MemberType do
     field :invite_group_member_by_email, :group_invitation_sent do
       arg(:group_id, non_null(:id), description: "The group ID")
       arg(:email, non_null(:string), description: "The invitee's email address")
+
       arg(:confirm_non_existing_user, non_null(:boolean),
         description:
           "Must be true to invite an email that is not yet registered; admin confirms eligibility"

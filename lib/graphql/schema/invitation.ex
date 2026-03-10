@@ -31,12 +31,15 @@ defmodule Mobilizon.GraphQL.Schema.InvitationType do
   @desc "Result of accepting a group invitation (by token)"
   object :accept_group_invitation_result do
     meta(:authorize, :all)
+
     field(:member, :accept_group_invitation_member,
       description: "The new membership when already logged in and accepted"
     )
+
     field(:requires_registration, non_null(:boolean),
       description: "True when user must register first; use invitation_token in register flow"
     )
+
     field(:invitation_token, :string,
       description: "Token to pass to registration; present when requires_registration is true"
     )

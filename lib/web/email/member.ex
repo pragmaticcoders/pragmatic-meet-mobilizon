@@ -15,7 +15,12 @@ defmodule Mobilizon.Web.Email.Member do
   @doc """
   Send group invitation email to an existing user (token-based link).
   """
-  @spec send_group_invite_existing_user(String.t(), GroupInvitationToken.t(), Actor.t(), Actor.t()) ::
+  @spec send_group_invite_existing_user(
+          String.t(),
+          GroupInvitationToken.t(),
+          Actor.t(),
+          Actor.t()
+        ) ::
           :ok
   def send_group_invite_existing_user(email, invitation, group, inviter) do
     invitation_url = Invitations.invitation_url(invitation)

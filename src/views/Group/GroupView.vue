@@ -396,7 +396,7 @@
                     t(`{'@'}{username} ({role})`, {
                       username: member.actor
                         ? usernameWithDomain(member.actor)
-                        : (member.invitedEmail ?? ''),
+                        : member.invitedEmail ?? '',
                       role: member.role,
                     })
                   "

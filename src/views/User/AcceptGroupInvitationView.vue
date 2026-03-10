@@ -18,7 +18,10 @@
 </template>
 
 <script lang="ts" setup>
-import { GROUP_INVITATION_BY_TOKEN, ACCEPT_GROUP_INVITATION } from "@/graphql/member";
+import {
+  GROUP_INVITATION_BY_TOKEN,
+  ACCEPT_GROUP_INVITATION,
+} from "@/graphql/member";
 import RouteName from "@/router/name";
 import { useRoute, useRouter } from "vue-router";
 import { ref, computed, onMounted } from "vue";
@@ -41,7 +44,9 @@ const { result: invitationResult, onResult: onInvitationResult } = useQuery(
   () => ({ enabled: !!token.value })
 );
 
-const invitation = computed(() => invitationResult.value?.groupInvitationByToken ?? null);
+const invitation = computed(
+  () => invitationResult.value?.groupInvitationByToken ?? null
+);
 
 const { mutate: acceptGroupInvitation } = useMutation(ACCEPT_GROUP_INVITATION);
 
@@ -81,7 +86,8 @@ async function handleAccept() {
     }
     await router.push({ name: RouteName.MY_GROUPS });
   } catch (err: any) {
-    error.value = err?.graphQLErrors?.[0]?.message || t("Failed to accept invitation.");
+    error.value =
+      err?.graphQLErrors?.[0]?.message || t("Failed to accept invitation.");
   } finally {
     processing.value = false;
   }
@@ -95,7 +101,8 @@ onInvitationResult((res) => {
     error.value = t("Invitation not found or invalid.");
   }
   if (res.error) {
-    error.value = res.error.graphQLErrors?.[0]?.message || t("Failed to load invitation.");
+    error.value =
+      res.error.graphQLErrors?.[0]?.message || t("Failed to load invitation.");
   }
 });
 

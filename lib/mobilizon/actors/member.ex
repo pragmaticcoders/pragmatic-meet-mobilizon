@@ -82,14 +82,18 @@ defmodule Mobilizon.Actors.Member do
     invited_email = get_field(changeset, :invited_email)
 
     cond do
-      not is_nil(actor_id) -> changeset
+      not is_nil(actor_id) ->
+        changeset
+
       is_binary(invited_email) and String.trim(invited_email) != "" ->
         role = get_field(changeset, :role)
+
         if role == :invited do
           changeset
         else
           add_error(changeset, :invited_email, "must have role :invited when actor_id is null")
         end
+
       true ->
         add_error(changeset, :actor_id, "or invited_email must be set")
     end
