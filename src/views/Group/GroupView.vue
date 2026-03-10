@@ -390,19 +390,21 @@
               >
                 <figure
                   v-for="member in members.elements.slice(0, 6)"
-                  :key="member.actor.id"
+                  :key="member.id ?? member.actor?.id"
                   class="-mr-2 relative"
                   :title="
                     t(`{'@'}{username} ({role})`, {
-                      username: usernameWithDomain(member.actor),
+                      username: member.actor
+                        ? usernameWithDomain(member.actor)
+                        : member.invitedEmail ?? '',
                       role: member.role,
                     })
                   "
                 >
                   <img
                     class="rounded-full h-10 w-10 border-2 border-white dark:border-gray-800"
-                    :src="member.actor.avatar.url"
-                    v-if="member.actor.avatar"
+                    :src="member.actor?.avatar?.url"
+                    v-if="member.actor?.avatar"
                     alt=""
                     width="40"
                     height="40"

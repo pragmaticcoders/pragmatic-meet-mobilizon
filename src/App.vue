@@ -39,7 +39,10 @@ import {
   AUTH_USER_ID,
   AUTH_USER_ROLE,
 } from "@/constants";
-import { UPDATE_CURRENT_USER_CLIENT, SET_MARKETING_CONSENT } from "@/graphql/user";
+import {
+  UPDATE_CURRENT_USER_CLIENT,
+  SET_MARKETING_CONSENT,
+} from "@/graphql/user";
 import MarketingConsentPopup from "@/components/User/MarketingConsentPopup.vue";
 import { useLoggedUser } from "@/composition/apollo/user";
 import { useOruga } from "@oruga-ui/oruga-next";

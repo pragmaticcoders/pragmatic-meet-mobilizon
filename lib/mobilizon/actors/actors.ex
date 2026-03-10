@@ -15,6 +15,7 @@ defmodule Mobilizon.Actors do
   alias Mobilizon.Crypto
   alias Mobilizon.Events.Event
   alias Mobilizon.Events.FeedToken
+  alias Mobilizon.Invitations.GroupInvitationToken
   alias Mobilizon.Medias
   alias Mobilizon.Service.Workers
   alias Mobilizon.Storage.{Page, Repo}
@@ -880,6 +881,40 @@ defmodule Mobilizon.Actors do
   end
 
   @doc """
+  Finds a pending member (invited by email, actor_id nil) for the group and email.
+  Used when the user registers and accepts the invitation so we can link the actor to the existing row.
+  """
+  @spec get_pending_member_by_email(integer | String.t(), String.t()) ::
+          {:ok, Member.t()} | {:error, :not_found}
+  def get_pending_member_by_email(group_id, email) when is_binary(email) do
+    email_normalized = String.trim(String.downcase(email))
+
+    case Member
+         |> where([m], m.parent_id == ^group_id and is_nil(m.actor_id))
+         |> where([m], fragment("lower(?) = ?", m.invited_email, ^email_normalized))
+         |> limit(1)
+         |> Repo.one() do
+      nil -> {:error, :not_found}
+      member -> {:ok, Repo.preload(member, [:parent, :invited_by])}
+    end
+  end
+
+  @doc """
+  Updates a pending email-invited member to link the given actor and set role to :member.
+  """
+  @spec update_member_to_actor(Member.t(), integer | String.t()) ::
+          {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
+  def update_member_to_actor(%Member{} = member, actor_id) do
+    member
+    |> Member.changeset(%{actor_id: actor_id, invited_email: nil, role: :member})
+    |> Repo.update()
+    |> case do
+      {:ok, updated} -> {:ok, Repo.preload(updated, [:actor, :parent, :invited_by])}
+      err -> err
+    end
+  end
+
+  @doc """
   Deletes a member.
   """
   @spec delete_member(Member.t()) :: {:ok, Member.t()} | {:error, Ecto.Changeset.t()}
@@ -928,13 +963,19 @@ defmodule Mobilizon.Actors do
 
   @doc """
   Returns a paginated list of members for a group.
+
+  Options (keyword list as last argument):
+  - `:include_pending_email_invites` - when false, excludes members with `actor_id` nil
+    (invited by email, not yet registered). Defaults to true. Set to false for non-admin
+    group members so they do not see pending email invites.
   """
   @spec list_members_for_group(
           Actor.t(),
           String.t() | nil,
           list(atom()),
           integer | nil,
-          integer | nil
+          integer | nil,
+          keyword()
         ) ::
           Page.t(Member.t())
   def list_members_for_group(
@@ -942,12 +983,17 @@ defmodule Mobilizon.Actors do
         name \\ nil,
         roles \\ [],
         page \\ nil,
-        limit \\ nil
+        limit \\ nil,
+        opts \\ []
       ) do
+    include_pending = Keyword.get(opts, :include_pending_email_invites, true)
+
     group_id
     |> members_for_group_query()
-    |> join_members_actor()
-    |> filter_members_by_actor_name(name)
+    |> maybe_exclude_pending_email_invites(include_pending)
+    |> left_join_members_actor()
+    |> maybe_exclude_expired_pending_invites(include_pending)
+    |> filter_members_by_actor_name_or_email(name)
     |> filter_member_role(roles)
     |> Page.build_page(page, limit)
   end
@@ -1627,6 +1673,36 @@ defmodule Mobilizon.Actors do
     |> preload([:parent, :actor])
   end
 
+  defp maybe_exclude_pending_email_invites(query, true), do: query
+
+  defp maybe_exclude_pending_email_invites(query, false) do
+    where(query, [m], not is_nil(m.actor_id))
+  end
+
+  # When including pending email invites, exclude those whose invitation token has expired (or was used).
+  # Query bindings at this point are [m, a] (member, actor from left_join_members_actor).
+  defp maybe_exclude_expired_pending_invites(query, false), do: query
+
+  defp maybe_exclude_expired_pending_invites(query, true) do
+    now = DateTime.utc_now()
+
+    # Subquery: (group_id, email_lower) pairs that have at least one valid token (not used, not expired).
+    valid_tokens_subquery =
+      from(t in GroupInvitationToken,
+        where: is_nil(t.used_at) and t.expires_at > ^now,
+        select: %{group_id: t.group_id, email_lower: fragment("lower(?)", t.email)},
+        distinct: true
+      )
+
+    # Left join: keep member if they have actor_id (real member) or (group_id, email) appears in valid tokens.
+    query
+    |> join(:left, [m, a], v in subquery(valid_tokens_subquery),
+      on: v.group_id == m.parent_id and v.email_lower == fragment("lower(?)", m.invited_email)
+    )
+    |> where([m, a, v], not is_nil(m.actor_id) or not is_nil(v.group_id))
+    |> distinct([m, a, v], m.id)
+  end
+
   @spec group_external_member_actor_query(integer()) :: Ecto.Query.t()
   defp group_external_member_actor_query(group_id) do
     Member
@@ -1667,14 +1743,6 @@ defmodule Mobilizon.Actors do
     from(m in query, where: m.role == ^role)
   end
 
-  @spec filter_members_by_actor_name(Ecto.Query.t(), String.t() | nil) :: Ecto.Query.t()
-  defp filter_members_by_actor_name(query, nil), do: query
-  defp filter_members_by_actor_name(query, ""), do: query
-
-  defp filter_members_by_actor_name(query, name) when is_binary(name) do
-    where(query, [_q, a], like(a.name, ^"%#{name}%") or like(a.preferred_username, ^"%#{name}%"))
-  end
-
   defp filter_members_by_group_name(query, nil), do: query
   defp filter_members_by_group_name(query, ""), do: query
 
@@ -1687,6 +1755,28 @@ defmodule Mobilizon.Actors do
   @spec join_members_actor(Ecto.Queryable.t()) :: Ecto.Query.t()
   defp join_members_actor(query) do
     join(query, :inner, [q], a in Actor, on: q.actor_id == a.id)
+  end
+
+  # Left join so members with actor_id null (invited by email, not yet registered) are included
+  @spec left_join_members_actor(Ecto.Queryable.t()) :: Ecto.Query.t()
+  defp left_join_members_actor(query) do
+    join(query, :left, [m], a in Actor, on: m.actor_id == a.id)
+  end
+
+  @spec filter_members_by_actor_name_or_email(Ecto.Query.t(), String.t() | nil) :: Ecto.Query.t()
+  defp filter_members_by_actor_name_or_email(query, nil), do: query
+  defp filter_members_by_actor_name_or_email(query, ""), do: query
+
+  defp filter_members_by_actor_name_or_email(query, name) when is_binary(name) do
+    pattern = "%#{name}%"
+    # Match by actor name/username when present, or by invited_email when actor is null
+    where(
+      query,
+      [m, a],
+      (is_nil(a.id) and fragment("? ILIKE ?", m.invited_email, ^pattern)) or
+        (not is_nil(a.id) and
+           (like(a.name, ^pattern) or like(a.preferred_username, ^pattern)))
+    )
   end
 
   @spec administrator_members_for_group_query(integer | String.t()) :: Ecto.Query.t()

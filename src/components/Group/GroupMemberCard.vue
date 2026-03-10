@@ -6,7 +6,7 @@
       class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2 px-2 sm:px-4 py-3"
       dir="auto"
     >
-      <figure class="flex-shrink-0" v-if="member.actor.avatar">
+      <figure class="flex-shrink-0" v-if="member.actor?.avatar">
         <img
           class="rounded-full"
           :src="member.actor.avatar.url"
@@ -19,7 +19,7 @@
       <span
         class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate"
       >
-        {{ displayNameAndUsername(member.actor) }}
+        {{ member.actor ? displayNameAndUsername(member.actor) : (member.invitedEmail ?? '') }}
       </span>
     </div>
     <div class="p-2 sm:p-4 flex-1 flex flex-col">

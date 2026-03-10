@@ -14,6 +14,7 @@ export enum UserRouteName {
   LOGIN = "Login",
   OAUTH_AUTORIZE = "OAUTH_AUTORIZE",
   OAUTH_LOGIN_DEVICE = "OAUTH_LOGIN_DEVICE",
+  ACCEPT_GROUP_INVITATION = "AcceptGroupInvitation",
 }
 
 export const userRoutes: RouteRecordRaw[] = [
@@ -82,6 +83,19 @@ export const userRoutes: RouteRecordRaw[] = [
       requiresAuth: false,
       announcer: {
         message: (): string => t("Validating account") as string,
+      },
+    },
+  },
+  {
+    path: "/invitations/accept/:token",
+    name: UserRouteName.ACCEPT_GROUP_INVITATION,
+    component: (): Promise<any> =>
+      import("@/views/User/AcceptGroupInvitationView.vue"),
+    props: true,
+    meta: {
+      requiredAuth: false,
+      announcer: {
+        message: (): string => t("Accept invitation") as string,
       },
     },
   },
