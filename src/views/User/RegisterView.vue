@@ -510,14 +510,18 @@ onMounted(() => {
   if (invitationToken) {
     try {
       sessionStorage.setItem("pendingGroupInvitation", invitationToken);
-    } catch (_) {}
+    } catch {
+      // sessionStorage may be full or unavailable (e.g. private browsing)
+    }
   }
 
   // Pre-fill email when coming from group invitation link
   if (emailFromQuery && invitationToken) {
     try {
       credentials.email = decodeURIComponent(emailFromQuery);
-    } catch (_) {}
+    } catch {
+      // Invalid or missing email in query; leave credentials.email unchanged
+    }
   }
 
   const message = route.query.message as string | undefined;
