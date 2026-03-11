@@ -23,6 +23,8 @@ defmodule Mobilizon.Events do
 
   alias Mobilizon.Events.{
     Event,
+    EventRegistrationQuestion,
+    EventRegistrationQuestionOption,
     FeedToken,
     Participant,
     ParticipantRegistrationAnswer,
