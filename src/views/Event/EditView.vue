@@ -530,7 +530,7 @@
               <o-input
                 v-model="q.title"
                 expanded
-                :placeholder="t('e.g. Dietary requirements')"
+                :placeholder="t('e.g. Job title or department')"
               />
             </o-field>
             <o-field>

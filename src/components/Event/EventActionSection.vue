@@ -383,12 +383,12 @@
                 v-model="registrationFormAnswers[q.id]"
                 expanded
                 :placeholder="t('Select an option')"
-                @input="clearRegistrationFieldError(q.id)"
+                @update:model-value="clearRegistrationFieldError(q.id)"
               >
                 <option
                   v-for="opt in q.options || []"
                   :key="opt.id"
-                  :value="opt.label"
+                  :value="opt.id ?? opt.label"
                 >
                   {{ opt.label }}
                 </option>
@@ -705,10 +705,14 @@ function submitRegistrationForm(): void {
   registrationFormErrors.value = new Set();
   const answers = questions
     .filter((q) => q.id && registrationFormAnswers.value[q.id] !== undefined)
-    .map((q) => ({
-      questionId: q.id!,
-      value: registrationFormAnswers.value[q.id!] ?? "",
-    }));
+    .map((q) => {
+      const raw = registrationFormAnswers.value[q.id!] ?? "";
+      const value =
+        q.questionType === "SINGLE_CHOICE" && q.options?.length
+          ? q.options.find((o) => o.id === raw)?.label ?? raw
+          : raw;
+      return { questionId: q.id!, value };
+    });
   const message =
     event.value.joinOptions === EventJoinOptions.RESTRICTED
       ? messageForConfirmation.value
