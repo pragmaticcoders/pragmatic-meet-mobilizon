@@ -23,9 +23,6 @@ defmodule Mobilizon.Events do
 
   alias Mobilizon.Events.{
     Event,
-    EventParticipantStats,
-    EventRegistrationQuestion,
-    EventRegistrationQuestionOption,
     FeedToken,
     Participant,
     ParticipantRegistrationAnswer,
@@ -397,11 +394,13 @@ defmodule Mobilizon.Events do
       options = Map.get(q_attrs, "options", Map.get(q_attrs, :options, [])) |> List.wrap()
       position = Map.get(q_attrs, "position", Map.get(q_attrs, :position, 0))
       question_type_str = Map.get(q_attrs, "question_type", Map.get(q_attrs, :question_type))
+
       question_type =
         case question_type_str do
           t when is_atom(t) -> t
           t when is_binary(t) -> String.to_existing_atom(t)
         end
+
       title = Map.get(q_attrs, "title", Map.get(q_attrs, :title, ""))
       required = Map.get(q_attrs, "required", Map.get(q_attrs, :required, false))
 
@@ -424,10 +423,12 @@ defmodule Mobilizon.Events do
               position: Map.get(opt, "position", Map.get(opt, :position, idx)),
               label: Map.get(opt, "label", Map.get(opt, :label, ""))
             }
+
             %EventRegistrationQuestionOption{}
             |> EventRegistrationQuestionOption.changeset(opt_attrs)
             |> Repo.insert!()
           end)
+
           {:cont, :ok}
 
         {:error, changeset} ->
@@ -1161,13 +1162,10 @@ defmodule Mobilizon.Events do
            |> Multi.run(:update_event_participation_stats, fn _repo,
                                                               %{
                                                                 participant:
-                                                                  %Participant{role: new_role} =
-                                                                    participant
+                                                                  %Participant{} = participant
                                                               } ->
              update_participant_stats(
-               participant,
-               nil,
-               new_role,
+               participant.event_id,
                update_event_participation_stats
              )
            end)
@@ -1182,17 +1180,16 @@ defmodule Mobilizon.Events do
   @spec update_participant(Participant.t(), map) ::
           {:ok, Participant.t()}
           | {:error, :participant | :update_event_participation_stats, Changeset.t(), map()}
-  def update_participant(%Participant{role: old_role} = participant, attrs) do
+  def update_participant(%Participant{} = participant, attrs) do
     with {:ok, %{participant: %Participant{} = participant}} <-
            Multi.new()
            |> Multi.update(:participant, Participant.changeset(participant, attrs))
            |> Multi.run(:update_event_participation_stats, fn _repo,
                                                               %{
                                                                 participant:
-                                                                  %Participant{role: new_role} =
-                                                                    participant
+                                                                  %Participant{} = participant
                                                               } ->
-             update_participant_stats(participant, old_role, new_role)
+             update_participant_stats(participant.event_id)
            end)
            |> Repo.transaction() do
       {:ok, Repo.preload(participant, [:event, :actor])}
@@ -1205,38 +1202,26 @@ defmodule Mobilizon.Events do
   @spec delete_participant(Participant.t()) ::
           {:ok, %{participant: Participant.t()}}
           | {:error, :participant | :update_event_participation_stats, Changeset.t(), map()}
-  def delete_participant(%Participant{role: old_role} = participant) do
+  def delete_participant(%Participant{} = participant) do
     Multi.new()
     |> Multi.delete(:participant, participant)
     |> Multi.run(:update_event_participation_stats, fn _repo,
                                                        %{
                                                          participant: %Participant{} = participant
                                                        } ->
-      update_participant_stats(participant, old_role, nil)
+      update_participant_stats(participant.event_id)
     end)
     |> Repo.transaction()
   end
 
-  defp update_participant_stats(
-         %Participant{
-           event_id: event_id
-         } = _participant,
-         old_role,
-         new_role,
-         update_event_participation_stats \\ true
-       ) do
+  defp update_participant_stats(event_id, update_event_participation_stats \\ true) do
     with {:update_event_participation_stats, true} <-
            {:update_event_participation_stats, update_event_participation_stats},
          {:ok, %Event{} = event} <- get_event_with_preload(event_id),
-         %EventParticipantStats{} = participant_stats <-
-           Map.get(event, :participant_stats),
-         %EventParticipantStats{} = participant_stats <-
-           do_update_participant_stats(participant_stats, old_role, new_role),
+         participant_stats <- recalculate_participant_stats_from_db(event_id),
          {:ok, %Event{} = event} <-
            event
-           |> Event.update_changeset(%{
-             participant_stats: Map.from_struct(participant_stats)
-           })
+           |> Event.update_changeset(%{participant_stats: participant_stats})
            |> Repo.update() do
       {:ok, event}
     else
@@ -1251,24 +1236,27 @@ defmodule Mobilizon.Events do
     end
   end
 
-  defp do_update_participant_stats(participant_stats, old_role, new_role) do
-    participant_stats
-    |> decrease_participant_stats(old_role)
-    |> increase_participant_stats(new_role)
-  end
+  # Recalculate participant_stats from actual participants table to avoid race when
+  # one user leaves and another is promoted from waitlist (leave + promote in quick succession).
+  defp recalculate_participant_stats_from_db(event_id) do
+    participants = list_all_participants_for_event(event_id, [])
 
-  defp increase_participant_stats(participant_stats, nil), do: participant_stats
-
-  defp increase_participant_stats(participant_stats, role) do
-    current = Map.get(participant_stats, role) || 0
-    Map.put(participant_stats, role, current + 1)
-  end
-
-  defp decrease_participant_stats(participant_stats, nil), do: participant_stats
-
-  defp decrease_participant_stats(participant_stats, role) do
-    current = Map.get(participant_stats, role) || 0
-    Map.put(participant_stats, role, max(0, current - 1))
+    Enum.reduce(
+      participants,
+      %{
+        not_approved: 0,
+        not_confirmed: 0,
+        rejected: 0,
+        participant: 0,
+        moderator: 0,
+        administrator: 0,
+        creator: 0,
+        waitlist: 0
+      },
+      fn %Participant{role: role}, acc ->
+        Map.update(acc, role, 1, &(&1 + 1))
+      end
+    )
   end
 
   @doc """
@@ -1903,7 +1891,7 @@ defmodule Mobilizon.Events do
     id
     |> list_participants_for_event_query()
     |> filter_role(roles)
-    |> order_by([p], [asc: p.role, asc: p.inserted_at])
+    |> order_by([p], asc: p.role, asc: p.inserted_at)
   end
 
   def participant_for_event_export_query(id, roles) do

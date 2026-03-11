@@ -5,12 +5,13 @@
       <i18n-t :keypath="translation" tag="p">
         <template #member>
           <popover-actor-card
-            v-if="member"
+            v-if="member?.actor"
             :actor="member.actor"
             :inline="true"
           >
             <b> {{ displayName(member.actor) }}</b></popover-actor-card
           >
+          <b v-else-if="member?.invitedEmail">{{ member.invitedEmail }}</b>
           <b v-else>{{ subjectParams.member_actor_federated_username }}</b>
         </template>
         <template #profile>

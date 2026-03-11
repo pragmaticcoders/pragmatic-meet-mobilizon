@@ -1,0 +1,5 @@
+<%= gettext "You're invited!" %>
+==
+<%= gettext "%{inviter} invited you to join the group %{group}. Create an account to accept and join.", group: @group.name, inviter: @inviter.name %>
+<%= gettext "Click the link below to sign up. After registration you will be added to the group automatically." %>
+<%= @invitation_url %>

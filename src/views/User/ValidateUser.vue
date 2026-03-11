@@ -22,6 +22,7 @@
 </template>
 
 <script lang="ts" setup>
+import { ACCEPT_GROUP_INVITATION } from "@/graphql/member";
 import { ICurrentUserRole } from "@/types/enums";
 import { VALIDATE_USER, UPDATE_CURRENT_USER_CLIENT } from "../../graphql/user";
 import RouteName from "../../router/name";
@@ -65,12 +66,42 @@ const {
   mutate: updateCurrentUserClient,
 } = useMutation(UPDATE_CURRENT_USER_CLIENT);
 
+const { mutate: acceptGroupInvitation } = useMutation(ACCEPT_GROUP_INVITATION);
+
 onUpdatingCurrentUserClientDone(async () => {
+  const pendingInvitation = sessionStorage.getItem("pendingGroupInvitation");
+  if (pendingInvitation && user.value?.defaultActor) {
+    try {
+      const { data } = await acceptGroupInvitation({
+        token: pendingInvitation,
+      });
+      const result = data?.acceptGroupInvitation;
+      if (result?.member?.parent) {
+        sessionStorage.removeItem("pendingGroupInvitation");
+        await changeIdentity(user.value.defaultActor);
+        const g = result.member.parent;
+        const preferredUsername = g.domain
+          ? `${g.preferredUsername}@${g.domain}`
+          : g.preferredUsername;
+        await router.push({
+          name: RouteName.GROUP,
+          params: { preferredUsername },
+        });
+        return;
+      }
+    } catch (err) {
+      // Fall through to normal redirect; log for debugging
+      console.warn(
+        "Could not accept group invitation after registration:",
+        err
+      );
+    }
+  }
+
   if (user.value?.defaultActor) {
     await changeIdentity(user.value?.defaultActor);
     await router.push({ name: RouteName.HOME });
   } else {
-    // If the user didn't register any profile yet, let's create one for them
     await router.push({
       name: RouteName.CREATE_IDENTITY,
     });

@@ -16,12 +16,13 @@ defmodule Mobilizon.Actors.Member do
           url: String.t(),
           role: atom(),
           parent: Actor.t(),
-          actor: Actor.t(),
+          actor: Actor.t() | nil,
+          invited_email: String.t() | nil,
           metadata: Metadata.t()
         }
 
-  @required_attrs [:parent_id, :actor_id, :url]
-  @optional_attrs [:role, :invited_by_id]
+  @required_attrs [:parent_id, :url]
+  @optional_attrs [:role, :invited_by_id, :actor_id, :invited_email]
   @attrs @required_attrs ++ @optional_attrs
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -29,6 +30,7 @@ defmodule Mobilizon.Actors.Member do
     field(:role, MemberRole, default: :member)
     field(:url, :string)
     field(:member_since, :utc_datetime)
+    field(:invited_email, :string)
 
     embeds_one(:metadata, Metadata, on_replace: :delete)
 
@@ -69,9 +71,32 @@ defmodule Mobilizon.Actors.Member do
     |> ensure_url()
     |> update_member_since()
     |> validate_required(@required_attrs)
-    # On both parent_id and actor_id
+    |> validate_actor_or_invited_email()
+    # On both parent_id and actor_id (actor_id can be null for email-invited)
     |> unique_constraint(:parent_id, name: :members_actor_parent_unique_index)
     |> unique_constraint(:url, name: :members_url_index)
+  end
+
+  defp validate_actor_or_invited_email(changeset) do
+    actor_id = get_field(changeset, :actor_id)
+    invited_email = get_field(changeset, :invited_email)
+
+    cond do
+      not is_nil(actor_id) ->
+        changeset
+
+      is_binary(invited_email) and String.trim(invited_email) != "" ->
+        role = get_field(changeset, :role)
+
+        if role == :invited do
+          changeset
+        else
+          add_error(changeset, :invited_email, "must have role :invited when actor_id is null")
+        end
+
+      true ->
+        add_error(changeset, :actor_id, "or invited_email must be set")
+    end
   end
 
   # If there's a blank URL that's because we're doing the first insert

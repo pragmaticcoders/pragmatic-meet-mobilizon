@@ -358,17 +358,24 @@
                 class="w-32"
                 placeholder="Enter limit"
               />
-              <p
-                v-if="currentParticipantCount > 0"
-                class="text-sm text-gray-500 mt-1"
-              >
-                {{
-                  t(
-                    "Current participants: {count}. Limit cannot be lower than current participants.",
-                    { count: currentParticipantCount }
-                  )
-                }}
-              </p>
+              <template v-if="currentParticipantCount > 0">
+                <p class="text-sm mt-1 text-gray-500">
+                  {{
+                    t("Current participants: {count}", {
+                      count: currentParticipantCount,
+                    })
+                  }}
+                </p>
+                <p
+                  v-if="
+                    currentParticipantCount >
+                    event.options.maximumAttendeeCapacity
+                  "
+                  class="text-sm mt-0.5 text-amber-700"
+                >
+                  {{ t("Limit exceeded") }}
+                </p>
+              </template>
             </div>
 
             <div>
@@ -1236,7 +1243,14 @@ const validateForm = () => {
       return false;
     }
 
-    if (currentCount > 0 && maxCapacity < currentCount) {
+    // When participants exceed limit, allow save so organizer can change options
+    // (e.g. switch to "Require manual approval"). Only block when reducing capacity below current count
+    // and we're not already over capacity (backend will reject capacity < count on update).
+    const isOverCapacity = currentCount > 0 && maxCapacity < currentCount;
+    if (isOverCapacity && event.value.id) {
+      // Editing existing event that is over capacity: allow save so they can update
+      // waitlist_auto_promote, block_new_registrations, etc.
+    } else if (currentCount > 0 && maxCapacity < currentCount) {
       notification.open({
         message: t(
           "Cannot set participant limit below current participant count ({count})",

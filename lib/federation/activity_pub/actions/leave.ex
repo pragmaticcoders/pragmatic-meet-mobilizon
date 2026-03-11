@@ -45,10 +45,13 @@ defmodule Mobilizon.Federation.ActivityPub.Actions.Leave do
         {:ok, %Participant{} = participant} ->
           case Events.delete_participant(participant) do
             {:ok, %{participant: %Participant{} = participant}} ->
-              Logger.info("Participant #{participant.id} left event #{event_id}, checking waitlist...")
+              Logger.info(
+                "Participant #{participant.id} left event #{event_id}, checking waitlist..."
+              )
 
-              # Check if we need to promote someone from waitlist
+              # Check if we need to promote someone from waitlist (delay so leave transaction is committed)
               Task.start(fn ->
+                Process.sleep(100)
                 alias Mobilizon.GraphQL.API.Participations
                 Participations.promote_from_waitlist_if_needed(event_id)
               end)

@@ -14,7 +14,15 @@ defmodule Mobilizon.GraphQL.Schema.Actors.MemberType do
     interfaces([:activity_object])
     field(:id, :id, description: "The member's ID")
     field(:parent, :group, description: "Of which the profile is member")
-    field(:actor, :person, description: "Which profile is member of")
+
+    field(:actor, :person,
+      description: "Which profile is member of (null when invited by email, not yet registered)"
+    )
+
+    field(:invited_email, :string,
+      description: "Email when invited by email and not yet registered; display instead of actor"
+    )
+
     field(:role, :member_role_enum, description: "The role of this membership")
     field(:invited_by, :person, description: "Who invited this member")
     field(:inserted_at, :naive_datetime, description: "When was this member created")
@@ -114,6 +122,34 @@ defmodule Mobilizon.GraphQL.Schema.Actors.MemberType do
       )
 
       resolve(&Member.invite_member/3)
+    end
+
+    @desc "Invite a user to the group by email. Works for existing users and new users (with confirmation)."
+    field :invite_group_member_by_email, :group_invitation_sent do
+      arg(:group_id, non_null(:id), description: "The group ID")
+      arg(:email, non_null(:string), description: "The invitee's email address")
+
+      arg(:confirm_non_existing_user, non_null(:boolean),
+        description:
+          "Must be true to invite an email that is not yet registered; admin confirms eligibility"
+      )
+
+      middleware(Rajska.QueryAuthorization,
+        permit: :user,
+        scope: Mobilizon.Actors.Member,
+        rule: :"write:group:members",
+        args: %{parent_id: :group_id}
+      )
+
+      resolve(&Member.invite_group_member_by_email/3)
+    end
+
+    @desc "Accept a group invitation using the token from the invitation email link."
+    field :accept_group_invitation, :accept_group_invitation_result do
+      arg(:token, non_null(:string), description: "The invitation token from the email link")
+
+      middleware(Rajska.QueryAuthorization, permit: :all)
+      resolve(&Member.accept_group_invitation/3)
     end
 
     @desc """
