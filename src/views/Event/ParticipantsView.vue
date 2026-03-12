@@ -116,7 +116,7 @@
             v-if="canManageEvent || authDataLoading"
             @click="
               exportParticipants({
-                eventId: event.id ?? '',
+                eventId: event?.id ?? '',
                 format: 'CSV',
               })
             "
@@ -128,6 +128,22 @@
             class="text-xs sm:text-sm"
           >
             {{ t("Export CSV") }}
+          </o-button>
+          <o-button
+            v-if="canManageEvent || authDataLoading"
+            tag="router-link"
+            :to="{
+              name: EventRouteName.EVENT_CUSTOM_FORM_RESPONSES,
+              params: { eventId: eventId },
+            }"
+            variant="info"
+            :disabled="authDataLoading"
+            :loading="authDataLoading"
+            icon-left="form-select"
+            size="small"
+            class="text-xs sm:text-sm"
+          >
+            {{ t("View Form Responses") }}
           </o-button>
         </div>
       </div>
@@ -610,7 +626,7 @@ import {
   UPDATE_PARTICIPANT,
 } from "@/graphql/event";
 import { Notifier } from "@/plugins/notifier";
-import RouteName from "@/router/name";
+import RouteName, { EventRouteName } from "@/router/name";
 import { IPerson, usernameWithDomain } from "@/types/actor";
 import { MemberRole, ParticipantRole } from "@/types/enums";
 import { IEvent } from "@/types/event.model";

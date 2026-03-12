@@ -121,11 +121,23 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
   defp handle_join_result({:ok, _activity, participant, :waitlist}), do: {:ok, participant}
   defp handle_join_result({:error, reason}), do: {:error, reason}
 
+  defp resolve_event(event_id) do
+    if is_binary(event_id) and String.contains?(event_id, "-") do
+      case Events.get_event_by_uuid_with_preload(event_id) do
+        nil -> {:error, :event_not_found}
+        event -> {:ok, event}
+      end
+    else
+      Events.get_event_with_preload(event_id)
+    end
+  end
+
   @spec do_actor_join_event(Actor.t(), integer | String.t(), map()) ::
           {:ok, Participant.t()} | {:error, String.t()}
   defp do_actor_join_event(actor, event_id, args) do
     with {:has_event, {:ok, %Event{} = event}} <-
-           {:has_event, Events.get_event_with_preload(event_id)},
+           {:has_event, resolve_event(event_id)},
+         :ok <- check_custom_form_requirement(event.id, args),
          join_result <- Participations.join(event, actor, args),
          {:ok, participant} <- handle_join_result(join_result),
          %Participant{} = participant <-
@@ -134,6 +146,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
            |> Map.put(:actor, actor) do
       {:ok, participant}
     else
+      {:error, :custom_form_required} ->
+        {:error, dgettext("errors", "This event requires filling out a custom registration form.")}
+
       {:error, :maximum_attendee_capacity_reached} ->
         {:error, dgettext("errors", "The event has already reached its maximum capacity")}
 
@@ -146,6 +161,27 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
 
       {:error, :already_participant} ->
         {:error, dgettext("errors", "You are already a participant of this event")}
+    end
+  end
+
+  defp check_custom_form_requirement(event_id, args) do
+    # When using `join_event_with_form`, this function should bypass validation
+    # because the custom form logic operates differently. But if called via regular
+    # `joinEvent`, we enforce that the user CANNOT join if there's a custom form.
+
+    if Map.has_key?(args, :answers) do
+      :ok
+    else
+      case Mobilizon.Plugins.EventForm.API.get_form_by_event(event_id) do
+        nil -> :ok
+        %Mobilizon.Plugins.EventForm.Form{fields: fields} ->
+          # Even if the form exists, only block if there are fields present
+          if is_list(fields) and length(fields) > 0 do
+            {:error, :custom_form_required}
+          else
+            :ok
+          end
+      end
     end
   end
 

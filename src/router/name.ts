@@ -1,4 +1,5 @@
 import { EventRouteName } from "./event";
+export { EventRouteName };
 import { ActorRouteName } from "./actor";
 import { ErrorRouteName } from "./error";
 import { SettingsRouteName } from "./settings";

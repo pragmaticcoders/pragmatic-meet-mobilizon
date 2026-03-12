@@ -516,6 +516,11 @@
           </o-field>
         </fieldset>
       </section>
+
+      <section class="border-t pt-8 mt-8" v-if="props.isUpdate === true && event?.id">
+        <OrganizerFormEditor :event-id="event.id" />
+      </section>
+      
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">
           {{ t("Status") }}
@@ -784,6 +789,7 @@ import { useOruga } from "@oruga-ui/oruga-next";
 import sortBy from "lodash/sortBy";
 import EventDatePicker from "@/components/Event/EventDatePicker.vue";
 import { FETCH_GROUP_PUBLIC } from "@/graphql/group";
+import OrganizerFormEditor from "@/plugins/event_form/components/OrganizerFormEditor.vue";
 
 const DEFAULT_LIMIT_NUMBER_OF_PLACES = 10;
 

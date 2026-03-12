@@ -235,7 +235,7 @@
         event.options.blockNewRegistrations ||
         (isEventFull && !event.options.enableWaitlist)
       "
-      @click="joinEvent(currentActor)"
+      @click="handleParticipateClick(currentActor)"
     >
       <span v-if="event.options.blockNewRegistrations">
         {{ t("Registrations blocked") }}
@@ -302,6 +302,15 @@
       native-type="button"
       >{{ t("Participate") }}</o-button
     >
+
+    <CustomRegistrationForm
+      v-if="showCustomFormModal"
+      v-model:active="showCustomFormModal"
+      :event-id="event.id"
+      :actor-id="currentActor?.id || ''"
+      :fields="customFormFields"
+      @success="onCustomFormSuccess"
+    />
   </div>
 </template>
 
@@ -315,6 +324,10 @@ import RouteName from "../../router/name";
 import { IPerson } from "../../types/actor";
 import { IEvent } from "../../types/event.model";
 import { IParticipant } from "../../types/participant.model";
+import { useQuery } from "@vue/apollo-composable";
+import { EVENT_CUSTOM_FORM } from "@/plugins/event_form/graphql/customForm";
+import CustomRegistrationForm from "@/plugins/event_form/components/CustomRegistrationForm.vue";
+import { ref } from "vue";
 
 const props = defineProps<{
   participation: IParticipant | undefined;
@@ -339,6 +352,25 @@ const joinEvent = (actor: IPerson | undefined): void => {
     // The backend will handle whether to add to participants or waitlist
     emit("join-event", actor);
   }
+};
+
+const showCustomFormModal = ref(false);
+
+const { result: customFormResult } = useQuery(EVENT_CUSTOM_FORM, () => ({ eventId: props.event.id }), { fetchPolicy: 'cache-first' });
+const customFormFields = computed(() => customFormResult.value?.eventCustomForm?.fields || []);
+
+const handleParticipateClick = (actor: IPerson | undefined) => {
+  if (customFormFields.value.length > 0) {
+    showCustomFormModal.value = true;
+  } else {
+    joinEvent(actor);
+  }
+};
+
+const onCustomFormSuccess = () => {
+  showCustomFormModal.value = false;
+  // Reload the page to reflect the new participation status and update the cache easily from the plugin
+  window.location.reload();
 };
 
 const confirmLeave = (): void => {
