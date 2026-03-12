@@ -49,6 +49,30 @@
 
       <!-- Regular User Sections - Email and Password with change buttons -->
       <template v-else>
+        <!-- Display Name Section -->
+        <div class="mb-8">
+          <div class="mb-4">
+            <h2 class="text-[20px] leading-[30px] text-[#1c1b1f] mb-2">
+              {{ t("Display Name") }}
+            </h2>
+            <p
+              class="font-medium text-[17px] leading-[26px] text-[#1c1b1f]"
+              v-html="
+                t('Your current display name is {name}.', {
+                  name: `<b class='font-bold'>${loggedUser.defaultActor?.name}</b>`,
+                })
+              "
+            ></p>
+          </div>
+
+          <button
+            @click="openChangeNameModal"
+            class="px-8 py-[18px] bg-white text-[#155eef] border border-[#155eef] hover:bg-blue-50 transition-colors text-[17px] leading-[26px]"
+          >
+            {{ t("Change") }}
+          </button>
+        </div>
+
         <!-- Email Section -->
         <div class="mb-8">
           <div class="mb-4">
@@ -147,6 +171,70 @@
         </button>
       </div>
     </div>
+
+    <!-- Change Name Modal -->
+    <o-modal
+      v-model:active="isChangeNameModalActive"
+      :close-button-aria-label="t('Close')"
+      has-modal-card
+      :can-cancel="['escape', 'outside']"
+    >
+      <div class="bg-white rounded-lg max-w-md mx-auto">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">
+            {{ t("Change Display Name") }}
+          </h2>
+        </div>
+
+        <form @submit.prevent="resetNameAction" ref="nameForm" class="p-6">
+          <o-notification
+            variant="danger"
+            has-icon
+            aria-close-label="Close notification"
+            role="alert"
+            :key="error"
+            v-for="error in changeNameErrors"
+            class="mb-4"
+          >
+            {{ error }}
+          </o-notification>
+
+          <div class="mb-6">
+            <label
+              for="modal-name"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              {{ t("New Display Name") }}
+            </label>
+            <input
+              type="text"
+              id="modal-name"
+              v-model="newName"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              :placeholder="t('Enter new display name')"
+            />
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              type="button"
+              @click="isChangeNameModalActive = false"
+              class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            >
+              {{ t("Cancel") }}
+            </button>
+            <button
+              type="submit"
+              class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              :disabled="isUpdatingName"
+            >
+              {{ t("Update") }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </o-modal>
 
     <!-- Change Email Modal -->
     <o-modal
@@ -415,6 +503,7 @@ import {
   DELETE_ACCOUNT,
   SET_MARKETING_CONSENT,
 } from "../../graphql/user";
+import { UPDATE_PERSON } from "../../graphql/actor";
 import RouteName from "../../router/name";
 import { logout, SELECTED_PROVIDERS } from "../../utils/auth";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -430,10 +519,13 @@ useHead({
 
 const passwordForm = ref<HTMLFormElement>();
 const emailForm = ref<HTMLFormElement>();
+const nameForm = ref<HTMLFormElement>();
 
 const passwordForEmailChange = ref("");
 const newEmail = ref("");
+const newName = ref("");
 const changeEmailErrors = ref<string[]>([]);
+const changeNameErrors = ref<string[]>([]);
 const oldPassword = ref("");
 const newPassword = ref("");
 const changePasswordErrors = ref<string[]>([]);
@@ -441,6 +533,7 @@ const deletePasswordErrors = ref<string[]>([]);
 const isDeleteAccountModalActive = ref(false);
 const isChangeEmailModalActive = ref(false);
 const isChangePasswordModalActive = ref(false);
+const isChangeNameModalActive = ref(false);
 const passwordForAccountDeletion = ref("");
 
 const notifier = inject<Notifier>("notifier");
@@ -452,7 +545,7 @@ const isUpdatingMarketingConsent = ref(false);
 // Initialize marketing consent from logged user
 watch(
   () => loggedUser.value?.marketingConsent,
-  (newValue) => {
+  (newValue: boolean | undefined) => {
     if (newValue !== undefined) {
       marketingConsent.value = newValue;
     }
@@ -471,7 +564,7 @@ setMarketingConsentDone(() => {
   notifier?.success(t("Marketing consent updated successfully"));
 });
 
-setMarketingConsentError((err) => {
+setMarketingConsentError((err: Error | GraphQLError | any) => {
   isUpdatingMarketingConsent.value = false;
   // Revert the toggle on error
   marketingConsent.value = !marketingConsent.value;
@@ -482,6 +575,39 @@ setMarketingConsentError((err) => {
 const updateMarketingConsent = (consent: boolean): void => {
   isUpdatingMarketingConsent.value = true;
   setMarketingConsentMutation({ consent });
+};
+
+// Change Name section
+const isUpdatingName = ref(false);
+
+const {
+  mutate: changeNameMutation,
+  onDone: changeNameMutationDone,
+  onError: changeNameMutationError,
+} = useMutation(UPDATE_PERSON);
+
+changeNameMutationDone(() => {
+  notifier?.success(t("Your display name was successfully changed"));
+  newName.value = "";
+  isChangeNameModalActive.value = false;
+  isUpdatingName.value = false;
+});
+
+changeNameMutationError((err: Error | GraphQLError | any) => {
+  handleErrors("name", err);
+  isUpdatingName.value = false;
+});
+
+const resetNameAction = async (): Promise<void> => {
+  if (nameForm.value?.reportValidity()) {
+    changeNameErrors.value = [];
+    isUpdatingName.value = true;
+
+    changeNameMutation({
+      id: loggedUser.value?.defaultActor?.id,
+      name: newName.value,
+    });
+  }
 };
 
 const formatDate = (dateString: string): string => {
@@ -510,7 +636,7 @@ changeEmailMutationDone(() => {
   isChangeEmailModalActive.value = false;
 });
 
-changeEmailMutationError((err) => {
+changeEmailMutationError((err: Error | GraphQLError | any) => {
   handleErrors("email", err);
 });
 
@@ -538,7 +664,7 @@ onChangePasswordMutationDone(() => {
   isChangePasswordModalActive.value = false;
 });
 
-onChangePasswordMutationError((err) => {
+onChangePasswordMutationError((err: Error | GraphQLError | any) => {
   handleErrors("password", err);
 });
 
@@ -570,6 +696,12 @@ const openChangePasswordModal = (): void => {
   oldPassword.value = "";
   newPassword.value = "";
   isChangePasswordModalActive.value = true;
+};
+
+const openChangeNameModal = (): void => {
+  changeNameErrors.value = [];
+  newName.value = loggedUser.value?.defaultActor?.name || "";
+  isChangeNameModalActive.value = true;
 };
 
 const router = useRouter();
@@ -643,6 +775,9 @@ const handleErrors = (type: string, err: any) => {
       switch (type) {
         case "password":
           changePasswordErrors.value.push(message);
+          break;
+        case "name":
+          changeNameErrors.value.push(message);
           break;
         case "email":
         default:
