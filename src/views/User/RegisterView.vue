@@ -356,7 +356,7 @@
         <p class="text-gray-600 mb-2">
           {{ t("We sent a verification link to") }}
         </p>
-        <p class="text-gray-900 font-medium mb-6">
+        <p class="text-gray-900 font-medium mb-6 break-words">
           {{ credentials.email }}
         </p>
 
