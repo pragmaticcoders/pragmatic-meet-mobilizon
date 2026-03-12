@@ -32,10 +32,12 @@ import { useRoute, useRouter } from "vue-router";
 import { ref, computed, onMounted } from "vue";
 import { useQuery, useMutation } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
+import { useCurrentActorClient } from "@/composition/apollo/actor";
 
 const { t } = useI18n({ useScope: "global" });
 const route = useRoute();
 const router = useRouter();
+const { currentActor } = useCurrentActorClient();
 const token = computed(() => route.params.token as string);
 
 const loading = ref(true);
@@ -74,14 +76,22 @@ async function handleAccept() {
       return;
     }
     if (result.requiresRegistration && result.invitationToken) {
-      const email = invitation.value?.email;
-      await router.push({
-        name: RouteName.REGISTER,
-        query: {
-          invitation: result.invitationToken,
-          ...(email ? { email } : {}),
-        },
-      });
+      const inv = invitation.value;
+      if (inv?.forNewUser) {
+        const email = inv.email;
+        await router.push({
+          name: RouteName.REGISTER,
+          query: {
+            invitation: result.invitationToken,
+            ...(email ? { email } : {}),
+          },
+        });
+      } else {
+        await router.push({
+          name: RouteName.LOGIN,
+          query: { redirect: route.fullPath },
+        });
+      }
       return;
     }
     if (result.member?.parent) {
@@ -120,7 +130,25 @@ function invitationErrorMessage(apiMessage: string | undefined): string {
 
 onInvitationResult((res) => {
   loading.value = false;
-  if (res.data?.groupInvitationByToken) {
+  const inv = res.data?.groupInvitationByToken ?? null;
+  if (inv) {
+    if (!currentActor.value) {
+      if (inv.forNewUser) {
+        router.push({
+          name: RouteName.REGISTER,
+          query: {
+            invitation: token.value,
+            ...(inv.email ? { email: inv.email } : {}),
+          },
+        });
+      } else {
+        router.push({
+          name: RouteName.LOGIN,
+          query: { redirect: route.fullPath },
+        });
+      }
+      return;
+    }
     handleAccept();
   } else if (res.data && res.data.groupInvitationByToken === null) {
     error.value = t("Invitation not found or invalid.");
