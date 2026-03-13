@@ -63,8 +63,8 @@
       <div
         class="container mx-auto px-4 md:px-16 py-6 text-gray-500 text-xs text-center"
       >
-        © {{ new Date().getFullYear() }} Pragmatic Meet. Wszelkie prawa
-        zastrzeżone.
+        © {{ new Date().getFullYear() }} Pragmatic Meet. Copyleft - sharing is
+        caring.
       </div>
     </div>
   </footer>
