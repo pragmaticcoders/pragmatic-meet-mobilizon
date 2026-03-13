@@ -189,7 +189,6 @@ import { useMutation, useQuery } from "@vue/apollo-composable";
 import { useAvatarMaxSize } from "@/composition/config";
 import { computed, inject, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { convertToUsername } from "@/utils/username";
 import { Notifier } from "@/plugins/notifier";
 import { AbsintheGraphQLErrors } from "@/types/errors.model";
 import { ICurrentUser } from "@/types/current-user.model";
@@ -518,10 +517,6 @@ const breadcrumbsLinks = computed(
     return links;
   }
 );
-
-const updateUsername = (value: string) => {
-  identity.value.preferredUsername = convertToUsername(value);
-};
 
 useHead({
   title: computed(() => {

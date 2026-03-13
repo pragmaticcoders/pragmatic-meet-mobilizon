@@ -829,7 +829,8 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
         )
 
       # Local profiles should be suspended via user account, not directly
-      assert hd(res["errors"])["message"] == "Local profiles cannot be suspended directly. Suspend the user account instead."
+      assert hd(res["errors"])["message"] ==
+               "Local profiles cannot be suspended directly. Suspend the user account instead."
     end
 
     test "doesn't suspend if user is not at least moderator", %{conn: conn} do
@@ -854,7 +855,9 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
     test "unsuspends a remote profile", %{conn: conn} do
       modo = insert(:user, role: :moderator)
       %Actor{id: modo_actor_id} = insert(:actor, user: modo)
-      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
+
+      %Actor{id: remote_profile_id} =
+        insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
 
       res =
         conn
@@ -880,21 +883,23 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
       assert actionlog["object"]["id"] == to_string(remote_profile_id)
     end
 
-    test "restores user_id when unsuspending a local person with broken relationship", %{conn: conn} do
+    test "restores user_id when unsuspending a local person with broken relationship", %{
+      conn: conn
+    } do
       modo = insert(:user, role: :moderator)
       %Actor{} = insert(:actor, user: modo)
-      
+
       # Create a user with an actor, then simulate broken relationship
       user = insert(:user)
       %Actor{id: actor_id} = actor = insert(:actor, user: user, suspended: true)
-      
+
       # Explicitly set default_actor_id on user (simulating what would happen in production)
       {:ok, user} = Mobilizon.Users.update_user(user, %{default_actor_id: actor_id})
-      
+
       # Simulate the broken state: actor has user_id = nil but user has default_actor_id = actor_id
       # This happens when old-style suspension cleared user_id
       Mobilizon.Storage.Repo.update!(Ecto.Changeset.change(actor, %{user_id: nil}))
-      
+
       # Verify the broken state
       broken_actor = Mobilizon.Actors.get_actor(actor_id)
       assert broken_actor.user_id == nil
@@ -919,7 +924,9 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
     test "doesn't unsuspend if user is not at least moderator", %{conn: conn} do
       fake_modo = insert(:user)
       %Actor{} = insert(:actor, user: fake_modo)
-      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
+
+      %Actor{id: remote_profile_id} =
+        insert(:actor, domain: "mobilizon.org", user: nil, suspended: true)
 
       res =
         conn
@@ -936,7 +943,9 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
     test "doesn't unsuspend if profile is not suspended", %{conn: conn} do
       modo = insert(:user, role: :moderator)
       %Actor{} = insert(:actor, user: modo)
-      %Actor{id: remote_profile_id} = insert(:actor, domain: "mobilizon.org", user: nil, suspended: false)
+
+      %Actor{id: remote_profile_id} =
+        insert(:actor, domain: "mobilizon.org", user: nil, suspended: false)
 
       res =
         conn
