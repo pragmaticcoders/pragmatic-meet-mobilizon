@@ -67,4 +67,20 @@ defmodule Mobilizon.ActorTest do
       assert "someone" == Actor.display_name(%Actor{preferred_username: "someone"})
     end
   end
+
+  describe "update_changeset/2" do
+    test "updates the actor name properly" do
+      actor = %Actor{
+        preferred_username: "someone",
+        keys: "secret",
+        suspended: false,
+        url: "http://example.com"
+      }
+
+      changeset = Actor.update_changeset(actor, %{name: "New Name"})
+      
+      assert changeset.valid?
+      assert changeset.changes.name == "New Name"
+    end
+  end
 end

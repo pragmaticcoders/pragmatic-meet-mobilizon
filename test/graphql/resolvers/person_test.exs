@@ -379,6 +379,11 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
       assert res_person["name"] == "riri updated"
       assert res_person["summary"] == "summary updated"
 
+      # Also verify it persisted in the database
+      updated_actor = Mobilizon.Storage.Repo.get(Actor, person_id)
+      assert updated_actor.name == "riri updated"
+      assert updated_actor.summary == "summary updated"
+
       # TODO see the top comment and this bug :
       # https://framagit.org/kaihuri/mobilizon/-/issues/1757
       # assert res_person["banner"]["uuid"]
