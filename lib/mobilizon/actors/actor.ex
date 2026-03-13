@@ -305,6 +305,7 @@ defmodule Mobilizon.Actors.Actor do
   def update_changeset(%__MODULE__{} = actor, attrs) do
     actor
     |> cast(attrs, @update_attrs)
+    |> build_urls()
     |> common_changeset(attrs)
     |> validate_required(@update_required_attrs)
   end

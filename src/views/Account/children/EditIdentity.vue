@@ -52,7 +52,6 @@
           aria-required="true"
           required
           v-model="identity.name"
-          @update:modelValue="(value: string) => updateUsername(value)"
           id="identity-display-name"
           dir="auto"
           expanded
@@ -74,9 +73,7 @@
             aria-required="true"
             required
             v-model="identity.preferredUsername"
-            :disabled="isUpdate"
             dir="auto"
-            :use-html5-validation="!isUpdate"
             pattern="[a-z0-9_]+"
             id="identity-username"
             class="flex-1"
@@ -280,7 +277,6 @@ const isUpdate = computed(() => props.isUpdate);
 const identityName = computed(() => props.identityName);
 
 const message = computed((): string | null => {
-  if (props.isUpdate) return null;
   return t(
     "Only alphanumeric lowercased characters and underscores are supported."
   );
@@ -524,7 +520,6 @@ const breadcrumbsLinks = computed(
 );
 
 const updateUsername = (value: string) => {
-  if (props.isUpdate) return;
   identity.value.preferredUsername = convertToUsername(value);
 };
 

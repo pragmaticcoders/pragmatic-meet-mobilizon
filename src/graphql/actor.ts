@@ -471,11 +471,18 @@ export const CREATE_PERSON = gql`
 export const UPDATE_PERSON = gql`
   mutation UpdatePerson(
     $id: ID!
+    $preferredUsername: String
     $name: String
     $summary: String
     $avatar: MediaInput
   ) {
-    updatePerson(id: $id, name: $name, summary: $summary, avatar: $avatar) {
+    updatePerson(
+      id: $id
+      preferredUsername: $preferredUsername
+      name: $name
+      summary: $summary
+      avatar: $avatar
+    ) {
       ...ActorFragment
     }
   }

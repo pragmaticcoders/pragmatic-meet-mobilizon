@@ -324,6 +324,7 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
           mutation {
             updatePerson(
               id: "#{person_id}",
+              preferredUsername: "riri_updated",
               name: "riri updated",
               summary: "summary updated",
               banner: {
@@ -375,7 +376,7 @@ defmodule Mobilizon.GraphQL.Resolvers.PersonTest do
 
       res_person = json_response(res, 200)["data"]["updatePerson"]
 
-      assert res_person["preferredUsername"] == "riri"
+      assert res_person["preferredUsername"] == "riri_updated"
       assert res_person["name"] == "riri updated"
       assert res_person["summary"] == "summary updated"
 
