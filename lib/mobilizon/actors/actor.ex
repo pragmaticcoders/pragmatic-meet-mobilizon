@@ -8,7 +8,16 @@ defmodule Mobilizon.Actors.Actor do
   import Ecto.Changeset
 
   alias Mobilizon.{Actors, Addresses, Config, Crypto, Mention, Share}
-  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, ApprovalStatus, Follower, Member}
+
+  alias Mobilizon.Actors.{
+    ActorOpenness,
+    ActorType,
+    ActorVisibility,
+    ApprovalStatus,
+    Follower,
+    Member
+  }
+
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.Comment
@@ -302,6 +311,14 @@ defmodule Mobilizon.Actors.Actor do
 
   @doc false
   @spec update_changeset(t, map) :: Ecto.Changeset.t()
+  def update_changeset(%__MODULE__{domain: nil, type: type} = actor, attrs) do
+    actor
+    |> cast(attrs, @update_attrs)
+    |> build_urls(type)
+    |> common_changeset(attrs)
+    |> validate_required(@update_required_attrs)
+  end
+
   def update_changeset(%__MODULE__{} = actor, attrs) do
     actor
     |> cast(attrs, @update_attrs)
