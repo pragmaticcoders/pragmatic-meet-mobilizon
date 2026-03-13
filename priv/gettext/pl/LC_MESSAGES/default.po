@@ -146,7 +146,7 @@ msgstr "Twój udział w wydarzeniu %{title} został zatwierdzony"
 #: lib/web/email/participation.ex:67
 #, elixir-autogen, elixir-format
 msgid "Your participation to event %{title} has been rejected"
-msgstr "Twój udział w wydarzeniu %(title} został odrzucony"
+msgstr "Twój udział w wydarzeniu %{title} został odrzucony"
 
 #: lib/web/email/participation.ex:140
 #, elixir-autogen, elixir-format
@@ -398,8 +398,8 @@ msgstr "Mobilizon na %{instance}: zmieniono e-mail"
 msgid "One event planned today"
 msgid_plural "%{nb_events} events planned today"
 msgstr[0] "Jedno wydarzenie zaplanowane na dzisiaj"
-msgstr[1] "%{nv_events} wydarenia zaplanowane na dzisiaj"
-msgstr[2] "%{nv_events} wydareń zaplanowanych na dzisiaj"
+msgstr[1] "%{nb_events} wydarzenia zaplanowane na dzisiaj"
+msgstr[2] "%{nb_events} wydarzeń zaplanowanych na dzisiaj"
 
 #: lib/web/templates/email/on_day_notification.html.heex:47
 #: lib/web/templates/email/on_day_notification.text.eex:3
