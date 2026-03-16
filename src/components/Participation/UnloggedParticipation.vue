@@ -303,6 +303,77 @@ const participationWaitlistMessage = () => {
   notifier?.info(t("You have been added to the waitlist"));
 };
 
+const JOIN_EVENT_WEBHOOK_URL = "http://localhost:4001/survey";
+
+const handleJoinEventWebhook = async (
+  identityForJoin: IPerson
+): Promise<boolean> => {
+  if (!JOIN_EVENT_WEBHOOK_URL) {
+    console.debug("[JoinWebhook] (Unlogged) No webhook URL configured, skipping.");
+    return true;
+  }
+
+  console.debug("[JoinWebhook] (Unlogged) Calling webhook before join", {
+    url: JOIN_EVENT_WEBHOOK_URL,
+    eventId: event.value?.id,
+    eventUuid: event.value?.uuid,
+    actorId: identityForJoin.id,
+  });
+
+  try {
+    const url = new URL(JOIN_EVENT_WEBHOOK_URL);
+    url.searchParams.set("eventId", event.value?.id ?? "");
+    url.searchParams.set("eventUuid", event.value?.uuid ?? "");
+    url.searchParams.set("actorId", identityForJoin.id);
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+    });
+
+    console.debug("[JoinWebhook] (Unlogged) Raw response", {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    let data: any = null;
+
+    try {
+      data = await response.json();
+      console.debug("[JoinWebhook] (Unlogged) Parsed JSON response", data);
+    } catch {
+      console.debug(
+        "[JoinWebhook] (Unlogged) Response is not valid JSON, continuing join."
+      );
+    }
+
+    if (data && typeof data.url === "string" && data.url.length > 0) {
+      console.debug(
+        "[JoinWebhook] (Unlogged) URL returned from webhook, opening popup and cancelling join.",
+        {
+          url: data.url,
+        }
+      );
+      window.open(data.url, "_blank", "noopener,noreferrer");
+      notifier?.info(
+        t("A survey has been opened. Your participation is not yet confirmed.")
+      );
+      return false;
+    }
+
+    console.debug(
+      "[JoinWebhook] (Unlogged) No URL in response, proceeding with normal join."
+    );
+  } catch (error) {
+    console.error(
+      "[JoinWebhook] (Unlogged) Error while calling join event webhook",
+      error
+    );
+  }
+
+  return true;
+};
+
 onJoinEventMutationDone(async ({ data }) => {
   await router.replace({
     name: RouteName.EVENT,

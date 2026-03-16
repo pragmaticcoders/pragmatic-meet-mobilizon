@@ -61,3 +61,5 @@ stats.html
 /docker/production/nginx/conf/**/*
 /docker/production/nginx/certs/**/*
 .cursor
+.DS_Store
+**/.DS_Store

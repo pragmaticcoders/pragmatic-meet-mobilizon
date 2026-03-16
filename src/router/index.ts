@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import VueScrollTo from "vue-scrollto";
 import HomeView from "../views/HomeView.vue";
+import SurveyView from "../views/SurveyView.vue";
 import { eventRoutes } from "./event";
 import { actorRoutes } from "./actor";
 import { errorRoutes } from "./error";
@@ -39,6 +40,15 @@ export const routes = [
   ...discussionRoutes,
   ...conversationRoutes,
   ...errorRoutes,
+  {
+    path: "/survey",
+    alias: ["/survey/"],
+    name: "survey",
+    component: SurveyView,
+    meta: {
+      requiredAuth: false,
+    },
+  },
   {
     path: "/search",
     name: RouteName.SEARCH,

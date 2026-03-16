@@ -240,6 +240,27 @@
     </div>
   </div>
   <o-modal
+    v-model:active="isSurveyModalActive"
+    has-modal-card
+    :full-screen="true"
+    :close-button-aria-label="t('Close')"
+  >
+    <div class="modal-card h-full flex flex-col">
+      <header class="modal-card-head">
+        <p class="modal-card-title">
+          {{ t("Additional survey") }}
+        </p>
+      </header>
+      <section class="modal-card-body p-0 flex-1">
+        <iframe
+          v-if="surveyUrl"
+          :src="surveyUrl"
+          class="w-full h-full border-0"
+        />
+      </section>
+    </div>
+  </o-modal>
+  <o-modal
     v-model:active="isReportModalActive"
     has-modal-card
     ref="reportModal"
@@ -625,11 +646,90 @@ const {
   },
 }));
 
-const joinEvent = (
+const JOIN_EVENT_WEBHOOK_URL = "http://localhost:4001/survey";
+
+const isSurveyModalActive = ref(false);
+const surveyUrl = ref<string | null>(null);
+
+const handleJoinEventWebhook = async (
+  identityForJoin: IPerson
+): Promise<boolean> => {
+  if (!JOIN_EVENT_WEBHOOK_URL) {
+    console.debug("[JoinWebhook] No webhook URL configured, skipping.");
+    return true;
+  }
+
+  console.debug("[JoinWebhook] Calling webhook before join", {
+    url: JOIN_EVENT_WEBHOOK_URL,
+    eventId: event.value?.id,
+    eventUuid: event.value?.uuid,
+    actorId: identityForJoin.id,
+  });
+
+  try {
+    const url = new URL(JOIN_EVENT_WEBHOOK_URL);
+    url.searchParams.set("eventId", event.value?.id ?? "");
+    url.searchParams.set("eventUuid", event.value?.uuid ?? "");
+    url.searchParams.set("actorId", identityForJoin.id);
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+    });
+
+    console.debug("[JoinWebhook] Raw response", {
+      ok: response.ok,
+      status: response.status,
+      statusText: response.statusText,
+    });
+
+    let data: any = null;
+
+    try {
+      data = await response.json();
+      console.debug("[JoinWebhook] Parsed JSON response", data);
+    } catch {
+      console.debug("[JoinWebhook] Response is not valid JSON, continuing join.");
+    }
+
+    if (data && typeof data.url === "string" && data.url.length > 0) {
+      console.debug("[JoinWebhook] URL returned from webhook, opening overlay and cancelling join.", {
+        url: data.url,
+      });
+      surveyUrl.value = data.url;
+      isSurveyModalActive.value = true;
+      notifier?.info(
+        t("A survey has been opened. Your participation is not yet confirmed.")
+      );
+      return false;
+    }
+
+    console.debug("[JoinWebhook] No URL in response, proceeding with normal join.");
+  } catch (error) {
+    console.error("[JoinWebhook] Error while calling join event webhook", error);
+  }
+
+  return true;
+};
+
+const joinEvent = async (
   identityForJoin: IPerson,
   message: string | null = null
-): void => {
+): Promise<void> => {
+  console.debug("[JoinWebhook] joinEvent called", {
+    eventId: event.value?.id,
+    eventUuid: event.value?.uuid,
+    actorId: identityForJoin.id,
+  });
+
   isJoinConfirmationModalActive.value = false;
+
+  const shouldProceed = await handleJoinEventWebhook(identityForJoin);
+  if (!shouldProceed) {
+    console.debug("[JoinWebhook] Webhook requested to stop join, aborting JOIN_EVENT mutation.");
+    return;
+  }
+
+  console.debug("[JoinWebhook] Executing JOIN_EVENT mutation.");
   joinEventMutation({
     eventId: event.value?.id,
     actorId: identityForJoin?.id,
