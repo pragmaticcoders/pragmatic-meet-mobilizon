@@ -347,6 +347,7 @@ import ParticipationSection from "@/components/Participation/ParticipationSectio
 import ReportModal from "@/components/Report/ReportModal.vue";
 import { EventJoinOptions, ParticipantRole, MemberRole } from "@/types/enums";
 import { GRAPHQL_API_ENDPOINT } from "@/api/_entrypoint";
+import { AUTH_ACCESS_TOKEN } from "@/constants";
 import { computed, defineAsyncComponent, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Flag from "vue-material-design-icons/Flag.vue";
@@ -695,7 +696,14 @@ const handleJoinEventWebhook = async (
       console.debug("[JoinWebhook] URL returned from webhook, opening overlay and cancelling join.", {
         url: data.url,
       });
-      surveyUrl.value = data.url;
+      const surveyUrlWithToken = new URL(data.url);
+      const userToken = localStorage.getItem(AUTH_ACCESS_TOKEN);
+      if (userToken) {
+        surveyUrlWithToken.searchParams.set("user_token", userToken);
+      }
+      surveyUrlWithToken.searchParams.set("redirection_url", window.location.href);
+      surveyUrlWithToken.searchParams.set("event_id", event.value?.uuid ?? "");
+      surveyUrl.value = surveyUrlWithToken.toString();
       isSurveyModalActive.value = true;
       notifier?.info(
         t("A survey has been opened. Your participation is not yet confirmed.")
