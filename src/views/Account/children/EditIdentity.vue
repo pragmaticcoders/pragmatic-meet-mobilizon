@@ -75,6 +75,7 @@
             v-model="identity.preferredUsername"
             dir="auto"
             pattern="[a-z0-9_]+"
+            maxlength="100"
             id="identity-username"
             class="flex-1"
           />
@@ -382,12 +383,27 @@ const {
   },
 }));
 
-updateIdentityDone(() => {
+updateIdentityDone((result: { data?: { updatePerson?: { preferredUsername?: string; name?: string } } }) => {
+  // Clear any previous errors on success
+  errors.value = [];
+  const updatedPerson = result.data?.updatePerson;
+  const updatedName = updatedPerson
+    ? displayName(updatedPerson as IPerson)
+    : displayName(identity.value);
+
   notifier?.success(
     t("Identity {displayName} updated", {
-      displayName: displayName(identity.value),
+      displayName: updatedName,
     }) as string
   );
+  // If the username changed, redirect to the updated route so the URL stays correct
+  const newUsername = result.data?.updatePerson?.preferredUsername;
+  if (newUsername && newUsername !== identityName.value) {
+    router.replace({
+      name: RouteName.UPDATE_IDENTITY,
+      params: { identityName: newUsername },
+    });
+  }
 });
 
 updateIdentityError((err) => handleError(err));
@@ -409,6 +425,31 @@ const getInstanceHost = computed((): string => {
   return MOBILIZON_INSTANCE_HOST;
 });
 
+// Backend (Ecto) validation errors may arrive in different formats:
+//   - as an actual JS array (Apollo unwraps the JSON)
+//   - as a JSON string: ["msg"]
+//   - as Elixir inspect format: [ "msg" ]
+// This helper normalises all of these to plain text.
+const cleanErrorMessage = (raw: string | string[]): string => {
+  // Already a JS array (Apollo may unwrap the JSON array for us)
+  if (Array.isArray(raw)) return raw.join(", ");
+  // JSON-encoded array or Elixir-inspect style, e.g. ["msg"] or [ "msg" ]
+  const trimmed = raw.trim();
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.join(", ");
+    } catch {
+      // Strip brackets and inner quotes manually as a fallback
+      return trimmed
+        .replace(/^\[\s*"?/, "")
+        .replace(/"?\s*\]$/, "")
+        .replace(/",\s*"/g, ", ");
+    }
+  }
+  return raw;
+};
+
 const handleError = (err: any) => {
   console.error(err);
 
@@ -429,8 +470,9 @@ const handleError = (err: any) => {
 
   if (err.graphQLErrors !== undefined) {
     err.graphQLErrors.forEach(
-      ({ message: errorMessage }: { message: string }) => {
-        notifier?.error(errorMessage);
+    ({ message: errorMessage }: { message: string | string[] }) => {
+        // Show the error in the form (above the Save button)
+        errors.value.push(cleanErrorMessage(errorMessage));
       }
     );
   }
