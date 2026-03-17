@@ -348,7 +348,7 @@ import ReportModal from "@/components/Report/ReportModal.vue";
 import { EventJoinOptions, ParticipantRole, MemberRole } from "@/types/enums";
 import { GRAPHQL_API_ENDPOINT } from "@/api/_entrypoint";
 import { AUTH_ACCESS_TOKEN } from "@/constants";
-import { computed, defineAsyncComponent, inject, onMounted, ref } from "vue";
+import { computed, defineAsyncComponent, inject, onMounted, onUnmounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Flag from "vue-material-design-icons/Flag.vue";
 import CalendarPlus from "vue-material-design-icons/CalendarPlus.vue";
@@ -400,6 +400,10 @@ const props = defineProps<{
   currentActor: IPerson | undefined;
   participations: IParticipant[];
   person: IPerson | undefined;
+}>();
+
+const emit = defineEmits<{
+  (e: "survey-complete"): void;
 }>();
 
 const { t } = useI18n({ useScope: "global" });
@@ -651,6 +655,22 @@ const JOIN_EVENT_WEBHOOK_URL = "http://localhost:4001/survey";
 
 const isSurveyModalActive = ref(false);
 const surveyUrl = ref<string | null>(null);
+
+const onSurveyMessage = (event: MessageEvent) => {
+  if (event.data?.type === "survey-complete") {
+    isSurveyModalActive.value = false;
+    surveyUrl.value = null;
+    emit("survey-complete");
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("message", onSurveyMessage);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("message", onSurveyMessage);
+});
 
 const handleJoinEventWebhook = async (
   identityForJoin: IPerson

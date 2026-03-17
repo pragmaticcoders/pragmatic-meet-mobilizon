@@ -31,11 +31,11 @@ const html = `<!DOCTYPE html>
       const res = await fetch('/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, auth_token: userToken, event_id: eventId }),
       });
       const data = await res.json();
       if (data.status === 'ok') {
-        window.location.href = \`\${redirectionUrl}/events/\${eventId}?user_token=\${encodeURIComponent(userToken)}\`;
+        window.parent.postMessage({ type: 'survey-complete' }, '*');
       } else {
         document.getElementById('msg').textContent = 'Blad';
       }
@@ -52,7 +52,7 @@ const corsHeaders = {
 
 const server = Bun.serve({
   port: 4001,
-  fetch(req) {
+  async fetch(req) {
     const url = new URL(req.url);
 
     if (req.method === "OPTIONS") {
@@ -71,6 +71,30 @@ const server = Bun.serve({
     }
 
     if (url.pathname === "/survey" && req.method === "POST") {
+      const body = await req.json();
+      try {
+        const joinRes = await fetch("http://localhost:4000/webhook/user-participate-join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ auth_token: body.auth_token, event_id: body.event_id }),
+        });
+        const rawText = await joinRes.text();
+        console.log(`user-participate-join response [${joinRes.status}]:`, rawText);
+        let joinData: { status: string; message?: string };
+        try {
+          joinData = JSON.parse(rawText);
+        } catch {
+          console.error("user-participate-join returned non-JSON:", rawText);
+          return Response.json({ status: "error", message: "Backend returned unexpected response" }, { headers: corsHeaders });
+        }
+        if (joinData.status !== "ok") {
+          console.error("user-participate-join failed:", joinData);
+          return Response.json({ status: "error", message: joinData.message ?? "join failed" }, { headers: corsHeaders });
+        }
+      } catch (err) {
+        console.error("Failed to reach user-participate-join webhook:", err);
+        return Response.json({ status: "error", message: "Could not reach Mobilizon backend" }, { headers: corsHeaders });
+      }
       return Response.json({ status: "ok" }, { headers: corsHeaders });
     }
 

@@ -284,12 +284,22 @@ defmodule Mobilizon.Web.Router do
     plug(:accepts, ["html", "json"])
   end
 
+  pipeline :webhook do
+    plug(:accepts, ["json"])
+  end
+
   scope "/", Mobilizon.Web do
     pipe_through(:login)
 
     post("/login/device/code", ApplicationController, :device_code)
     post("/oauth/token", ApplicationController, :generate_access_token)
     post("/oauth/revoke", ApplicationController, :revoke_token)
+  end
+
+  scope "/webhook", Mobilizon.Web do
+    pipe_through(:webhook)
+
+    post("/user-participate-join", WebhookController, :user_participate_join)
   end
 
   scope "/proxy/", Mobilizon.Web do

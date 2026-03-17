@@ -209,6 +209,7 @@
               :currentActor="currentActor"
               :participations="participations"
               :person="person"
+              @survey-complete="refetchParticipations()"
             />
           </div>
         </section>
@@ -854,6 +855,7 @@ const currentActorId = computed(() => currentActor.value?.id);
 const { loggedUser } = useLoggedUser();
 const {
   result: participationsResult,
+  refetch: refetchParticipations,
   // subscribeToMore: subscribeToMoreParticipation,
 } = useQuery<{ person: IPerson }>(
   EVENT_PERSON_PARTICIPATION,
