@@ -122,6 +122,15 @@ defmodule Mobilizon.GraphQL.Resolvers.ConfigTest do
     end
 
     test "get_config/3 returns the instance config changed", context do
+      on_exit(fn ->
+        Config.put([:instance, :name], "Test instance")
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :demo], false)
+        Config.put([:instance, :duration_of_long_event], 0)
+        Config.put([:instance, :description], "Change this to a proper description of your instance")
+        Config.put([:instance, :federating], true)
+      end)
+
       Cachex.clear("full_config")
       Mobilizon.Config.clear_config_cache()
       Config.put([:instance, :name], "My instance")
