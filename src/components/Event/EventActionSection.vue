@@ -8,6 +8,7 @@
 
     <participation-section
       v-else-if="event"
+      ref="participationSectionRef"
       :participation="participations[0]"
       :event="event"
       :anonymousParticipation="anonymousParticipation"
@@ -754,16 +755,139 @@ const joinEventWithConfirmation = (actor: IPerson): void => {
   actorForConfirmation.value = actor;
 };
 
+interface JoinEventResponse {
+  status: string;
+  surveySchema: object | null;
+  contextId: string | null;
+  participant: IParticipant | null;
+}
+
+const participationSectionRef = ref<InstanceType<typeof ParticipationSection> | null>(null);
+
+const updateCacheWithParticipant = (
+  store: ApolloCache<{ joinEvent: JoinEventResponse }>,
+  participant: IParticipant
+) => {
+  const participationCachedData = store.readQuery<{ person: IPerson }>({
+    query: EVENT_PERSON_PARTICIPATION,
+    variables: { eventId: event.value?.id, actorId: identity.value?.id },
+  });
+
+  if (participationCachedData?.person == undefined) {
+    console.error(
+      "Cannot update participation cache, because of null value."
+    );
+    return;
+  }
+  store.writeQuery({
+    query: EVENT_PERSON_PARTICIPATION,
+    variables: { eventId: event.value?.id, actorId: identity.value?.id },
+    data: {
+      person: {
+        ...participationCachedData?.person,
+        participations: {
+          elements: [participant],
+          total: 1,
+        },
+      },
+    },
+  });
+
+  const cachedData = store.readQuery<{ event: IEvent }>({
+    query: FETCH_EVENT,
+    variables: { uuid: event.value?.uuid },
+  });
+  if (cachedData == null) return;
+  const { event: cachedEvent } = cachedData;
+  if (cachedEvent === null) {
+    console.error(
+      "Cannot update event participant cache, because of null value."
+    );
+    return;
+  }
+  const participantStats = { ...cachedEvent.participantStats };
+
+  if (participant.role === ParticipantRole.NOT_APPROVED) {
+    participantStats.notApproved += 1;
+  } else if (participant.role === ParticipantRole.WAITLIST) {
+    // Waitlist participants don't count toward the participant count
+  } else {
+    participantStats.going += 1;
+    participantStats.participant += 1;
+  }
+
+  store.writeQuery({
+    query: FETCH_EVENT,
+    variables: { uuid: props.event.uuid },
+    data: {
+      event: {
+        ...cachedEvent,
+        participantStats,
+      },
+    },
+  });
+
+  // Update HOME_USER_QUERIES cache to immediately show the event on home page
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const afterDateTime = todayStart.toISOString();
+
+    let homeData;
+    try {
+      homeData = store.readQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+      });
+    } catch (readError) {
+      console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+      homeData = null;
+    }
+
+    if (homeData?.loggedUser?.participations?.elements) {
+      const updatedHomeData = {
+        ...homeData,
+        loggedUser: {
+          ...homeData.loggedUser,
+          participations: {
+            ...homeData.loggedUser.participations,
+            total: homeData.loggedUser.participations.total + 1,
+            elements: [
+              participant,
+              ...homeData.loggedUser.participations.elements,
+            ],
+          },
+        },
+      };
+
+      store.writeQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+        data: updatedHomeData,
+      });
+      console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+    } else {
+      console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
+      store.evict({ fieldName: "loggedUser" });
+      store.gc();
+    }
+  } catch (error) {
+    console.warn("Failed to update HOME_USER_QUERIES cache:", error);
+    store.evict({ fieldName: "loggedUser" });
+    store.gc();
+  }
+};
+
 const {
   mutate: joinEventMutation,
   onDone: onJoinEventMutationDone,
   onError: onJoinEventMutationError,
 } = useMutation<{
-  joinEvent: IParticipant;
+  joinEvent: JoinEventResponse;
 }>(JOIN_EVENT, () => ({
   update: (
     store: ApolloCache<{
-      joinEvent: IParticipant;
+      joinEvent: JoinEventResponse;
     }>,
     { data }: FetchResult
   ) => {
@@ -915,10 +1039,22 @@ const participationWaitlistMessage = () => {
 };
 
 onJoinEventMutationDone(({ data }) => {
-  if (data) {
-    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+  if (!data) return;
+  const { status, surveySchema, contextId, participant } = data.joinEvent;
+
+  if (status === "SURVEY_REQUIRED" && surveySchema && contextId) {
+    participationSectionRef.value?.handleSurveyRequired({
+      status,
+      surveySchema,
+      contextId,
+    });
+    return;
+  }
+
+  if (participant) {
+    if (participant.role === ParticipantRole.NOT_APPROVED) {
       participationRequestedMessage();
-    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+    } else if (participant.role === ParticipantRole.WAITLIST) {
       participationWaitlistMessage();
     } else {
       participationConfirmedMessage();

@@ -529,3 +529,14 @@ export const REGISTRATIONS = gql`
     }
   }
 `;
+
+export const PLUGINS_CONFIG = gql`
+  query PluginsConfig {
+    config {
+      plugins {
+        surveysEnabled
+        surveysAdapterStaticUrl
+      }
+    }
+  }
+`;

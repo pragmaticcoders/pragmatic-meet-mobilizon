@@ -200,6 +200,11 @@ defmodule Mobilizon.GraphQL.Resolvers.Config do
             |> get_in([:global])
             |> get_in([:is_default_search])
         }
+      },
+      plugins: %{
+        surveys_enabled: Mobilizon.Service.Plugins.Surveys.enabled?(),
+        surveys_adapter_static_url:
+          Application.get_env(:mobilizon, Mobilizon.Service.Plugins.Surveys)[:adapter_static_url] || ""
       }
     }
   end

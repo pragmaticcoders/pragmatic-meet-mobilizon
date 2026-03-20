@@ -25,6 +25,7 @@ import MaterialIcon from "./components/core/MaterialIcon.vue";
 import { createHead } from "@unhead/vue";
 import { CONFIG } from "./graphql/config";
 import { IConfig } from "./types/config.model";
+import { initSurveyModule } from "./plugins/surveyModule";
 
 // Vue.use(VueAnnouncer);
 // Vue.use(VueSkipTo);
@@ -71,6 +72,16 @@ apolloClient
         "--custom-secondary",
         secondaryColor
       );
+    }
+
+    // Initialize survey module if enabled
+    if (configData.config?.plugins?.surveysEnabled) {
+      const staticUrl = configData.config?.plugins?.surveysAdapterStaticUrl;
+      if (staticUrl) {
+        initSurveyModule(staticUrl).catch((err) =>
+          console.warn("Failed to initialize survey module:", err)
+        );
+      }
     }
   });
 

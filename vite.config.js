@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
+import federation from "@originjs/vite-plugin-federation";
 
 export default defineConfig(({ command }) => {
   const isDev = command !== "build";
@@ -17,7 +18,18 @@ export default defineConfig(({ command }) => {
 
   const isStory = Boolean(process.env.HISTOIRE);
 
-  const plugins = [vue(), visualizer()];
+  const plugins = [
+    federation({
+      name: "mobilizon",
+      remotes: {
+        adapterModule:
+          "https://placeholder-replaced-at-runtime/assets/remoteEntry.js",
+      },
+      shared: ["vue"],
+    }),
+    vue(),
+    visualizer(),
+  ];
 
   if (!isStory) {
     plugins.push(

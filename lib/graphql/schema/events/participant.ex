@@ -92,6 +92,21 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     value(:ods, description: "ODS format")
   end
 
+  @desc "Survey status for join event response"
+  enum :survey_status do
+    value(:joined, description: "The user has joined the event successfully")
+    value(:survey_required, description: "A survey must be completed before joining")
+  end
+
+  @desc "Response from joining an event, may include survey requirements"
+  object :join_event_response do
+    meta(:authorize, :all)
+    field(:status, :survey_status, description: "The join status")
+    field(:survey_schema, :json, description: "The survey schema if a survey is required")
+    field(:context_id, :string, description: "The survey context ID")
+    field(:participant, :participant, description: "The participant if joined successfully")
+  end
+
   @desc "Represents a deleted participant"
   object :deleted_participant do
     meta(:authorize, :all)
@@ -102,7 +117,7 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
 
   object :participant_mutations do
     @desc "Join an event"
-    field :join_event, :participant do
+    field :join_event, :join_event_response do
       arg(:event_id, non_null(:id), description: "The event ID that is joined")
       arg(:actor_id, non_null(:id), description: "The actor ID for the participant")
       arg(:email, :string, description: "The anonymous participant's email")
@@ -193,6 +208,21 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
       )
 
       resolve(&Participant.send_private_messages_to_participants/3)
+    end
+
+    @desc "Submit a survey response"
+    field :submit_survey_response, :boolean do
+      arg(:context_id, non_null(:string), description: "The survey context ID")
+      arg(:data, non_null(:json), description: "The survey response data")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false, rule: :"write:participation")
+      resolve(&Participant.submit_survey_response/3)
+    end
+
+    @desc "Confirm joining an event after completing a survey"
+    field :confirm_event_join, :join_event_response do
+      arg(:event_id, non_null(:id), description: "The event ID to confirm joining")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false, rule: :"write:participation")
+      resolve(&Participant.confirm_event_join/3)
     end
   end
 end

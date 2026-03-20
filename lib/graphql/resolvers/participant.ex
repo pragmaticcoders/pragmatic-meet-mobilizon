@@ -3,6 +3,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
   Handles the participation-related GraphQL calls.
   """
   alias Mobilizon.{Actors, Config, Conversations, Crypto, Events}
+  alias Mobilizon.Service.Plugins.Surveys
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Conversations.{Conversation, ConversationView}
   alias Mobilizon.Events.{Event, Participant}
@@ -28,7 +29,37 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
       ) do
     case User.owns_actor(user, actor_id) do
       {:is_owned, %Actor{} = actor} ->
-        do_actor_join_event(actor, event_id, args)
+        if Surveys.enabled?() do
+          context_id = Surveys.event_context_id(event_id)
+          respondent_id = Surveys.actor_respondent_id(actor_id)
+
+          case Surveys.check_gate(context_id, respondent_id) do
+            {:ok, %{"required" => true, "survey_schema" => schema}} ->
+              {:ok,
+               %{
+                 status: :survey_required,
+                 survey_schema: schema,
+                 context_id: context_id,
+                 participant: nil
+               }}
+
+            {:ok, _} ->
+              case do_actor_join_event(actor, event_id, args) do
+                {:ok, participant} ->
+                  {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+                error -> error
+              end
+
+            {:error, reason} ->
+              {:error, reason}
+          end
+        else
+          case do_actor_join_event(actor, event_id, args) do
+            {:ok, participant} ->
+              {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+            error -> error
+          end
+        end
 
       _ ->
         {:error, dgettext("errors", "Profile is not owned by authenticated user")}
@@ -79,7 +110,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
         |> Email.Mailer.send_email()
       end
 
-      {:ok, participant}
+      {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
     else
       {:error, err} ->
         {:error, err}
@@ -447,6 +478,62 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     email
     |> String.trim()
     |> Checker.valid?()
+  end
+
+  @doc """
+  Submit a survey response
+  """
+  def submit_survey_response(
+        _parent,
+        %{context_id: context_id, data: data},
+        %{context: %{current_actor: %Actor{id: actor_id}}}
+      ) do
+    respondent_id = Surveys.actor_respondent_id(actor_id)
+
+    case Surveys.submit_response(context_id, respondent_id, data) do
+      {:ok, _} -> {:ok, true}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def submit_survey_response(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to submit a survey")}
+  end
+
+  @doc """
+  Confirm joining an event after completing a survey
+  """
+  def confirm_event_join(
+        _parent,
+        %{event_id: event_id},
+        %{context: %{current_user: %User{} = user, current_actor: %Actor{id: actor_id} = _actor}}
+      ) do
+    context_id = Surveys.event_context_id(event_id)
+    respondent_id = Surveys.actor_respondent_id(actor_id)
+
+    case Surveys.check_gate(context_id, respondent_id) do
+      {:ok, %{"required" => false}} ->
+        case User.owns_actor(user, actor_id) do
+          {:is_owned, %Actor{} = owned_actor} ->
+            case do_actor_join_event(owned_actor, event_id, %{actor_id: actor_id, event_id: event_id}) do
+              {:ok, participant} ->
+                {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+              error -> error
+            end
+          _ ->
+            {:error, dgettext("errors", "Profile is not owned by authenticated user")}
+        end
+
+      {:ok, %{"required" => true}} ->
+        {:error, dgettext("errors", "Survey not completed")}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  def confirm_event_join(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to confirm event join")}
   end
 
   @doc """

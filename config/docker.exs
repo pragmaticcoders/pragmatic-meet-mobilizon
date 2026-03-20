@@ -448,3 +448,18 @@ config :mobilizon, :http_security,
     frame_ancestors: []
   ],
   referrer_policy: "same-origin"
+
+# ── Survey Plugin ──────────────────────────────────────────────────────────────
+surveys_enabled =
+  System.get_env("MOBILIZON_PLUGIN_SURVEYS_ENABLED", "false") == "true"
+
+config :mobilizon, Mobilizon.Service.Plugins.Surveys,
+  enabled: surveys_enabled,
+  adapter:
+    if(surveys_enabled,
+      do: Mobilizon.Service.Plugins.Surveys.ExternalAdapter,
+      else: Mobilizon.Service.Plugins.Surveys.NoopAdapter
+    ),
+  adapter_url: System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_URL", ""),
+  adapter_static_url: System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL", ""),
+  api_key: System.get_env("MOBILIZON_PLUGIN_SURVEYS_API_KEY", "")

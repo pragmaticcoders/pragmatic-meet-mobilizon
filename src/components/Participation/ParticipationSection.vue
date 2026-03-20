@@ -111,6 +111,29 @@
         </section>
       </div>
     </o-modal>
+    <!-- Survey Modal -->
+    <o-modal
+      v-if="surveysEnabled"
+      v-model:active="showSurveyModal"
+      has-modal-card
+      :close-button-aria-label="t('Close')"
+    >
+      <div class="modal-card">
+        <header class="modal-card-head">
+          <p class="modal-card-title">
+            {{ t("Please complete the survey") }}
+          </p>
+        </header>
+        <section class="modal-card-body" v-if="surveySchema && surveyContextId">
+          <SurveyFormWrapper
+            :context-id="surveyContextId"
+            :survey-schema="surveySchema"
+            @completed="(data: Record<string, string>) => handleSurveyCompleted(data)"
+            @error="(e: Error) => console.error('Survey error:', e)"
+          />
+        </section>
+      </div>
+    </o-modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -129,6 +152,10 @@ import HelpCircleOutline from "vue-material-design-icons/HelpCircleOutline.vue";
 import { useI18n } from "vue-i18n";
 import { IPerson } from "@/types/actor";
 import { IAnonymousParticipationConfig } from "@/types/config.model";
+import { usePlugins } from "@/composition/apollo/plugins";
+import SurveyFormWrapper from "@/components/Survey/SurveyFormWrapper.vue";
+import { useMutation } from "@vue/apollo-composable";
+import { SUBMIT_SURVEY_RESPONSE, CONFIRM_EVENT_JOIN } from "@/graphql/event";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -146,6 +173,49 @@ const props = withDefaults(
 );
 
 const isAnonymousParticipationModalOpen = ref(false);
+
+const { surveysEnabled } = usePlugins();
+
+// Survey state
+const showSurveyModal = ref(false);
+const surveyContextId = ref<string | null>(null);
+const surveySchema = ref<object | null>(null);
+
+const { mutate: submitSurveyResponse } = useMutation(SUBMIT_SURVEY_RESPONSE);
+const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
+
+const handleSurveyRequired = (response: {
+  status: string;
+  surveySchema: object;
+  contextId: string;
+}) => {
+  surveyContextId.value = response.contextId;
+  surveySchema.value = response.surveySchema;
+  showSurveyModal.value = true;
+};
+
+const handleSurveyCompleted = async (formData: Record<string, string>) => {
+  if (!surveyContextId.value) return;
+
+  try {
+    await submitSurveyResponse({
+      contextId: surveyContextId.value,
+      data: JSON.stringify(formData),
+    });
+
+    await confirmEventJoin({
+      eventId: props.event.id,
+    });
+
+    showSurveyModal.value = false;
+    surveyContextId.value = null;
+    surveySchema.value = null;
+  } catch (err) {
+    console.error("Failed to confirm event join after survey:", err);
+  }
+};
+
+defineExpose({ handleSurveyRequired });
 
 // Logging function
 const logParticipationSectionState = () => {
