@@ -60,6 +60,7 @@ export const configMock = {
         __typename: "Restrictions",
         onlyAdminCanCreateGroups: false,
         onlyGroupsCanCreateEvents: false,
+        allowModeratorActivityForPendingGroups: false,
       },
       geocoding: {
         __typename: "Geocoding",

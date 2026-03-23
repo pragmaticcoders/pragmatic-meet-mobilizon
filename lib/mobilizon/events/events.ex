@@ -170,6 +170,7 @@ defmodule Mobilizon.Events do
     |> event_by_url_query()
     |> filter_unlisted_and_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> preload_for_event()
     |> Repo.one!()
     |> with_virtual_fields()
@@ -184,6 +185,7 @@ defmodule Mobilizon.Events do
     |> event_by_uuid_query()
     |> filter_unlisted_and_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> preload_for_event()
     |> Repo.one()
     |> with_virtual_fields()
@@ -219,6 +221,7 @@ defmodule Mobilizon.Events do
     |> filter_public_visibility()
     |> filter_not_event_uuid(not_event_uuid)
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> Repo.one()
     |> with_virtual_fields()
   end
@@ -233,7 +236,7 @@ defmodule Mobilizon.Events do
   def create_event(attrs \\ %{}) do
     with {:ok, %{insert: %Event{} = event}} <- do_create_event(attrs),
          %Event{} = event <- Repo.preload(event, @event_preloads) do
-      unless event.draft do
+      unless event.draft or event.pending_group_approval do
         BuildSearch.enqueue(:insert_search_event, %{"event_id" => event.id})
       end
 
@@ -308,7 +311,7 @@ defmodule Mobilizon.Events do
          %Event{} = new_event <- Repo.preload(new_event, @event_preloads, force: true) do
       Cachable.clear_all_caches(new_event)
 
-      unless new_event.draft do
+      unless new_event.draft or new_event.pending_group_approval do
         %{
           action: :notify_of_event_update,
           event_uuid: new_event.uuid,
@@ -398,6 +401,7 @@ defmodule Mobilizon.Events do
     |> events_for_long_events(long_events)
     |> filter_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_cancelled_events()
     |> filter_local_or_from_followed_instances_events()
     |> Page.build_page(page, limit)
@@ -409,6 +413,7 @@ defmodule Mobilizon.Events do
     Event
     |> filter_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_local()
     |> Repo.stream()
   end
@@ -419,6 +424,7 @@ defmodule Mobilizon.Events do
     Event
     |> filter_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_local()
     |> preload_for_event()
     |> event_order_by(sort, direction)
@@ -435,6 +441,7 @@ defmodule Mobilizon.Events do
     |> Enum.map(& &1.id)
     |> events_by_tags_query(limit)
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> Repo.all()
     |> with_virtual_fields()
   end
@@ -489,6 +496,7 @@ defmodule Mobilizon.Events do
     |> event_for_actor_query()
     |> filter_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> preload_for_event()
   end
 
@@ -570,6 +578,7 @@ defmodule Mobilizon.Events do
     |> Geo.WKT.decode!()
     |> close_events_query(radius)
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> Repo.all()
     |> with_virtual_fields()
   end
@@ -582,6 +591,7 @@ defmodule Mobilizon.Events do
     count_local_events_query()
     |> filter_unlisted_and_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> Repo.one()
   end
 
@@ -593,6 +603,7 @@ defmodule Mobilizon.Events do
     count_events_query()
     |> filter_unlisted_and_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> Repo.one()
   end
 
@@ -618,6 +629,7 @@ defmodule Mobilizon.Events do
     |> events_for_bounding_box(args)
     |> filter_online(args)
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_local(if Map.get(args, :local_only, nil) == true, do: true, else: nil)
     |> filter_local_or_from_followed_instances_events()
     |> filter_public_visibility()
@@ -1826,6 +1838,7 @@ defmodule Mobilizon.Events do
     |> filter_future_events(true)
     |> filter_public_visibility()
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_cancelled_events()
     |> filter_local_or_from_followed_instances_events()
     |> group_by([e], e.category)
@@ -1855,6 +1868,7 @@ defmodule Mobilizon.Events do
     |> join(:left, [e], a in Address, on: e.physical_address_id == a.id)
     |> filter_future_events(true)
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_local_or_from_followed_instances_events()
     |> filter_public_visibility()
     |> where(
@@ -1941,6 +1955,11 @@ defmodule Mobilizon.Events do
     from(e in query, where: e.draft == ^is_draft)
   end
 
+  @spec filter_not_pending_group_approval(Ecto.Queryable.t()) :: Ecto.Query.t()
+  defp filter_not_pending_group_approval(query) do
+    from(e in query, where: e.pending_group_approval == false)
+  end
+
   @spec filter_cancelled_events(Ecto.Queryable.t()) :: Ecto.Query.t()
   defp filter_cancelled_events(query) do
     from(e in query, where: e.status != ^:cancelled)
@@ -2008,7 +2027,11 @@ defmodule Mobilizon.Events do
   defp event_filter_visibility(query, :all), do: query
 
   defp event_filter_visibility(query, :public) do
-    where(query, visibility: ^:public, draft: false)
+    where(
+      query,
+      [e],
+      e.visibility == ^:public and e.draft == false and e.pending_group_approval == false
+    )
   end
 
   defp event_filter_begins_on(query, nil, nil), do: query
@@ -2151,6 +2174,7 @@ defmodule Mobilizon.Events do
   def stream_events(local \\ true, chunk_size \\ 500) do
     Event
     |> filter_draft()
+    |> filter_not_pending_group_approval()
     |> filter_local(local)
     |> preload_for_event()
     |> Page.chunk(chunk_size)

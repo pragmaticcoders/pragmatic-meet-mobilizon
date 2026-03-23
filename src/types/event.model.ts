@@ -78,6 +78,7 @@ export interface IEvent {
   joinOptions: EventJoinOptions;
   externalParticipationUrl: string | null;
   draft: boolean;
+  pendingGroupApproval?: boolean;
 
   picture: IMedia | null;
 
@@ -143,6 +144,8 @@ export class EventModel implements IEvent {
   status = EventStatus.CONFIRMED;
 
   draft = true;
+
+  pendingGroupApproval = false;
 
   publishAt = new Date().toISOString();
 
@@ -211,6 +214,7 @@ export class EventModel implements IEvent {
     this.joinOptions = hash.joinOptions;
     this.externalParticipationUrl = hash.externalParticipationUrl;
     this.draft = hash.draft;
+    this.pendingGroupApproval = hash.pendingGroupApproval ?? false;
 
     this.picture = hash.picture;
 

@@ -270,7 +270,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
     user_agent = Map.get(context, :user_agent, "")
 
     # Use the current_actor (user's default actor) as the organizer
-    args = Map.put(args, :organizer_actor_id, organizer_actor.id)
+    args =
+      args
+      |> Map.put(:organizer_actor_id, organizer_actor.id)
+      |> maybe_put_pending_group_approval_on_create(organizer_actor.id)
 
     with {:can_create_event, true} <- can_create_event(args),
          {:event_external, true} <- edit_event_external_checker(args),
@@ -339,6 +342,26 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
 
   def create_event(_parent, _args, _resolution) do
     {:error, dgettext("errors", "You need to be logged-in to create events")}
+  end
+
+  defp maybe_put_pending_group_approval_on_create(args, organizer_actor_id) do
+    attributed_to_id = Map.get(args, :attributed_to_id)
+
+    if is_nil(attributed_to_id) or not Config.allow_moderator_activity_for_pending_groups?() do
+      args
+    else
+      case Actors.get_actor(attributed_to_id) do
+        %Actor{type: :Group, approval_status: :pending_approval, id: group_id} ->
+          if Actors.moderator?(organizer_actor_id, group_id) do
+            Map.put(args, :pending_group_approval, true)
+          else
+            args
+          end
+
+        _ ->
+          args
+      end
+    end
   end
 
   @spec can_create_event(map()) :: {:can_create_event, boolean()}

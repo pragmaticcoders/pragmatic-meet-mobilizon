@@ -91,8 +91,11 @@ defmodule Mobilizon.GraphQL.API.Events do
   defp extract_pictures_from_event_body(args, _), do: args
 
   @spec should_federate(map()) :: boolean
-  defp should_federate(%{attributed_to_id: attributed_to_id}) when not is_nil(attributed_to_id),
-    do: true
-
-  defp should_federate(args), do: Map.get(args, :draft, false) == false
+  defp should_federate(args) do
+    cond do
+      Map.get(args, :pending_group_approval, false) == true -> false
+      Map.get(args, :draft, false) == true -> false
+      true -> true
+    end
+  end
 end

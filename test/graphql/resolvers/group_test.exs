@@ -5,7 +5,9 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
   import Mobilizon.Factory
 
   alias Mobilizon.Actors.{Actor, Follower}
+  alias Mobilizon.Events.Event
   alias Mobilizon.GraphQL.AbsintheHelpers
+  alias Mobilizon.Storage.Repo
 
   @non_existent_username "nonexistent"
   @new_group_params %{name: "new group", preferredUsername: "new_group", customUrl: "https://example.com"}
@@ -797,6 +799,57 @@ defmodule Mobilizon.Web.Resolvers.GroupTest do
 
       assert res["errors"] == nil
       assert res["data"]["joinGroup"]["role"] == "NOT_APPROVED"
+    end
+  end
+
+  describe "approve_group/3" do
+    @approve_group_mutation """
+    mutation ApproveGroup($groupId: ID!) {
+      approveGroup(groupId: $groupId) {
+        id
+        preferredUsername
+      }
+    }
+    """
+
+    test "clears pending_group_approval on group events after approval", %{conn: conn} do
+      admin_user = insert(:user, role: :moderator)
+      group = insert(:group, approval_status: :pending_approval)
+
+      event =
+        insert(:event,
+          attributed_to: group,
+          pending_group_approval: true,
+          draft: false
+        )
+
+      res =
+        conn
+        |> auth_conn(admin_user)
+        |> AbsintheHelpers.graphql_query(
+          query: @approve_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["approveGroup"]["preferredUsername"] == group.preferred_username
+
+      updated = Repo.get!(Event, event.id)
+      assert updated.pending_group_approval == false
+    end
+
+    test "approve_group/3 rejects non-moderator users", %{conn: conn, user: user} do
+      group = insert(:group, approval_status: :pending_approval)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @approve_group_mutation,
+          variables: %{groupId: group.id}
+        )
+
+      assert hd(res["errors"])["message"] == "You don't have permission to do this"
     end
   end
 end

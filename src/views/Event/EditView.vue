@@ -647,6 +647,50 @@
       </footer>
     </form>
   </o-modal>
+  <o-modal
+    v-model:active="pendingGroupEventModalActive"
+    has-modal-card
+    trap-focus
+    :close-button-aria-label="t('Close')"
+    :width="520"
+  >
+    <div class="modal-card pending-group-event-modal-card">
+      <header class="modal-card-head pending-group-event-modal-card__head">
+        <p class="modal-card-title pending-group-event-modal-card__title">
+          {{ t("Event will not be public yet") }}
+        </p>
+      </header>
+      <section class="modal-card-body pending-group-event-modal-card__body">
+        <p
+          class="pending-group-event-modal-card__text text-gray-600 dark:text-gray-300"
+        >
+          {{
+            t(
+              "This group is not yet approved by site administrators. The event will stay unpublished until the group is approved; it will then become public automatically."
+            )
+          }}
+        </p>
+      </section>
+      <footer class="modal-card-foot pending-group-event-modal-card__foot">
+        <div class="pending-group-event-modal-card__actions">
+          <o-button
+            variant="text"
+            class="pending-group-event-modal-card__btn"
+            @click="pendingGroupEventModalActive = false"
+          >
+            {{ t("Cancel") }}
+          </o-button>
+          <o-button
+            variant="primary"
+            class="pending-group-event-modal-card__btn"
+            @click="confirmPendingGroupEventCreate"
+          >
+            {{ t("Create event") }}
+          </o-button>
+        </div>
+      </footer>
+    </div>
+  </o-modal>
   <span ref="bottomObserver" />
   <nav
     role="navigation"
@@ -719,6 +763,7 @@ import {
   useRoute,
 } from "vue-router";
 import {
+  ApprovalStatus,
   CommentModeration,
   EventJoinOptions,
   EventStatus,
@@ -775,7 +820,11 @@ import {
 import { useFetchEvent } from "@/composition/apollo/event";
 import { useI18n } from "vue-i18n";
 import { useGroup } from "@/composition/apollo/group";
-import { useEventCategories, useTimezones } from "@/composition/apollo/config";
+import {
+  useEventCategories,
+  useRestrictions,
+  useTimezones,
+} from "@/composition/apollo/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { Dialog } from "@/plugins/dialog";
 import { Notifier } from "@/plugins/notifier";
@@ -788,6 +837,7 @@ import { FETCH_GROUP_PUBLIC } from "@/graphql/group";
 const DEFAULT_LIMIT_NUMBER_OF_PLACES = 10;
 
 const { eventCategories } = useEventCategories();
+const { restrictions } = useRestrictions();
 const { currentActor } = useCurrentActorClient();
 const { loggedUser } = useLoggedUser();
 const { identities } = useCurrentUserIdentities();
@@ -942,14 +992,6 @@ const createOrUpdateDraft = (e: Event): void => {
   }
 };
 
-const createOrUpdatePublish = (e: Event): void => {
-  e.preventDefault();
-  if (validateForm()) {
-    event.value.draft = false;
-    createOrUpdateDraft(e);
-  }
-};
-
 const form = ref<HTMLFormElement | null>(null);
 
 const router = useRouter();
@@ -975,6 +1017,34 @@ const { result: groupResult, error: groupError } = useQuery<{ group: IGroup }>(
     fetchPolicy: "cache-and-network",
   })
 );
+
+const pendingGroupEventModalActive = ref(false);
+
+const showPendingGroupPublishWarning = computed((): boolean => {
+  if (props.isUpdate || props.isDuplicate) return false;
+  if (!restrictions.value?.allowModeratorActivityForPendingGroups) return false;
+  const g = event.value.attributedTo ?? groupResult.value?.group;
+  if (!g?.approvalStatus) return false;
+  return g.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
+});
+
+const createOrUpdatePublish = (e: Event): void => {
+  e.preventDefault();
+  if (!validateForm()) return;
+  if (showPendingGroupPublishWarning.value) {
+    pendingGroupEventModalActive.value = true;
+    return;
+  }
+  event.value.draft = false;
+  createOrUpdateDraft(e);
+};
+
+const confirmPendingGroupEventCreate = (): void => {
+  pendingGroupEventModalActive.value = false;
+  if (!validateForm()) return;
+  event.value.draft = false;
+  createEvent();
+};
 
 // Watch for group data and set up event attribution
 watch(
@@ -1018,7 +1088,11 @@ const administeredGroups = computed<IGroup[]>(() => {
     userMembershipsResult.value?.loggedUser?.memberships?.elements || [];
   return memberships
     .filter((membership: IMember) =>
-      [MemberRole.MODERATOR, MemberRole.ADMINISTRATOR].includes(membership.role)
+      [
+        MemberRole.MODERATOR,
+        MemberRole.ADMINISTRATOR,
+        MemberRole.CREATOR,
+      ].includes(membership.role)
     )
     .map((membership: IMember) => membership.parent as IGroup);
 });
@@ -1169,10 +1243,16 @@ const {
 const { notification } = useOruga();
 
 onCreateEventMutationDone(async ({ data }) => {
+  const heldForGroup =
+    data?.createEvent?.pendingGroupApproval === true && !event.value.draft;
   notification.open({
     message: (event.value.draft
       ? t("The event has been created as a draft")
-      : t("The event has been published")) as string,
+      : heldForGroup
+        ? t(
+            "The event was created and will become public when the group is approved by administrators."
+          )
+        : t("The event has been published")) as string,
     variant: "success",
     position: "bottom-right",
     duration: 5000,
@@ -2058,6 +2138,56 @@ const registerOption = computed({
 @media screen and (max-width: 700px) {
   #status .o-field--addons {
     flex-direction: column;
+  }
+}
+
+.pending-group-event-modal-card {
+  width: 100%;
+
+  &__head {
+    justify-content: center;
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  &__title {
+    flex-grow: 0;
+    text-align: center;
+    width: 100%;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  &__body {
+    text-align: center;
+    padding-top: 0.75rem;
+  }
+
+  &__text {
+    margin: 0 auto;
+    max-width: 42ch;
+    font-size: var(--text-sm, 0.9375rem);
+    line-height: 1.6;
+  }
+
+  &__foot {
+    justify-content: center;
+    border-top: none;
+    padding-top: 0.5rem;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    width: 100%;
+  }
+
+  &__btn {
+    min-width: 9.5rem;
+    justify-content: center;
   }
 }
 </style>

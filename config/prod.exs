@@ -38,6 +38,17 @@ config :mobilizon, :instance,
   federating: System.get_env("MOBILIZON_INSTANCE_FEDERATING", "true") == "true",
   email_from: System.get_env("MOBILIZON_INSTANCE_EMAIL", "noreply@localhost")
 
+config :mobilizon, :restrictions,
+  only_admin_can_create_groups:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_ADMIN_CAN_CREATE_GROUPS", "false") == "true",
+  only_groups_can_create_events:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_GROUPS_CAN_CREATE_EVENTS", "false") == "true",
+  allow_moderator_activity_for_pending_groups:
+    System.get_env(
+      "MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS",
+      "false"
+    ) == "true"
+
 # SMTP configuration (will be overridden by environment variables in Docker)
 config :mobilizon, Mobilizon.Web.Email.Mailer,
   adapter: Swoosh.Adapters.SMTP,

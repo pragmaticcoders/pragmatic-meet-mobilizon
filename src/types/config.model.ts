@@ -109,6 +109,7 @@ export interface IConfig {
   restrictions: {
     onlyAdminCanCreateGroups: boolean;
     onlyGroupsCanCreateEvents: boolean;
+    allowModeratorActivityForPendingGroups: boolean;
   };
   federating: boolean;
   version: string;

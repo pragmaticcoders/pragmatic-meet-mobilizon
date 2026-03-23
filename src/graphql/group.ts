@@ -163,6 +163,7 @@ export const GROUP_BASIC_FIELDS_FRAGMENTS = gql`
         endsOn
         status
         draft
+        pendingGroupApproval
         longEvent
         language
         options {

@@ -24,6 +24,7 @@ const FULL_EVENT_FRAGMENT = gql`
     joinOptions
     externalParticipationUrl
     draft
+    pendingGroupApproval
     language
     category
     picture {

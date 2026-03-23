@@ -45,6 +45,7 @@ defmodule Mobilizon.Events.Event do
           title: String.t(),
           status: atom(),
           draft: boolean,
+          pending_group_approval: boolean,
           visibility: atom(),
           join_options: atom(),
           external_participation_url: String.t(),
@@ -80,6 +81,7 @@ defmodule Mobilizon.Events.Event do
     :category,
     :status,
     :draft,
+    :pending_group_approval,
     :local,
     :visibility,
     :join_options,
@@ -108,6 +110,7 @@ defmodule Mobilizon.Events.Event do
     field(:title, :string)
     field(:status, EventStatus, default: :confirmed)
     field(:draft, :boolean, default: false)
+    field(:pending_group_approval, :boolean, default: false)
     field(:visibility, EventVisibility, default: :public)
     field(:join_options, JoinOptions, default: :free)
     field(:external_participation_url, :string)

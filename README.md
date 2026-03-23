@@ -285,6 +285,12 @@ psql -h localhost -U mobilizon mobilizon_dev
 | `MOBILIZON_INSTANCE_SECRET_KEY_BASE` | "changethis" | Phoenix secret key |
 | `MOBILIZON_INSTANCE_SECRET_KEY` | "changethis" | Guardian JWT secret |
 
+### Instance restrictions
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS` | unset / `false` | When `true`, group creators, moderators, and administrators can manage members and create content while the group awaits instance approval. Events attributed to that group are stored with `pending_group_approval`: they stay off public listings, search, federation, and “new event” notifications until an administrator approves the group; approval then releases them (unless the event is a draft). Rejected or suspended groups do not auto-release held events. Changing this value requires an application restart (and config cache refresh if applicable). |
+
 ## 📝 Useful Commands
 
 ### Development

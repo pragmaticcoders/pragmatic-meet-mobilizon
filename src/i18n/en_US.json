@@ -1915,5 +1915,10 @@
   "Description cannot be longer than 100 characters": "Description cannot be longer than 100 characters",
   "Description cannot be longer than {maxSize} characters": "Description cannot be longer than {maxSize} characters",
   "Conversation": "Conversation",
-  "Don't have an account?": "Don't have an account?"
+  "Don't have an account?": "Don't have an account?",
+  "This group is pending approval from site administrators. As a moderator you can manage members, create events, discussions, and announcements. Events you publish stay hidden from the public until an administrator approves this group.": "This group is pending approval from site administrators. As a moderator you can manage members, create events, discussions, and announcements. Events you publish stay hidden from the public until an administrator approves this group.",
+  "Event will not be public yet": "Event will not be public yet",
+  "This group is not yet approved by site administrators. The event will stay unpublished until the group is approved; it will then become public automatically.": "This group is not yet approved by site administrators. The event will stay unpublished until the group is approved; it will then become public automatically.",
+  "The event was created and will become public when the group is approved by administrators.": "The event was created and will become public when the group is approved by administrators.",
+  "Awaiting group approval": "Awaiting group approval"
 }

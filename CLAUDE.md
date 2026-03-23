@@ -304,6 +304,7 @@ PostgreSQL with PostGIS extension for geospatial features. Key migrations are in
 - Backend config: `config/` directory (dev.exs, test.exs, prod.exs)
 - Frontend environment: `.env` files and `vite.config.js`
 - Docker setup: `docker/development/` for local development
+- Pending-group moderator workflow: `allow_moderator_activity_for_pending_groups` under `config :mobilizon, :restrictions` (env `MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS`); GraphQL `restrictions` exposes it to the SPA; held events use `Mobilizon.Events.PendingGroupApproval` on group approval.
 
 ## Federation
 

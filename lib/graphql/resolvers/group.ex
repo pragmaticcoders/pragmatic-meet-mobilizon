@@ -685,6 +685,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Group do
         case Actors.update_actor(group, %{approval_status: :approved}) do
           {:ok, updated_group} ->
             Logger.info("Group #{group_id} approved by moderator")
+            # Use struct id (integer); GraphQL group_id arg is often a binary ID string.
+            Mobilizon.Events.PendingGroupApproval.release_events_for_approved_group(updated_group.id)
             {:ok, updated_group}
 
           {:error, %Ecto.Changeset{} = changeset} ->
