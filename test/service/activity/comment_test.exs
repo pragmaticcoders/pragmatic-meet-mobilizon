@@ -19,7 +19,7 @@ defmodule Mobilizon.Service.Activity.CommentTest do
     test "with no mentions" do
       %Event{title: event_title, uuid: event_uuid} = event = insert(:event)
 
-      %Comment{id: comment_id, actor_id: author_id, uuid: comment_uuid} =
+      %Comment{id: comment_id, actor_id: author_id, text: comment_text, uuid: comment_uuid} =
         comment = insert(:comment, event: event)
 
       assert {:ok, [organizer: :enqueued, announcement: :skipped, mentionned: :skipped]} ==
@@ -43,7 +43,8 @@ defmodule Mobilizon.Service.Activity.CommentTest do
             "event_title" => event_title,
             "event_uuid" => event_uuid,
             "comment_reply_to" => false,
-            "comment_uuid" => comment_uuid
+            "comment_uuid" => comment_uuid,
+            "comment_text" => comment_text
           },
           "type" => "comment"
         }
@@ -79,7 +80,8 @@ defmodule Mobilizon.Service.Activity.CommentTest do
           "subject" => "event_comment_mention",
           "subject_params" => %{
             "event_title" => event_title,
-            "event_uuid" => event_uuid
+            "event_uuid" => event_uuid,
+            "comment_text" => "Hey @you"
           },
           "type" => "comment"
         }
@@ -98,7 +100,8 @@ defmodule Mobilizon.Service.Activity.CommentTest do
             "event_title" => event_title,
             "event_uuid" => event_uuid,
             "comment_reply_to" => false,
-            "comment_uuid" => comment_uuid
+            "comment_uuid" => comment_uuid,
+            "comment_text" => "Hey @you"
           },
           "type" => "comment"
         }
@@ -127,7 +130,8 @@ defmodule Mobilizon.Service.Activity.CommentTest do
           "subject_params" => %{
             "event_title" => event_title,
             "event_uuid" => event_uuid,
-            "event_id" => event_id
+            "event_id" => event_id,
+            "comment_text" => "Hey you"
           },
           "type" => "comment"
         }
