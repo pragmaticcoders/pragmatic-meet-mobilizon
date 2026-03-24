@@ -1501,7 +1501,7 @@ msgstr ""
 #: lib/web/templates/export/event_participants.html.heex:120
 #, elixir-autogen, elixir-format
 msgid "Participants for %{event}"
-msgstr "Participant"
+msgstr ""
 
 #: lib/service/export/participants/common.ex:95
 #, elixir-autogen, elixir-format
@@ -1610,12 +1610,12 @@ msgstr ""
 #: lib/web/templates/email/participation/event_card.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "Participate"
-msgstr "Participant"
+msgstr ""
 
 #: lib/web/templates/email/participation/event_card.text.eex:5
 #, elixir-autogen, elixir-format
 msgid "Participate:"
-msgstr "Participant"
+msgstr ""
 
 #: lib/web/templates/email/participation/card/_title.text.eex:1
 #, elixir-autogen, elixir-format
