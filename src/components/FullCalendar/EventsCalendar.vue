@@ -30,7 +30,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
 const props = defineProps<{
-  filter: 'all' | 'my';
+  filter: "all" | "my";
 }>();
 
 const calendarRef = ref();
@@ -63,9 +63,12 @@ const refreshCalendar = () => {
 };
 
 // Watch for filter changes and refresh calendar
-watch(() => props.filter, () => {
-  refreshCalendar();
-});
+watch(
+  () => props.filter,
+  () => {
+    refreshCalendar();
+  }
+);
 
 // Listen for global calendar refresh events
 onMounted(() => {
@@ -119,7 +122,9 @@ const calendarOptions = computed((): object => {
             result = (await refetchUserEvents(queryVars))?.data;
             forceRefresh.value = false;
           } else {
-            console.log("Calendar: Loading user events (first load or from cache)");
+            console.log(
+              "Calendar: Loading user events (first load or from cache)"
+            );
             const loadResult = await loadUserEvents(undefined, queryVars);
             console.log("Calendar: loadUserEvents returned:", loadResult);
             result = loadResult || (await refetchUserEvents(queryVars))?.data;
@@ -134,38 +139,48 @@ const calendarOptions = computed((): object => {
           );
         } catch (error) {
           console.error("Calendar: ERROR fetching user events:", error);
-          console.error("Calendar: Error details:", JSON.stringify(error, null, 2));
+          console.error(
+            "Calendar: Error details:",
+            JSON.stringify(error, null, 2)
+          );
           failureCallback("Failed to fetch user events: " + error);
           return;
         }
 
         if (!result?.loggedUser && !result?.loggedPerson) {
-          console.log("Calendar: No user data returned, showing empty calendar");
+          console.log(
+            "Calendar: No user data returned, showing empty calendar"
+          );
           successCallback([]);
           return;
         }
 
         // Collect events from participations
-        const participationEvents = (result?.loggedUser?.participations?.elements ?? [])
+        const participationEvents = (
+          result?.loggedUser?.participations?.elements ?? []
+        )
           .map((participation: any) => participation.event)
           .filter((event: IEvent | undefined) => event !== undefined);
 
         // Collect events that user organized and filter by date range on client side
-        const organizedEvents = (result?.loggedPerson?.organizedEvents?.elements ?? [])
-          .filter((event: IEvent) => {
-            if (!event || !event.beginsOn) return false;
-            const eventStart = new Date(event.beginsOn);
-            return eventStart >= info.start && eventStart < info.end;
-          });
+        const organizedEvents = (
+          result?.loggedPerson?.organizedEvents?.elements ?? []
+        ).filter((event: IEvent) => {
+          if (!event || !event.beginsOn) return false;
+          const eventStart = new Date(event.beginsOn);
+          return eventStart >= info.start && eventStart < info.end;
+        });
 
         // Merge both lists and remove duplicates based on event ID
         const eventMap = new Map<string, IEvent>();
-        
-        [...participationEvents, ...organizedEvents].forEach((event: IEvent) => {
-          if (event && event.id) {
-            eventMap.set(event.id, event);
+
+        [...participationEvents, ...organizedEvents].forEach(
+          (event: IEvent) => {
+            if (event && event.id) {
+              eventMap.set(event.id, event);
+            }
           }
-        });
+        );
 
         const allMyEvents = Array.from(eventMap.values());
 
@@ -225,12 +240,15 @@ const calendarOptions = computed((): object => {
 
       let result;
       try {
-        console.log("Calendar: Loading ALL events, forceRefresh:", forceRefresh.value);
-        
+        console.log(
+          "Calendar: Loading ALL events, forceRefresh:",
+          forceRefresh.value
+        );
+
         // Always use load first, which handles both initial load and cache
         const loadResult = await searchEventsLoad(undefined, queryVars);
         console.log("Calendar: searchEventsLoad returned:", loadResult);
-        
+
         // If we want fresh data or load didn't return data, refetch
         if (forceRefresh.value || !loadResult) {
           console.log("Calendar: Refetching ALL events for fresh data");
@@ -245,12 +263,18 @@ const calendarOptions = computed((): object => {
         console.log("Calendar: Final result for ALL events:", result);
 
         if (!result || !result.searchEvents) {
-          console.error("Calendar: No result or searchEvents from ALL events query, result:", result);
+          console.error(
+            "Calendar: No result or searchEvents from ALL events query, result:",
+            result
+          );
           failureCallback("failed to fetch calendar events");
           return;
         }
 
-        console.log("Calendar: ALL events query completed successfully, events:", result.searchEvents.elements?.length);
+        console.log(
+          "Calendar: ALL events query completed successfully, events:",
+          result.searchEvents.elements?.length
+        );
       } catch (error) {
         console.error("Calendar: ERROR fetching ALL events:", error);
         failureCallback("failed to fetch calendar events: " + error);

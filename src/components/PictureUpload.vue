@@ -41,10 +41,7 @@
       !imagePreviewLoadingError
     "
   >
-    <figure
-      class="relative my-4"
-      v-if="imageSrc && !imagePreviewLoadingError"
-    >
+    <figure class="relative my-4" v-if="imageSrc && !imagePreviewLoadingError">
       <img
         class="max-w-full max-h-48 object-contain border border-gray-300"
         :src="imageSrc"

@@ -64,8 +64,3 @@ watch(
   { immediate: true }
 );
 </script>
-
-
-
-
-

@@ -162,10 +162,7 @@ export const LOGGED_USER_UPCOMING_EVENTS = gql`
     }
     loggedPerson {
       id
-      organizedEvents(
-        page: $page
-        limit: $limit
-      ) {
+      organizedEvents(page: $page, limit: $limit) {
         total
         elements {
           id

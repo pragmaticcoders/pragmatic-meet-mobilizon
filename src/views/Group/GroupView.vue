@@ -1491,10 +1491,6 @@ const isCurrentActorAGroupOwner = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.CREATOR);
 });
 
-const isCurrentActorAGroupAdminOrOwner = computed((): boolean => {
-  return isCurrentActorAGroupAdmin.value || isCurrentActorAGroupOwner.value;
-});
-
 const isCurrentActorAGroupModerator = computed((): boolean => {
   return hasCurrentActorThisRole([
     MemberRole.MODERATOR,
@@ -1519,8 +1515,7 @@ const allowModeratorActivityForPendingGroups = computed(
 );
 
 const canManageGroupDuringPendingApproval = computed(
-  () =>
-    isCurrentActorAGroupModerator.value || isCurrentActorAGroupOwner.value
+  () => isCurrentActorAGroupModerator.value || isCurrentActorAGroupOwner.value
 );
 
 const isPendingGroupActionsLocked = computed((): boolean => {

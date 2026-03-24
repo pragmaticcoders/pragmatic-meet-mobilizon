@@ -67,7 +67,11 @@ export const HOME_USER_QUERIES = gql`
           }
         }
       }
-      followedGroupEvents(afterDatetime: $afterDateTime, page: $page, limit: $limit) {
+      followedGroupEvents(
+        afterDatetime: $afterDateTime
+        page: $page
+        limit: $limit
+      ) {
         total
         elements {
           profile {

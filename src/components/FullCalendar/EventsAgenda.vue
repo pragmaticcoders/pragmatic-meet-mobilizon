@@ -49,7 +49,7 @@ import EventCard from "../Event/EventCard.vue";
 import EmptyContent from "../Utils/EmptyContent.vue";
 
 const props = defineProps<{
-  filter: 'all' | 'my';
+  filter: "all" | "my";
 }>();
 
 const { t } = useI18n({ useScope: "global" });
@@ -69,9 +69,12 @@ const refreshCalendar = () => {
 };
 
 // Watch for filter changes and refresh calendar
-watch(() => props.filter, () => {
-  refreshCalendar();
-});
+watch(
+  () => props.filter,
+  () => {
+    refreshCalendar();
+  }
+);
 
 // Listen for global calendar refresh events
 onMounted(() => {
@@ -158,7 +161,7 @@ const calendarOptions = computed((): object => {
       failureCallback: (err: string) => unknown
     ) => {
       // Handle MY events filter
-      if (props.filter === 'my') {
+      if (props.filter === "my") {
         const queryVars = {
           afterDateTime: info.start.toISOString(),
           beforeDateTime: info.end.toISOString(),
@@ -168,7 +171,10 @@ const calendarOptions = computed((): object => {
 
         let result;
         if (forceRefresh.value) {
-          console.log("Calendar Agenda: Forcing fresh user events fetch for", queryVars);
+          console.log(
+            "Calendar Agenda: Forcing fresh user events fetch for",
+            queryVars
+          );
           result = (await refetchUserEvents(queryVars))?.data;
           forceRefresh.value = false;
           console.log(
@@ -189,26 +195,31 @@ const calendarOptions = computed((): object => {
         }
 
         // Collect events from participations
-        const participationEvents = (result?.loggedUser?.participations?.elements ?? [])
+        const participationEvents = (
+          result?.loggedUser?.participations?.elements ?? []
+        )
           .map((participation: any) => participation.event)
           .filter((event: IEvent | undefined) => event !== undefined);
 
         // Collect events that user organized and filter by date range on client side
-        const organizedEvents = (result?.loggedPerson?.organizedEvents?.elements ?? [])
-          .filter((event: IEvent) => {
-            if (!event || !event.beginsOn) return false;
-            const eventStart = new Date(event.beginsOn);
-            return eventStart >= info.start && eventStart < info.end;
-          });
+        const organizedEvents = (
+          result?.loggedPerson?.organizedEvents?.elements ?? []
+        ).filter((event: IEvent) => {
+          if (!event || !event.beginsOn) return false;
+          const eventStart = new Date(event.beginsOn);
+          return eventStart >= info.start && eventStart < info.end;
+        });
 
         // Merge both lists and remove duplicates based on event ID
         const eventMap = new Map<string, IEvent>();
-        
-        [...participationEvents, ...organizedEvents].forEach((event: IEvent) => {
-          if (event && event.id) {
-            eventMap.set(event.id, event);
+
+        [...participationEvents, ...organizedEvents].forEach(
+          (event: IEvent) => {
+            if (event && event.id) {
+              eventMap.set(event.id, event);
+            }
           }
-        });
+        );
 
         const allMyEvents = Array.from(eventMap.values());
 
@@ -269,7 +280,7 @@ const calendarOptions = computed((): object => {
       try {
         // Always use load first, which handles both initial load and cache
         const loadResult = await searchEventsLoad(undefined, queryVars);
-        
+
         // If we want fresh data or load didn't return data, refetch
         if (forceRefresh.value || !loadResult) {
           const refetchResult = await searchEventsRefetch(queryVars);

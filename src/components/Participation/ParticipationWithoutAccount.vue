@@ -268,7 +268,9 @@ const {
         console.debug("Successfully updated HOME_USER_QUERIES cache");
       } else {
         // User might not be logged in or query not in cache
-        console.debug("HOME_USER_QUERIES not available, will refetch on navigation");
+        console.debug(
+          "HOME_USER_QUERIES not available, will refetch on navigation"
+        );
         store.evict({ fieldName: "loggedUser" });
         store.gc();
       }

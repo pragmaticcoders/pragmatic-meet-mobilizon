@@ -25,10 +25,7 @@
       class="o-loading--enhanced o-loading--page"
     />
     <!-- Invite section - only for admins -->
-    <section
-      class="bg-white p-2 mt-4"
-      v-if="group && canUseAdminMemberTools"
-    >
+    <section class="bg-white p-2 mt-4" v-if="group && canUseAdminMemberTools">
       <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
         t("Invite a new member")
       }}</label>

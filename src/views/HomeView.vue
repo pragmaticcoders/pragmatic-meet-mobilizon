@@ -531,10 +531,13 @@ const { result: reverseGeocodeResult } = useQuery<{
 }));
 
 const userSettingsLocation = computed(() => {
-  console.log("HomeView - loggedUser.settings.location:", loggedUser.value?.settings?.location);
+  console.log(
+    "HomeView - loggedUser.settings.location:",
+    loggedUser.value?.settings?.location
+  );
   console.log("HomeView - coords:", coords.value);
   console.log("HomeView - reverseGeocodeResult:", reverseGeocodeResult.value);
-  
+
   // If user has a location name directly in their settings, use that with coords
   const locationName = loggedUser.value?.settings?.location?.name;
   if (locationName && coords.value?.latitude && coords.value?.longitude) {
@@ -560,7 +563,10 @@ const userSettingsLocation = computed(() => {
       picture: location?.pictureInfo,
       isIPLocation: coords.value?.isIPLocation,
     };
-    console.log("HomeView - userSettingsLocation (from reverse geocode):", result);
+    console.log(
+      "HomeView - userSettingsLocation (from reverse geocode):",
+      result
+    );
     return result;
   } else {
     console.log("HomeView - userSettingsLocation: empty");

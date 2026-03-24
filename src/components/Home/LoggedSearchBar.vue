@@ -69,7 +69,7 @@
             />
           </o-dropdown>
         </div>
-        
+
         <!-- Search button inline -->
         <o-button
           type="submit"
@@ -90,7 +90,11 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { IAddress } from "@/types/address.model";
 import { AddressSearchType } from "@/types/enums";
-import { addressToLocation, getAddressFromLocal, storeAddressInLocal } from "@/utils/location";
+import {
+  addressToLocation,
+  getAddressFromLocal,
+  storeAddressInLocal,
+} from "@/utils/location";
 import RouteName from "@/router/name";
 
 const FullAddressAutoComplete = defineAsyncComponent(
@@ -193,4 +197,3 @@ const handleSearch = () => {
   });
 };
 </script>
-

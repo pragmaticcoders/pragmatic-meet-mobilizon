@@ -6,7 +6,7 @@
     "dev": "vite",
     "preview": "vite preview",
     "build": "npm run build:assets && npm run build:pictures",
-    "lint": "eslint --ext .ts,.vue --ignore-path .gitignore --fix src",
+    "lint": "npx eslint --ext .ts,.vue --ignore-path .gitignore --fix src",
     "format": "prettier . --write",
     "build:assets": "vite build",
     "build:pictures": "bash ./scripts/build/pictures.sh",
@@ -22,7 +22,7 @@
   },
   "lint-staged": {
     "**/*.{js,ts,vue}": [
-      "eslint --fix",
+      "npx eslint --fix",
       "prettier --write"
     ],
     "**/*.{ex,exs,eex,heex}": [

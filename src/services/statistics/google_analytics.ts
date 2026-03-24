@@ -101,6 +101,3 @@ export const googleAnalytics = (
     config.measurementId
   );
 };
-
-
-

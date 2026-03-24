@@ -99,7 +99,9 @@ export const storeUserLocationAndRadiusFromUserSettings = (
 
 // CloseEvents section location mode helpers
 export const getCloseEventsLocationMode = (): string => {
-  return window.localStorage.getItem("closeEventsLocationMode") || "entire_poland";
+  return (
+    window.localStorage.getItem("closeEventsLocationMode") || "entire_poland"
+  );
 };
 
 export const setCloseEventsLocationMode = (mode: string): void => {
