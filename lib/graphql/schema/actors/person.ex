@@ -264,6 +264,8 @@ defmodule Mobilizon.GraphQL.Schema.Actors.PersonType do
     field :update_person, :person do
       arg(:id, non_null(:id), description: "The person's ID")
 
+      arg(:preferred_username, :string, description: "The displayed username for this profile")
+
       arg(:name, :string, description: "The displayed name for this profile")
 
       arg(:summary, :string, description: "The summary for this profile")

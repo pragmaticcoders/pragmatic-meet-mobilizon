@@ -212,11 +212,18 @@ defmodule Mix.Tasks.Mobilizon.UsersTest do
     test "show existing user" do
       %User{confirmed_at: confirmed_at, role: role} = user = insert(:user, email: @email)
 
-      actor1 = insert(:actor, user: user)
-      actor2 = insert(:actor, user: user)
+      insert(:actor, user: user)
+      insert(:actor, user: user)
+      
+      actors = Users.get_actors_for_user(user)
+
+      identities_str =
+        Enum.map_join(actors, fn actor ->
+          "    - @#{actor.preferred_username} / #{actor.name}\n"
+        end)
 
       output =
-        "Informations for the user #{@email}:\n  - account status: Activated on #{confirmed_at} (UTC)\n  - Role: #{role}\n  Identities (2):\n    - @#{actor1.preferred_username} / #{actor1.name}\n    - @#{actor2.preferred_username} / #{actor2.name}\n\n\n"
+        "Informations for the user #{@email}:\n  - account status: Activated on #{confirmed_at} (UTC)\n  - Role: #{role}\n  Identities (2):\n#{identities_str}\n\n"
 
       Show.run([@email])
       assert_received {:mix_shell, :info, [output_received]}

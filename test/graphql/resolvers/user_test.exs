@@ -432,6 +432,10 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
     end
 
     test "create_user/3 doesn't allow registration when registration is closed", %{conn: conn} do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+      end)
+
       Config.put([:instance, :registrations_open], false)
       Config.put([:instance, :registration_email_allowlist], [])
 
@@ -443,12 +447,16 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
         )
 
       assert hd(res["errors"])["message"] == "Registrations are not open"
-      Config.put([:instance, :registrations_open], true)
     end
 
     test "create_user/3 doesn't allow registration when user email is not on the allowlist", %{
       conn: conn
     } do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_allowlist], [])
+      end)
+
       Config.put([:instance, :registrations_open], false)
       Config.put([:instance, :registration_email_allowlist], ["random.org"])
 
@@ -460,13 +468,16 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
         )
 
       assert hd(res["errors"])["message"] == "Your email is not on the allowlist"
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_allowlist], [])
     end
 
     test "create_user/3 allows registration when user email domain is on the allowlist", %{
       conn: conn
     } do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_allowlist], [])
+      end)
+
       Config.put([:instance, :registrations_open], false)
       Config.put([:instance, :registration_email_allowlist], ["demo.tld"])
 
@@ -479,11 +490,14 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       refute res["errors"]
       assert res["data"]["createUser"]["email"] == @user_creation.email
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_allowlist], [])
     end
 
     test "create_user/3 allows registration when user email is on the allowlist", %{conn: conn} do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_allowlist], [])
+      end)
+
       Config.put([:instance, :registrations_open], false)
       Config.put([:instance, :registration_email_allowlist], [@user_creation.email])
 
@@ -496,13 +510,16 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       refute res["errors"]
       assert res["data"]["createUser"]["email"] == @user_creation.email
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_allowlist], [])
     end
 
     test "create_user/3 doesn't allow registration when user email domain is on the denylist", %{
       conn: conn
     } do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_denylist], [])
+      end)
+
       Config.put([:instance, :registration_email_denylist], ["demo.tld"])
 
       res =
@@ -514,14 +531,16 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       assert hd(res["errors"])["message"] ==
                "Your e-mail has been denied registration or uses a disallowed e-mail provider"
-
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_denylist], [])
     end
 
     test "create_user/3 doesn't allow registration when user email is on the denylist", %{
       conn: conn
     } do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_denylist], [])
+      end)
+
       Config.put([:instance, :registration_email_denylist], [@user_creation.email])
 
       res =
@@ -533,15 +552,17 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       assert hd(res["errors"])["message"] ==
                "Your e-mail has been denied registration or uses a disallowed e-mail provider"
-
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_denylist], [])
     end
 
     test "create_user/3 doesn't allow registration when user email is on the denylist, even when plus addressing is used",
          %{
            conn: conn
          } do
+      on_exit(fn ->
+        Config.put([:instance, :registrations_open], true)
+        Config.put([:instance, :registration_email_denylist], [])
+      end)
+
       Config.put([:instance, :registration_email_denylist], [@user_creation.email])
 
       res =
@@ -553,9 +574,6 @@ defmodule Mobilizon.GraphQL.Resolvers.UserTest do
 
       assert hd(res["errors"])["message"] ==
                "Your e-mail has been denied registration or uses a disallowed e-mail provider"
-
-      Config.put([:instance, :registrations_open], true)
-      Config.put([:instance, :registration_email_denylist], [])
     end
 
     test "create_user/3 lowers domain part of email",

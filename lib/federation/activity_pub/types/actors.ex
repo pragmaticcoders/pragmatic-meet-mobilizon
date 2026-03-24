@@ -57,6 +57,7 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Actors do
           )
 
           actor_as_data = Convertible.model_to_as(new_actor)
+          Cachex.del(:activity_pub, "actor_#{old_actor.preferred_username}")
           Cachex.del(:activity_pub, "actor_#{new_actor.preferred_username}")
           audience = Audience.get_audience(new_actor)
 
