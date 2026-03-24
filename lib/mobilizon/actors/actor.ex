@@ -104,7 +104,6 @@ defmodule Mobilizon.Actors.Actor do
 
   @update_required_attrs @required_attrs -- [:url]
   @update_optional_attrs [
-    :preferred_username,
     :name,
     :summary,
     :manually_approves_followers,
