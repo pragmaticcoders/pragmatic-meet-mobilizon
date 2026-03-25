@@ -123,7 +123,7 @@
           </template>
         </VTooltip>
       </p>
-      <o-dropdown class="ml-auto">
+      <o-dropdown class="ml-auto" @update:active="onDropdownActiveChange">
         <template #trigger>
           <o-button icon-right="dots-horizontal">
             {{ t("Actions") }}
@@ -221,6 +221,7 @@
         <div
           v-if="event?.draft === false"
           role="button"
+          aria-haspopup="menu"
           :aria-expanded="isOnlineCalendarExpanded"
           tabindex="0"
           class="dropdown-item"
@@ -241,13 +242,17 @@
         <template v-if="isOnlineCalendarExpanded && event?.draft === false">
           <o-dropdown-item
             aria-role="listitem"
+            :disabled="isDownloading"
             @click="downloadIcsEvent()"
             @keyup.enter="downloadIcsEvent()"
             class="pl-8"
           >
             <span class="flex gap-1 items-center pl-4">
-              <CalendarExport :size="20" />
-              {{ t("Download ICS") }}
+              <CalendarExport
+                :size="20"
+                :class="{ 'animate-spin': isDownloading }"
+              />
+              {{ isDownloading ? t("Downloading…") : t("Download ICS") }}
             </span>
           </o-dropdown-item>
           <o-dropdown-item
@@ -499,7 +504,7 @@ const downloadIcsEvent = async (): Promise<void> => {
     const link = document.createElement("a");
     blobUrl = window.URL.createObjectURL(blob);
     link.href = blobUrl;
-    link.download = `${event.value?.title}.ics`;
+    link.download = `${event.value?.title?.replace(/[/\\?%*:|"<>]/g, "-") ?? "event"}.ics`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -518,6 +523,10 @@ const toggleOnlineCalendar = (): void => {
   isOnlineCalendarExpanded.value = !isOnlineCalendarExpanded.value;
 };
 
+const onDropdownActiveChange = (active: boolean): void => {
+  if (!active) isOnlineCalendarExpanded.value = false;
+};
+
 const MAX_DESCRIPTION_LENGTH = 1000;
 
 const truncateDescription = (html: string): string => {
@@ -526,8 +535,48 @@ const truncateDescription = (html: string): string => {
   return text.slice(0, MAX_DESCRIPTION_LENGTH) + "…";
 };
 
-const formatDateForGoogle = (date: string): string => {
-  return new Date(date).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+const getEventTimezone = (): string => {
+  return (
+    event.value?.options?.timezone ??
+    event.value?.physicalAddress?.timezone ??
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+};
+
+const formatDateInTimezone = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(d);
+  const get = (type: string): string =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}${get("month")}${get("day")}T${get("hour")}${get("minute")}${get("second")}`;
+};
+
+const formatDateForOutlook = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(d);
+  const get = (type: string): string =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
 };
 
 const getEventLocation = (): string => {
@@ -542,12 +591,14 @@ const getEventLocation = (): string => {
 const openGoogleCalendar = (): void => {
   const e = event.value;
   if (!e) return;
+  const tz = getEventTimezone();
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: e.title,
     details: truncateDescription(e.description),
     location: getEventLocation(),
-    dates: `${formatDateForGoogle(e.beginsOn)}/${formatDateForGoogle(e.endsOn || e.beginsOn)}`,
+    dates: `${formatDateInTimezone(e.beginsOn, tz)}/${formatDateInTimezone(e.endsOn || e.beginsOn, tz)}`,
+    ctz: tz,
   });
   const win = window.open(
     `https://calendar.google.com/calendar/render?${params.toString()}`,
@@ -561,13 +612,14 @@ const openGoogleCalendar = (): void => {
 const openOutlookCalendar = (): void => {
   const e = event.value;
   if (!e) return;
+  const tz = getEventTimezone();
   const params = new URLSearchParams({
     rru: "addevent",
     subject: e.title,
     body: truncateDescription(e.description),
     location: getEventLocation(),
-    startdt: new Date(e.beginsOn).toISOString(),
-    enddt: new Date(e.endsOn || e.beginsOn).toISOString(),
+    startdt: formatDateForOutlook(e.beginsOn, tz),
+    enddt: formatDateForOutlook(e.endsOn || e.beginsOn, tz),
     path: "/calendar/action/compose",
   });
   const win = window.open(
