@@ -19,6 +19,9 @@
         {{ poiInfos?.alternativeName }}
       </span>
       <br />
+      <span v-if="props.address.locationHint" class="block text-sm text-gray-600">
+        {{ props.address.locationHint }}
+      </span>
       <small
         v-if="
           userTimezoneDifferent &&

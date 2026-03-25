@@ -22,6 +22,7 @@ defmodule Mobilizon.Addresses.Address do
           type: String.t() | nil,
           url: String.t(),
           origin_id: String.t() | nil,
+          location_hint: String.t() | nil,
           events: [Event.t()],
           timezone: String.t() | nil
         }
@@ -37,7 +38,8 @@ defmodule Mobilizon.Addresses.Address do
     :street,
     :origin_id,
     :type,
-    :timezone
+    :timezone,
+    :location_hint
   ]
   @attrs @required_attrs ++ @optional_attrs
 
@@ -53,6 +55,7 @@ defmodule Mobilizon.Addresses.Address do
     field(:url, :string)
     field(:origin_id, :string)
     field(:timezone, :string)
+    field(:location_hint, :string)
 
     has_many(:events, Event, foreign_key: :physical_address_id)
 

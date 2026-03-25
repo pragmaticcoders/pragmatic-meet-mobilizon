@@ -87,87 +87,87 @@
           />
         </div>
       </div>
+      <o-collapse
+        v-model:open="detailsAddress"
+        :aria-id="`${id}-address-details`"
+        class="my-3"
+        v-if="allowManualDetails"
+      >
+        <template #trigger>
+          <o-button
+            variant="primary"
+            outlined
+            :aria-controls="`${id}-address-details`"
+            :icon-right="detailsAddress ? 'chevron-up' : 'chevron-down'"
+          >
+            {{ t("Details") }}
+          </o-button>
+        </template>
+        <form @submit.prevent="saveManualAddress">
+          <header>
+            <h2>{{ t("Manually enter address") }}</h2>
+          </header>
+          <section>
+            <o-field :label="t('Name')" labelFor="addressNameInput">
+              <o-input
+                aria-required="true"
+                required
+                v-model="selected.description"
+                id="addressNameInput"
+                expanded
+              />
+            </o-field>
+
+            <o-field :label="t('Street')" labelFor="streetInput">
+              <o-input v-model="selected.street" id="streetInput" expanded />
+            </o-field>
+
+            <o-field grouped>
+              <o-field :label="t('Postal Code')" labelFor="postalCodeInput">
+                <o-input
+                  v-model="selected.postalCode"
+                  id="postalCodeInput"
+                  expanded
+                />
+              </o-field>
+
+              <o-field :label="t('Locality')" labelFor="localityInput">
+                <o-input
+                  v-model="selected.locality"
+                  id="localityInput"
+                  expanded
+                />
+              </o-field>
+            </o-field>
+
+            <o-field grouped>
+              <o-field :label="t('Region')" labelFor="regionInput">
+                <o-input v-model="selected.region" id="regionInput" expanded />
+              </o-field>
+
+              <o-field :label="t('Country')" labelFor="countryInput">
+                <o-input v-model="selected.country" id="countryInput" expanded />
+              </o-field>
+            </o-field>
+          </section>
+          <footer class="mt-3 flex gap-2 items-center">
+            <o-button native-type="submit">
+              {{ t("Save") }}
+            </o-button>
+            <o-button outlined type="button" @click="resetAddress">
+              {{ t("Clear") }}
+            </o-button>
+            <p>
+              {{
+                t(
+                  "You can drag and drop the marker below to the desired location"
+                )
+              }}
+            </p>
+          </footer>
+        </form>
+      </o-collapse>
     </div>
-    <o-collapse
-      v-model:open="detailsAddress"
-      :aria-id="`${id}-address-details`"
-      class="my-3"
-      v-if="allowManualDetails"
-    >
-      <template #trigger>
-        <o-button
-          variant="primary"
-          outlined
-          :aria-controls="`${id}-address-details`"
-          :icon-right="detailsAddress ? 'chevron-up' : 'chevron-down'"
-        >
-          {{ t("Details") }}
-        </o-button>
-      </template>
-      <form @submit.prevent="saveManualAddress">
-        <header>
-          <h2>{{ t("Manually enter address") }}</h2>
-        </header>
-        <section>
-          <o-field :label="t('Name')" labelFor="addressNameInput">
-            <o-input
-              aria-required="true"
-              required
-              v-model="selected.description"
-              id="addressNameInput"
-              expanded
-            />
-          </o-field>
-
-          <o-field :label="t('Street')" labelFor="streetInput">
-            <o-input v-model="selected.street" id="streetInput" expanded />
-          </o-field>
-
-          <o-field grouped>
-            <o-field :label="t('Postal Code')" labelFor="postalCodeInput">
-              <o-input
-                v-model="selected.postalCode"
-                id="postalCodeInput"
-                expanded
-              />
-            </o-field>
-
-            <o-field :label="t('Locality')" labelFor="localityInput">
-              <o-input
-                v-model="selected.locality"
-                id="localityInput"
-                expanded
-              />
-            </o-field>
-          </o-field>
-
-          <o-field grouped>
-            <o-field :label="t('Region')" labelFor="regionInput">
-              <o-input v-model="selected.region" id="regionInput" expanded />
-            </o-field>
-
-            <o-field :label="t('Country')" labelFor="countryInput">
-              <o-input v-model="selected.country" id="countryInput" expanded />
-            </o-field>
-          </o-field>
-        </section>
-        <footer class="mt-3 flex gap-2 items-center">
-          <o-button native-type="submit">
-            {{ t("Save") }}
-          </o-button>
-          <o-button outlined type="button" @click="resetAddress">
-            {{ t("Clear") }}
-          </o-button>
-          <p>
-            {{
-              t(
-                "You can drag and drop the marker below to the desired location"
-              )
-            }}
-          </p>
-        </footer>
-      </form>
-    </o-collapse>
     <div
       class="map"
       v-if="!hideMap && !disabled && (selected.geom || detailsAddress)"
@@ -178,6 +178,22 @@
         :updateDraggableMarkerCallback="reverseGeoCode"
         :options="{ zoom: mapDefaultZoom }"
         :readOnly="false"
+      />
+    </div>
+    <div class="mt-3">
+      <label
+        for="locationHintInput"
+        :class="['block text-sm font-medium mb-2', disabled ? 'text-gray-400' : 'text-gray-700']"
+      >
+        {{ t('Additional location details') }}
+      </label>
+      <o-input
+        v-model="selected.locationHint"
+        id="locationHintInput"
+        :placeholder="t('e.g. 3rd floor, room 204, left entrance')"
+        :disabled="disabled"
+        expanded
+        @input="onLocationHintInput"
       />
     </div>
   </div>
@@ -300,6 +316,10 @@ const saveManualAddress = (): void => {
   selected.url = undefined;
   emit("update:modelValue", selected);
   detailsAddress.value = false;
+};
+
+const onLocationHintInput = (): void => {
+  emit("update:modelValue", selected);
 };
 
 const checkCurrentPosition = (e: LatLng): boolean => {
