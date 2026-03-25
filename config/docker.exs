@@ -89,7 +89,7 @@ config :mobilizon, :restrictions,
   allow_moderator_activity_for_pending_groups:
     System.get_env(
       "MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS",
-      "false"
+      "true"
     ) == "true"
 
 config :mobilizon, Mobilizon.Storage.Repo,

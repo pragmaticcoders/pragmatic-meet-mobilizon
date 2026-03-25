@@ -4,13 +4,19 @@ When a new **group** must be approved by instance staff before it is fully publi
 
 ## Enabling
 
-Set the environment variable to the string `true` and **restart** the application (configuration is read at startup; GraphQL config may be cached).
+**Default:** enabled (`true` when unset). To **disable**, set the environment variable to the string `false` and **restart** the application (configuration is read at startup; GraphQL config may be cached).
+
+```bash
+MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS=false
+```
+
+To force enable explicitly (optional when using defaults):
 
 ```bash
 MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS=true
 ```
 
-- **Default:** disabled (`false` or unset), except local Docker Compose can default it to `true`; see `docker/development/docker-compose.yml` and `.env.template`.
+- **Defaults:** `config/config.exs`, `config/dev.exs`, `config/docker.exs`, and `config/prod.exs` treat unset as `true`. Docker Compose dev also defaults the variable to `true`; see `docker/development/docker-compose.yml` and `.env.template`.
 - **Config key:** `config :mobilizon, :restrictions, allow_moderator_activity_for_pending_groups` (see `config/config.exs`, `config/dev.exs`, `config/docker.exs`, `config/prod.exs`).
 - **SPA:** The flag is exposed as GraphQL `restrictions.allowModeratorActivityForPendingGroups` so the UI does not need a separate Vite env for behavior.
 

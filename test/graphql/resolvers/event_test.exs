@@ -364,18 +364,6 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       actor: actor,
       user: user
     } do
-      old_restrictions = Application.get_env(:mobilizon, :restrictions) || []
-
-      Application.put_env(
-        :mobilizon,
-        :restrictions,
-        Keyword.put(old_restrictions, :allow_moderator_activity_for_pending_groups, true)
-      )
-
-      on_exit(fn ->
-        Application.put_env(:mobilizon, :restrictions, old_restrictions)
-      end)
-
       %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
       insert(:member, parent: group, actor: actor, role: :moderator)
 
@@ -411,6 +399,18 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       actor: actor,
       user: user
     } do
+      old_restrictions = Application.get_env(:mobilizon, :restrictions) || []
+
+      Application.put_env(
+        :mobilizon,
+        :restrictions,
+        Keyword.put(old_restrictions, :allow_moderator_activity_for_pending_groups, false)
+      )
+
+      on_exit(fn ->
+        Application.put_env(:mobilizon, :restrictions, old_restrictions)
+      end)
+
       %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
       insert(:member, parent: group, actor: actor, role: :moderator)
 

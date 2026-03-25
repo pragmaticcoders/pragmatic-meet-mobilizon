@@ -49,7 +49,7 @@ config :mobilizon, :events,
 
 config :mobilizon, :restrictions, only_admin_can_create_groups: false
 config :mobilizon, :restrictions, only_groups_can_create_events: false
-config :mobilizon, :restrictions, allow_moderator_activity_for_pending_groups: false
+config :mobilizon, :restrictions, allow_moderator_activity_for_pending_groups: true
 
 # Configures the endpoint
 config :mobilizon, Mobilizon.Web.Endpoint,
