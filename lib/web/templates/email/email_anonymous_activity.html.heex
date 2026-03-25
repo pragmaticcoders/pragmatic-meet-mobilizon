@@ -69,6 +69,21 @@
             <td bgcolor="#ffffff" align="left">
               <table width="100%" border="0" cellspacing="0" cellpadding="0">
                 <tr>
+                  <td align="center" style="padding: 10px 5% 0px 30px;">
+                    <blockquote style="border-left-width: 0.25rem;border-left-color: #e2e8f0;border-left-style: solid;padding-left: 1em;margin: 0;text-align: start;color: #1a1a1a;font-family: 'Inter', 'Roboto', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400;line-height: 25px;">
+                      <%= (@activity.subject_params["comment_text"] || "")
+                      |> sanitize_to_basic_html()
+                      |> raw() %>
+                    </blockquote>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td bgcolor="#ffffff" align="left">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
                   <td bgcolor="#ffffff" align="center" style="padding: 20px 30px 60px 30px;">
                     <table border="0" cellspacing="0" cellpadding="0">
                       <tr>

@@ -23,3 +23,5 @@
 }
 ) %>
 <%= "#{url(~p"/events/#{@activity.subject_params["event_uuid"]}") |> URI.decode()}#comment-#{@activity.subject_params["comment_uuid"]}"%><% end %><% end %>
+
+<%= (@activity.subject_params["comment_text"] || "") |> html_to_text() |> mail_quote() %>

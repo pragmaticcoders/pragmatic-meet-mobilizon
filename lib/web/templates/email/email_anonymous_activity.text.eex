@@ -9,6 +9,13 @@
         event: @activity.subject_params["event_title"]
     }
 ) %>
+
+--
+
+<%= (@activity.subject_params["comment_text"] || "") |> html_to_text() |> mail_quote() %>
+
+--
+
 <%= ~p"/events/#{@activity.subject_params["event_uuid"]}" |> url() |> URI.decode() %>
 <% :conversation -> %>
 <%= dgettext("activity", "%{profile} has posted a private announcement about event %{event}.",
