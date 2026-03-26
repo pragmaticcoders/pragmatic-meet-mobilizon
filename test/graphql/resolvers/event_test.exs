@@ -650,7 +650,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
     test "create_event/3 creates an event with detected language", %{
       conn: conn,
-      actor: %Actor{id: actor_id},
+      actor: _actor,
       user: user
     } do
       res =
@@ -776,7 +776,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
   end
 
   describe "create_event/3 with special tags" do
-    test "same tags with different casing", %{conn: conn, actor: actor, user: user} do
+    test "same tags with different casing", %{conn: conn, actor: _actor, user: user} do
       begins_on = DateTime.utc_now()
 
       res =
@@ -1112,7 +1112,9 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
         )
 
       assert res["errors"] == nil
-      assert res["data"]["updateEvent"]["physicalAddress"]["location_hint"] == "2nd floor, room 101"
+
+      assert res["data"]["updateEvent"]["physicalAddress"]["location_hint"] ==
+               "2nd floor, room 101"
     end
 
     test "update_event/3 updates an event with a new picture", %{
