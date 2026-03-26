@@ -228,11 +228,14 @@ defmodule Mobilizon.Events.Event do
 
   # In case the provided addresses is an existing one
   @spec put_address(Changeset.t(), map) :: Changeset.t()
-  defp put_address(%Changeset{} = changeset, %{physical_address: %{id: id} = _physical_address})
+  defp put_address(%Changeset{} = changeset, %{physical_address: %{id: id} = physical_address})
        when not is_nil(id) do
     case Addresses.get_address(id) do
       %Address{} = address ->
-        put_assoc(changeset, :physical_address, address)
+        updated_address =
+          Ecto.Changeset.change(address, location_hint: Map.get(physical_address, :location_hint))
+
+        put_assoc(changeset, :physical_address, updated_address)
 
       _ ->
         cast_assoc(changeset, :physical_address)
