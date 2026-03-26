@@ -123,7 +123,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
           id,
           url,
           geom,
-          street
+          street,
+          location_hint
         }
         online_address,
         phone_address,
@@ -467,6 +468,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       user: user
     } do
       address = %{street: "I am a street, please believe me", locality: "Where ever"}
+      location_hint = "3rd floor, room 42"
 
       res =
         conn
@@ -481,7 +483,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
             category: "SOCIAL_ACTIVITIES",
             physicalAddress: %{
               street: "#{address.street}",
-              locality: "#{address.locality}"
+              locality: "#{address.locality}",
+              locationHint: location_hint
             }
           }
         )
@@ -492,6 +495,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
       assert res["data"]["createEvent"]["physicalAddress"]["street"] ==
                address.street
+
+      assert res["data"]["createEvent"]["physicalAddress"]["location_hint"] == location_hint
 
       address_url = res["data"]["createEvent"]["physicalAddress"]["url"]
       address_id = res["data"]["createEvent"]["physicalAddress"]["id"]
@@ -645,7 +650,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
     test "create_event/3 creates an event with detected language", %{
       conn: conn,
-      actor: %Actor{id: actor_id},
+      actor: _actor,
       user: user
     } do
       res =
@@ -771,7 +776,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
   end
 
   describe "create_event/3 with special tags" do
-    test "same tags with different casing", %{conn: conn, actor: actor, user: user} do
+    test "same tags with different casing", %{conn: conn, actor: _actor, user: user} do
       begins_on = DateTime.utc_now()
 
       res =
@@ -881,7 +886,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
       physicalAddress {
         url,
         geom,
-        street
+        street,
+        location_hint
       }
       picture {
         name
@@ -1081,6 +1087,34 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
       assert_email_sent(to: {actor.name, user.email})
       assert_email_sent(to: {participant_actor.name, participant_user.email})
+    end
+
+    test "update_event/3 updates location_hint on an existing address", %{
+      conn: conn,
+      actor: actor,
+      user: user
+    } do
+      address = insert(:address)
+      event = insert(:event, organizer_actor: actor, physical_address: address)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @update_event_mutation,
+          variables: %{
+            eventId: event.id,
+            physicalAddress: %{
+              id: "#{address.id}",
+              locationHint: "2nd floor, room 101"
+            }
+          }
+        )
+
+      assert res["errors"] == nil
+
+      assert res["data"]["updateEvent"]["physicalAddress"]["location_hint"] ==
+               "2nd floor, room 101"
     end
 
     test "update_event/3 updates an event with a new picture", %{

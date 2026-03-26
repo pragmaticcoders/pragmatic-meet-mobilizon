@@ -14,6 +14,7 @@ export const ADDRESS_FRAGMENT = gql`
     url
     originId
     timezone
+    locationHint
     pictureInfo {
       url
       author {
