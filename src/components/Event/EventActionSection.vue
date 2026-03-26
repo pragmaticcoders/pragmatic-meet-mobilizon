@@ -244,7 +244,6 @@
             aria-role="listitem"
             :disabled="isDownloading"
             @click="downloadIcsEvent()"
-            @keyup.enter="downloadIcsEvent()"
             class="pl-8"
           >
             <span class="flex gap-1 items-center pl-4">
@@ -258,7 +257,6 @@
           <o-dropdown-item
             aria-role="listitem"
             @click="openGoogleCalendar()"
-            @keyup.enter="openGoogleCalendar()"
             class="pl-8"
           >
             <span class="flex gap-1 items-center pl-4">
@@ -269,7 +267,6 @@
           <o-dropdown-item
             aria-role="listitem"
             @click="openOutlookCalendar()"
-            @keyup.enter="openOutlookCalendar()"
             class="pl-8"
           >
             <span class="flex gap-1 items-center pl-4">
@@ -561,6 +558,17 @@ const formatDateInTimezone = (date: string, timezone: string): string => {
   return `${get("year")}${get("month")}${get("day")}T${get("hour")}${get("minute")}${get("second")}`;
 };
 
+const getUtcOffset = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const utc = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }));
+  const local = new Date(d.toLocaleString("en-US", { timeZone: timezone }));
+  const offset = (local.getTime() - utc.getTime()) / 60000;
+  const sign = offset >= 0 ? "+" : "-";
+  const h = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
+  const m = String(Math.abs(offset) % 60).padStart(2, "0");
+  return `${sign}${h}:${m}`;
+};
+
 const formatDateForOutlook = (date: string, timezone: string): string => {
   const d = new Date(date);
   const formatter = new Intl.DateTimeFormat("en-CA", {
@@ -576,7 +584,7 @@ const formatDateForOutlook = (date: string, timezone: string): string => {
   const parts = formatter.formatToParts(d);
   const get = (type: string): string =>
     parts.find((p) => p.type === type)?.value ?? "00";
-  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${getUtcOffset(date, timezone)}`;
 };
 
 const getEventLocation = (): string => {
