@@ -50,6 +50,8 @@ services:
         condition: service_healthy
       mobilizon-adapter:
         condition: service_started
+      adapter-nginx:
+        condition: service_started
     environment:
       MIX_ENV: "dev"
       DOCKER: "true"
@@ -123,6 +125,28 @@ services:
     networks:
       - mobilizon_adapter_net
       - adapter_forms_net
+
+  # ── Adapter Nginx — serves Module Federation static files (remoteEntry.js etc.) ──
+  # Browser downloads SurveyForm.vue and SurveyBuilder.vue from here at runtime.
+  # Port 8081 matches MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL in .env.
+
+  adapter-nginx:
+    container_name: mobilizon_adapter_nginx
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.adapter
+      target: frontend-nginx
+      secrets:
+        - github_token
+      args:
+        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
+        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
+    ports:
+      # Bind to loopback only — per plan, public access goes through the external Nginx proxy.
+      - "127.0.0.1:8081:80"
+    networks:
+      - mobilizon_adapter_net
 
   # ── Forms Service ────────────────────────────────────────────────────────────
   # Universal survey/forms backend. Runs as infrastructure — not yet connected

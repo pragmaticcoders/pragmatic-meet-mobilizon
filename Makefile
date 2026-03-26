@@ -20,6 +20,15 @@ start: stop
 	$(COMPOSE) up -d api
 	@bash docker/message.sh "Docker server started"
 
+# Pull latest pragmatic-forms code from GitHub and restart adapter services.
+# Use after merging changes to the pragmatic-forms repo.
+# --no-cache forces a fresh git clone, bypassing Docker's build cache.
+update-adapter: stop
+	@bash docker/message.sh "Rebuilding adapter from latest pragmatic-forms"
+	$(COMPOSE) build --no-cache mobilizon-adapter adapter-nginx
+	$(COMPOSE) up -d api
+	@bash docker/message.sh "Docker server started"
+
 # Use when actively developing pragmatic-forms locally (hot-reload via bind mounts).
 # No SSH key needed — uses local source directly.
 # Requires: pragmatic-forms repo must be a sibling directory of this repo.

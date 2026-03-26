@@ -25,7 +25,10 @@ export default defineConfig(({ command }) => {
         adapterModule:
           "https://placeholder-replaced-at-runtime/assets/remoteEntry.js",
       },
-      shared: ["vue"],
+      // vue and Apollo client are shared so SurveyForm.vue (loaded from the adapter
+      // via Module Federation) uses the same instances — including the Apollo client
+      // that already carries the Guardian JWT of the logged-in user.
+      shared: ["vue", "@vue/apollo-composable", "@apollo/client"],
     }),
     vue(),
     visualizer(),

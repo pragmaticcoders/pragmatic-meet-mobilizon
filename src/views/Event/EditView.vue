@@ -509,6 +509,25 @@
           </o-field>
         </fieldset>
       </section>
+      <section v-if="surveysEnabled" class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+          {{ t("Participant survey") }}
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          {{
+            t(
+              "Add a survey that participants must complete before joining this event."
+            )
+          }}
+        </p>
+        <SurveyBuilderWrapper
+          :context-id="eventSurveyContextId"
+          :initial-schema="surveySchema ?? undefined"
+          @schema-change="(s: object) => (surveySchema = s)"
+          @error="(e: Error) => console.error('SurveyBuilder error:', e)"
+        />
+      </section>
+
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">
           {{ t("Status") }}
@@ -820,6 +839,8 @@ import {
 } from "@/composition/apollo/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { Dialog } from "@/plugins/dialog";
+import { usePlugins } from "@/composition/apollo/plugins";
+import SurveyBuilderWrapper from "@/components/Survey/SurveyBuilderWrapper.vue";
 import { Notifier } from "@/plugins/notifier";
 import { useHead } from "@/utils/head";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -862,6 +883,17 @@ const event = ref<IEditableEvent>(new EventModel());
 const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
 
 const pictureFile = ref<File | null>(null);
+
+// Survey plugin
+const { surveysEnabled } = usePlugins();
+const surveySchema = ref<object | null>(null);
+// context_id is built from the event UUID if editing, or a temp ID for new events.
+// The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
+const eventSurveyContextId = computed(() =>
+  props.eventId
+    ? `mobilizon_event:${props.eventId}`
+    : `mobilizon_event:new`
+);
 
 // Separate state to track if user wants to limit places (independent of current capacity value)
 const limitedPlacesEnabled = ref(false);
@@ -1609,6 +1641,10 @@ const buildVariables = async () => {
     ? event.value?.attributedTo.id
     : null;
   res = { ...res, attributedToId };
+
+  if (surveySchema.value) {
+    res = { ...res, surveySchema: surveySchema.value };
+  }
 
   if (pictureFile.value) {
     const pictureObj = buildFileVariable(pictureFile.value, "picture");

@@ -189,6 +189,7 @@ export const CREATE_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $surveySchema: JSON
   ) {
     createEvent(
       attributedToId: $attributedToId
@@ -210,6 +211,7 @@ export const CREATE_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      surveySchema: $surveySchema
     ) {
       ...FullEvent
     }
@@ -240,6 +242,7 @@ export const EDIT_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $surveySchema: JSON
   ) {
     updateEvent(
       eventId: $id
@@ -263,6 +266,7 @@ export const EDIT_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      surveySchema: $surveySchema
     ) {
       ...FullEvent
     }

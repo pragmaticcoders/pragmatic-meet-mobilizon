@@ -13,7 +13,17 @@ RUN --mount=type=secret,id=github_token \
     "https://oauth2:${TOKEN}@github.com/${PRAGMATIC_FORMS_REPO}.git" \
     /app/pragmatic-forms
 
-# Stage 2: dev runtime — mirrors the `dev` stage from the original Dockerfile in pragmatic-forms.
+# Stage 2: build frontend (Vue + formio.js as Module Federation remote).
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app/frontend
+COPY --from=clone /app/pragmatic-forms/mobilizon-adapter/frontend/package.json \
+                  /app/pragmatic-forms/mobilizon-adapter/frontend/package-lock.json* ./
+RUN npm install --legacy-peer-deps
+COPY --from=clone /app/pragmatic-forms/mobilizon-adapter/frontend/ ./
+RUN npm run build
+
+# Stage 3: dev runtime — mirrors the `dev` stage from the original Dockerfile in pragmatic-forms.
 FROM oven/bun:alpine AS dev
 
 WORKDIR /app
@@ -27,3 +37,27 @@ RUN bun install
 COPY --from=clone /app/pragmatic-forms/mobilizon-adapter/src ./src
 
 CMD ["bun", "run", "dev"]
+
+# Stage 4: nginx for serving the built frontend static files.
+FROM nginx:alpine AS frontend-nginx
+
+COPY --from=frontend-build /app/frontend/dist /usr/share/nginx/html
+COPY <<'EOF' /etc/nginx/conf.d/default.conf
+server {
+    listen 80;
+    server_name _;
+
+    location /assets/ {
+        root /usr/share/nginx/html;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        # CORS: allow the Mobilizon frontend to load Module Federation files.
+        # In production, replace * with the exact Mobilizon origin.
+        add_header Access-Control-Allow-Origin "*";
+    }
+
+    location / {
+        root /usr/share/nginx/html;
+        add_header Access-Control-Allow-Origin "*";
+    }
+}
+EOF
