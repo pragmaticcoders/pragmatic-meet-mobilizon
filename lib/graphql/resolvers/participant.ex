@@ -30,28 +30,37 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     case User.owns_actor(user, actor_id) do
       {:is_owned, %Actor{} = actor} ->
         if Surveys.enabled?() do
-          context_id = Surveys.event_context_id(event_id)
-          respondent_id = Surveys.actor_respondent_id(actor_id)
+          # Load the event to get its UUID — the stable public identifier used as context_id.
+          # Using the raw event_id from GraphQL args would produce a different context_id than
+          # the one saved by the event resolver (which always uses event.uuid).
+          with {:has_event, {:ok, %Event{uuid: event_uuid}}} <-
+                 {:has_event, Events.get_event_with_preload(event_id)} do
+            context_id = Surveys.event_context_id(event_uuid)
+            respondent_id = Surveys.actor_respondent_id(actor_id)
 
-          case Surveys.check_gate(context_id, respondent_id) do
-            {:ok, %{"required" => true, "survey_schema" => schema}} ->
-              {:ok,
-               %{
-                 status: :survey_required,
-                 survey_schema: schema,
-                 context_id: context_id,
-                 participant: nil
-               }}
+            case Surveys.check_gate(context_id, respondent_id) do
+              {:ok, %{"required" => true, "survey_schema" => schema}} ->
+                {:ok,
+                 %{
+                   status: :survey_required,
+                   survey_schema: schema,
+                   context_id: context_id,
+                   participant: nil
+                 }}
 
-            {:ok, _} ->
-              case do_actor_join_event(actor, event_id, args) do
-                {:ok, participant} ->
-                  {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
-                error -> error
-              end
+              {:ok, _} ->
+                case do_actor_join_event(actor, event_id, args) do
+                  {:ok, participant} ->
+                    {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+                  error -> error
+                end
 
-            {:error, reason} ->
-              {:error, reason}
+              {:error, reason} ->
+                {:error, reason}
+            end
+          else
+            {:has_event, _} ->
+              {:error, dgettext("errors", "Event not found")}
           end
         else
           case do_actor_join_event(actor, event_id, args) do
@@ -508,27 +517,33 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
         %{event_id: event_id},
         %{context: %{current_user: %User{} = user, current_actor: %Actor{id: actor_id} = _actor}}
       ) do
-    context_id = Surveys.event_context_id(event_id)
-    respondent_id = Surveys.actor_respondent_id(actor_id)
+    with {:has_event, {:ok, %Event{uuid: event_uuid}}} <-
+           {:has_event, Events.get_event_with_preload(event_id)} do
+      context_id = Surveys.event_context_id(event_uuid)
+      respondent_id = Surveys.actor_respondent_id(actor_id)
 
-    case Surveys.check_gate(context_id, respondent_id) do
-      {:ok, %{"required" => false}} ->
-        case User.owns_actor(user, actor_id) do
-          {:is_owned, %Actor{} = owned_actor} ->
-            case do_actor_join_event(owned_actor, event_id, %{actor_id: actor_id, event_id: event_id}) do
-              {:ok, participant} ->
-                {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
-              error -> error
-            end
-          _ ->
-            {:error, dgettext("errors", "Profile is not owned by authenticated user")}
-        end
+      case Surveys.check_gate(context_id, respondent_id) do
+        {:ok, %{"required" => false}} ->
+          case User.owns_actor(user, actor_id) do
+            {:is_owned, %Actor{} = owned_actor} ->
+              case do_actor_join_event(owned_actor, event_id, %{actor_id: actor_id, event_id: event_id}) do
+                {:ok, participant} ->
+                  {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+                error -> error
+              end
+            _ ->
+              {:error, dgettext("errors", "Profile is not owned by authenticated user")}
+          end
 
-      {:ok, %{"required" => true}} ->
-        {:error, dgettext("errors", "Survey not completed")}
+        {:ok, %{"required" => true}} ->
+          {:error, dgettext("errors", "Survey not completed")}
 
-      {:error, reason} ->
-        {:error, reason}
+        {:error, reason} ->
+          {:error, reason}
+      end
+    else
+      {:has_event, _} ->
+        {:error, dgettext("errors", "Event not found")}
     end
   end
 

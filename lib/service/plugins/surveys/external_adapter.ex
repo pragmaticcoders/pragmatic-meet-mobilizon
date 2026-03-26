@@ -13,9 +13,10 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
   def check_gate(context_id, respondent_id) do
     Logger.debug("Survey check_gate: context=#{context_id}, respondent=#{respondent_id}")
 
-    case Tesla.get(client(), "/api/gate/check",
-           query: [context_id: context_id, respondent_id: respondent_id]
-         ) do
+    case Tesla.post(client(), "/api/check-gate", %{
+           context_id: context_id,
+           respondent_id: respondent_id
+         }) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
         {:ok, body}
 
@@ -37,6 +38,9 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
       {:ok, %Tesla.Env{status: status, body: body}} when status in [200, 201] ->
         {:ok, body}
 
+      {:ok, %Tesla.Env{status: 409, body: body}} ->
+        {:error, "Survey response already submitted: #{inspect(body)}"}
+
       {:ok, %Tesla.Env{status: status, body: body}} ->
         {:error, "Survey submit failed with status #{status}: #{inspect(body)}"}
 
@@ -47,10 +51,11 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
 
   @impl true
   def save_survey(context_id, schema) do
-    case Tesla.put(client(), "/api/surveys", %{
-           context_id: context_id,
-           schema: schema
-         }) do
+    # context_id may contain colons (e.g. "mobilizon_event:uuid"), so it must be
+    # percent-encoded when used as a URL path segment.
+    encoded = URI.encode(context_id, &URI.char_unreserved?/1)
+
+    case Tesla.put(client(), "/api/surveys/by-context/#{encoded}", %{schema: schema}) do
       {:ok, %Tesla.Env{status: status, body: body}} when status in [200, 201] ->
         {:ok, body}
 
@@ -64,7 +69,9 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
 
   @impl true
   def get_responses(context_id) do
-    case Tesla.get(client(), "/api/responses", query: [context_id: context_id]) do
+    encoded = URI.encode(context_id, &URI.char_unreserved?/1)
+
+    case Tesla.get(client(), "/api/responses/by-context/#{encoded}") do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
         {:ok, body}
 

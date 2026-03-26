@@ -128,7 +128,7 @@
           <SurveyFormWrapper
             :context-id="surveyContextId"
             :survey-schema="surveySchema"
-            @completed="(data: Record<string, string>) => handleSurveyCompleted(data)"
+            @completed="handleSurveyCompleted"
             @error="(e: Error) => console.error('Survey error:', e)"
           />
         </section>
@@ -155,7 +155,7 @@ import { IAnonymousParticipationConfig } from "@/types/config.model";
 import { usePlugins } from "@/composition/apollo/plugins";
 import SurveyFormWrapper from "@/components/Survey/SurveyFormWrapper.vue";
 import { useMutation } from "@vue/apollo-composable";
-import { SUBMIT_SURVEY_RESPONSE, CONFIRM_EVENT_JOIN } from "@/graphql/event";
+import { CONFIRM_EVENT_JOIN } from "@/graphql/event";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -181,7 +181,6 @@ const showSurveyModal = ref(false);
 const surveyContextId = ref<string | null>(null);
 const surveySchema = ref<object | null>(null);
 
-const { mutate: submitSurveyResponse } = useMutation(SUBMIT_SURVEY_RESPONSE);
 const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
 
 const handleSurveyRequired = (response: {
@@ -194,15 +193,11 @@ const handleSurveyRequired = (response: {
   showSurveyModal.value = true;
 };
 
-const handleSurveyCompleted = async (formData: Record<string, string>) => {
-  if (!surveyContextId.value) return;
-
+// SurveyForm.vue (loaded from the adapter via Module Federation) submits the
+// survey response itself via GraphQL — Mobilizon never sees raw form data.
+// We only need to confirm the participation once the form signals completion.
+const handleSurveyCompleted = async () => {
   try {
-    await submitSurveyResponse({
-      contextId: surveyContextId.value,
-      data: JSON.stringify(formData),
-    });
-
     await confirmEventJoin({
       eventId: props.event.id,
     });

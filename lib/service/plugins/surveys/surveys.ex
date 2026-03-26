@@ -48,12 +48,17 @@ defmodule Mobilizon.Service.Plugins.Surveys do
     adapter().get_responses(context_id)
   end
 
+  # context_id conventions — the "mobilizon_" namespace prefix prevents collisions
+  # when the same Adapter / Forms Service is shared between multiple applications.
+  # Each new survey location requires only a new helper here and a new resolver callsite.
+  # The Behaviour, ExternalAdapter, Adapter and Forms Service remain unchanged.
+
   @spec event_context_id(String.t() | integer()) :: String.t()
-  def event_context_id(event_id), do: "event:#{event_id}"
+  def event_context_id(event_id), do: "mobilizon_event:#{event_id}"
 
   @spec group_context_id(String.t() | integer()) :: String.t()
-  def group_context_id(group_id), do: "group:#{group_id}"
+  def group_context_id(group_id), do: "mobilizon_group:#{group_id}"
 
   @spec actor_respondent_id(String.t() | integer()) :: String.t()
-  def actor_respondent_id(actor_id), do: "actor:#{actor_id}"
+  def actor_respondent_id(actor_id), do: "mobilizon_actor:#{actor_id}"
 end
