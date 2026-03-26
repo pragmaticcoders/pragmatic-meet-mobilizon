@@ -45,6 +45,11 @@
               })
             }}</small>
           </a>
+          <BellOutline
+            v-if="comment.isAnnouncement"
+            :size="18"
+            class="text-mbz-purple"
+          />
         </div>
         <div
           v-if="!comment.deletedAt"
@@ -241,6 +246,7 @@ import ChevronUp from "vue-material-design-icons/ChevronUp.vue";
 import ChevronDown from "vue-material-design-icons/ChevronDown.vue";
 import DotsHorizontal from "vue-material-design-icons/DotsHorizontal.vue";
 import Reply from "vue-material-design-icons/Reply.vue";
+import BellOutline from "vue-material-design-icons/BellOutline.vue";
 import type { Locale } from "date-fns";
 import ReportModal from "@/components/Report/ReportModal.vue";
 import { useCreateReport } from "@/composition/apollo/report";
