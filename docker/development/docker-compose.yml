@@ -1,4 +1,6 @@
 services:
+  # ── Mobilizon Core ──────────────────────────────────────────────────────────
+
   postgres:
     container_name: mobilizon_db
     restart: unless-stopped
@@ -22,6 +24,9 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - mobilizon_internal
+
   api:
     container_name: mobilizon_api
     restart: unless-stopped
@@ -43,6 +48,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mobilizon-adapter:
+        condition: service_started
     environment:
       MIX_ENV: "dev"
       DOCKER: "true"
@@ -64,9 +71,147 @@ services:
       # Pending-group moderators can manage the group before admin approval; override in .env with "false" to disable
       MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS: ${MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS:-true}
       # Note: Google Analytics env vars are passed through via env_file (../../.env)
+
+      # ── Survey Plugin ────────────────────────────────────────────────────────
+      # Adapter runs at http://mobilizon-adapter:4000 on the mobilizon_adapter_net network.
+      # ADAPTER_STATIC_URL points to where the browser downloads remoteEntry.js (step 2: Nginx).
+      MOBILIZON_PLUGIN_SURVEYS_ENABLED: "${MOBILIZON_PLUGIN_SURVEYS_ENABLED:-true}"
+      MOBILIZON_PLUGIN_SURVEYS_ADAPTER_URL: "http://mobilizon-adapter:4000"
+      MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL: "${MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL:-http://localhost:8081}"
+      MOBILIZON_PLUGIN_SURVEYS_API_KEY: "${MOBILIZON_PLUGIN_SURVEYS_API_KEY:-}"
+    networks:
+      - mobilizon_internal
+      - mobilizon_adapter_net
+
+  # ── Mobilizon Survey Adapter ─────────────────────────────────────────────────
+  # Receives check_gate / submit_response calls from Mobilizon Elixir.
+  # Built by cloning the pragmatic-forms private repo via SSH at build time.
+  # Uses InMemoryFormsServiceClient in dev — no Forms Service connection needed yet.
+  # Set FORMS_SERVICE_URL=http://forms-api:3000 once the API contract is aligned.
+  #
+  # Prerequisites (once per machine):
+  #   Set GITHUB_PAT and PRAGMATIC_FORMS_REPO in .env (see .env.template)
+  #
+  # To use a local checkout instead (hot-reload):
+  #   make start-local-forms
+
+  mobilizon-adapter:
+    container_name: mobilizon_survey_adapter
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.adapter
+      secrets:
+        - github_token
+      args:
+        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
+        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
+    ports:
+      # Host port 4001 avoids conflict with Mobilizon API on host port 4000.
+      # Internally the adapter always listens on :4000 (Docker DNS: mobilizon-adapter:4000).
+      - "4001:4000"
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      # Auth: adapter accepts any request when MOBILIZON_API_KEY is unset (dev-only bypass).
+      MOBILIZON_API_KEY: "${MOBILIZON_PLUGIN_SURVEYS_API_KEY:-}"
+      # Forms Service connection — uncomment once API contract is aligned.
+      # Also uncomment DATABASE_URL_ADAPTER (adapter needs its own DB in HTTP mode).
+      # FORMS_SERVICE_URL: "http://forms-api:3000"
+      FORMS_SERVICE_API_KEY: "${FORMS_SERVICE_API_KEY:-}"
+      # DATABASE_URL: "${DATABASE_URL_ADAPTER:-}"
+    networks:
+      - mobilizon_adapter_net
+      - adapter_forms_net
+
+  # ── Forms Service ────────────────────────────────────────────────────────────
+  # Universal survey/forms backend. Runs as infrastructure — not yet connected
+  # to the adapter (pending API contract alignment). ADMIN_API_KEY enables a
+  # bypass for the adapter once it connects.
+
+  forms-api:
+    container_name: pragmatic_forms_api
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.forms
+      secrets:
+        - github_token
+      args:
+        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
+        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
+    ports:
+      - "3000:3000"
+    # Sync Prisma schema to DB before starting. The Dockerfile bakes in the source
+    # so bun install is already done — only the runtime migration step is needed here.
+    command: sh -c "bunx prisma db push && bun run dev"
+    environment:
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: "postgresql://postgres:postgres@forms-db:5432/forms?schema=public"
+      # Admin key allows the adapter to authenticate without creating a client first.
+      ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-dev-admin-key}"
+    depends_on:
+      forms-db:
+        condition: service_healthy
+    networks:
+      - adapter_forms_net
+
+  forms-db:
+    container_name: pragmatic_forms_db
+    restart: unless-stopped
+    image: postgres:15-alpine
+    ports:
+      # Host port 5433 — avoids conflict with any local postgres on 5432.
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: forms
+    volumes:
+      - forms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d forms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - adapter_forms_net
+
+# ── Build secrets ─────────────────────────────────────────────────────────────
+# github_token is injected into the clone stage of Dockerfile.adapter and
+# Dockerfile.forms via --mount=type=secret. The token value is read from the
+# GITHUB_PAT environment variable (set in .env). It never enters any image layer.
+
+secrets:
+  github_token:
+    environment: GITHUB_PAT
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+#
+#   mobilizon_internal    → Mobilizon API ↔ Mobilizon Postgres
+#   mobilizon_adapter_net → Mobilizon API ↔ Survey Adapter
+#   adapter_forms_net     → Survey Adapter ↔ Forms Service ↔ Forms Postgres
+#
+# The Forms Service has no route from mobilizon_internal and no public port —
+# it is only reachable through the Adapter.
+
+networks:
+  mobilizon_internal:
+    driver: bridge
+  mobilizon_adapter_net:
+    driver: bridge
+  adapter_forms_net:
+    driver: bridge
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+
 volumes:
+  # Mobilizon
   pgdata:
   deps_cache:
   build_cache:
   node_modules_cache:
   priv_static:
+  # Forms Service
+  forms_pgdata:

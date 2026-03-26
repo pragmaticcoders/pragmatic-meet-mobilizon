@@ -1,0 +1,32 @@
+# Stage 1: clone — GitHub token is mounted as a secret: never enters any image layer.
+FROM alpine AS clone
+
+RUN apk add --no-cache git
+
+# org/repo format, e.g. pragmaticcoders/pragmatic-forms
+ARG PRAGMATIC_FORMS_REPO
+ARG PRAGMATIC_FORMS_REF=main
+
+RUN --mount=type=secret,id=github_token \
+    TOKEN=$(cat /run/secrets/github_token) && \
+    git clone --depth=1 --branch=${PRAGMATIC_FORMS_REF} \
+    "https://oauth2:${TOKEN}@github.com/${PRAGMATIC_FORMS_REPO}.git" \
+    /app/pragmatic-forms
+
+# Stage 2: dev runtime — mirrors the `dev` stage from the original Dockerfile in pragmatic-forms.
+# The prisma db push + bun run dev command is set in docker-compose so it can be
+# overridden by docker-compose.local-forms.yml without touching this Dockerfile.
+FROM oven/bun:alpine AS dev
+
+WORKDIR /app
+COPY --from=clone /app/pragmatic-forms/tsconfig.json ./
+
+WORKDIR /app/forms
+COPY --from=clone /app/pragmatic-forms/forms/package.json \
+                  /app/pragmatic-forms/forms/tsconfig.json ./
+COPY --from=clone /app/pragmatic-forms/forms/bun.lock* ./
+RUN bun install
+COPY --from=clone /app/pragmatic-forms/forms/src ./src
+COPY --from=clone /app/pragmatic-forms/forms/prisma ./prisma
+
+CMD ["bun", "run", "dev"]
