@@ -7,7 +7,9 @@ defmodule Mobilizon.Web.Email.Admin do
 
   import Mobilizon.Web.Gettext
 
+  alias Mobilizon.Actors
   alias Mobilizon.Config
+  alias Mobilizon.Events.Event
   alias Mobilizon.Reports.Report
   alias Mobilizon.Users.User
   alias Mobilizon.Users
@@ -187,4 +189,59 @@ defmodule Mobilizon.Web.Email.Admin do
 
     :ok
   end
+
+  @spec pending_group_event_to_validate(User.t(), Event.t(), Actor.t()) :: Swoosh.Email.t()
+  def pending_group_event_to_validate(
+        %User{email: email, locale: user_locale},
+        %Event{} = event,
+        %Actor{type: :Group} = group
+      ) do
+    Gettext.put_locale(user_locale)
+
+    subject =
+      gettext(
+        "Held event awaiting group approval on %{instance}",
+        instance: Config.instance_name()
+      )
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:pending_group_event_to_validate, %{
+      locale: user_locale,
+      subject: subject,
+      event: event,
+      group: group,
+      instance_name: Config.instance_name(),
+      offer_unsupscription: false
+    })
+  end
+
+  @spec notify_admins_of_pending_group_event(Event.t()) :: :ok
+  def notify_admins_of_pending_group_event(%Event{} = event) do
+    case group_for_pending_event(event) do
+      %Actor{type: :Group} = group ->
+        Users.list_moderators()
+        |> Enum.each(fn admin_user ->
+          admin_user
+          |> pending_group_event_to_validate(event, group)
+          |> Email.Mailer.send_email()
+        end)
+
+      _ ->
+        :ok
+    end
+
+    :ok
+  end
+
+  defp group_for_pending_event(%Event{attributed_to: %Actor{type: :Group} = group}), do: group
+
+  defp group_for_pending_event(%Event{attributed_to_id: id}) when not is_nil(id) do
+    case Actors.get_actor(id) do
+      %Actor{type: :Group} = group -> group
+      _ -> nil
+    end
+  end
+
+  defp group_for_pending_event(%Event{}), do: nil
 end

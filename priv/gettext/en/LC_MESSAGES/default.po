@@ -2091,3 +2091,47 @@ msgstr ""
 msgctxt "terms"
 msgid "When we say “we”, “our”, or “us” in this document, we are referring to the owners, operators and administrators of this Pragmatic Meet instance. The Pragmatic Meet software is provided by the team of Pragmatic Meet contributors. Unless explicitly stated, this Pragmatic Meet instance is an independent service using Pragmatic Meet's source code. You may find more information about this instance on the <a href=\"/about/instance\">\"About this instance\"</a> page."
 msgstr ""
+
+#: lib/web/email/admin.ex
+#, elixir-autogen, elixir-format
+msgid "Held event awaiting group approval on %{instance}"
+msgstr "Held event awaiting group approval on %{instance}"
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Held event awaiting group approval"
+msgstr "Held event awaiting group approval"
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "A published event was created for a group that is still pending approval on %{instance}. The event will not be public until you approve the group."
+msgstr "A published event was created for a group that is still pending approval on %{instance}. The event will not be public until you approve the group."
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Event:"
+msgstr "Event:"
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Group:"
+msgstr "Group:"
+
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "To review and approve the group, visit the admin panel:"
+msgstr "To review and approve the group, visit the admin panel:"
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#, elixir-autogen, elixir-format
+msgid "Review group in admin panel"
+msgstr "Review group in admin panel"
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event and group"
+msgstr "Event and group"

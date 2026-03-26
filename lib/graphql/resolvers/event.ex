@@ -4,6 +4,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   """
 
   alias Mobilizon.{Actors, Admin, Events}
+  alias Mobilizon.Web.Email.Admin, as: AdminEmail
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Config
   alias Mobilizon.Events.{Event, EventParticipantStats}
@@ -196,7 +197,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
     if Events.user_moderator_for_event?(user_id, event_id) do
       {:ok,
        stats
-       |> Map.put(:going, stats.participant + stats.moderator + stats.administrator + stats.creator)
+       |> Map.put(
+         :going,
+         stats.participant + stats.moderator + stats.administrator + stats.creator
+       )
        |> Map.put(:waitlist, waitlist_count)}
     else
       # Return participant count and waitlist count for all users
@@ -205,7 +209,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   end
 
   def stats_participants(
-        %Event{participant_stats: %EventParticipantStats{participant: participant, waitlist: waitlist}},
+        %Event{
+          participant_stats: %EventParticipantStats{participant: participant, waitlist: waitlist}
+        },
         _args,
         _resolution
       ) do
@@ -264,7 +270,11 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   def create_event(
         _parent,
         args,
-        %{context: %{current_user: %User{email: email} = user, current_actor: %Actor{} = organizer_actor} = context} = _resolution
+        %{
+          context:
+            %{current_user: %User{email: email} = user, current_actor: %Actor{} = organizer_actor} =
+              context
+        } = _resolution
       ) do
     current_ip = Map.get(context, :ip)
     user_agent = Map.get(context, :user_agent, "")
@@ -292,6 +302,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
             )},
          {:ok, %Activity{data: %{"object" => %{"type" => "Event"}}}, %Event{} = event} <-
            API.Events.create_event(args_with_organizer) do
+      if event.pending_group_approval && !event.draft do
+        AdminEmail.notify_admins_of_pending_group_event(event)
+      end
+
       {:ok, event}
     else
       {:can_create_event, false} ->
@@ -398,7 +412,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
     args = Map.put(args, :options, args[:options] || %{})
 
     with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
-         old_capacity <- get_in(event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0,
+         old_capacity <-
+           get_in(event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0,
          {:ok, args} <- verify_profile_change(args, event, user, actor),
          args <- extract_timezone(args, user.id),
          {:event_can_be_managed, true} <-
@@ -407,7 +422,8 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
          {:ok, %Activity{data: %{"object" => %{"type" => "Event"}}}, %Event{} = updated_event} <-
            API.Events.update_event(args, event) do
       # Check if capacity increased and trigger waitlist promotion if needed
-      new_capacity = get_in(updated_event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0
+      new_capacity =
+        get_in(updated_event, [Access.key(:options), Access.key(:maximum_attendee_capacity)]) || 0
 
       if new_capacity > old_capacity do
         # Capacity increased, check if we should promote from waitlist
@@ -416,6 +432,10 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
           Process.sleep(100)
           Mobilizon.GraphQL.API.Participations.promote_from_waitlist_if_needed(event_id)
         end)
+      end
+
+      if event.draft && !updated_event.draft && updated_event.pending_group_approval do
+        AdminEmail.notify_admins_of_pending_group_event(updated_event)
       end
 
       {:ok, updated_event}

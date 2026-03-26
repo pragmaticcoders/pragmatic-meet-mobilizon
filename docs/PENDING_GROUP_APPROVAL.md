@@ -26,6 +26,7 @@ MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS=true
 |------|-------------------------|
 | Group UI | Moderators can manage members, start discussions, announcements, and open event creation while the group is pending approval (banner copy reflects this). |
 | New group events | Server sets `pending_group_approval` on the event. The event is **not** public, **not** indexed for public search, **not** federated, and **not** given “new event” notifications until the group is approved. |
+| Admin email | Instance moderators receive an email when a **non-draft** held event is **created** or when a draft is **first published** (`draft` cleared) while the group is still pending approval—same audience as “new group to validate” (`Mobilizon.Web.Email.Admin`). |
 | Create flow | Organizers see a confirmation dialog before the first publish/create action. |
 | Visibility | Moderators see a badge (e.g. “Awaiting group approval”) on held events where applicable. |
 | Group approved | `approveGroup` clears `pending_group_approval` on those events, then runs release side effects (search, notifications where appropriate, federation). |
@@ -36,7 +37,8 @@ Rejected or suspended groups do **not** auto-release held events.
 
 - **Release / approve:** `lib/mobilizon/events/pending_group_approval.ex` (uses `Ecto.Changeset.change/2` for the flag update to avoid touching unloaded associations).
 - **Resolver:** `lib/graphql/resolvers/group.ex` (`approve_group` passes the group’s integer `id` into release).
-- **Create path:** `lib/graphql/resolvers/event.ex` (`maybe_put_pending_group_approval_on_create`).
+- **Create path:** `lib/graphql/resolvers/event.ex` (`maybe_put_pending_group_approval_on_create`; notifies moderators via `notify_admins_of_pending_group_event` when the event is non-draft or when updated from draft to published).
+- **Held-event admin mail:** `lib/web/email/admin.ex` (`pending_group_event_to_validate`, `notify_admins_of_pending_group_event`).
 - **Public visibility:** `lib/mobilizon/events/events.ex` (`filter_not_pending_group_approval`, public event queries).
 - **UI:** `src/views/Group/GroupView.vue`, `GroupMembers.vue`, `src/views/Event/EditView.vue` (modal), event cards / `EventView.vue`.
 

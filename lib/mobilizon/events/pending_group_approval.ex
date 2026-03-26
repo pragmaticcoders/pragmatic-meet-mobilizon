@@ -8,7 +8,7 @@ defmodule Mobilizon.Events.PendingGroupApproval do
   alias Mobilizon.Events.Event
   alias Mobilizon.Federation.ActivityPub.Types.Events, as: EventPubTypes
   alias Mobilizon.Service.Export.Cachable
-  alias Mobilizon.Service.Search.BuildSearch
+  alias Mobilizon.Service.Workers.BuildSearch
   alias Mobilizon.Service.Workers.EventDelayedNotificationWorker
   alias Mobilizon.Storage.Repo
 
@@ -60,7 +60,9 @@ defmodule Mobilizon.Events.PendingGroupApproval do
         end
 
       {:error, changeset} ->
-        Logger.warning("Failed to release pending group event #{event.id}: #{inspect(changeset.errors)}")
+        Logger.warning(
+          "Failed to release pending group event #{event.id}: #{inspect(changeset.errors)}"
+        )
     end
   end
 
