@@ -42,3 +42,8 @@
       |> raw %>
     <% end %>
 <% end %>
+<blockquote style="border-left-width: 0.25rem;border-left-color: #e2e8f0;border-left-style: solid;padding-left: 1em;margin: 0.5em 0;text-align: start;">
+  <%= (@activity.subject_params["comment_text"] || "")
+  |> sanitize_to_basic_html()
+  |> raw() %>
+</blockquote>
