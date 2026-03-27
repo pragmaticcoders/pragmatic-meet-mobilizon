@@ -65,8 +65,10 @@
                       <span
                         :class="{
                           'bg-red-100 text-red-800': user.disabled,
-                          'bg-yellow-100 text-yellow-800': user.suspended && !user.disabled,
-                          'bg-green-100 text-green-800': !user.suspended && !user.disabled,
+                          'bg-yellow-100 text-yellow-800':
+                            user.suspended && !user.disabled,
+                          'bg-green-100 text-green-800':
+                            !user.suspended && !user.disabled,
                         }"
                         class="text-sm font-medium mr-2 px-2.5 py-0.5 rounded"
                       >
@@ -166,7 +168,7 @@
           :limit="false"
         />
       </div>
-      
+
       <!-- Profile Details Table -->
       <div class="flex flex-col mb-4">
         <div class="overflow-x-auto">
@@ -583,7 +585,12 @@
 <script lang="ts" setup>
 import { formatBytes } from "@/utils/datetime";
 import { ICurrentUserRole, MemberRole } from "@/types/enums";
-import { GET_USER, SUSPEND_USER, UNSUSPEND_USER, DELETE_USER } from "../../graphql/user";
+import {
+  GET_USER,
+  SUSPEND_USER,
+  UNSUSPEND_USER,
+  DELETE_USER,
+} from "../../graphql/user";
 import RouteName from "../../router/name";
 import { IUser } from "../../types/current-user.model";
 import EmptyContent from "../../components/Utils/EmptyContent.vue";

@@ -25,10 +25,7 @@
       class="o-loading--enhanced o-loading--page"
     />
     <!-- Invite section - only for admins -->
-    <section
-      class="bg-white p-2 mt-4"
-      v-if="group && isCurrentActorAGroupAdmin"
-    >
+    <section class="bg-white p-2 mt-4" v-if="group && canUseAdminMemberTools">
       <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
         t("Invite a new member")
       }}</label>
@@ -75,11 +72,11 @@
               v-model="inviteInput"
               type="text"
               :placeholder="
-                isGroupPendingApproval
+                isPendingGroupActionsLocked
                   ? t('Invites disabled during approval')
                   : t('Username or email address')
               "
-              :disabled="isGroupPendingApproval"
+              :disabled="isPendingGroupActionsLocked"
               class="flex-1 min-w-0"
             />
             <o-autocomplete
@@ -90,11 +87,11 @@
               field="displayName"
               :loading="inviteSearchLoading"
               :placeholder="
-                isGroupPendingApproval
+                isPendingGroupActionsLocked
                   ? t('Invites disabled during approval')
                   : t('Username or email address')
               "
-              :disabled="isGroupPendingApproval"
+              :disabled="isPendingGroupActionsLocked"
               class="flex-1 min-w-0"
               @select="onSelectInviteActor"
             >
@@ -126,11 +123,11 @@
               v-model="inviteInput"
               type="email"
               :placeholder="
-                isGroupPendingApproval
+                isPendingGroupActionsLocked
                   ? t('Invites disabled during approval')
                   : t('Email address')
               "
-              :disabled="isGroupPendingApproval"
+              :disabled="isPendingGroupActionsLocked"
               class="flex-1 min-w-0"
             />
           </template>
@@ -139,19 +136,19 @@
             type="submit"
             variant="primary"
             :disabled="
-              isGroupPendingApproval ||
+              isPendingGroupActionsLocked ||
               !inviteInput.trim() ||
               sendingInvite ||
               (inviteMode === 'email_new' && !confirmNonExistingUser)
             "
             :class="[
               'px-8 py-[18px] font-bold whitespace-nowrap flex-shrink-0',
-              isGroupPendingApproval
+              isPendingGroupActionsLocked
                 ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                 : 'bg-[#155eef] text-white hover:bg-blue-600',
             ]"
             :title="
-              isGroupPendingApproval
+              isPendingGroupActionsLocked
                 ? t('This group is pending approval from administrators')
                 : ''
             "
@@ -188,7 +185,7 @@
         </o-notification>
       </form>
       <o-notification
-        v-if="isGroupPendingApproval"
+        v-if="isPendingGroupActionsLocked"
         variant="warning"
         :closable="false"
         class="mb-4 mt-4"
@@ -216,7 +213,7 @@
         {{ t("Group Members") }} ({{ group.members.total }})
       </h1>
       <!-- Filter by status section - only for admins -->
-      <div class="my-6" v-if="isCurrentActorAGroupAdmin">
+      <div class="my-6" v-if="canUseAdminMemberTools">
         <label class="block text-[17px] font-bold text-[#1c1b1f] mb-2">{{
           t("Filter by status")
         }}</label>
@@ -373,7 +370,7 @@
           field="actions"
           :label="t('Actions')"
           v-slot="props"
-          v-if="isCurrentActorAGroupAdmin"
+          v-if="canUseAdminMemberTools"
           header-class="bg-[#f5f5f6] px-[18px] py-3 text-[15px] font-bold text-[#1c1b1f] border border-[#cac9cb]"
           cell-class="px-[18px] py-[18px] border border-[#cac9cb]"
         >
@@ -453,6 +450,7 @@ import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
+import { useRestrictions } from "@/composition/apollo/config";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import {
   APPROVE_MEMBER,
@@ -500,6 +498,7 @@ const preferredUsername = computed(() => props.preferredUsername);
 const emit = defineEmits(["sort"]);
 
 const { currentActor } = useCurrentActorClient();
+const { restrictions } = useRestrictions();
 
 const inviteMode = ref<"existing" | "email_new">("existing");
 const inviteExistingEmailInputRef = ref<{ $el?: HTMLElement } | null>(null);
@@ -707,7 +706,7 @@ const members = computed(() => {
   const allMembers = group.value?.members ?? { total: 0, elements: [] };
 
   // For non-admin members, filter out INVITED, NOT_APPROVED, and REJECTED members
-  if (!isCurrentActorAGroupAdmin.value && allMembers.elements) {
+  if (!canUseAdminMemberTools.value && allMembers.elements) {
     const filteredElements = allMembers.elements.filter(
       (member: IMember) =>
         ![
@@ -908,7 +907,7 @@ const onInviteSubmit = async (): Promise<void> => {
   inviteError.value = "";
   const value = inviteInput.value?.trim() || "";
   if (!value || !group.value?.id) return;
-  if (isGroupPendingApproval.value) {
+  if (isPendingGroupActionsLocked.value) {
     inviteError.value = t(
       "Cannot invite members while group is awaiting approval"
     );
@@ -1425,6 +1424,12 @@ const isCurrentActorAGroupMember = computed((): boolean => {
   ]);
 });
 
+const { person } = usePersonStatusGroup(preferredUsername.value);
+
+const personMemberships = computed(
+  () => person.value?.memberships ?? { total: 0, elements: [] }
+);
+
 const hasCurrentActorThisRole = (givenRole: string | string[]): boolean => {
   const rolesToConsider = Array.isArray(givenRole) ? givenRole : [givenRole];
   return (
@@ -1433,9 +1438,38 @@ const hasCurrentActorThisRole = (givenRole: string | string[]): boolean => {
   );
 };
 
-const personMemberships = computed(
-  () => person.value?.memberships ?? { total: 0, elements: [] }
+const isCurrentActorAGroupModerator = computed((): boolean => {
+  return hasCurrentActorThisRole([
+    MemberRole.MODERATOR,
+    MemberRole.ADMINISTRATOR,
+  ]);
+});
+
+const isCurrentActorAGroupOwner = computed((): boolean => {
+  return hasCurrentActorThisRole(MemberRole.CREATOR);
+});
+
+const allowModeratorActivityForPendingGroups = computed(
+  () => restrictions.value?.allowModeratorActivityForPendingGroups ?? false
 );
 
-const { person } = usePersonStatusGroup(preferredUsername.value);
+const canUseAdminMemberTools = computed((): boolean => {
+  if (isCurrentActorAGroupAdmin.value) return true;
+
+  return (
+    allowModeratorActivityForPendingGroups.value &&
+    isGroupPendingApproval.value &&
+    (isCurrentActorAGroupModerator.value || isCurrentActorAGroupOwner.value)
+  );
+});
+
+const isPendingGroupActionsLocked = computed((): boolean => {
+  return (
+    isGroupPendingApproval.value &&
+    !(
+      allowModeratorActivityForPendingGroups.value &&
+      (isCurrentActorAGroupModerator.value || isCurrentActorAGroupOwner.value)
+    )
+  );
+});
 </script>

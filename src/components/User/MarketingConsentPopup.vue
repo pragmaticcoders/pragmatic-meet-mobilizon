@@ -1,12 +1,20 @@
 <template>
   <div class="bg-white p-6 w-full max-w-xl rounded-lg">
     <h2 class="text-xl font-bold text-gray-900 mb-4">
-      {{ t("Unlock knowledge expansion opportunities with Pragmatic Coders materials") }}
+      {{
+        t(
+          "Unlock knowledge expansion opportunities with Pragmatic Coders materials"
+        )
+      }}
     </h2>
 
     <section class="mb-6">
       <p class="text-gray-700 text-sm leading-relaxed">
-        {{ t("I consent to receiving messages, updates, and promotional emails from Pragmatic Coders based on my data. Consent can be withdrawn at any time.") }}
+        {{
+          t(
+            "I consent to receiving messages, updates, and promotional emails from Pragmatic Coders based on my data. Consent can be withdrawn at any time."
+          )
+        }}
       </p>
     </section>
 
@@ -53,4 +61,3 @@ const handleOptOut = () => {
   emit("consent", false);
 };
 </script>
-

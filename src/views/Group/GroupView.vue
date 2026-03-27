@@ -24,17 +24,27 @@
 
       <!-- Pending Approval Banner - Positioned under breadcrumbs -->
       <div
-        v-if="isGroupPendingApproval && isCurrentActorAGroupAdminOrOwner"
+        v-if="
+          isGroupPendingApproval &&
+          (isCurrentActorAGroupModerator || isCurrentActorAGroupOwner)
+        "
         class="max-w-screen-xl mx-auto px-4 md:px-16 pb-4"
       >
         <o-notification variant="warning" :closable="false">
           <p class="font-medium">
             {{ t("Group Awaiting Administrator Approval") }}
           </p>
-          <p class="text-sm opacity-90 mt-1">
+          <p class="text-sm opacity-90 mt-1" v-if="isPendingGroupActionsLocked">
             {{
               t(
                 "This group is pending approval from site administrators and is currently only visible to administrators and the group owner. Most group functionalities including member management, event creation, discussions, and announcements are limited until the group is approved. Resources can still be added and managed."
+              )
+            }}
+          </p>
+          <p class="text-sm opacity-90 mt-1" v-else>
+            {{
+              t(
+                "This group is pending approval from site administrators. As a moderator you can manage members, create events, discussions, and announcements. Events you publish stay hidden from the public until an administrator approves this group."
               )
             }}
           </p>
@@ -433,21 +443,28 @@
               class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600"
             >
               <o-button
-                v-if="isCurrentActorAGroupAdmin && !previewPublic"
+                v-if="
+                  (isCurrentActorAGroupAdmin ||
+                    (allowModeratorActivityForPendingGroups &&
+                      isGroupPendingApproval &&
+                      (isCurrentActorAGroupModerator ||
+                        isCurrentActorAGroupOwner))) &&
+                  !previewPublic
+                "
                 tag="router-link"
                 :to="{
                   name: RouteName.GROUP_MEMBERS_SETTINGS,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                :disabled="isGroupPendingApproval"
+                :disabled="isPendingGroupActionsLocked"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                     : 'bg-blue-600 hover:bg-blue-700 text-white',
                 ]"
                 :title="
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? t('This group is pending approval from administrators')
                     : ''
                 "
@@ -638,15 +655,15 @@
                     type: group?.type,
                   })
                 "
-                :disabled="isGroupPendingApproval"
+                :disabled="isPendingGroupActionsLocked"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                     : 'bg-blue-600 hover:bg-blue-700 text-white',
                 ]"
                 :title="
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? t('This group is pending approval from administrators')
                     : ''
                 "
@@ -762,15 +779,15 @@
                   name: RouteName.POST_CREATE,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                :disabled="isGroupPendingApproval"
+                :disabled="isPendingGroupActionsLocked"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                     : 'bg-blue-600 hover:bg-blue-700 text-white',
                 ]"
                 :title="
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? t('This group is pending approval from administrators')
                     : ''
                 "
@@ -884,15 +901,15 @@
                   name: RouteName.CREATE_DISCUSSION,
                   params: { preferredUsername: usernameWithDomain(group) },
                 }"
-                :disabled="isGroupPendingApproval"
+                :disabled="isPendingGroupActionsLocked"
                 :class="[
                   'w-full py-2 px-4 rounded-lg font-medium transition-colors',
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-60'
                     : 'bg-blue-600 hover:bg-blue-700 text-white',
                 ]"
                 :title="
-                  isGroupPendingApproval
+                  isPendingGroupActionsLocked
                     ? t('This group is pending approval from administrators')
                     : ''
                 "
@@ -1081,7 +1098,10 @@ import {
   PERSON_STATUS_GROUP,
 } from "@/graphql/actor";
 import LazyImageWrapper from "../../components/Image/LazyImageWrapper.vue";
-import { useAnonymousReportsConfig } from "../../composition/apollo/config";
+import {
+  useAnonymousReportsConfig,
+  useRestrictions,
+} from "../../composition/apollo/config";
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useGroup, useLeaveGroup } from "@/composition/apollo/group";
@@ -1121,6 +1141,7 @@ const props = defineProps<{
 const preferredUsername = computed(() => props.preferredUsername);
 
 const { anonymousReportsConfig } = useAnonymousReportsConfig();
+const { restrictions } = useRestrictions();
 const { currentActor } = useCurrentActorClient();
 const {
   group,
@@ -1470,10 +1491,6 @@ const isCurrentActorAGroupOwner = computed((): boolean => {
   return hasCurrentActorThisRole(MemberRole.CREATOR);
 });
 
-const isCurrentActorAGroupAdminOrOwner = computed((): boolean => {
-  return isCurrentActorAGroupAdmin.value || isCurrentActorAGroupOwner.value;
-});
-
 const isCurrentActorAGroupModerator = computed((): boolean => {
   return hasCurrentActorThisRole([
     MemberRole.MODERATOR,
@@ -1491,6 +1508,24 @@ const isCurrentActorAGroupMember = computed((): boolean => {
 
 const isGroupPendingApproval = computed((): boolean => {
   return group.value?.approvalStatus === ApprovalStatus.PENDING_APPROVAL;
+});
+
+const allowModeratorActivityForPendingGroups = computed(
+  () => restrictions.value?.allowModeratorActivityForPendingGroups ?? false
+);
+
+const canManageGroupDuringPendingApproval = computed(
+  () => isCurrentActorAGroupModerator.value || isCurrentActorAGroupOwner.value
+);
+
+const isPendingGroupActionsLocked = computed((): boolean => {
+  return (
+    isGroupPendingApproval.value &&
+    !(
+      allowModeratorActivityForPendingGroups.value &&
+      canManageGroupDuringPendingApproval.value
+    )
+  );
 });
 
 const currentActorFollow = computed((): IFollower | undefined => {

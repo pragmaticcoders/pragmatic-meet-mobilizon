@@ -130,7 +130,7 @@ watch(
     } else {
       translations.value = { [props.defaultLanguage]: "" };
     }
-    
+
     // Ensure default language exists
     if (!translations.value[props.defaultLanguage]) {
       translations.value[props.defaultLanguage] = "";
@@ -172,7 +172,7 @@ const removeLanguage = (lang: string) => {
   const newTranslations = { ...translations.value };
   delete newTranslations[lang];
   translations.value = newTranslations;
-  
+
   // Switch to default language after removal
   currentLanguage.value = props.defaultLanguage;
   emit("update:modelValue", { ...translations.value });
@@ -204,7 +204,7 @@ const getLanguageName = (code: string): string => {
     el: "Ελληνικά",
     uk: "Українська",
   };
-  
+
   return languageNames[code] || code.toUpperCase();
 };
 
@@ -235,4 +235,3 @@ if (typeof window !== "undefined") {
   border-bottom-color: #374151;
 }
 </style>
-

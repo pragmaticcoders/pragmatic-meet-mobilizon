@@ -81,6 +81,17 @@ config :mobilizon, :instance,
   email_from: System.get_env("MOBILIZON_INSTANCE_EMAIL", "noreply@mobilizon.lan"),
   email_reply_to: System.get_env("MOBILIZON_REPLY_EMAIL", "noreply@mobilizon.lan")
 
+config :mobilizon, :restrictions,
+  only_admin_can_create_groups:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_ADMIN_CAN_CREATE_GROUPS", "false") == "true",
+  only_groups_can_create_events:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_GROUPS_CAN_CREATE_EVENTS", "false") == "true",
+  allow_moderator_activity_for_pending_groups:
+    System.get_env(
+      "MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS",
+      "true"
+    ) == "true"
+
 config :mobilizon, Mobilizon.Storage.Repo,
   adapter: Ecto.Adapters.Postgres,
   username: System.get_env("MOBILIZON_DATABASE_USERNAME", "username"),

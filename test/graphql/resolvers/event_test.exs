@@ -5,7 +5,7 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
   import Mobilizon.Factory
 
   alias Mobilizon.Actors.Actor
-  alias Mobilizon.{Events, Users}
+  alias Mobilizon.{Config, Events, Users}
   alias Mobilizon.Events.Event
   alias Mobilizon.Service.Workers
   alias Mobilizon.Users.User
@@ -129,7 +129,8 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
         online_address,
         phone_address,
         category,
-        draft
+        draft,
+        pendingGroupApproval,
         language
         options {
           maximumAttendeeCapacity,
@@ -357,6 +358,124 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
 
       assert res["errors"] == nil
       assert res["data"]["event"]["draft"] == true
+    end
+
+    test "create_event/3 sets pending_group_approval for pending group when restriction enabled",
+         %{
+           conn: conn,
+           actor: actor,
+           user: user
+         } do
+      moderator =
+        insert(:user, role: :moderator, email: "instance-moderator-held-event@example.com")
+
+      %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
+      insert(:member, parent: group, actor: actor, role: :moderator)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: %{
+            title: "held event",
+            description: "waiting for group",
+            begins_on: "#{DateTime.utc_now()}",
+            attributed_to_id: group_id,
+            draft: false
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createEvent"]["pendingGroupApproval"] == true
+      assert res["data"]["createEvent"]["draft"] == false
+
+      event_uuid = res["data"]["createEvent"]["uuid"]
+
+      res =
+        conn
+        |> AbsintheHelpers.graphql_query(query: @find_event_query, variables: %{uuid: event_uuid})
+
+      assert [%{"message" => "Event not found"}] = res["errors"]
+
+      expected_subject = "Held event awaiting group approval on #{Config.instance_name()}"
+      moderator_email = moderator.email
+
+      assert_email_sent(fn email ->
+        assert email.subject == expected_subject
+        assert {_name, ^moderator_email} = List.first(email.to)
+      end)
+    end
+
+    test "create_event/3 does not notify admins for draft held event on pending group", %{
+      conn: conn,
+      actor: actor,
+      user: user
+    } do
+      _moderator =
+        insert(:user, role: :moderator, email: "instance-moderator-draft-held@example.com")
+
+      %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
+      insert(:member, parent: group, actor: actor, role: :moderator)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: %{
+            title: "draft held",
+            description: "waiting",
+            begins_on: "#{DateTime.utc_now()}",
+            attributed_to_id: group_id,
+            draft: true
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createEvent"]["pendingGroupApproval"] == true
+      assert res["data"]["createEvent"]["draft"] == true
+
+      unexpected_subject = "Held event awaiting group approval on #{Config.instance_name()}"
+      refute_received {:email, %Swoosh.Email{subject: ^unexpected_subject}}
+    end
+
+    test "create_event/3 does not set pending_group_approval when restriction disabled", %{
+      conn: conn,
+      actor: actor,
+      user: user
+    } do
+      old_restrictions = Application.get_env(:mobilizon, :restrictions) || []
+
+      Application.put_env(
+        :mobilizon,
+        :restrictions,
+        Keyword.put(old_restrictions, :allow_moderator_activity_for_pending_groups, false)
+      )
+
+      on_exit(fn ->
+        Application.put_env(:mobilizon, :restrictions, old_restrictions)
+      end)
+
+      %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
+      insert(:member, parent: group, actor: actor, role: :moderator)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: %{
+            title: "normal",
+            description: "body",
+            begins_on: "#{DateTime.utc_now()}",
+            attributed_to_id: group_id,
+            draft: false
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["createEvent"]["pendingGroupApproval"] == false
     end
 
     test "create_event/3 creates an event with options", %{conn: conn, actor: actor, user: user} do
@@ -907,6 +1026,59 @@ defmodule Mobilizon.Web.Resolvers.EventTest do
         )
 
       assert hd(res["errors"])["message"] == "Event not found"
+    end
+
+    test "update_event/3 notifies admins when publishing draft held event for pending group", %{
+      conn: conn,
+      actor: actor,
+      user: user
+    } do
+      moderator =
+        insert(:user, role: :moderator, email: "instance-moderator-publish-held@example.com")
+
+      %Actor{id: group_id} = group = insert(:group, approval_status: :pending_approval)
+      insert(:member, parent: group, actor: actor, role: :moderator)
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @create_event_mutation,
+          variables: %{
+            title: "later published",
+            description: "body",
+            begins_on: "#{DateTime.utc_now()}",
+            attributed_to_id: group_id,
+            draft: true
+          }
+        )
+
+      assert res["errors"] == nil
+      event_id = res["data"]["createEvent"]["id"]
+
+      expected_subject = "Held event awaiting group approval on #{Config.instance_name()}"
+      refute_received {:email, %Swoosh.Email{subject: ^expected_subject}}
+
+      res =
+        conn
+        |> auth_conn(user)
+        |> AbsintheHelpers.graphql_query(
+          query: @update_event_mutation,
+          variables: %{
+            eventId: event_id,
+            draft: false
+          }
+        )
+
+      assert res["errors"] == nil
+      assert res["data"]["updateEvent"]["draft"] == false
+
+      moderator_email = moderator.email
+
+      assert_email_sent(fn email ->
+        assert email.subject == expected_subject
+        assert {_name, ^moderator_email} = List.first(email.to)
+      end)
     end
 
     test "update_event/3 should check the user can change the organizer", %{

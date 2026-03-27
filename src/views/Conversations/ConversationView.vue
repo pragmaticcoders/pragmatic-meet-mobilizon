@@ -32,7 +32,9 @@
                   class="size-full text-gray-400"
                 />
               </div>
-              <span class="participant-name">{{ displayName(participant) }}</span>
+              <span class="participant-name">{{
+                displayName(participant)
+              }}</span>
             </div>
           </div>
         </div>

@@ -18,7 +18,14 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
   alias Mobilizon.Share
   alias Mobilizon.Tombstone
   import Mobilizon.Events.Utils, only: [calculate_notification_time: 1]
-  import Mobilizon.Federation.ActivityPub.Utils, only: [make_create_data: 2, make_update_data: 2]
+  import Mobilizon.Federation.ActivityPub.Utils,
+    only: [
+      make_create_data: 2,
+      make_update_data: 2,
+      create_activity: 2,
+      maybe_federate: 1,
+      maybe_relay_if_group_activity: 1
+    ]
   require Logger
 
   @behaviour Entity
@@ -34,11 +41,13 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
         EventActivity.insert_activity(event, subject: "event_created")
         clear_caches(event)
 
-        %{action: :notify_of_new_event, event_uuid: event_uuid}
-        |> EventDelayedNotificationWorker.new(
-          scheduled_at: calculate_notification_time(begins_on)
-        )
-        |> Oban.insert()
+        unless event.pending_group_approval do
+          %{action: :notify_of_new_event, event_uuid: event_uuid}
+          |> EventDelayedNotificationWorker.new(
+            scheduled_at: calculate_notification_time(begins_on)
+          )
+          |> Oban.insert()
+        end
 
         event_as_data = Convertible.model_to_as(event)
         audience = Audience.get_audience(event)
@@ -130,13 +139,38 @@ defmodule Mobilizon.Federation.ActivityPub.Types.Events do
   def group_actor(_), do: nil
 
   @spec permissions(Event.t()) :: Permission.t()
-  def permissions(%Event{draft: draft, attributed_to_id: _attributed_to_id}) do
+  def permissions(%Event{
+        draft: draft,
+        pending_group_approval: pending,
+        attributed_to_id: _attributed_to_id
+      }) do
+    access =
+      cond do
+        draft -> :moderator
+        pending -> :moderator
+        true -> :member
+      end
+
     %Permission{
-      access: if(draft, do: :moderator, else: :member),
+      access: access,
       create: :moderator,
       update: :moderator,
       delete: :moderator
     }
+  end
+
+  @doc """
+  Emit Create activity and federation for an event that was held until group approval.
+  """
+  @spec federate_create_on_release(Event.t()) :: :ok
+  def federate_create_on_release(%Event{} = event) do
+    event_as_data = Convertible.model_to_as(event)
+    audience = Audience.get_audience(event)
+    create_data = make_create_data(event_as_data, audience)
+    {:ok, activity} = create_activity(create_data, true)
+    maybe_federate(activity)
+    maybe_relay_if_group_activity(activity)
+    :ok
   end
 
   @spec join(Event.t(), Actor.t(), boolean, map) ::

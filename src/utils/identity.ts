@@ -15,7 +15,9 @@ const {
   useMutation(UPDATE_CURRENT_ACTOR_CLIENT)
 );
 
-export async function changeIdentity(identity: IPerson | undefined): Promise<void> {
+export async function changeIdentity(
+  identity: IPerson | undefined
+): Promise<void> {
   if (!identity || !identity.id) {
     console.debug("Invalid identity provided", identity);
     return;

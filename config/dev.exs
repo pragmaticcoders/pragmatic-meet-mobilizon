@@ -139,6 +139,17 @@ config :mobilizon, :anonymous,
 
 config :unplug, :init_mode, :runtime
 
+config :mobilizon, :restrictions,
+  only_admin_can_create_groups:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_ADMIN_CAN_CREATE_GROUPS", "false") == "true",
+  only_groups_can_create_events:
+    System.get_env("MOBILIZON_RESTRICTIONS_ONLY_GROUPS_CAN_CREATE_EVENTS", "false") == "true",
+  allow_moderator_activity_for_pending_groups:
+    System.get_env(
+      "MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS",
+      "true"
+    ) == "true"
+
 # OAuth Configuration for development
 
 config :ueberauth,

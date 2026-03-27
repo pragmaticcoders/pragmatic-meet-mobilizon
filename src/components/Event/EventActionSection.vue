@@ -783,7 +783,9 @@ const {
           variables: { afterDateTime },
         });
       } catch (readError) {
-        console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+        console.debug(
+          "HOME_USER_QUERIES not in cache, will evict to force refetch"
+        );
         homeData = null;
       }
 
@@ -808,11 +810,15 @@ const {
           variables: { afterDateTime },
           data: updatedHomeData,
         });
-        console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+        console.debug(
+          "Successfully updated HOME_USER_QUERIES cache with new participation"
+        );
       } else {
         // Query not in cache or doesn't have expected structure
         // Evict to force refetch when user navigates to home page
-        console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
+        console.debug(
+          "HOME_USER_QUERIES cache miss, evicting to force refetch"
+        );
         store.evict({ fieldName: "loggedUser" });
         store.gc();
       }
@@ -1044,9 +1050,10 @@ const {
       });
 
       if (homeData?.loggedUser?.participations?.elements) {
-        const updatedElements = homeData.loggedUser.participations.elements.filter(
-          (p: any) => p.event.id !== localEventId
-        );
+        const updatedElements =
+          homeData.loggedUser.participations.elements.filter(
+            (p: any) => p.event.id !== localEventId
+          );
 
         const updatedHomeData = {
           ...homeData,

@@ -92,6 +92,16 @@ MOBILIZON_LOGLEVEL=info  # error, warning, info, debug
 MOBILIZON_GEOSPATIAL_SERVICE=Nominatim  # Nominatim, GoogleMaps, etc.
 ```
 
+#### Instance restrictions
+
+Default-on behavior for groups awaiting instance approval (moderators can work; group-attributed events stay non-public until the group is approved). Set to `false` to disable:
+
+```bash
+MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS=false
+```
+
+See **[Pending group approval (moderator workflow)](PENDING_GROUP_APPROVAL.md)** for full behavior, defaults, and code pointers.
+
 ## Configuration Scenarios
 
 ### Scenario 1: Docker with Internal Database (Default)

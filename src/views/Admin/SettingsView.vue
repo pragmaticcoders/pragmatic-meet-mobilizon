@@ -185,7 +185,7 @@
           <div class="w-full">
             <MultilingualTextarea
               v-model="settingsToWrite.instanceRules"
-               :instanceLanguages="instanceLanguageCodes"
+              :instanceLanguages="instanceLanguageCodes"
               :defaultLanguage="defaultLanguageCode"
               fieldId="instance-rules"
               :placeholder="t('Enter your instance rules...')"
@@ -479,7 +479,10 @@ import {
   asMediaInput,
 } from "@/utils/image";
 import { useDefaultMaxSize } from "@/composition/config";
-import type { IMultilingualString, IMultilingualStringInput } from "@/types/admin.model";
+import type {
+  IMultilingualString,
+  IMultilingualStringInput,
+} from "@/types/admin.model";
 
 const defaultAdminSettings: IAdminSettings = {
   instanceName: "",
@@ -511,11 +514,13 @@ const adminSettings = ref<IAdminSettings>();
 
 onAdminSettingsResult(async ({ data }) => {
   if (!data) return;
-  
+
   console.log("Raw data from server:", data.adminSettings);
-  
+
   // Parse JSON strings back to objects for multilingual fields
-  const parseMultilingualField = (value: string | IMultilingualString | null): string | IMultilingualString | null => {
+  const parseMultilingualField = (
+    value: string | IMultilingualString | null
+  ): string | IMultilingualString | null => {
     if (!value) return value;
     console.log("Parsing field, value type:", typeof value, "value:", value);
     if (typeof value === "string") {
@@ -523,7 +528,11 @@ onAdminSettingsResult(async ({ data }) => {
         const parsed = JSON.parse(value);
         console.log("Parsed to:", parsed);
         // If it parses to an object with multiple keys, it's multilingual
-        if (typeof parsed === "object" && parsed !== null && Object.keys(parsed).length > 0) {
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          Object.keys(parsed).length > 0
+        ) {
           return parsed;
         }
       } catch (e) {
@@ -533,13 +542,16 @@ onAdminSettingsResult(async ({ data }) => {
     }
     return value;
   };
-  
-  adminSettings.value = {
-    ...data.adminSettings,
-    instanceTerms: parseMultilingualField(data.adminSettings.instanceTerms),
-    instancePrivacyPolicy: parseMultilingualField(data.adminSettings.instancePrivacyPolicy),
-    instanceRules: parseMultilingualField(data.adminSettings.instanceRules),
-  } ?? defaultAdminSettings;
+
+  adminSettings.value =
+    {
+      ...data.adminSettings,
+      instanceTerms: parseMultilingualField(data.adminSettings.instanceTerms),
+      instancePrivacyPolicy: parseMultilingualField(
+        data.adminSettings.instancePrivacyPolicy
+      ),
+      instanceRules: parseMultilingualField(data.adminSettings.instanceRules),
+    } ?? defaultAdminSettings;
 
   console.log("Parsed adminSettings:", adminSettings.value);
 
@@ -584,8 +596,10 @@ watch(adminSettings, () => {
         .filter((l): l is ILanguage => !!l) ?? [];
   } else {
     selectedLanguages.value =
-      adminSettings.value?.instanceLanguages?.map((code) => ({ code, name: code })) ??
-      [];
+      adminSettings.value?.instanceLanguages?.map((code) => ({
+        code,
+        name: code,
+      })) ?? [];
   }
 });
 
@@ -654,27 +668,48 @@ const updateSettings = async (): Promise<void> => {
   };
 
   // Remove multilingual fields from settingsToWrite before spreading
-  const { instanceTerms, instancePrivacyPolicy, instanceRules, ...restSettings } = settingsToWrite.value;
+  const {
+    instanceTerms,
+    instancePrivacyPolicy,
+    instanceRules,
+    ...restSettings
+  } = settingsToWrite.value;
 
-  console.log("Before save - instanceRules:", instanceRules, "type:", typeof instanceRules);
-  console.log("Before save - instanceTerms:", instanceTerms, "type:", typeof instanceTerms);
-  console.log("Before save - instancePrivacyPolicy:", instancePrivacyPolicy, "type:", typeof instancePrivacyPolicy);
+  console.log(
+    "Before save - instanceRules:",
+    instanceRules,
+    "type:",
+    typeof instanceRules
+  );
+  console.log(
+    "Before save - instanceTerms:",
+    instanceTerms,
+    "type:",
+    typeof instanceTerms
+  );
+  console.log(
+    "Before save - instancePrivacyPolicy:",
+    instancePrivacyPolicy,
+    "type:",
+    typeof instancePrivacyPolicy
+  );
 
   const variables = {
     ...restSettings,
     instanceLanguages: selectedLanguages.value.map((lang) => lang.code),
     // Send either the string field OR the i18n field, never both
-    instanceTerms: typeof instanceTerms === "string" 
-      ? instanceTerms 
-      : undefined,
+    instanceTerms:
+      typeof instanceTerms === "string" ? instanceTerms : undefined,
     instanceTermsI18n: convertToMultilingualInput(instanceTerms),
-    instancePrivacyPolicy: typeof instancePrivacyPolicy === "string"
-      ? instancePrivacyPolicy
-      : undefined,
-    instancePrivacyPolicyI18n: convertToMultilingualInput(instancePrivacyPolicy),
-    instanceRules: typeof instanceRules === "string"
-      ? instanceRules
-      : undefined,
+    instancePrivacyPolicy:
+      typeof instancePrivacyPolicy === "string"
+        ? instancePrivacyPolicy
+        : undefined,
+    instancePrivacyPolicyI18n: convertToMultilingualInput(
+      instancePrivacyPolicy
+    ),
+    instanceRules:
+      typeof instanceRules === "string" ? instanceRules : undefined,
     instanceRulesI18n: convertToMultilingualInput(instanceRules),
     ...asMediaInput(
       instanceLogo,

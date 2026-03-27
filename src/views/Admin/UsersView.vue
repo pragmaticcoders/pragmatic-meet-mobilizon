@@ -24,14 +24,13 @@
             }}</o-button>
           </p>
           <p class="control self-end mb-0">
-            <o-button 
-              variant="success" 
+            <o-button
+              variant="success"
               icon-left="download"
               @click="exportUsersToCSV"
               :loading="exportLoading"
-            >{{
-              $t("Export CSV")
-            }}</o-button>
+              >{{ $t("Export CSV") }}</o-button
+            >
           </p>
         </o-field>
       </form>
@@ -225,25 +224,29 @@ const exportUsersToCSV = async (): Promise<void> => {
   try {
     exportLoading.value = true;
     const result = await loadExportUsersCsv();
-    
+
     if (result?.exportUsersCsv) {
       // Create a blob from the CSV content and trigger download
-      const blob = new Blob([result.exportUsersCsv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
+      const blob = new Blob([result.exportUsersCsv], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
-      
-      const timestamp = new Date().toISOString().split('T')[0];
-      link.setAttribute('href', url);
-      link.setAttribute('download', `users_export_${timestamp}.csv`);
-      link.style.visibility = 'hidden';
-      
+
+      const timestamp = new Date().toISOString().split("T")[0];
+      link.setAttribute("href", url);
+      link.setAttribute("download", `users_export_${timestamp}.csv`);
+      link.style.visibility = "hidden";
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       URL.revokeObjectURL(url);
-      
-      notifier?.success(t("Users export started. The download will begin shortly."));
+
+      notifier?.success(
+        t("Users export started. The download will begin shortly.")
+      );
     } else {
       notifier?.error(t("Failed to export users"));
     }

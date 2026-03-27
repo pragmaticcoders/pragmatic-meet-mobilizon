@@ -95,6 +95,7 @@ export const CONFIG = gql`
       restrictions {
         onlyAdminCanCreateGroups
         onlyGroupsCanCreateEvents
+        allowModeratorActivityForPendingGroups
       }
       federating
       auth {
@@ -343,6 +344,7 @@ export const RESTRICTIONS = gql`
       restrictions {
         onlyGroupsCanCreateEvents
         onlyAdminCanCreateGroups
+        allowModeratorActivityForPendingGroups
       }
     }
   }

@@ -120,10 +120,18 @@
         >{{ t("Remove from instance") }}</o-button
       >
     </div>
-    
+
     <!-- Status alerts -->
-    <div v-if="group.suspended" class="mt-4 p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg" role="alert">
-      {{ t("This group is suspended. Members cannot access the group, but all data is preserved.") }}
+    <div
+      v-if="group.suspended"
+      class="mt-4 p-4 text-sm text-yellow-700 bg-yellow-100 rounded-lg"
+      role="alert"
+    >
+      {{
+        t(
+          "This group is suspended. Members cannot access the group, but all data is preserved."
+        )
+      }}
     </div>
     <section>
       <h2>
@@ -372,7 +380,11 @@ import {
 } from "@/graphql/group";
 import { formatBytes } from "@/utils/datetime";
 import { MemberRole } from "@/types/enums";
-import { SUSPEND_PROFILE, UNSUSPEND_PROFILE, ADMIN_DELETE_GROUP } from "../../graphql/actor";
+import {
+  SUSPEND_PROFILE,
+  UNSUSPEND_PROFILE,
+  ADMIN_DELETE_GROUP,
+} from "../../graphql/actor";
 import { IGroup } from "../../types/actor";
 import {
   usernameWithDomain,
@@ -584,9 +596,10 @@ onSuspendProfileError((e) => {
 });
 
 // Admin delete group mutation
-const { mutate: adminDeleteGroup, onError: onAdminDeleteGroupError } = useMutation<{
-  adminDeleteGroup: { id: string };
-}>(ADMIN_DELETE_GROUP);
+const { mutate: adminDeleteGroup, onError: onAdminDeleteGroupError } =
+  useMutation<{
+    adminDeleteGroup: { id: string };
+  }>(ADMIN_DELETE_GROUP);
 
 onAdminDeleteGroupError((e) => {
   console.error(e);

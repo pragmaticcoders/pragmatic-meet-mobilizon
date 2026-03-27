@@ -61,6 +61,8 @@ services:
       MOBILIZON_INSTANCE_SCHEME: "http"
       MOBILIZON_INSTANCE_SECRET_KEY_BASE: "changethis"
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
+      # Pending-group moderators can manage the group before admin approval; override in .env with "false" to disable
+      MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS: ${MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS:-true}
       # Note: Google Analytics env vars are passed through via env_file (../../.env)
 volumes:
   pgdata:

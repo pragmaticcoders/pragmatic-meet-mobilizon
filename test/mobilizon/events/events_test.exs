@@ -581,4 +581,28 @@ defmodule Mobilizon.EventsTest do
       assert_raise Ecto.NoResultsError, fn -> Events.get_track!(track.id) end
     end
   end
+
+  describe "get_public_event_by_uuid_with_preload/1" do
+    test "returns nil for events held pending group approval" do
+      group = insert(:group)
+
+      event =
+        insert(:event,
+          attributed_to: group,
+          pending_group_approval: true,
+          draft: false,
+          visibility: :public,
+          local: true
+        )
+
+      assert Events.get_public_event_by_uuid_with_preload(to_string(event.uuid)) == nil
+    end
+
+    test "returns the event when pending_group_approval is false" do
+      event = insert(:event, pending_group_approval: false, visibility: :public, local: true)
+
+      found = Events.get_public_event_by_uuid_with_preload(to_string(event.uuid))
+      assert found.id == event.id
+    end
+  end
 end

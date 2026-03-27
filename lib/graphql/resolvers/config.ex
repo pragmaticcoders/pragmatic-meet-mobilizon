@@ -163,7 +163,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Config do
       },
       restrictions: %{
         only_admin_can_create_groups: Config.only_admin_can_create_groups?(),
-        only_groups_can_create_events: Config.only_groups_can_create_events?()
+        only_groups_can_create_events: Config.only_groups_can_create_events?(),
+        allow_moderator_activity_for_pending_groups:
+          Config.allow_moderator_activity_for_pending_groups?()
       },
       rules: Config.instance_rules(),
       version: Config.instance_version(),

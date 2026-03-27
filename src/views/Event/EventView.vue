@@ -196,6 +196,12 @@
                 <tag variant="warning" size="medium" v-if="event?.draft"
                   >{{ t("Draft") }}
                 </tag>
+                <tag
+                  variant="warning"
+                  size="medium"
+                  v-if="event?.pendingGroupApproval"
+                  >{{ t("Awaiting group approval") }}
+                </tag>
               </div>
             </div>
 
@@ -458,7 +464,13 @@
 
             <!-- Waitlist Section in Sidebar -->
             <div
-              v-if="event && !eventLoading && event.options?.enableWaitlist && (waitlistParticipants.length > 0 || (event.participantStats?.waitlist ?? 0) > 0)"
+              v-if="
+                event &&
+                !eventLoading &&
+                event.options?.enableWaitlist &&
+                (waitlistParticipants.length > 0 ||
+                  (event.participantStats?.waitlist ?? 0) > 0)
+              "
               class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
               style="margin-top: 16px"
             >
@@ -481,7 +493,11 @@
                       font-family: var(--font-family-primary);
                     "
                   >
-                    ({{ waitlistParticipants.length || event.participantStats?.waitlist || 0 }})
+                    ({{
+                      waitlistParticipants.length ||
+                      event.participantStats?.waitlist ||
+                      0
+                    }})
                   </span>
                 </h3>
 
@@ -516,7 +532,7 @@
                       class="flex-shrink-0 flex items-center justify-center bg-amber-100 text-amber-700 rounded-full font-bold"
                       style="width: 28px; height: 28px; font-size: 12px"
                     >
-                      {{ participant.waitlistPosition ?? (index + 1) }}
+                      {{ participant.waitlistPosition ?? index + 1 }}
                     </div>
                     <img
                       v-if="participant.actor.avatar"

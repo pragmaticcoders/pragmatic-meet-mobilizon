@@ -371,6 +371,13 @@ defmodule Mobilizon.Config do
       |> Application.get_env(:restrictions)
       |> Keyword.get(:only_groups_can_create_events)
 
+  @spec allow_moderator_activity_for_pending_groups? :: boolean
+  def allow_moderator_activity_for_pending_groups?,
+    do:
+      :mobilizon
+      |> Application.get_env(:restrictions)
+      |> Keyword.get(:allow_moderator_activity_for_pending_groups, true)
+
   @spec anonymous_actor_id :: integer
   def anonymous_actor_id, do: get_cached_value(:anonymous_actor_id)
 

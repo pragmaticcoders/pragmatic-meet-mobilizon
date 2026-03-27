@@ -23,18 +23,18 @@ const { t } = useI18n({ useScope: "global" });
 
 const currentLocaleCode = computed(() => {
   // i18n.global.locale is a string, not a ref, so use it directly
-  const i18nLocale = typeof i18n.global.locale === 'string' ? i18n.global.locale : i18n.global.locale.value;
+  const i18nLocale =
+    typeof i18n.global.locale === "string"
+      ? i18n.global.locale
+      : i18n.global.locale.value;
   const documentLocale = document.documentElement.getAttribute("lang");
   const fullLocale = i18nLocale || documentLocale || "en";
   return fullLocale?.split(/[-_]/)[0] || "en";
 });
 
-const { result: configResult } = useQuery<{ config: IConfig }>(
-  RULES,
-  () => ({
-    locale: currentLocaleCode.value,
-  })
-);
+const { result: configResult } = useQuery<{ config: IConfig }>(RULES, () => ({
+  locale: currentLocaleCode.value,
+}));
 
 const config = computed(() => configResult.value?.config);
 

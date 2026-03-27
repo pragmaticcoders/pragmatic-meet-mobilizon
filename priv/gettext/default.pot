@@ -1969,3 +1969,47 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Writing"
 msgstr ""
+
+#: lib/web/email/admin.ex
+#, elixir-autogen, elixir-format
+msgid "Held event awaiting group approval on %{instance}"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Held event awaiting group approval"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "A published event was created for a group that is still pending approval on %{instance}. The event will not be public until you approve the group."
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Event:"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "Group:"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.text.eex
+#, elixir-autogen, elixir-format
+msgid "To review and approve the group, visit the admin panel:"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#, elixir-autogen, elixir-format
+msgid "Review group in admin panel"
+msgstr ""
+
+#: lib/web/templates/email/pending_group_event_to_validate.html.heex
+#, elixir-autogen, elixir-format
+msgid "Event and group"
+msgstr ""

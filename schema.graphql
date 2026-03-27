@@ -2909,6 +2909,9 @@ type Event implements ActivityObject & Interactable & ActionLogObject {
   "Whether or not the event is a draft"
   draft: Boolean
 
+  "When true, the event is held until the attributed group is approved by instance administrators"
+  pendingGroupApproval: Boolean
+
   "Statistics on the event"
   participantStats: ParticipantStats
 
@@ -3028,6 +3031,9 @@ type Restrictions {
 
   "Whether events creation is allowed only for groups, not for persons"
   onlyGroupsCanCreateEvents: Boolean
+
+  "Whether group moderators can manage content and create held events before instance approval"
+  allowModeratorActivityForPendingGroups: Boolean
 }
 
 "Instance anonymous configuration"

@@ -58,6 +58,13 @@
           v-if="event.draft"
           >{{ $t("Draft") }}</tag
         >
+        <tag
+          class="mr-2 font-normal"
+          variant="warning"
+          size="medium"
+          v-if="event.pendingGroupApproval"
+          >{{ $t("Awaiting group approval") }}</tag
+        >
         {{ event.title }}
       </h3>
       <inline-address

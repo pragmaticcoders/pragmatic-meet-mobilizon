@@ -183,7 +183,9 @@ onMounted(async () => {
         tokensMatch: storedToken === accessToken,
       });
     } else {
-      console.log("OAuth callback: Token successfully verified in localStorage");
+      console.log(
+        "OAuth callback: Token successfully verified in localStorage"
+      );
     }
 
     console.log("OAuth callback: Updating Apollo currentUser cache", {

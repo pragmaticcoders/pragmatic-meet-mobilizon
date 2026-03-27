@@ -359,6 +359,11 @@ defmodule Mobilizon.GraphQL.Schema.ConfigType do
     field(:only_groups_can_create_events, :boolean,
       description: "Whether events creation is allowed only for groups, not for persons"
     )
+
+    field(:allow_moderator_activity_for_pending_groups, :boolean,
+      description:
+        "Whether group moderators can manage content and create held events before instance approval"
+    )
   end
 
   @desc """

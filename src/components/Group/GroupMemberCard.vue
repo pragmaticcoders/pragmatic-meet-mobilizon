@@ -19,7 +19,11 @@
       <span
         class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate"
       >
-        {{ member.actor ? displayNameAndUsername(member.actor) : (member.invitedEmail ?? '') }}
+        {{
+          member.actor
+            ? displayNameAndUsername(member.actor)
+            : member.invitedEmail ?? ""
+        }}
       </span>
     </div>
     <div class="p-2 sm:p-4 flex-1 flex flex-col">

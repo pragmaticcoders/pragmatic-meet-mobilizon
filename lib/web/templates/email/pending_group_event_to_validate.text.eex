@@ -1,0 +1,15 @@
+<%= gettext "Held event awaiting group approval" %>
+==================================================
+
+<%= gettext "Hello," %>
+
+<%= gettext "A published event was created for a group that is still pending approval on %{instance}. The event will not be public until you approve the group.", instance: @instance_name %>
+
+<%= gettext "Event:" %> <%= @event.title %>
+<%= gettext "Group:" %> <%= @group.name %> (@<%= @group.preferred_username %>)
+
+<%= gettext "To review and approve the group, visit the admin panel:" %>
+<%= Mobilizon.Web.Endpoint.url() %>/admin/groups/<%= @group.id %>
+
+--
+<%= gettext "You are receiving this email because you are an administrator of %{instance}.", instance: @instance_name %>

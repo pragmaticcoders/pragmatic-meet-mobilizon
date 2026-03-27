@@ -80,6 +80,11 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
     field(:draft, :boolean, description: "Whether or not the event is a draft")
 
+    field(:pending_group_approval, :boolean,
+      description:
+        "When true, the event is held until the attributed group is approved by instance administrators"
+    )
+
     field(:participant_stats, :participant_stats,
       description: "Statistics on the event",
       resolve: &Event.stats_participants/3
