@@ -383,28 +383,32 @@ const {
   },
 }));
 
-updateIdentityDone((result: { data?: { updatePerson?: { preferredUsername?: string; name?: string } } }) => {
-  // Clear any previous errors on success
-  errors.value = [];
-  const updatedPerson = result.data?.updatePerson;
-  const updatedName = updatedPerson
-    ? displayName(updatedPerson as IPerson)
-    : displayName(identity.value);
+updateIdentityDone(
+  (result: {
+    data?: { updatePerson?: { preferredUsername?: string; name?: string } };
+  }) => {
+    // Clear any previous errors on success
+    errors.value = [];
+    const updatedPerson = result.data?.updatePerson;
+    const updatedName = updatedPerson
+      ? displayName(updatedPerson as IPerson)
+      : displayName(identity.value);
 
-  notifier?.success(
-    t("Identity {displayName} updated", {
-      displayName: updatedName,
-    }) as string
-  );
-  // If the username changed, redirect to the updated route so the URL stays correct
-  const newUsername = result.data?.updatePerson?.preferredUsername;
-  if (newUsername && newUsername !== identityName.value) {
-    router.replace({
-      name: RouteName.UPDATE_IDENTITY,
-      params: { identityName: newUsername },
-    });
+    notifier?.success(
+      t("Identity {displayName} updated", {
+        displayName: updatedName,
+      }) as string
+    );
+    // If the username changed, redirect to the updated route so the URL stays correct
+    const newUsername = result.data?.updatePerson?.preferredUsername;
+    if (newUsername && newUsername !== identityName.value) {
+      router.replace({
+        name: RouteName.UPDATE_IDENTITY,
+        params: { identityName: newUsername },
+      });
+    }
   }
-});
+);
 
 updateIdentityError((err) => handleError(err));
 
@@ -470,7 +474,7 @@ const handleError = (err: any) => {
 
   if (err.graphQLErrors !== undefined) {
     err.graphQLErrors.forEach(
-    ({ message: errorMessage }: { message: string | string[] }) => {
+      ({ message: errorMessage }: { message: string | string[] }) => {
         // Show the error in the form (above the Save button)
         errors.value.push(cleanErrorMessage(errorMessage));
       }

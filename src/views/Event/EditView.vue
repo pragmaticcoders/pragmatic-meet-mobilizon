@@ -1000,14 +1000,6 @@ const saveAsDraft = (e: Event): void => {
   }
 };
 
-const createOrUpdatePublish = (e: Event): void => {
-  e.preventDefault();
-  if (validateForm()) {
-    event.value.draft = false;
-    createOrUpdateDraft(e);
-  }
-};
-
 const form = ref<HTMLFormElement | null>(null);
 
 const router = useRouter();
