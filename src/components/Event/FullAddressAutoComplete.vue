@@ -146,7 +146,11 @@
               </o-field>
 
               <o-field :label="t('Country')" labelFor="countryInput">
-                <o-input v-model="selected.country" id="countryInput" expanded />
+                <o-input
+                  v-model="selected.country"
+                  id="countryInput"
+                  expanded
+                />
               </o-field>
             </o-field>
           </section>
@@ -180,12 +184,15 @@
         :readOnly="false"
       />
     </div>
-    <div class="mt-3">
+    <div class="mt-3" v-if="!hideLocationHint">
       <label
         for="locationHintInput"
-        :class="['block text-sm font-medium mb-2', disabled ? 'text-gray-400' : 'text-gray-700']"
+        :class="[
+          'block text-sm font-medium mb-2',
+          disabled ? 'text-gray-400' : 'text-gray-700',
+        ]"
       >
-        {{ t('Additional location details') }}
+        {{ t("Additional location details") }}
       </label>
       <o-input
         v-model="selected.locationHint"
@@ -242,6 +249,7 @@ const props = withDefaults(
     resultType?: AddressSearchType;
     defaultCoords?: string;
     allowManualDetails?: boolean;
+    hideLocationHint?: boolean;
   }>(),
   {
     defaultCoords: "0;0",
@@ -250,6 +258,7 @@ const props = withDefaults(
     hideMap: false,
     hideSelected: false,
     allowManualDetails: false,
+    hideLocationHint: false,
   }
 );
 
