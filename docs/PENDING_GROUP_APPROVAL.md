@@ -39,7 +39,7 @@ Rejected or suspended groups do **not** auto-release held events.
 - **Resolver:** `lib/graphql/resolvers/group.ex` (`approve_group` passes the group’s integer `id` into release).
 - **Create path:** `lib/graphql/resolvers/event.ex` (`maybe_put_pending_group_approval_on_create`; notifies moderators via `notify_admins_of_pending_group_event` when the event is non-draft or when updated from draft to published).
 - **Held-event admin mail:** `lib/web/email/admin.ex` (`pending_group_event_to_validate`, `notify_admins_of_pending_group_event`).
-- **Public visibility:** `lib/mobilizon/events/events.ex` (`filter_not_pending_group_approval`, public event queries).
+- **Public visibility:** `lib/mobilizon/events/events.ex` (`filter_pending_group_approval`, public event queries).
 - **UI:** `src/views/Group/GroupView.vue`, `GroupMembers.vue`, `src/views/Event/EditView.vue` (modal), event cards / `EventView.vue`.
 
 ## Operations note
