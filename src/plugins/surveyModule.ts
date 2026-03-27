@@ -1,32 +1,81 @@
 /**
  * Survey Module Federation loader.
- * Loads the remote survey adapter module at runtime.
+ *
+ * The remote (pragmatic-forms adapter) builds its components as an ES module
+ * that exports { get, init } — it does NOT register itself globally.
+ * Vite's vite-plugin-federation host code resolves the remote by importing
+ * from the URL baked into the build (placeholder). We bypass that mechanism
+ * entirely and call container.get() directly.
+ *
+ * `surveyModuleReady` is a Vue ref so components react when the module loads.
  */
-let initialized = false;
+import * as Vue from "vue";
+import { ref } from "vue";
+
+export const surveyModuleReady = ref(false);
+
+interface RemoteContainer {
+  get: (module: string) => Promise<() => unknown>;
+  init: (scope: Record<string, unknown>) => Promise<void>;
+}
+
+// The loaded remote container — used by loadRemoteComponent.
+let remoteContainer: RemoteContainer | null = null;
 
 export async function initSurveyModule(
   adapterStaticUrl: string
 ): Promise<void> {
-  if (initialized || !adapterStaticUrl) {
+  if (remoteContainer || !adapterStaticUrl) {
     return;
   }
 
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `${adapterStaticUrl}/assets/remoteEntry.js`;
-    script.type = "module";
-    script.onload = () => {
-      initialized = true;
-      resolve();
+  try {
+    const remoteUrl = `${adapterStaticUrl}/assets/remoteEntry.js`;
+    // Dynamic import — bypasses Vite's placeholder URL resolution.
+    const container = (await import(
+      /* @vite-ignore */ remoteUrl
+    )) as RemoteContainer;
+
+    // NOTE: Do NOT inject formio CSS or Font Awesome here.
+    // The builder is rendered in an isolated iframe (builder.html) which loads
+    // its own CSS. Injecting Bootstrap 4 globally here would break Mobilizon's
+    // Tailwind-based layout across the entire app.
+
+    // Pass the HOST's Vue instance to the remote's shared scope.
+    // Without this, importShared('vue') in the remote falls back to loading
+    // its own bundled Vue — a different instance from Mobilizon's. Components
+    // rendered in Mobilizon's Vue context can't resolve components registered
+    // in the adapter's Vue instance, causing "Failed to resolve component" errors.
+    const shareScope = {
+      vue: {
+        [Vue.version]: {
+          get: async () => async () => Vue,
+          scope: "default",
+          loaded: 1,
+          from: "mobilizon",
+        },
+      },
     };
-    script.onerror = (err) => {
-      console.error("Failed to load survey module:", err);
-      reject(err);
-    };
-    document.head.appendChild(script);
-  });
+    await container.init(shareScope);
+    remoteContainer = container as RemoteContainer;
+    surveyModuleReady.value = true;
+  } catch (err) {
+    console.error("Failed to load survey module:", err);
+  }
+}
+
+/**
+ * Load a component exposed by the remote adapter.
+ * @param name — the expose key, e.g. "./SurveyForm" or "./SurveyBuilder"
+ */
+export async function loadRemoteComponent(name: string): Promise<unknown> {
+  if (!remoteContainer) {
+    throw new Error("Survey module is not initialized");
+  }
+  const factory = await remoteContainer.get(name);
+  return (factory as () => unknown)();
 }
 
 export function isSurveyModuleInitialized(): boolean {
-  return initialized;
+  return remoteContainer !== null;
 }

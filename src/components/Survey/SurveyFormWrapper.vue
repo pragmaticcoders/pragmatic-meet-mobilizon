@@ -2,7 +2,7 @@
   <Suspense>
     <template #default>
       <SurveyForm
-        v-if="isSurveyModuleReady"
+        v-if="surveyModuleReady"
         :context-id="contextId"
         :survey-schema="surveySchema"
         @completed="$emit('completed')"
@@ -23,9 +23,9 @@
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, ref, onMounted } from "vue";
+import { defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
-import { isSurveyModuleInitialized } from "@/plugins/surveyModule";
+import { surveyModuleReady, loadRemoteComponent } from "@/plugins/surveyModule";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -39,13 +39,11 @@ defineEmits<{
   error: [error: Error];
 }>();
 
-const isSurveyModuleReady = ref(false);
-
-const SurveyForm = defineAsyncComponent(
-  () => import("adapterModule/SurveyForm")
-);
-
-onMounted(() => {
-  isSurveyModuleReady.value = isSurveyModuleInitialized();
+const SurveyForm = defineAsyncComponent({
+  loader: () => loadRemoteComponent("./SurveyForm") as Promise<any>,
+  errorComponent: {
+    template: `<div class="p-4 text-red-600 text-sm">Failed to load survey form.</div>`,
+  },
+  timeout: 15000,
 });
 </script>

@@ -510,7 +510,7 @@
         </fieldset>
       </section>
       <section v-if="surveysEnabled" class="border-t pt-8 mt-8">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
           {{ t("Participant survey") }}
         </h2>
         <p class="text-sm text-gray-600 mb-4">
@@ -520,12 +520,57 @@
             )
           }}
         </p>
-        <SurveyBuilderWrapper
-          :context-id="eventSurveyContextId"
-          :initial-schema="surveySchema ?? undefined"
-          @schema-change="(s: object) => (surveySchema = s)"
-          @error="(e: Error) => console.error('SurveyBuilder error:', e)"
-        />
+
+        <!-- Survey configured — show summary + edit/remove actions -->
+        <div v-if="surveySchema" class="flex items-center gap-3">
+          <span class="text-sm text-green-700 font-medium">
+            ✓ {{ t("Survey configured") }}
+          </span>
+          <o-button size="small" @click="showSurveyModal = true">
+            {{ t("Edit survey") }}
+          </o-button>
+          <o-button size="small" variant="danger" @click="surveySchema = null">
+            {{ t("Remove survey") }}
+          </o-button>
+        </div>
+
+        <!-- No survey yet — single CTA button -->
+        <o-button
+          v-else
+          variant="primary"
+          outlined
+          @click="showSurveyModal = true"
+        >
+          {{ t("Add survey") }}
+        </o-button>
+
+        <!-- Builder modal — full-size iframe with formio, completely CSS-isolated -->
+        <o-modal
+          v-model:active="showSurveyModal"
+          :width="960"
+          has-modal-card
+          :close-button-aria-label="t('Close')"
+        >
+          <div class="modal-card" style="width: 960px; height: 80vh; display: flex; flex-direction: column">
+            <header class="modal-card-head">
+              <p class="modal-card-title">{{ t("Survey builder") }}</p>
+            </header>
+            <section class="modal-card-body" style="flex: 1; padding: 0; overflow: hidden">
+              <SurveyBuilderWrapper
+                v-if="showSurveyModal"
+                :context-id="eventSurveyContextId"
+                :initial-schema="surveySchema ?? undefined"
+                @schema-change="(s: object) => (surveySchema = s)"
+                @error="(e: Error) => console.error('SurveyBuilder error:', e)"
+              />
+            </section>
+            <footer class="modal-card-foot" style="justify-content: flex-end">
+              <o-button variant="primary" @click="showSurveyModal = false">
+                {{ t("Done") }}
+              </o-button>
+            </footer>
+          </div>
+        </o-modal>
       </section>
 
       <section class="border-t pt-8 mt-8">
@@ -887,6 +932,7 @@ const pictureFile = ref<File | null>(null);
 // Survey plugin
 const { surveysEnabled } = usePlugins();
 const surveySchema = ref<object | null>(null);
+const showSurveyModal = ref(false);
 // context_id is built from the event UUID if editing, or a temp ID for new events.
 // The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
 const eventSurveyContextId = computed(() =>

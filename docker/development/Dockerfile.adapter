@@ -20,7 +20,18 @@ WORKDIR /app/frontend
 COPY --from=clone /app/pragmatic-forms/mobilizon-adapter/frontend/package.json \
                   /app/pragmatic-forms/mobilizon-adapter/frontend/package-lock.json* ./
 RUN npm install --legacy-peer-deps
+# Bootstrap 4 and Font Awesome 4 are required by formio.js builder but not
+# bundled with formio.full.min.css — they must be loaded separately.
+# Install them here so we can copy their CSS to public/ for the iframe.
+RUN npm install bootstrap@4.6.0 font-awesome@4.7.0 --no-save
 COPY --from=clone /app/pragmatic-forms/mobilizon-adapter/frontend/ ./
+# Copy formio.js, Bootstrap 4, and Font Awesome from node_modules to public/
+# so Vite includes them in dist/ and builder.html can load them locally.
+RUN cp node_modules/@formio/js/dist/formio.full.min.js public/formio.full.min.js \
+ && cp node_modules/@formio/js/dist/formio.full.min.css public/formio.full.min.css \
+ && cp node_modules/bootstrap/dist/css/bootstrap.min.css public/bootstrap.min.css \
+ && cp node_modules/font-awesome/css/font-awesome.min.css public/font-awesome.min.css \
+ && cp -r node_modules/font-awesome/fonts public/fonts
 RUN npm run build
 
 # Stage 3: dev runtime — mirrors the `dev` stage from the original Dockerfile in pragmatic-forms.

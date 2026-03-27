@@ -136,6 +136,10 @@ export const CONFIG = gql`
       exportFormats {
         eventParticipants
       }
+      plugins {
+        surveysEnabled
+        surveysAdapterStaticUrl
+      }
     }
   }
 `;

@@ -617,7 +617,6 @@
   "Terms of service": "Terms of service",
   "Terms of Service": "Terms of Service",
   "Privacy policy": "Privacy policy",
-  "Privacy Policy": "Privacy Policy",
   "Instance rules": "Instance rules",
   "Glossary": "Glossary",
   "Some terms, technical or otherwise, used in the text below may cover concepts that are difficult to grasp. We have provided a glossary here to help you understand them better:": "Some terms, technical or otherwise, used in the text below may cover concepts that are difficult to grasp. We have provided a glossary here to help you understand them better:",
@@ -1216,7 +1215,6 @@
   "Sign up to discover and join groups": "Sign up to discover and join groups",
   "members": "members",
   "Free": "Free",
-  "Publish": "Publish",
   "Smoke free": "Smoke free",
   "Whether smoking is prohibited during the event": "Whether smoking is prohibited during the event",
   "Smoking allowed": "Smoking allowed",
@@ -1478,8 +1476,6 @@
   "This account has been suspended. Please contact the administrator for more information.": "This account has been suspended. Please contact the administrator for more information.",
   "This account is suspended. The user cannot log in.": "This account is suspended. The user cannot log in.",
   "Account status": "Account status",
-  "Suspended": "Suspended",
-  "Active": "Active",
   "Deleted": "Deleted",
   "No user matches the filter": "No user matches the filter",
   "new{'@'}email.com": "new{'@'}email.com",
@@ -1925,5 +1921,9 @@
   "Event will not be public yet": "Event will not be public yet",
   "This group is not yet approved by site administrators. The event will stay unpublished until the group is approved; it will then become public automatically.": "This group is not yet approved by site administrators. The event will stay unpublished until the group is approved; it will then become public automatically.",
   "The event was created and will become public when the group is approved by administrators.": "The event was created and will become public when the group is approved by administrators.",
-  "Awaiting group approval": "Awaiting group approval"
+  "Awaiting group approval": "Awaiting group approval",
+  "Participant survey": "Participant survey",
+  "Add a survey that participants must complete before joining this event.": "Add a survey that participants must complete before joining this event.",
+  "Survey module is not available": "Survey module is not available",
+  "Please complete the survey": "Please complete the survey"
 }
