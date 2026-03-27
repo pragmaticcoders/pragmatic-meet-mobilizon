@@ -38,6 +38,7 @@
               v-model="address"
               :hide-map="true"
               :hide-selected="true"
+              :hide-location-hint="true"
               :default-text="addressDefaultText"
               labelClass="sr-only"
               :placeholder="t('Entire Poland and remote')"

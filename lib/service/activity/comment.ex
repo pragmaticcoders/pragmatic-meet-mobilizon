@@ -73,7 +73,7 @@ defmodule Mobilizon.Service.Activity.Comment do
           {:ok, :enqueued} | {:ok, :skipped}
   defp notify(
          :mentionned,
-         %Comment{actor_id: actor_id, id: comment_id, mentions: mentions},
+         %Comment{actor_id: actor_id, id: comment_id, text: text, mentions: mentions},
          %Event{
            uuid: uuid,
            title: title
@@ -85,7 +85,8 @@ defmodule Mobilizon.Service.Activity.Comment do
       "subject" => :event_comment_mention,
       "subject_params" => %{
         event_uuid: uuid,
-        event_title: title
+        event_title: title,
+        comment_text: text
       },
       "author_id" => actor_id,
       "object_id" => to_string(comment_id),
@@ -98,7 +99,7 @@ defmodule Mobilizon.Service.Activity.Comment do
   # An event has a new announcement, send it to the participants
   defp notify(
          :announcement,
-         %Comment{actor_id: actor_id, is_announcement: true, id: comment_id},
+         %Comment{actor_id: actor_id, is_announcement: true, id: comment_id, text: text},
          %Event{
            id: event_id,
            uuid: uuid,
@@ -111,7 +112,8 @@ defmodule Mobilizon.Service.Activity.Comment do
       "subject_params" => %{
         event_id: event_id,
         event_uuid: uuid,
-        event_title: title
+        event_title: title,
+        comment_text: text
       },
       "author_id" => actor_id,
       "object_id" => to_string(comment_id)
@@ -160,6 +162,7 @@ defmodule Mobilizon.Service.Activity.Comment do
            actor_id: actor_id,
            in_reply_to_comment_id: in_reply_to_comment_id,
            id: comment_id,
+           text: text,
            uuid: comment_uuid
          } = comment,
          %Event{
@@ -178,7 +181,8 @@ defmodule Mobilizon.Service.Activity.Comment do
         event_uuid: event_uuid,
         comment_reply_to: !is_nil(in_reply_to_comment_id),
         comment_uuid: comment_uuid,
-        comment_reply_to_uuid: reply_to_comment_uuid(comment)
+        comment_reply_to_uuid: reply_to_comment_uuid(comment),
+        comment_text: text
       },
       "author_id" => actor_id,
       "object_id" => to_string(comment_id)

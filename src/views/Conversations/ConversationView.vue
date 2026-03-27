@@ -1,118 +1,120 @@
 <template>
   <div class="conversation-view" v-if="conversation">
-    <div class="conversation-header">
-      <div class="header-top">
-        <router-link
-          :to="{ name: RouteName.CONVERSATION_LIST }"
-          class="back-link"
-        >
-          <o-icon icon="chevron-left" />
-        </router-link>
-        <h1 class="conversation-title">{{ t("Conversation") }}</h1>
-      </div>
-      <div class="participants-section">
-        <span class="participants-label">{{ t("with:") }}</span>
-        <div class="conversation-participants">
-          <div
-            v-for="participant in otherParticipants"
-            :key="participant.id"
-            class="participant-item"
+    <div class="header-area">
+      <div class="conversation-header">
+        <div class="header-top">
+          <router-link
+            :to="{ name: RouteName.CONVERSATION_LIST }"
+            class="back-link"
           >
-            <div class="participant-avatar">
-              <img
-                v-if="participant.avatar?.url"
-                :src="participant.avatar.url"
-                :alt="participant.name"
-                class="size-full object-cover rounded-full"
-              />
-              <o-icon
-                v-else
-                icon="account-circle"
-                class="size-full text-gray-400"
-              />
+            <o-icon icon="chevron-left" />
+          </router-link>
+          <h1 class="conversation-title">{{ t("Conversation") }}</h1>
+        </div>
+        <div class="participants-section">
+          <span class="participants-label">{{ t("with:") }}</span>
+          <div class="conversation-participants">
+            <div
+              v-for="participant in otherParticipants"
+              :key="participant.id"
+              class="participant-item"
+            >
+              <div class="participant-avatar">
+                <img
+                  v-if="participant.avatar?.url"
+                  :src="participant.avatar.url"
+                  :alt="participant.name"
+                  class="size-full object-cover rounded-full"
+                />
+                <o-icon
+                  v-else
+                  icon="account-circle"
+                  class="size-full text-gray-400"
+                />
+              </div>
+              <span class="participant-name">{{ displayName(participant) }}</span>
             </div>
-            <span class="participant-name">{{ displayName(participant) }}</span>
           </div>
         </div>
       </div>
-    </div>
-    <div
-      v-if="
-        conversation.event &&
-        !isCurrentActorAuthor &&
-        isOriginCommentAuthorEventOrganizer
-      "
-      class="bg-mbz-yellow p-6 mb-3 rounded flex gap-2 items-center"
-    >
-      <Calendar :size="36" />
-      <i18n-t
-        tag="p"
-        keypath="This is a announcement from the organizers of event {event}. You can't reply to it, but you can send a private message to event organizers."
-      >
-        <template #event>
-          <b>
+      <o-notification v-if="isCurrentActorAuthor" variant="info" closable>
+        <i18n-t
+          keypath="You have access to this conversation as a member of the {group} group"
+          tag="p"
+        >
+          <template #group>
             <router-link
               :to="{
-                name: RouteName.EVENT,
-                params: { uuid: conversation.event.uuid },
+                name: RouteName.GROUP,
+                params: {
+                  preferredUsername: usernameWithDomain(conversation.actor),
+                },
               }"
-              >{{ conversation.event.title }}</router-link
+              ><b>{{ displayName(conversation.actor) }}</b></router-link
             >
-          </b>
-        </template>
-      </i18n-t>
-    </div>
-    <o-notification v-if="isCurrentActorAuthor" variant="info" closable>
-      <i18n-t
-        keypath="You have access to this conversation as a member of the {group} group"
-        tag="p"
+          </template>
+        </i18n-t>
+      </o-notification>
+      <o-notification
+        v-else-if="groupParticipants.length > 0 && !conversation.event"
+        variant="info"
+        closable
       >
-        <template #group>
-          <router-link
-            :to="{
-              name: RouteName.GROUP,
-              params: {
-                preferredUsername: usernameWithDomain(conversation.actor),
-              },
-            }"
-            ><b>{{ displayName(conversation.actor) }}</b></router-link
+        <p>
+          {{
+            t(
+              "The following participants are groups, which means group members are able to reply to this conversation:"
+            )
+          }}
+        </p>
+        <ul class="list-disc">
+          <li
+            v-for="groupParticipant in groupParticipants"
+            :key="groupParticipant.id"
           >
-        </template>
-      </i18n-t>
-    </o-notification>
-    <o-notification
-      v-else-if="groupParticipants.length > 0 && !conversation.event"
-      variant="info"
-      closable
-    >
-      <p>
-        {{
-          t(
-            "The following participants are groups, which means group members are able to reply to this conversation:"
-          )
-        }}
-      </p>
-      <ul class="list-disc">
-        <li
-          v-for="groupParticipant in groupParticipants"
-          :key="groupParticipant.id"
-        >
-          <router-link
-            :to="{
-              name: RouteName.GROUP,
-              params: {
-                preferredUsername: usernameWithDomain(groupParticipant),
-              },
-            }"
-            ><b>{{ displayName(groupParticipant) }}</b></router-link
-          >
-        </li>
-      </ul>
-    </o-notification>
-    <o-notification v-if="error" variant="danger">
-      {{ error }}
-    </o-notification>
+            <router-link
+              :to="{
+                name: RouteName.GROUP,
+                params: {
+                  preferredUsername: usernameWithDomain(groupParticipant),
+                },
+              }"
+              ><b>{{ displayName(groupParticipant) }}</b></router-link
+            >
+          </li>
+        </ul>
+      </o-notification>
+      <o-notification v-if="error" variant="danger">
+        {{ error }}
+      </o-notification>
+    </div>
     <section v-if="currentActor" class="conversation-content">
+      <div
+        v-if="
+          conversation.event &&
+          !isCurrentActorAuthor &&
+          isOriginCommentAuthorEventOrganizer
+        "
+        class="bg-mbz-yellow p-4 flex gap-2 items-start flex-shrink-0"
+      >
+        <Calendar :size="28" class="flex-shrink-0 mt-0.5" />
+        <i18n-t
+          tag="p"
+          keypath="This is a announcement from the organizers of event {event}. You can't reply to it, but you can send a private message to event organizers."
+        >
+          <template #event>
+            <b>
+              <router-link
+                :to="{
+                  name: RouteName.EVENT,
+                  params: { uuid: conversation.event.uuid },
+                }"
+                >{{ conversation.event.title }}</router-link
+              >
+            </b>
+          </template>
+        </i18n-t>
+      </div>
       <div class="messages-container" ref="messagesContainerRef">
         <!-- Date separator -->
         <div
@@ -182,38 +184,18 @@
           </div>
         </form>
       </div>
-      <div
-        v-else-if="
-          conversation.event &&
-          !isCurrentActorAuthor &&
-          isOriginCommentAuthorEventOrganizer
-        "
-        class="bg-mbz-yellow p-6 rounded flex gap-2 items-center mt-3"
-      >
-        <Calendar :size="36" />
-        <i18n-t
-          tag="p"
-          keypath="This is a announcement from the organizers of event {event}. You can't reply to it, but you can send a private message to event organizers."
-        >
-          <template #event>
-            <b>
-              <router-link
-                :to="{
-                  name: RouteName.EVENT,
-                  params: { uuid: conversation.event.uuid },
-                }"
-                >{{ conversation.event.title }}</router-link
-              >
-            </b>
-          </template>
-        </i18n-t>
-      </div>
     </section>
   </div>
 </template>
 <style lang="scss" scoped>
 .conversation-view {
   @apply h-screen flex flex-col bg-white max-w-screen-xl mx-auto;
+
+  .header-area {
+    flex-shrink: 0;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
 
   .conversation-header {
     @apply bg-white border-b border-[#cac9cb] px-4 md:px-16 py-4 md:py-8 flex flex-col gap-4;
@@ -269,6 +251,12 @@
 
   .conversation-content {
     @apply flex-1 flex flex-col overflow-hidden bg-white;
+    min-height: 200px;
+
+    > .bg-mbz-yellow {
+      max-height: 20vh;
+      overflow-y: auto;
+    }
 
     .messages-container {
       @apply flex-1 overflow-y-auto px-4 md:px-16 py-4 md:py-6 bg-white;
@@ -430,6 +418,31 @@
 
       .message-input-container {
         @apply px-6 py-6;
+      }
+    }
+  }
+
+  /* Very short viewports: tighten all proportions so content stays visible */
+  @media (max-height: 500px) {
+    .header-area {
+      max-height: 40vh;
+    }
+
+    .conversation-header {
+      @apply py-2 gap-2;
+
+      .header-top {
+        .conversation-title {
+          @apply text-[20px] leading-[28px];
+        }
+      }
+    }
+
+    .conversation-content {
+      min-height: 150px;
+
+      > .bg-mbz-yellow {
+        max-height: 15vh;
       }
     }
   }

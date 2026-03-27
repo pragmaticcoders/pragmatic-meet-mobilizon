@@ -8,7 +8,16 @@ defmodule Mobilizon.Actors.Actor do
   import Ecto.Changeset
 
   alias Mobilizon.{Actors, Addresses, Config, Crypto, Mention, Share}
-  alias Mobilizon.Actors.{ActorOpenness, ActorType, ActorVisibility, ApprovalStatus, Follower, Member}
+
+  alias Mobilizon.Actors.{
+    ActorOpenness,
+    ActorType,
+    ActorVisibility,
+    ApprovalStatus,
+    Follower,
+    Member
+  }
+
   alias Mobilizon.Addresses.Address
   alias Mobilizon.Conversations.Conversation
   alias Mobilizon.Discussions.Comment
@@ -302,6 +311,17 @@ defmodule Mobilizon.Actors.Actor do
 
   @doc false
   @spec update_changeset(t, map) :: Ecto.Changeset.t()
+  def update_changeset(%__MODULE__{domain: nil, type: type} = actor, attrs) do
+    actor
+    |> cast(attrs, @update_attrs)
+    |> build_urls(type)
+    |> common_changeset(attrs)
+    |> unique_username_validator()
+    |> username_validator()
+    |> validate_length(:preferred_username, max: 100)
+    |> validate_required(@update_required_attrs)
+  end
+
   def update_changeset(%__MODULE__{} = actor, attrs) do
     actor
     |> cast(attrs, @update_attrs)
@@ -371,7 +391,6 @@ defmodule Mobilizon.Actors.Actor do
     |> validate_custom_url_for_groups_only()
     |> unique_constraint(:url, name: :actors_url_index)
     |> unique_constraint(:preferred_username, name: :actors_preferred_username_domain_type_index)
-    |> validate_format(:preferred_username, ~r/[A-z0-9_]+/)
     |> put_change(:last_refreshed_at, DateTime.utc_now() |> DateTime.truncate(:second))
   end
 
@@ -414,9 +433,9 @@ defmodule Mobilizon.Actors.Actor do
   # When we don't even have any preferred_username, don't even try validating preferred_username
   defp unique_username_validator(changeset), do: changeset
 
-  defp username_validator(%Ecto.Changeset{} = changeset) do
-    username = Ecto.Changeset.fetch_field!(changeset, :preferred_username)
-
+  defp username_validator(
+         %Ecto.Changeset{changes: %{preferred_username: username}} = changeset
+       ) do
     if is_valid_string(username) and Regex.match?(~r/^[a-z0-9_]+$/, username) do
       changeset
     else
@@ -430,6 +449,9 @@ defmodule Mobilizon.Actors.Actor do
       )
     end
   end
+
+  # When preferred_username is not being changed, skip this validation
+  defp username_validator(changeset), do: changeset
 
   defp validate_custom_url_for_groups_only(%Ecto.Changeset{} = changeset) do
     custom_url = Ecto.Changeset.get_change(changeset, :custom_url)

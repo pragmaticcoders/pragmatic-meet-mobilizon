@@ -15,6 +15,7 @@ export interface IAddress {
   url?: string;
   originId?: string;
   timezone?: string;
+  locationHint?: string;
   pictureInfo?: PictureInformation;
   poiInfos?: IPoiInfo;
 }
@@ -50,6 +51,8 @@ export class Address implements IAddress {
 
   timezone?: string = "";
 
+  locationHint?: string = "";
+
   constructor(hash?: IAddress) {
     if (!hash) return;
 
@@ -65,6 +68,7 @@ export class Address implements IAddress {
     this.url = hash.url;
     this.originId = hash.originId;
     this.timezone = hash.timezone;
+    this.locationHint = hash.locationHint;
   }
 
   get poiInfos(): IPoiInfo {
@@ -179,5 +183,6 @@ export function resetAddress(address: IAddress): void {
   address.url = undefined;
   address.originId = undefined;
   address.timezone = undefined;
+  address.locationHint = undefined;
   address.pictureInfo = undefined;
 }

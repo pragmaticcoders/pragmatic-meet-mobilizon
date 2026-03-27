@@ -724,11 +724,11 @@
             <span v-else>{{ t("Update my event") }}</span>
           </o-button>
           <o-button
-            v-if="event.draft === true"
+            v-if="event.draft === true || props.isDuplicate"
             variant="text"
             size="medium"
             class="w-full sm:w-auto px-6 py-2 border border-gray-300 hover:bg-gray-50"
-            @click="createOrUpdateDraft"
+            @click="saveAsDraft"
             :disabled="saving"
             :loading="saving"
           >
@@ -989,6 +989,22 @@ const createOrUpdateDraft = (e: Event): void => {
     } else {
       createEvent();
     }
+  }
+};
+
+const saveAsDraft = (e: Event): void => {
+  e.preventDefault();
+  if (validateForm()) {
+    event.value.draft = true;
+    createOrUpdateDraft(e);
+  }
+};
+
+const createOrUpdatePublish = (e: Event): void => {
+  e.preventDefault();
+  if (validateForm()) {
+    event.value.draft = false;
+    createOrUpdateDraft(e);
   }
 };
 

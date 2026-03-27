@@ -24,6 +24,7 @@ defmodule Mobilizon.GraphQL.Schema.AddressType do
     field(:origin_id, :string, description: "The address's original ID from the provider")
     field(:timezone, :timezone, description: "The (estimated) timezone of the location")
     field(:picture_info, :picture_info, description: "A picture associated with the address")
+    field(:location_hint, :string, description: "Additional directions to find the location (floor, room, entrance, etc.)")
   end
 
   @desc """
@@ -76,6 +77,7 @@ defmodule Mobilizon.GraphQL.Schema.AddressType do
     field(:id, :id, description: "The address's ID")
     field(:origin_id, :string, description: "The address's original ID from the provider")
     field(:timezone, :timezone, description: "The (estimated) timezone of the location")
+    field(:location_hint, :string, description: "Additional directions to find the location (floor, room, entrance, etc.)")
   end
 
   @desc """
