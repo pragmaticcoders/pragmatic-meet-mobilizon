@@ -123,7 +123,7 @@
           </template>
         </VTooltip>
       </p>
-      <o-dropdown class="ml-auto">
+      <o-dropdown class="ml-auto" @update:active="onDropdownActiveChange">
         <template #trigger>
           <o-button icon-right="dots-horizontal">
             {{ t("Actions") }}
@@ -213,17 +213,68 @@
             {{ t("Share this event") }}
           </span>
         </o-dropdown-item>
-        <o-dropdown-item
-          aria-role="listitem"
-          @click="downloadIcsEvent()"
-          @keyup.enter="downloadIcsEvent()"
+        <!-- Using a plain <div> instead of <o-dropdown-item> because
+             o-dropdown-item emits a custom event that closes the dropdown.
+             The .stop modifier only works on native DOM events, so we need
+             a native element to prevent click from propagating and closing
+             the dropdown when toggling the sub-menu. -->
+        <div
           v-if="event?.draft === false"
+          role="button"
+          aria-haspopup="menu"
+          :aria-expanded="isOnlineCalendarExpanded"
+          tabindex="0"
+          class="dropdown-item"
+          @click.stop="toggleOnlineCalendar"
+          @keyup.enter.stop="toggleOnlineCalendar"
+          @keydown.space.stop.prevent="toggleOnlineCalendar"
         >
-          <span class="flex gap-1">
+          <span class="flex gap-1 items-center">
             <CalendarPlus />
-            {{ t("Add to my calendar") }}
+            {{ t("Add to calendar") }}
+            <ChevronDown
+              class="transition-transform"
+              :class="{ 'rotate-180': isOnlineCalendarExpanded }"
+              :size="16"
+            />
           </span>
-        </o-dropdown-item>
+        </div>
+        <template v-if="isOnlineCalendarExpanded && event?.draft === false">
+          <o-dropdown-item
+            aria-role="listitem"
+            :disabled="isDownloading"
+            @click="downloadIcsEvent()"
+            class="pl-8"
+          >
+            <span class="flex gap-1 items-center pl-4">
+              <CalendarExport
+                :size="20"
+                :class="{ 'animate-spin': isDownloading }"
+              />
+              {{ isDownloading ? t("Downloading…") : t("Download ICS") }}
+            </span>
+          </o-dropdown-item>
+          <o-dropdown-item
+            aria-role="listitem"
+            @click="openGoogleCalendar()"
+            class="pl-8"
+          >
+            <span class="flex gap-1 items-center pl-4">
+              <Google :size="20" />
+              {{ t("Google Calendar") }}
+            </span>
+          </o-dropdown-item>
+          <o-dropdown-item
+            aria-role="listitem"
+            @click="openOutlookCalendar()"
+            class="pl-8"
+          >
+            <span class="flex gap-1 items-center pl-4">
+              <MicrosoftOutlook :size="20" />
+              {{ t("Outlook (MS365)") }}
+            </span>
+          </o-dropdown-item>
+        </template>
         <o-dropdown-item
           aria-role="listitem"
           v-if="ableToReport"
@@ -336,6 +387,10 @@ import Pencil from "vue-material-design-icons/Pencil.vue";
 import HelpCircleOutline from "vue-material-design-icons/HelpCircleOutline.vue";
 import TicketConfirmationOutline from "vue-material-design-icons/TicketConfirmationOutline.vue";
 import Share from "vue-material-design-icons/Share.vue";
+import CalendarExport from "vue-material-design-icons/CalendarExport.vue";
+import ChevronDown from "vue-material-design-icons/ChevronDown.vue";
+import Google from "vue-material-design-icons/Google.vue";
+import MicrosoftOutlook from "vue-material-design-icons/MicrosoftOutlook.vue";
 import {
   EVENT_PERSON_PARTICIPATION,
   FETCH_EVENT,
@@ -368,6 +423,7 @@ import { useOruga } from "@oruga-ui/oruga-next";
 import ExternalParticipationButton from "./ExternalParticipationButton.vue";
 import AccountMultiple from "vue-material-design-icons/AccountMultiple.vue";
 import Bullhorn from "vue-material-design-icons/Bullhorn.vue";
+import { stripHtmlTags } from "@/utils/html";
 
 const ShareEventModal = defineAsyncComponent(
   () => import("@/components/Event/ShareEventModal.vue")
@@ -419,6 +475,7 @@ const organizerDomain = computed((): string | undefined => {
 const reportModal = ref();
 const isReportModalActive = ref(false);
 const isShareModalActive = ref(false);
+const isOnlineCalendarExpanded = ref(false);
 const isJoinConfirmationModalActive = ref(false);
 
 const actorForConfirmation = ref<IPerson | null>(null);
@@ -426,17 +483,160 @@ const messageForConfirmation = ref("");
 
 const anonymousParticipation = ref<boolean | null>(null);
 
+const isDownloading = ref(false);
+
 const downloadIcsEvent = async (): Promise<void> => {
-  const data = await (
-    await fetch(`${GRAPHQL_API_ENDPOINT}/events/${event.value.uuid}/export/ics`)
-  ).text();
-  const blob = new Blob([data], { type: "text/calendar" });
-  const link = document.createElement("a");
-  link.href = window.URL.createObjectURL(blob);
-  link.download = `${event.value?.title}.ics`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  if (isDownloading.value) return;
+  isDownloading.value = true;
+  let blobUrl: string | null = null;
+  try {
+    const response = await fetch(
+      `${GRAPHQL_API_ENDPOINT}/events/${event.value.uuid}/export/ics`
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.text();
+    const blob = new Blob([data], { type: "text/calendar" });
+    const link = document.createElement("a");
+    blobUrl = window.URL.createObjectURL(blob);
+    link.href = blobUrl;
+    link.download = `${event.value?.title?.replace(/[/\\?%*:|"<>]/g, "-") ?? "event"}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (e) {
+    notifier?.error(t("Failed to download the calendar file."));
+    console.error("ICS download failed:", e);
+  } finally {
+    if (blobUrl) {
+      window.URL.revokeObjectURL(blobUrl);
+    }
+    isDownloading.value = false;
+  }
+};
+
+const toggleOnlineCalendar = (): void => {
+  isOnlineCalendarExpanded.value = !isOnlineCalendarExpanded.value;
+};
+
+const onDropdownActiveChange = (active: boolean): void => {
+  if (!active) isOnlineCalendarExpanded.value = false;
+};
+
+const MAX_DESCRIPTION_LENGTH = 1000;
+
+const truncateDescription = (html: string): string => {
+  const text = stripHtmlTags(html || "");
+  if (text.length <= MAX_DESCRIPTION_LENGTH) return text;
+  return text.slice(0, MAX_DESCRIPTION_LENGTH) + "…";
+};
+
+const getEventTimezone = (): string => {
+  return (
+    event.value?.options?.timezone ??
+    event.value?.physicalAddress?.timezone ??
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
+};
+
+const formatDateInTimezone = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(d);
+  const get = (type: string): string =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}${get("month")}${get("day")}T${get("hour")}${get("minute")}${get("second")}`;
+};
+
+const getUtcOffset = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const utc = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }));
+  const local = new Date(d.toLocaleString("en-US", { timeZone: timezone }));
+  const offset = (local.getTime() - utc.getTime()) / 60000;
+  const sign = offset >= 0 ? "+" : "-";
+  const h = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
+  const m = String(Math.abs(offset) % 60).padStart(2, "0");
+  return `${sign}${h}:${m}`;
+};
+
+const formatDateForOutlook = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(d);
+  const get = (type: string): string =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${getUtcOffset(date, timezone)}`;
+};
+
+const getEventLocation = (): string => {
+  const addr = event.value?.physicalAddress;
+  if (!addr) return event.value?.onlineAddress ?? "";
+  return [addr.description, addr.street, addr.postalCode, addr.locality, addr.region, addr.country]
+    .map((s) => s?.trim())
+    .filter((s) => s)
+    .join(", ");
+};
+
+const openGoogleCalendar = (): void => {
+  const e = event.value;
+  if (!e) return;
+  const tz = getEventTimezone();
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: e.title,
+    details: truncateDescription(e.description),
+    location: getEventLocation(),
+    dates: `${formatDateInTimezone(e.beginsOn, tz)}/${formatDateInTimezone(e.endsOn || e.beginsOn, tz)}`,
+    ctz: tz,
+  });
+  const win = window.open(
+    `https://calendar.google.com/calendar/render?${params.toString()}`,
+    "_blank"
+  );
+  if (!win) {
+    notifier?.error(t("The calendar link could not be opened. Please check your popup blocker settings."));
+  }
+};
+
+const openOutlookCalendar = (): void => {
+  const e = event.value;
+  if (!e) return;
+  const tz = getEventTimezone();
+  const params = new URLSearchParams({
+    rru: "addevent",
+    subject: e.title,
+    body: truncateDescription(e.description),
+    location: getEventLocation(),
+    startdt: formatDateForOutlook(e.beginsOn, tz),
+    enddt: formatDateForOutlook(e.endsOn || e.beginsOn, tz),
+    path: "/calendar/action/compose",
+  });
+  const win = window.open(
+    `https://outlook.office.com/calendar/0/action/compose?${params.toString()}`,
+    "_blank"
+  );
+  if (!win) {
+    notifier?.error(t("The calendar link could not be opened. Please check your popup blocker settings."));
+  }
 };
 
 const triggerShare = (): void => {
