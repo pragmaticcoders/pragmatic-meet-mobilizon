@@ -127,7 +127,8 @@ defmodule Mobilizon.Service.Export.ICalendar do
       description: HTML.html_to_text(event.description),
       uid: event.uuid,
       url: event.url,
-      status: event.status
+      status: event.status,
+      organizer: organizer(event)
     }
 
     icalendar_event =
@@ -185,6 +186,14 @@ defmodule Mobilizon.Service.Export.ICalendar do
 
   defp ends_on(%Event{ends_on: ends_on, options: %EventOptions{timezone: timezone}}) do
     shift_tz(ends_on, timezone)
+  end
+
+  defp organizer(%Event{attributed_to: %Actor{} = group}) do
+    Actor.display_name(group)
+  end
+
+  defp organizer(%Event{organizer_actor: %Actor{} = profile}) do
+    Actor.display_name(profile)
   end
 
   defp shift_tz(%DateTime{} = date, timezone) when is_binary(timezone) do
