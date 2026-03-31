@@ -2,8 +2,8 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.EventMetadataTest do
   @moduledoc """
   Module to test converting from EventMetadata to AS
   """
-  use Mobilizon.DataCase
-  import Mobilizon.Factory
+  use Mobilizon.UnitCase
+
   alias Mobilizon.Events.EventMetadata
   alias Mobilizon.Federation.ActivityStream.Converter.EventMetadata, as: EventMetadataConverter
 
@@ -11,35 +11,35 @@ defmodule Mobilizon.Federation.ActivityStream.Converter.EventMetadataTest do
 
   describe "metadata_to_as/1" do
     test "convert a simple metadata" do
-      %EventMetadata{} = metadata = build(:event_metadata)
+      metadata = %EventMetadata{key: "test:key", value: "test value", type: :string}
 
       assert %{"propertyID" => metadata.key, "value" => metadata.value, "type" => @property_value} ==
                EventMetadataConverter.metadata_to_as(metadata)
     end
 
     test "convert a boolean" do
-      %EventMetadata{} = metadata = build(:event_metadata, type: :boolean, value: "false")
+      metadata = %EventMetadata{key: "test:key", value: "false", type: :boolean}
 
       assert %{"propertyID" => metadata.key, "value" => false, "type" => @property_value} ==
                EventMetadataConverter.metadata_to_as(metadata)
     end
 
     test "convert an integer" do
-      %EventMetadata{} = metadata = build(:event_metadata, type: :integer, value: "36")
+      metadata = %EventMetadata{key: "test:key", value: "36", type: :integer}
 
       assert %{"propertyID" => metadata.key, "value" => 36, "type" => @property_value} ==
                EventMetadataConverter.metadata_to_as(metadata)
     end
 
     test "convert a float" do
-      %EventMetadata{} = metadata = build(:event_metadata, type: :float, value: "36.53")
+      metadata = %EventMetadata{key: "test:key", value: "36.53", type: :float}
 
       assert %{"propertyID" => metadata.key, "value" => 36.53, "type" => @property_value} ==
                EventMetadataConverter.metadata_to_as(metadata)
     end
 
     test "convert custom metadata with title" do
-      %EventMetadata{} = metadata = build(:event_metadata, title: "hello")
+      metadata = %EventMetadata{key: "test:key", value: "test value", type: :string, title: "hello"}
 
       assert %{
                "propertyID" => metadata.key,

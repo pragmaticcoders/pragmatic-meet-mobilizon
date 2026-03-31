@@ -1,5 +1,5 @@
 defmodule Mobilizon.Federation.ActivityStream.Converter.AddressTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   alias Mobilizon.Addresses.Address
 

@@ -1,5 +1,5 @@
 defmodule Mobilizon.Federation.ActivityStream.Converter.ActorTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   alias Mobilizon.Actors.Actor
 
