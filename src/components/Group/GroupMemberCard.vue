@@ -1,6 +1,6 @@
 <template>
   <div
-    class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-200 h-48 flex flex-col w-full max-w-full"
+    class="border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow duration-200 min-h-48 flex flex-col w-full max-w-full"
   >
     <div
       class="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2 px-2 sm:px-4 py-3"
@@ -82,7 +82,7 @@
                     member.parent.approvalStatus ===
                     ApprovalStatus.PENDING_APPROVAL
                   "
-                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 truncate"
+                  class="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                 >
                   {{ t("Pending Admin Approval") }}
                 </span>
