@@ -1,5 +1,5 @@
 defmodule Mobilizon.Service.Geospatial.AddokTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   import Mox
 

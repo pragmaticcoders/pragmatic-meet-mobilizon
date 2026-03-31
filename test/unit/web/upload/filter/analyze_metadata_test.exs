@@ -4,7 +4,7 @@
 # Upstream: https://git.pleroma.social/pleroma/pleroma/-/blob/develop/test/pleroma/upload/filter/analyze_metadata_test.exs
 
 defmodule Mobilizon.Web.Upload.Filter.AnalyzeMetadataTest do
-  use Mobilizon.DataCase, async: true
+  use Mobilizon.UnitCase
   alias Mobilizon.Web.Upload.Filter.AnalyzeMetadata
 
   test "adds the image dimensions" do

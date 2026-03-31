@@ -1,5 +1,5 @@
-defmodule Mobilizon.GraphQL.API.SearchTest do
-  use ExUnit.Case, async: false
+defmodule Mobilizon.GraphQL.API.SearchTest.UnitCase do
+  use Mobilizon.UnitCase
 
   import Mock
 

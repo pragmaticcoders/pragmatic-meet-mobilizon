@@ -1,5 +1,5 @@
 defmodule Mobilizon.Service.Geospatial.MapQuestTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   import Mox
 
@@ -62,8 +62,8 @@ defmodule Mobilizon.Service.Geospatial.MapQuestTest do
                  srid: 4326
                }
              } ==
-               MapQuest.search("10 rue Jangot", api_key: "secret_key")
-               |> hd
+                MapQuest.search("10 rue Jangot", api_key: "secret_key")
+                |> hd
     end
 
     test "returns a valid address from reverse geocode" do
@@ -96,8 +96,8 @@ defmodule Mobilizon.Service.Geospatial.MapQuestTest do
                  srid: 4326
                }
              } ==
-               MapQuest.geocode(4.842569, 45.751718, api_key: "secret_key")
-               |> hd
+                MapQuest.geocode(4.842569, 45.751718, api_key: "secret_key")
+                |> hd
     end
   end
 end

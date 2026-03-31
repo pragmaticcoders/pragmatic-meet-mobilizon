@@ -1,5 +1,6 @@
 defmodule Mobilizon.Service.GeospatialTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
+
   alias Mobilizon.Service.Geospatial
 
   describe "get service" do

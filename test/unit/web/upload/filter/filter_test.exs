@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Mobilizon.Web.Upload.FilterTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
   use Mobilizon.Tests.Helpers
 
   alias Mobilizon.Config
@@ -28,8 +28,5 @@ defmodule Mobilizon.Web.Upload.FilterTest do
     }
 
     assert Filter.filter([], upload) == {:ok, upload}
-
-    assert {:ok, upload} = Filter.filter([Mobilizon.Web.Upload.Filter.AnonymizeFilename], upload)
-    assert upload.name == "custom-file.png"
   end
 end

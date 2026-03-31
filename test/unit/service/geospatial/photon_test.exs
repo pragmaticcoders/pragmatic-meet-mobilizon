@@ -1,5 +1,5 @@
 defmodule Mobilizon.Service.Geospatial.PhotonTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   import Mox
 
@@ -38,24 +38,5 @@ defmodule Mobilizon.Service.Geospatial.PhotonTest do
                }
              } == Photon.search("10 rue Jangot") |> hd
     end
-
-    # Photon returns something quite wrong, so no need to test this right now.
-    #    test "returns a valid address from reverse geocode" do
-    #        assert %Address{
-    #                 locality: "Lyon",
-    #                 description: "",
-    #                 region: "Auvergne-Rhône-Alpes",
-    #                 country: "France",
-    #                 postal_code: "69007",
-    #                 street: "10 Rue Jangot",
-    #                 geom: %Geo.Point{
-    #                   coordinates: {4.8425657, 45.7517141},
-    #                   properties: %{},
-    #                   srid: 4326
-    #                 }
-    #               } ==
-    #                 Photon.geocode(4.8425657, 45.7517141)
-    #                 |> hd
-    #    end
   end
 end

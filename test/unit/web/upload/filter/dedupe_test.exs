@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Mobilizon.Web.Upload.Filter.DedupeTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   alias Mobilizon.Web.Upload
   alias Mobilizon.Web.Upload.Filter.Dedupe

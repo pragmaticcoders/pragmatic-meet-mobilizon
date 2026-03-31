@@ -1,9 +1,9 @@
-defmodule Mobilizon.Service.ErrorReportingTest do
+defmodule Mobilizon.Service.ErrorReportingTest.UnitCase do
   @moduledoc """
   Mpdule to test loading and configuring error reporting adapters
   """
 
-  use ExUnit.Case
+  use Mobilizon.UnitCase
   import Mox
   alias Mobilizon.Service.ErrorReporting
 

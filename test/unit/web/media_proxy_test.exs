@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Mobilizon.Web.MediaProxyTest do
-  use ExUnit.Case
+  use Mobilizon.UnitCase
   use Mobilizon.Tests.Helpers
 
   alias Mobilizon.Web.{Endpoint, MediaProxy}

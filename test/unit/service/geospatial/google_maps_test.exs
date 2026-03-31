@@ -1,5 +1,5 @@
 defmodule Mobilizon.Service.Geospatial.GoogleMapsTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   import Mox
 
@@ -77,10 +77,10 @@ defmodule Mobilizon.Service.Geospatial.GoogleMapsTest do
                },
                origin_id: "gm:ChIJtW0QikTq9EcRLI4Vy6bRx0U"
              } ==
-               GoogleMaps.search("10 rue Jangot",
-                 api_key: "toto"
-               )
-               |> hd
+                GoogleMaps.search("10 rue Jangot",
+                  api_key: "toto"
+                )
+                |> hd
     end
 
     test "returns a valid address from reverse geocode" do
@@ -125,8 +125,8 @@ defmodule Mobilizon.Service.Geospatial.GoogleMapsTest do
                },
                origin_id: "gm:ChIJrW0QikTq9EcR96jk2OnO75w"
              } ==
-               GoogleMaps.geocode(4.842569, 45.751718, api_key: "toto")
-               |> hd
+                GoogleMaps.geocode(4.842569, 45.751718, api_key: "toto")
+                |> hd
     end
   end
 end

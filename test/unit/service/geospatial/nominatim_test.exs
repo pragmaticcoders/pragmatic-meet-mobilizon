@@ -1,5 +1,5 @@
 defmodule Mobilizon.Service.Geospatial.NominatimTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
   import Mox
 
   alias Mobilizon.Addresses.Address
