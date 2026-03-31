@@ -553,8 +553,11 @@ const formatDateInTimezone = (date: string, timezone: string): string => {
     hour12: false,
   });
   const parts = formatter.formatToParts(d);
-  const get = (type: string): string =>
-    parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
   return `${get("year")}${get("month")}${get("day")}T${get("hour")}${get("minute")}${get("second")}`;
 };
 
@@ -567,8 +570,11 @@ const formatDateOnly = (date: string, timezone: string): string => {
     day: "2-digit",
   });
   const parts = formatter.formatToParts(d);
-  const get = (type: string): string =>
-    parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
   return `${get("year")}${get("month")}${get("day")}`;
 };
 
@@ -596,8 +602,11 @@ const formatDateForOutlook = (date: string, timezone: string): string => {
     hour12: false,
   });
   const parts = formatter.formatToParts(d);
-  const get = (type: string): string =>
-    parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${getUtcOffset(date, timezone)}`;
 };
 
@@ -641,8 +650,8 @@ const openGoogleCalendar = (): void => {
       "dates",
       `${formatDateInTimezone(e.beginsOn, tz)}/${formatDateInTimezone(e.endsOn || e.beginsOn, tz)}`
     );
-    params.set("ctz", tz);
   }
+  params.set("ctz", tz);
   const win = window.open(
     `https://calendar.google.com/calendar/render?${params.toString()}`,
     "_blank"
