@@ -1,6 +1,6 @@
 defmodule Mobilizon.Service.Metadata.UtilsTest do
   alias Mobilizon.Service.Metadata.Utils
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   describe "process_description/3" do
     test "process_description/3 strip tags" do
