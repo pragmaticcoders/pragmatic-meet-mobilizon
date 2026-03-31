@@ -5,7 +5,7 @@ defmodule Mobilizon.Service.TimezoneDetectorTest do
 
   alias Mobilizon.Service.TimezoneDetector
 
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   describe "detect when no geographic data is provided" do
     test "with timezone" do

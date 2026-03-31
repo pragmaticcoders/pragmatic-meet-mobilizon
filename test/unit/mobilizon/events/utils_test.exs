@@ -1,5 +1,5 @@
 defmodule Mobilizon.Events.UtilsTest do
-  use Mobilizon.DataCase, async: true
+  use Mobilizon.UnitCase
 
   alias Mobilizon.Events.Utils
 

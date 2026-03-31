@@ -1,5 +1,5 @@
 defmodule Mobilizon.Federation.NodeInfoTest do
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
   import Mox
 
   alias Mobilizon.Federation.NodeInfo
@@ -107,7 +107,6 @@ defmodule Mobilizon.Federation.NodeInfoTest do
       assert {:ok, data} = NodeInfo.nodeinfo("mobilizon.fr")
       assert data["version"] == "2.1"
       assert data["software"]["name"] == "Mobilizon"
-      # Added in 2.1
       refute is_nil(data["software"]["repository"])
     end
 
@@ -148,7 +147,6 @@ defmodule Mobilizon.Federation.NodeInfoTest do
       assert {:ok, data} = NodeInfo.nodeinfo("event-federation.eu")
       assert data["version"] == "2.0"
       assert data["software"]["name"] == "wordpress"
-      # Added in 2.1
       assert is_nil(data["software"]["repository"])
     end
 

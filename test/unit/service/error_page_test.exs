@@ -6,7 +6,7 @@ defmodule Mobilizon.Service.ErrorPageTest do
   alias Mobilizon.Config
   alias Mobilizon.Service.ErrorPage
 
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
 
   describe "init/0" do
     test "renders an error page in the default language" do
