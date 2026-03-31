@@ -3,7 +3,7 @@ defmodule Mobilizon.Service.ErrorReportingTest do
   Mpdule to test loading and configuring error reporting adapters
   """
 
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import Mox
   alias Mobilizon.Service.ErrorReporting
 

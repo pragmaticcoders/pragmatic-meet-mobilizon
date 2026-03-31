@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 defmodule Mobilizon.Web.Plugs.SetLocalePlugTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   use Plug.Test
 
   alias Mobilizon.Config
