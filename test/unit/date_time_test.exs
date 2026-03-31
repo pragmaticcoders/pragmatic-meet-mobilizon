@@ -2,7 +2,7 @@ defmodule Mobilizon.Service.DateTimeTest do
   @moduledoc """
   Test representing datetimes in defined locale
   """
-  use Mobilizon.DataCase
+  use Mobilizon.UnitCase
   alias Mobilizon.Service.DateTime, as: DateTimeTools
 
   @datetime "2021-06-22T15:25:29.531539Z"
@@ -70,7 +70,6 @@ defmodule Mobilizon.Service.DateTimeTest do
   end
 
   describe "gets the first day of a week" do
-    # English starts week on sunday, french on monday
     test "in the past" do
       assert DateTimeTools.calculate_first_day_of_week(~D[2021-06-25]) == ~D[2021-06-20]
     end
