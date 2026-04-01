@@ -166,20 +166,18 @@
       </section>
 
       <div class="mb-6">
+        <div class="mb-2">
+          <o-switch v-model="isAllDay">{{ t("All day event") }}</o-switch>
+        </div>
         <label class="block text-sm font-medium text-gray-700 mb-2">{{
           t("Starts on…")
         }}</label>
         <event-date-picker
-          :time="showStartTime"
+          :time="!isAllDay"
           v-model="beginsOn"
           @blur="consistencyBeginsOnBeforeEndsOn"
           class="w-full"
         ></event-date-picker>
-        <div class="mt-2">
-          <o-switch v-model="showStartTime">{{
-            t("Show the time when the event begins")
-          }}</o-switch>
-        </div>
       </div>
 
       <div class="mb-6">
@@ -187,17 +185,12 @@
           t("Ends on…")
         }}</label>
         <event-date-picker
-          :time="showEndTime"
+          :time="!isAllDay"
           v-model="endsOn"
           @blur="consistencyBeginsOnBeforeEndsOn"
           :min="beginsOn"
           class="w-full"
         ></event-date-picker>
-        <div class="mt-2">
-          <o-switch v-model="showEndTime">{{
-            t("Show the time when the event ends")
-          }}</o-switch>
-        </div>
       </div>
 
       <div class="mb-6">
@@ -935,9 +928,8 @@ const initializeNewEvent = () => {
   beginsOn.value = now;
   endsOn.value = end;
 
-  // Default values for showStartTime and showEndTime
-  showStartTime.value = false;
-  showEndTime.value = false;
+  // Default to all-day event
+  isAllDay.value = true;
 
   // Default values for hideParticipants
   hideParticipants.value = true;
@@ -1798,26 +1790,17 @@ onBeforeRouteLeave(
   }
 );
 
-const showStartTime = computed({
+const isAllDay = computed({
   get(): boolean {
-    return event.value.options.showStartTime;
+    return (
+      !event.value.options.showStartTime && !event.value.options.showEndTime
+    );
   },
-  set(newShowStartTime: boolean) {
+  set(newIsAllDay: boolean) {
     event.value.options = {
       ...event.value.options,
-      showStartTime: newShowStartTime,
-    };
-  },
-});
-
-const showEndTime = computed({
-  get(): boolean {
-    return event.value.options.showEndTime;
-  },
-  set(newshowEndTime: boolean) {
-    event.value.options = {
-      ...event.value.options,
-      showEndTime: newshowEndTime,
+      showStartTime: !newIsAllDay,
+      showEndTime: !newIsAllDay,
     };
   },
 });
@@ -1877,11 +1860,20 @@ To type "10" hours, you will first have "1" hours, then "10" hours
 So you cannot check consistensy in real time, only onBlur because of the moment we falsely have "1:00"
  */
 const consistencyBeginsOnBeforeEndsOn = () => {
-  // Update endsOn to make sure endsOn is later than beginsOn
-  if (endsOn.value && beginsOn.value && endsOn.value <= beginsOn.value) {
-    const newEndsOn = new Date(beginsOn.value);
-    newEndsOn.setUTCHours(beginsOn.value.getUTCHours() + 1);
-    endsOn.value = newEndsOn;
+  if (endsOn.value && beginsOn.value) {
+    if (isAllDay.value) {
+      // For all-day events, endsOn must be >= beginsOn (same day is valid)
+      if (endsOn.value < beginsOn.value) {
+        endsOn.value = new Date(beginsOn.value);
+      }
+    } else {
+      // For timed events, endsOn must be strictly after beginsOn
+      if (endsOn.value <= beginsOn.value) {
+        const newEndsOn = new Date(beginsOn.value);
+        newEndsOn.setUTCHours(beginsOn.value.getUTCHours() + 1);
+        endsOn.value = newEndsOn;
+      }
+    }
   }
 };
 

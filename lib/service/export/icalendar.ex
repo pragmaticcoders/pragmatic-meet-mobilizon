@@ -157,12 +157,43 @@ defmodule Mobilizon.Service.Export.ICalendar do
     "Mobilizon #{Config.instance_version()}"
   end
 
+  defp begins_on(%Event{
+         begins_on: begins_on,
+         options: %EventOptions{show_start_time: false, show_end_time: false, timezone: timezone}
+       }) do
+    begins_on |> shift_tz(timezone) |> DateTime.to_date()
+  end
+
   defp begins_on(%Event{begins_on: begins_on, options: %EventOptions{timezone: timezone}}) do
     shift_tz(begins_on, timezone)
   end
 
+  defp ends_on(%Event{
+         ends_on: nil,
+         options: %EventOptions{show_start_time: false, show_end_time: false}
+       }) do
+    nil
+  end
+
+  defp ends_on(%Event{
+         ends_on: ends_on,
+         options: %EventOptions{show_start_time: false, show_end_time: false, timezone: timezone}
+       }) do
+    date = ends_on |> shift_tz(timezone) |> DateTime.to_date()
+    # ICS DTEND for all-day events is exclusive, add one day
+    Date.add(date, 1)
+  end
+
   defp ends_on(%Event{ends_on: ends_on, options: %EventOptions{timezone: timezone}}) do
     shift_tz(ends_on, timezone)
+  end
+
+  defp organizer(%Event{attributed_to: %Actor{} = group}) do
+    Actor.display_name(group)
+  end
+
+  defp organizer(%Event{organizer_actor: %Actor{} = profile}) do
+    Actor.display_name(profile)
   end
 
   defp shift_tz(%DateTime{} = date, timezone) when is_binary(timezone) do
@@ -172,13 +203,6 @@ defmodule Mobilizon.Service.Export.ICalendar do
   defp shift_tz(%DateTime{} = date, _), do: date
   defp shift_tz(nil, _), do: nil
 
-  defp organizer(%Event{attributed_to: %Actor{} = group}) do
-    Actor.display_name(group)
-  end
-
-  defp organizer(%Event{organizer_actor: %Actor{} = profile}) do
-    Actor.display_name(profile)
-  end
 
   @impl Cachable
   @spec clear_caches(%{

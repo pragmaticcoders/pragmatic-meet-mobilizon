@@ -553,9 +553,29 @@ const formatDateInTimezone = (date: string, timezone: string): string => {
     hour12: false,
   });
   const parts = formatter.formatToParts(d);
-  const get = (type: string): string =>
-    parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
   return `${get("year")}${get("month")}${get("day")}T${get("hour")}${get("minute")}${get("second")}`;
+};
+
+const formatDateOnly = (date: string, timezone: string): string => {
+  const d = new Date(date);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(d);
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
+  return `${get("year")}${get("month")}${get("day")}`;
 };
 
 const getUtcOffset = (date: string, timezone: string): string => {
@@ -582,15 +602,25 @@ const formatDateForOutlook = (date: string, timezone: string): string => {
     hour12: false,
   });
   const parts = formatter.formatToParts(d);
-  const get = (type: string): string =>
-    parts.find((p) => p.type === type)?.value ?? "00";
+  const get = (type: string): string => {
+    const value = parts.find((p) => p.type === type)?.value;
+    if (!value) throw new Error(`Missing date part: ${type}`);
+    return value;
+  };
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}${getUtcOffset(date, timezone)}`;
 };
 
 const getEventLocation = (): string => {
   const addr = event.value?.physicalAddress;
   if (!addr) return event.value?.onlineAddress ?? "";
-  return [addr.description, addr.street, addr.postalCode, addr.locality, addr.region, addr.country]
+  return [
+    addr.description,
+    addr.street,
+    addr.postalCode,
+    addr.locality,
+    addr.region,
+    addr.country,
+  ]
     .map((s) => s?.trim())
     .filter((s) => s)
     .join(", ");
@@ -600,20 +630,38 @@ const openGoogleCalendar = (): void => {
   const e = event.value;
   if (!e) return;
   const tz = getEventTimezone();
+  const isAllDay = !e.options?.showStartTime && !e.options?.showEndTime;
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: e.title,
     details: truncateDescription(e.description),
     location: getEventLocation(),
-    dates: `${formatDateInTimezone(e.beginsOn, tz)}/${formatDateInTimezone(e.endsOn || e.beginsOn, tz)}`,
-    ctz: tz,
   });
+  if (isAllDay) {
+    // Google Calendar all-day: end date is exclusive (next day)
+    const endDate = new Date(e.endsOn || e.beginsOn);
+    endDate.setDate(endDate.getDate() + 1);
+    params.set(
+      "dates",
+      `${formatDateOnly(e.beginsOn, tz)}/${formatDateOnly(endDate.toISOString(), tz)}`
+    );
+  } else {
+    params.set(
+      "dates",
+      `${formatDateInTimezone(e.beginsOn, tz)}/${formatDateInTimezone(e.endsOn || e.beginsOn, tz)}`
+    );
+  }
+  params.set("ctz", tz);
   const win = window.open(
     `https://calendar.google.com/calendar/render?${params.toString()}`,
     "_blank"
   );
   if (!win) {
-    notifier?.error(t("The calendar link could not be opened. Please check your popup blocker settings."));
+    notifier?.error(
+      t(
+        "The calendar link could not be opened. Please check your popup blocker settings."
+      )
+    );
   }
 };
 
@@ -621,21 +669,32 @@ const openOutlookCalendar = (): void => {
   const e = event.value;
   if (!e) return;
   const tz = getEventTimezone();
+  const isAllDay = !e.options?.showStartTime && !e.options?.showEndTime;
   const params = new URLSearchParams({
     rru: "addevent",
     subject: e.title,
     body: truncateDescription(e.description),
     location: getEventLocation(),
-    startdt: formatDateForOutlook(e.beginsOn, tz),
-    enddt: formatDateForOutlook(e.endsOn || e.beginsOn, tz),
     path: "/calendar/action/compose",
   });
+  if (isAllDay) {
+    params.set("allday", "true");
+    params.set("startdt", formatDateOnly(e.beginsOn, tz));
+    params.set("enddt", formatDateOnly(e.endsOn || e.beginsOn, tz));
+  } else {
+    params.set("startdt", formatDateForOutlook(e.beginsOn, tz));
+    params.set("enddt", formatDateForOutlook(e.endsOn || e.beginsOn, tz));
+  }
   const win = window.open(
     `https://outlook.office.com/calendar/0/action/compose?${params.toString()}`,
     "_blank"
   );
   if (!win) {
-    notifier?.error(t("The calendar link could not be opened. Please check your popup blocker settings."));
+    notifier?.error(
+      t(
+        "The calendar link could not be opened. Please check your popup blocker settings."
+      )
+    );
   }
 };
 
