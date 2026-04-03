@@ -1,4 +1,4 @@
-defmodule Mobilizon.GraphQL.API.SearchTest.UnitCase do
+defmodule Mobilizon.GraphQL.API.SearchTest do
   use Mobilizon.UnitCase
 
   import Mock

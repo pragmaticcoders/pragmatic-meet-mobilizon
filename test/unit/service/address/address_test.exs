@@ -1,4 +1,4 @@
-defmodule Mobilizon.Service.AddressTest.UnitCase do
+defmodule Mobilizon.Service.AddressTest do
   @moduledoc """
   Test representing addresses
   """
