@@ -64,8 +64,8 @@
       ref="anonymous-participation-modal"
     >
       <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">
+        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+          <p class="modal-card-title text-lg font-semibold text-white">
             {{ t("About anonymous participation") }}
           </p>
         </header>
@@ -119,18 +119,20 @@
       :close-button-aria-label="t('Close')"
     >
       <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">
-            {{ t("Please complete the survey") }}
+        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+          <p class="modal-card-title text-lg font-semibold text-white">
+            {{ t("To join the event, please complete the survey") }}
           </p>
         </header>
-        <section class="modal-card-body" v-if="surveySchema && surveyContextId">
-          <SurveyFormWrapper
-            :context-id="surveyContextId"
-            :survey-schema="surveySchema"
-            @completed="handleSurveyCompleted"
-            @error="(e: Error) => console.error('Survey error:', e)"
-          />
+        <section class="modal-card-body py-8 px-6" v-if="surveySchema && surveyContextId">
+          <div style="max-width: 560px; margin: 0 auto">
+            <SurveyFormWrapper
+              :context-id="surveyContextId"
+              :survey-schema="surveySchema"
+              @completed="handleSurveyCompleted"
+              @error="(e: Error) => console.error('Survey error:', e)"
+            />
+          </div>
         </section>
       </div>
     </o-modal>
@@ -181,6 +183,10 @@ const showSurveyModal = ref(false);
 const surveyContextId = ref<string | null>(null);
 const surveySchema = ref<object | null>(null);
 
+const emit = defineEmits<{
+  "participation-confirmed": [participant: IParticipant];
+}>();
+
 const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
 
 const handleSurveyRequired = (response: {
@@ -198,13 +204,18 @@ const handleSurveyRequired = (response: {
 // We only need to confirm the participation once the form signals completion.
 const handleSurveyCompleted = async () => {
   try {
-    await confirmEventJoin({
+    const result = await confirmEventJoin({
       eventId: props.event.id,
     });
 
     showSurveyModal.value = false;
     surveyContextId.value = null;
     surveySchema.value = null;
+
+    const participant = result?.data?.confirmEventJoin?.participant;
+    if (participant) {
+      emit("participation-confirmed", participant);
+    }
   } catch (err) {
     console.error("Failed to confirm event join after survey:", err);
   }

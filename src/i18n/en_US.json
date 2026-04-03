@@ -1925,5 +1925,17 @@
   "Participant survey": "Participant survey",
   "Add a survey that participants must complete before joining this event.": "Add a survey that participants must complete before joining this event.",
   "Survey module is not available": "Survey module is not available",
-  "Please complete the survey": "Please complete the survey"
+  "Survey": "Survey",
+  "Survey response": "Survey response",
+  "No survey response found for this participant.": "No survey response found for this participant.",
+  "Failed to load survey response": "Failed to load survey response",
+  "Please complete the survey": "Please complete the survey",
+  "To join the event, please complete the survey": "To join the event, please complete the survey",
+  "Add survey": "Add survey",
+  "Add survey to this event": "Add survey to this event",
+  "Edit survey": "Edit survey",
+  "Remove survey": "Remove survey",
+  "Survey configured": "Survey configured",
+  "Survey builder": "Survey builder",
+  "Done": "Done"
 }

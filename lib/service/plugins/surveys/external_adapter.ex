@@ -83,6 +83,29 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
     end
   end
 
+  @impl true
+  def get_participant_response(context_id, respondent_id) do
+    encoded_context = URI.encode(context_id, &URI.char_unreserved?/1)
+    encoded_respondent = URI.encode(respondent_id, &URI.char_unreserved?/1)
+
+    case Tesla.get(
+           client(),
+           "/api/responses/by-context/#{encoded_context}/by-respondent/#{encoded_respondent}"
+         ) do
+      {:ok, %Tesla.Env{status: 200, body: body}} ->
+        {:ok, body}
+
+      {:ok, %Tesla.Env{status: 404}} ->
+        {:ok, nil}
+
+      {:ok, %Tesla.Env{status: status, body: body}} ->
+        {:error, "Survey get participant response failed with status #{status}: #{inspect(body)}"}
+
+      {:error, reason} ->
+        {:error, "Survey get participant response failed: #{inspect(reason)}"}
+    end
+  end
+
   @spec client() :: Tesla.Client.t()
   defp client do
     config = Application.get_env(:mobilizon, Mobilizon.Service.Plugins.Surveys, [])

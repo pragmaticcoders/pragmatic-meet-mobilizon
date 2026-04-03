@@ -10,6 +10,7 @@
  * `surveyModuleReady` is a Vue ref so components react when the module loads.
  */
 import * as Vue from "vue";
+import * as VueApolloComposable from "@vue/apollo-composable";
 import { ref } from "vue";
 
 export const surveyModuleReady = ref(false);
@@ -46,10 +47,23 @@ export async function initSurveyModule(
     // its own bundled Vue — a different instance from Mobilizon's. Components
     // rendered in Mobilizon's Vue context can't resolve components registered
     // in the adapter's Vue instance, causing "Failed to resolve component" errors.
+    //
+    // @vue/apollo-composable must also be shared: its DefaultApolloClient is a
+    // unique Symbol used as the Vue inject key. If the remote bundles its own
+    // copy, it gets a *different* Symbol instance and inject() returns undefined,
+    // producing the "Apollo client with id default not found" error on form submit.
     const shareScope = {
       vue: {
         [Vue.version]: {
           get: async () => async () => Vue,
+          scope: "default",
+          loaded: 1,
+          from: "mobilizon",
+        },
+      },
+      "@vue/apollo-composable": {
+        "4.0.1": {
+          get: async () => async () => VueApolloComposable,
           scope: "default",
           loaded: 1,
           from: "mobilizon",

@@ -526,7 +526,7 @@
           <span class="text-sm text-green-700 font-medium">
             ✓ {{ t("Survey configured") }}
           </span>
-          <o-button size="small" @click="showSurveyModal = true">
+          <o-button size="small" @click="openSurveyModal">
             {{ t("Edit survey") }}
           </o-button>
           <o-button size="small" variant="danger" @click="surveySchema = null">
@@ -539,7 +539,7 @@
           v-else
           variant="primary"
           outlined
-          @click="showSurveyModal = true"
+          @click="openSurveyModal"
         >
           {{ t("Add survey") }}
         </o-button>
@@ -549,11 +549,12 @@
           v-model:active="showSurveyModal"
           :width="960"
           has-modal-card
+          :trap-focus="false"
           :close-button-aria-label="t('Close')"
         >
-          <div class="modal-card" style="width: 960px; height: 80vh; display: flex; flex-direction: column">
-            <header class="modal-card-head">
-              <p class="modal-card-title">{{ t("Survey builder") }}</p>
+          <div class="modal-card" style="width: min(960px, 95vw); height: 80vh; display: flex; flex-direction: column">
+            <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+              <p class="modal-card-title text-lg font-semibold text-white">{{ t("Add survey to this event") }}</p>
             </header>
             <section class="modal-card-body" style="flex: 1; padding: 0; overflow: hidden">
               <SurveyBuilderWrapper
@@ -564,9 +565,12 @@
                 @error="(e: Error) => console.error('SurveyBuilder error:', e)"
               />
             </section>
-            <footer class="modal-card-foot" style="justify-content: flex-end">
+            <footer class="modal-card-foot flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-white">
+              <o-button variant="danger" @click="cancelSurveyModal">
+                {{ t("Cancel") }}
+              </o-button>
               <o-button variant="primary" @click="showSurveyModal = false">
-                {{ t("Done") }}
+                {{ t("Save") }}
               </o-button>
             </footer>
           </div>
@@ -933,6 +937,21 @@ const pictureFile = ref<File | null>(null);
 const { surveysEnabled } = usePlugins();
 const surveySchema = ref<object | null>(null);
 const showSurveyModal = ref(false);
+// Snapshot of surveySchema taken when the modal opens.
+// Restored on Cancel so neither creation nor edits are committed.
+let surveySchemaSnapshot: object | null = null;
+
+function openSurveyModal() {
+  surveySchemaSnapshot = surveySchema.value
+    ? JSON.parse(JSON.stringify(surveySchema.value))
+    : null;
+  showSurveyModal.value = true;
+}
+
+function cancelSurveyModal() {
+  surveySchema.value = surveySchemaSnapshot;
+  showSurveyModal.value = false;
+}
 // context_id is built from the event UUID if editing, or a temp ID for new events.
 // The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
 const eventSurveyContextId = computed(() =>
@@ -1689,7 +1708,9 @@ const buildVariables = async () => {
   res = { ...res, attributedToId };
 
   if (surveySchema.value) {
-    res = { ...res, surveySchema: surveySchema.value };
+    // Serialize to JSON string — the Absinthe JSON scalar handles strings
+    // via Jason.decode, bypassing GraphQL input object field validation.
+    res = { ...res, surveySchema: JSON.stringify(surveySchema.value) };
   }
 
   if (pictureFile.value) {

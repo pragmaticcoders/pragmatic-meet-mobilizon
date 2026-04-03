@@ -254,6 +254,16 @@
                 {{ participant.metadata.message }}
               </div>
             </div>
+            <div v-else-if="surveysEnabled && participant.role === ParticipantRole.PARTICIPANT">
+              <o-button
+                size="small"
+                variant="info"
+                icon-left="clipboard-list"
+                @click="openSurveyModal(participant)"
+              >
+                {{ t("Survey") }}
+              </o-button>
+            </div>
 
             <div
               class="flex justify-between items-center text-xs text-gray-500"
@@ -519,9 +529,20 @@
               }}
             </o-button>
           </div>
-          <p v-else class="text-sm text-gray-500">
-            {{ t("No message") }}
-          </p>
+          <div v-else class="flex items-center gap-2">
+            <o-button
+              v-if="surveysEnabled && props.row.role === ParticipantRole.PARTICIPANT"
+              size="small"
+              variant="info"
+              icon-left="clipboard-list"
+              @click="openSurveyModal(props.row)"
+            >
+              {{ t("Survey") }}
+            </o-button>
+            <p v-else class="text-sm text-gray-500">
+              {{ t("No message") }}
+            </p>
+          </div>
         </o-table-column>
         <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
           <div class="text-xs sm:text-sm">
@@ -593,6 +614,41 @@
         </template>
       </o-table>
     </div>
+    <!-- Survey Response Modal -->
+    <o-modal
+      v-model:active="surveyModalOpen"
+      has-modal-card
+      :close-button-aria-label="t('Close')"
+    >
+      <div class="modal-card w-full max-w-lg">
+        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+          <p class="modal-card-title text-lg font-semibold text-white">
+            {{ t("Survey response") }}
+            <span v-if="surveyModalActorName" class="text-sm font-normal text-primary-200 ml-2">— {{ surveyModalActorName }}</span>
+          </p>
+        </header>
+        <section class="modal-card-body px-6 py-6">
+          <div v-if="surveyModalLoading" class="flex justify-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+          <div v-else-if="surveyModalError" class="flex items-start gap-2 text-error-600 text-sm bg-error-50 border border-error-200 px-4 py-3">
+            <span class="font-medium">{{ surveyModalError }}</span>
+          </div>
+          <div v-else-if="surveyFields.length === 0" class="text-center text-gray-500 text-sm py-6">
+            {{ t("No survey response found for this participant.") }}
+          </div>
+          <dl v-else class="divide-y divide-gray-100">
+            <div v-for="field in surveyFields" :key="field.label" class="py-4 first:pt-0 last:pb-0">
+              <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{{ field.label }}</dt>
+              <dd class="text-gray-900 text-sm leading-relaxed">{{ field.value }}</dd>
+            </div>
+          </dl>
+        </section>
+        <footer class="modal-card-foot flex justify-end px-6 py-4 border-t border-gray-200 bg-white">
+          <o-button @click="surveyModalOpen = false">{{ t("Close") }}</o-button>
+        </footer>
+      </div>
+    </o-modal>
   </section>
 </template>
 
@@ -602,10 +658,12 @@ import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
+import { usePlugins } from "@/composition/apollo/plugins";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import {
   EVENT_PERSON_PARTICIPATION,
   EXPORT_EVENT_PARTICIPATIONS,
+  PARTICIPANT_SURVEY_RESPONSE,
   PARTICIPANTS,
   UPDATE_PARTICIPANT,
 } from "@/graphql/event";
@@ -617,7 +675,7 @@ import { IEvent } from "@/types/event.model";
 import { IParticipant } from "@/types/participant.model";
 import { asyncForEach } from "@/utils/asyncForEach";
 import { useHead } from "@/utils/head";
-import { useMutation, useQuery } from "@vue/apollo-composable";
+import { useMutation, useQuery, useLazyQuery } from "@vue/apollo-composable";
 import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
@@ -642,6 +700,7 @@ const { t } = useI18n({ useScope: "global" });
 const router = useRouter();
 
 const { currentActor } = useCurrentActorClient();
+const { surveysEnabled } = usePlugins();
 
 const ellipsize = (text?: string) =>
   text && text.substring(0, MESSAGE_ELLIPSIS_LENGTH).concat("…");
@@ -1245,6 +1304,62 @@ const toggleQueueDetails = (row: IParticipant): void => {
 };
 
 const openDetailedRows = ref<Record<string, boolean>>({});
+
+// Survey response modal state
+const surveyModalOpen = ref(false);
+const surveyModalActorName = ref("");
+const surveyModalLoading = ref(false);
+const surveyModalError = ref<string | null>(null);
+const surveyModalData = ref<{ schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null>(null);
+
+const { load: loadSurveyResponse } = useLazyQuery<{
+  participantSurveyResponse: { schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null;
+}>(PARTICIPANT_SURVEY_RESPONSE);
+
+const openSurveyModal = async (participant: IParticipant) => {
+  if (!event.value?.id || !participant.actor?.id) return;
+  surveyModalOpen.value = true;
+  surveyModalLoading.value = true;
+  surveyModalError.value = null;
+  surveyModalData.value = null;
+  surveyModalActorName.value =
+    participant.actor.name || participant.actor.preferredUsername || "";
+  try {
+    const result = await loadSurveyResponse(PARTICIPANT_SURVEY_RESPONSE, {
+      eventId: event.value.id,
+      actorId: participant.actor.id,
+    });
+    if (!result) {
+      surveyModalError.value = t("Failed to load survey response");
+    } else {
+      surveyModalData.value = result.participantSurveyResponse ?? null;
+    }
+  } catch (e: any) {
+    const msg =
+      e?.graphQLErrors?.[0]?.message ?? e?.message ?? t("Failed to load survey response");
+    surveyModalError.value = msg;
+  } finally {
+    surveyModalLoading.value = false;
+  }
+};
+
+// Returns only the schema-defined fields (skip form.io internals like "submit")
+const surveyFields = computed(() => {
+  if (!surveyModalData.value) return [];
+  const { schema, data } = surveyModalData.value;
+  // Support both form.io schema (components[].key) and native schema (fields[].id/name)
+  const fields: any[] =
+    (schema as any)?.components ?? (schema as any)?.fields ?? [];
+  return fields
+    .filter((f: any) => {
+      const key = f.key ?? f.name;
+      return key && key in data && f.type !== "button";
+    })
+    .map((f: any) => {
+      const key = f.key ?? f.name;
+      return { label: f.label ?? key, value: String(data[key as string] ?? "") };
+    });
+});
 
 useHead({
   title: computed(() =>

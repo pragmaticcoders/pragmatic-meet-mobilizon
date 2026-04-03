@@ -165,6 +165,7 @@ defmodule Mobilizon.GraphQL.Schema do
     import_fields(:person_queries)
     import_fields(:group_queries)
     import_fields(:event_queries)
+    import_fields(:participant_queries)
     import_fields(:comment_queries)
     import_fields(:tag_queries)
     import_fields(:address_queries)

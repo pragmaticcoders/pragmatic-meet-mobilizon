@@ -1,4 +1,7 @@
-COMPOSE = docker compose --env-file .env -f docker/development/docker-compose.yml
+COMPOSE       = docker compose --env-file .env -f docker/development/docker-compose.yml
+COMPOSE_LOCAL = docker compose --env-file .env \
+  -f docker/development/docker-compose.yml \
+  -f docker/development/docker-compose.local-forms.yml
 
 init:
 	@bash docker/message.sh "Start"
@@ -29,15 +32,21 @@ update-adapter: stop
 	$(COMPOSE) up -d api
 	@bash docker/message.sh "Docker server started"
 
+# Rebuild adapter-nginx from LOCAL pragmatic-forms (no git clone needed).
+# Use when working on builder.html or frontend assets with start-local-forms.
+# Requires: pragmatic-forms repo must be a sibling directory of this repo.
+update-adapter-local: stop
+	@bash docker/message.sh "Rebuilding adapter-nginx from local pragmatic-forms"
+	$(COMPOSE_LOCAL) build --no-cache mobilizon-adapter adapter-nginx
+	$(COMPOSE_LOCAL) up -d api
+	@bash docker/message.sh "Docker server started"
+
 # Use when actively developing pragmatic-forms locally (hot-reload via bind mounts).
 # No SSH key needed — uses local source directly.
 # Requires: pragmatic-forms repo must be a sibling directory of this repo.
 start-local-forms: stop
 	@bash docker/message.sh "Starting Mobilizon with local pragmatic-forms"
-	docker compose --env-file .env \
-	  -f docker/development/docker-compose.yml \
-	  -f docker/development/docker-compose.local-forms.yml \
-	  up -d api
+	$(COMPOSE_LOCAL) up -d api
 	@bash docker/message.sh "Docker server started"
 
 stop:

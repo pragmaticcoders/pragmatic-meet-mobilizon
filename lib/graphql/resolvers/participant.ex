@@ -588,4 +588,34 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
         {:error, :format_not_supported}
     end
   end
+
+  @doc """
+  Get a participant's survey response for an event (organizer-only)
+  """
+  def participant_survey_response(
+        _parent,
+        %{event_id: event_id, actor_id: actor_id},
+        %{context: %{current_actor: %Actor{} = current_actor}}
+      ) do
+    with {:has_event, {:ok, %Event{uuid: event_uuid} = event}} <-
+           {:has_event, Events.get_event_with_preload(event_id)},
+         {:is_organizer, true} <-
+           {:is_organizer, to_string(event.organizer_actor_id) == to_string(current_actor.id)} do
+      context_id = Surveys.event_context_id(event_uuid)
+      respondent_id = Surveys.actor_respondent_id(actor_id)
+
+      case Surveys.get_participant_response(context_id, respondent_id) do
+        {:ok, nil} -> {:ok, nil}
+        {:ok, response} -> {:ok, response}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      {:has_event, _} -> {:error, dgettext("errors", "Event not found")}
+      {:is_organizer, false} -> {:error, dgettext("errors", "You are not the organizer of this event")}
+    end
+  end
+
+  def participant_survey_response(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to view survey responses")}
+  end
 end

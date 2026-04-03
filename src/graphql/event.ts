@@ -552,3 +552,9 @@ export const PROFILE_CONVERSATIONS = gql`
   }
   ${CONVERSATIONS_QUERY_FRAGMENT}
 `;
+
+export const PARTICIPANT_SURVEY_RESPONSE = gql`
+  query ParticipantSurveyResponse($eventId: ID!, $actorId: ID!) {
+    participantSurveyResponse(eventId: $eventId, actorId: $actorId)
+  }
+`;

@@ -42,6 +42,13 @@ services:
     # node_modules come from the anonymous volume populated here.
     command: sh -c "bun install && bunx prisma db push && bun run dev"
 
+  # adapter-nginx: build frontend from local pragmatic-forms source.
+  # Dockerfile.nginx-local lives inside the context so Docker can find it.
+  adapter-nginx:
+    build:
+      context: ../../../pragmatic-forms/mobilizon-adapter/frontend
+      dockerfile: Dockerfile.nginx-local
+
 volumes:
   adapter_node_modules:
   forms_node_modules:

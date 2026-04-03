@@ -18,6 +18,7 @@
       @join-event-with-confirmation="joinEventWithConfirmation"
       @confirm-leave="confirmLeave"
       @cancel-anonymous-participation="cancelAnonymousParticipation"
+      @participation-confirmed="onParticipationConfirmed"
     />
     <div class="flex flex-col gap-1 mt-1">
       <p
@@ -417,7 +418,7 @@ import {
 import { useRouter } from "vue-router";
 import { IParticipant } from "@/types/participant.model";
 import { ApolloCache, FetchResult } from "@apollo/client/core";
-import { useMutation } from "@vue/apollo-composable";
+import { useMutation, useApolloClient } from "@vue/apollo-composable";
 import { useCreateReport } from "@/composition/apollo/report";
 import { useDeleteEvent } from "@/composition/apollo/event";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -1063,6 +1064,13 @@ onJoinEventMutationDone(({ data }) => {
 });
 
 const { notification } = useOruga();
+
+const { resolveClient } = useApolloClient();
+
+const onParticipationConfirmed = (participant: IParticipant) => {
+  updateCacheWithParticipant(resolveClient().cache, participant);
+  participationConfirmedMessage();
+};
 
 onJoinEventMutationError((error) => {
   if (error.message) {

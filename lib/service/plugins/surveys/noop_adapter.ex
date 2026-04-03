@@ -26,4 +26,9 @@ defmodule Mobilizon.Service.Plugins.Surveys.NoopAdapter do
   def get_responses(_context_id) do
     {:ok, []}
   end
+
+  @impl true
+  def get_participant_response(_context_id, _respondent_id) do
+    {:ok, nil}
+  end
 end

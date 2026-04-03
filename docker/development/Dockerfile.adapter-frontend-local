@@ -1,0 +1,40 @@
+# Dockerfile for building adapter-nginx from a LOCAL pragmatic-forms checkout.
+# Used by docker-compose.local-forms.yml — no git clone needed.
+# Build context: ../../../pragmatic-forms (the local repo root).
+FROM node:20-alpine AS frontend-build
+
+WORKDIR /app/frontend
+COPY mobilizon-adapter/frontend/package.json \
+     mobilizon-adapter/frontend/package-lock.json* ./
+RUN npm install --legacy-peer-deps && \
+    npm install bootstrap@4.6.0 font-awesome@4.7.0 --no-save
+# Copy CSS/JS assets from node_modules before the source so they land in public/
+RUN cp node_modules/@formio/js/dist/formio.full.min.js /tmp/formio.full.min.js \
+ && cp node_modules/@formio/js/dist/formio.full.min.css /tmp/formio.full.min.css \
+ && cp node_modules/bootstrap/dist/css/bootstrap.min.css /tmp/bootstrap.min.css \
+ && cp node_modules/font-awesome/css/font-awesome.min.css /tmp/font-awesome.min.css
+
+COPY mobilizon-adapter/frontend/ ./
+RUN mkdir -p public/fonts \
+ && cp /tmp/formio.full.min.js public/formio.full.min.js \
+ && cp /tmp/formio.full.min.css public/formio.full.min.css \
+ && cp /tmp/bootstrap.min.css public/bootstrap.min.css \
+ && cp /tmp/font-awesome.min.css public/font-awesome.min.css \
+ && cp node_modules/font-awesome/fonts/* public/fonts/ \
+ && cp node_modules/@formio/js/dist/fonts/bootstrap-icons.woff public/fonts/bootstrap-icons.woff \
+ && cp node_modules/@formio/js/dist/fonts/bootstrap-icons.woff2 public/fonts/bootstrap-icons.woff2
+RUN npm run build
+
+FROM nginx:alpine
+
+COPY --from=frontend-build /app/frontend/dist /usr/share/nginx/html
+COPY <<'EOF' /etc/nginx/conf.d/default.conf
+server {
+    listen 80;
+    server_name _;
+    location / {
+        root /usr/share/nginx/html;
+        add_header Access-Control-Allow-Origin "*";
+    }
+}
+EOF

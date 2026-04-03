@@ -12,6 +12,7 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   @callback submit_response(context_id(), respondent_id(), map()) :: {:ok, map()} | {:error, any()}
   @callback save_survey(context_id(), map()) :: {:ok, map()} | {:error, any()}
   @callback get_responses(context_id()) :: {:ok, list(map())} | {:error, any()}
+  @callback get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}
 
   @spec adapter() :: module()
   defp adapter do
@@ -46,6 +47,11 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   @spec get_responses(context_id()) :: {:ok, list(map())} | {:error, any()}
   def get_responses(context_id) do
     adapter().get_responses(context_id)
+  end
+
+  @spec get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}
+  def get_participant_response(context_id, respondent_id) do
+    adapter().get_participant_response(context_id, respondent_id)
   end
 
   # context_id conventions — the "mobilizon_" namespace prefix prevents collisions

@@ -48,9 +48,18 @@ defmodule Mobilizon.GraphQL.Schema.Custom.JSON do
     {:ok, list}
   end
 
+  # When the argument is passed as a GraphQL variable (not inline literal),
+  # Absinthe coerces it to plain Elixir values before calling parse/1.
+  # We must accept maps, lists, and primitives here too.
+  defp decode(value) when is_map(value), do: {:ok, value}
+  defp decode(value) when is_list(value), do: {:ok, value}
+  defp decode(value) when is_binary(value), do: {:ok, value}
+  defp decode(value) when is_number(value), do: {:ok, value}
+  defp decode(value) when is_boolean(value), do: {:ok, value}
+  defp decode(nil), do: {:ok, nil}
+
   defp decode(_) do
     :error
   end
-
   defp encode(value), do: value
 end

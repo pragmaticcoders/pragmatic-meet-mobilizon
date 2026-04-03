@@ -214,15 +214,25 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     field :submit_survey_response, :boolean do
       arg(:context_id, non_null(:string), description: "The survey context ID")
       arg(:data, non_null(:json), description: "The survey response data")
-      middleware(Rajska.QueryAuthorization, permit: :user, scope: false, rule: :"write:participation")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&Participant.submit_survey_response/3)
     end
 
     @desc "Confirm joining an event after completing a survey"
     field :confirm_event_join, :join_event_response do
       arg(:event_id, non_null(:id), description: "The event ID to confirm joining")
-      middleware(Rajska.QueryAuthorization, permit: :user, scope: false, rule: :"write:participation")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&Participant.confirm_event_join/3)
+    end
+  end
+
+  object :participant_queries do
+    @desc "Get a participant's survey response for an event (organizer-only)"
+    field :participant_survey_response, :json do
+      arg(:event_id, non_null(:id), description: "The event ID")
+      arg(:actor_id, non_null(:id), description: "The participant's actor ID")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
+      resolve(&Participant.participant_survey_response/3)
     end
   end
 end
