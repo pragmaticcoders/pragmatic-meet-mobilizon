@@ -1032,6 +1032,14 @@
             </div>
           </div>
         </div>
+
+        <!-- Group surveys (member-only) -->
+        <GroupSurveysSection
+          v-if="surveysEnabled && group && isCurrentActorAGroupMember && !previewPublic"
+          :group="group"
+          :current-actor="currentActor"
+          :group-member="groupMember"
+        />
       </div>
 
       <!-- Notifications and Additional Information -->
@@ -1087,6 +1095,7 @@ import {
 } from "@/types/actor";
 
 import InvitationsList from "@/components/Group/InvitationsList.vue";
+import GroupSurveysSection from "@/components/Group/GroupSurveysSection.vue";
 import { addMinutes } from "date-fns";
 import { JOIN_GROUP } from "@/graphql/member";
 import { MemberRole, ApprovalStatus } from "@/types/enums";
@@ -1105,6 +1114,7 @@ import {
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { useCurrentActorClient } from "@/composition/apollo/actor";
 import { useGroup, useLeaveGroup } from "@/composition/apollo/group";
+import { usePlugins } from "@/composition/apollo/plugins";
 import { useGroupDiscussionsList } from "@/composition/apollo/discussions";
 import { useRouter } from "vue-router";
 import { useMutation, useQuery } from "@vue/apollo-composable";
@@ -1143,6 +1153,7 @@ const preferredUsername = computed(() => props.preferredUsername);
 const { anonymousReportsConfig } = useAnonymousReportsConfig();
 const { restrictions } = useRestrictions();
 const { currentActor } = useCurrentActorClient();
+const { surveysEnabled } = usePlugins();
 const {
   group,
   loading: groupLoading,

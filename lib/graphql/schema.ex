@@ -58,6 +58,8 @@ defmodule Mobilizon.GraphQL.Schema do
   import_types(Schema.FollowedGroupActivityType)
   import_types(Schema.AuthApplicationType)
   import_types(Schema.ConversationType)
+  import_types(Schema.Events.EventPostSurveyType)
+  import_types(Schema.Actors.GroupPostSurveyType)
 
   @desc "A struct containing the id of the deleted object"
   object :deleted_object do
@@ -166,6 +168,8 @@ defmodule Mobilizon.GraphQL.Schema do
     import_fields(:group_queries)
     import_fields(:event_queries)
     import_fields(:participant_queries)
+    import_fields(:event_post_survey_queries)
+    import_fields(:group_post_survey_queries)
     import_fields(:comment_queries)
     import_fields(:tag_queries)
     import_fields(:address_queries)
@@ -193,6 +197,8 @@ defmodule Mobilizon.GraphQL.Schema do
     import_fields(:event_mutations)
     import_fields(:comment_mutations)
     import_fields(:participant_mutations)
+    import_fields(:event_post_survey_mutations)
+    import_fields(:group_post_survey_mutations)
     import_fields(:member_mutations)
     import_fields(:feed_token_mutations)
     import_fields(:media_mutations)

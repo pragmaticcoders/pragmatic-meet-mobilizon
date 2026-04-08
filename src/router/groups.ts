@@ -19,6 +19,7 @@ export enum GroupsRouteName {
   GROUP_JOIN = "GROUP_JOIN",
   GROUP_FOLLOW = "GROUP_FOLLOW",
   TIMELINE = "TIMELINE",
+  GROUP_POST_SURVEY_RESPONSES = "GroupPostSurveyResponses",
 }
 
 const resourceFolder = (): Promise<any> =>
@@ -156,6 +157,14 @@ export const groupsRoutes: RouteRecordRaw[] = [
     path: "/@:preferredUsername/timeline",
     name: GroupsRouteName.TIMELINE,
     component: (): Promise<any> => import("@/views/Group/TimelineView.vue"),
+    props: true,
+    meta: { requiredAuth: true, announcer: { skip: true } },
+  },
+  {
+    path: "/@:preferredUsername/surveys/:surveyId/responses",
+    name: GroupsRouteName.GROUP_POST_SURVEY_RESPONSES,
+    component: (): Promise<any> =>
+      import("@/views/Group/GroupPostSurveyResponsesView.vue"),
     props: true,
     meta: { requiredAuth: true, announcer: { skip: true } },
   },

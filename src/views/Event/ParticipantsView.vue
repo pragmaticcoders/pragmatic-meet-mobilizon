@@ -620,7 +620,7 @@
       has-modal-card
       :close-button-aria-label="t('Close')"
     >
-      <div class="modal-card w-full max-w-lg">
+      <div class="modal-card">
         <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
           <p class="modal-card-title text-lg font-semibold text-white">
             {{ t("Survey response") }}

@@ -692,6 +692,12 @@
               />
             </div>
           </section>
+          <EventSurveysSection
+            v-if="surveysEnabled && event"
+            :event="event"
+            :current-actor="currentActor"
+            :participations="participations"
+          />
           <section class="my-4">
             <component
               v-for="(metadata, integration) in integrations"
@@ -797,6 +803,7 @@ import Tag from "@/components/TagElement.vue";
 import EventMetadataSidebar from "@/components/Event/EventMetadataSidebar.vue";
 import EventBanner from "@/components/Event/EventBanner.vue";
 import EventActionSection from "@/components/Event/EventActionSection.vue";
+import EventSurveysSection from "@/components/Event/EventSurveysSection.vue";
 import PopoverActorCard from "@/components/Account/PopoverActorCard.vue";
 import { IEventMetadataDescription } from "@/types/event-metadata";
 import { eventMetaDataList } from "@/services/EventMetadata";
@@ -815,6 +822,7 @@ import {
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
 import { useLoggedUser } from "@/composition/apollo/user";
+import { usePlugins } from "@/composition/apollo/plugins";
 import { useQuery } from "@vue/apollo-composable";
 import {
   useEventCategories,
@@ -868,6 +876,7 @@ const eventId = computed(() => event.value?.id);
 const { currentActor } = useCurrentActorClient();
 const currentActorId = computed(() => currentActor.value?.id);
 const { loggedUser } = useLoggedUser();
+const { surveysEnabled } = usePlugins();
 const {
   result: participationsResult,
   // subscribeToMore: subscribeToMoreParticipation,

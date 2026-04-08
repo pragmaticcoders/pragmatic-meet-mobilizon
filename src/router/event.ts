@@ -25,6 +25,7 @@ export enum EventRouteName {
   EVENT_PARTICIPATE_CONFIRM = "EVENT_PARTICIPATE_CONFIRM",
   EVENT_PARTICIPATE_CANCEL = "EVENT_PARTICIPATE_CANCEL",
   TAG = "Tag",
+  EVENT_POST_SURVEY_RESPONSES = "EventPostSurveyResponses",
 }
 
 export const eventRoutes: RouteRecordRaw[] = [
@@ -78,6 +79,13 @@ export const eventRoutes: RouteRecordRaw[] = [
     path: "/events/:eventId/participations",
     name: EventRouteName.PARTICIPATIONS,
     component: participations,
+    meta: { requiredAuth: true, announcer: { skip: true } },
+    props: true,
+  },
+  {
+    path: "/events/:eventId/surveys/:surveyId/responses",
+    name: EventRouteName.EVENT_POST_SURVEY_RESPONSES,
+    component: () => import("@/views/Event/EventPostSurveyResponsesView.vue"),
     meta: { requiredAuth: true, announcer: { skip: true } },
     props: true,
   },
