@@ -31,7 +31,7 @@
           <%= if @group.summary do %>
           <tr>
             <td style="padding: 8px 0; font-weight: bold;"><%= gettext "Summary:" %></td>
-            <td style="padding: 8px 0;"><%= @group.summary %></td>
+            <td style="padding: 8px 0;"><%= @group.summary |> sanitize_to_basic_html() |> raw() %></td>
           </tr>
           <% end %>
         </table>
