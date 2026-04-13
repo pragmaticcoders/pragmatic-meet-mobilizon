@@ -64,7 +64,9 @@
       ref="anonymous-participation-modal"
     >
       <div class="modal-card">
-        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+        <header
+          class="modal-card-head flex items-center bg-primary-700 px-6 py-4"
+        >
           <p class="modal-card-title text-lg font-semibold text-white">
             {{ t("About anonymous participation") }}
           </p>
@@ -149,7 +151,7 @@ const showSurveyModal = ref(false);
 const surveyContextId = ref<string | null>(null);
 const surveySchema = ref<object | null>(null);
 
-const emit = defineEmits<{
+defineEmits<{
   "participation-confirmed": [participant: IParticipant];
 }>();
 
@@ -173,7 +175,7 @@ const handleSurveyRequired = (response: {
   showSurveyModal.value = true;
 };
 
-defineExpose({ handleSurveyRequired });
+defineExpose({ handleSurveyRequired, handleSurveyCompleted });
 
 // Logging function
 const logParticipationSectionState = () => {
