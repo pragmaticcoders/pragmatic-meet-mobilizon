@@ -723,6 +723,24 @@
             </a>
             <comment-tree v-if="event && loadComments" :event="event" />
           </section>
+
+          <div
+            class="flex items-center justify-center py-4 text-sm text-gray-500"
+          >
+            <span>{{ t("Technological partner of the event is") }}</span>
+            <a
+              href="https://pragmaticcoders.pl"
+              rel="external noopener noreferrer"
+              target="_blank"
+              class="flex items-center"
+            >
+              <img
+                src="/img/pragmatic_coders_logo.svg"
+                alt="Pragmatic Coders"
+                class="h-16"
+              />
+            </a>
+          </div>
         </div>
       </div>
 
