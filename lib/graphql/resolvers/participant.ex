@@ -3,7 +3,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
   Handles the participation-related GraphQL calls.
   """
   alias Mobilizon.{Actors, Config, Conversations, Crypto, Events}
-  alias Mobilizon.Service.Plugins.Surveys
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Conversations.{Conversation, ConversationView}
   alias Mobilizon.Events.{Event, Participant}
@@ -29,46 +28,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
       ) do
     case User.owns_actor(user, actor_id) do
       {:is_owned, %Actor{} = actor} ->
-        if Surveys.enabled?() do
-          # Load the event to get its UUID — the stable public identifier used as context_id.
-          # Using the raw event_id from GraphQL args would produce a different context_id than
-          # the one saved by the event resolver (which always uses event.uuid).
-          with {:has_event, {:ok, %Event{uuid: event_uuid}}} <-
-                 {:has_event, Events.get_event_with_preload(event_id)} do
-            context_id = Surveys.event_context_id(event_uuid)
-            respondent_id = Surveys.actor_respondent_id(actor_id)
-
-            case Surveys.check_gate(context_id, respondent_id) do
-              {:ok, %{"required" => true, "survey_schema" => schema}} ->
-                {:ok,
-                 %{
-                   status: :survey_required,
-                   survey_schema: schema,
-                   context_id: context_id,
-                   participant: nil
-                 }}
-
-              {:ok, _} ->
-                case do_actor_join_event(actor, event_id, args) do
-                  {:ok, participant} ->
-                    {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
-                  error -> error
-                end
-
-              {:error, reason} ->
-                {:error, reason}
-            end
-          else
-            {:has_event, _} ->
-              {:error, dgettext("errors", "Event not found")}
-          end
-        else
-          case do_actor_join_event(actor, event_id, args) do
-            {:ok, participant} ->
-              {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
-            error -> error
-          end
-        end
+        do_actor_join_event(actor, event_id, args)
 
       _ ->
         {:error, dgettext("errors", "Profile is not owned by authenticated user")}
@@ -490,68 +450,6 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
   end
 
   @doc """
-  Submit a survey response
-  """
-  def submit_survey_response(
-        _parent,
-        %{context_id: context_id, data: data},
-        %{context: %{current_actor: %Actor{id: actor_id}}}
-      ) do
-    respondent_id = Surveys.actor_respondent_id(actor_id)
-
-    case Surveys.submit_response(context_id, respondent_id, data) do
-      {:ok, _} -> {:ok, true}
-      {:error, reason} -> {:error, reason}
-    end
-  end
-
-  def submit_survey_response(_, _, _) do
-    {:error, dgettext("errors", "You need to be logged-in to submit a survey")}
-  end
-
-  @doc """
-  Confirm joining an event after completing a survey
-  """
-  def confirm_event_join(
-        _parent,
-        %{event_id: event_id},
-        %{context: %{current_user: %User{} = user, current_actor: %Actor{id: actor_id} = _actor}}
-      ) do
-    with {:has_event, {:ok, %Event{uuid: event_uuid}}} <-
-           {:has_event, Events.get_event_with_preload(event_id)} do
-      context_id = Surveys.event_context_id(event_uuid)
-      respondent_id = Surveys.actor_respondent_id(actor_id)
-
-      case Surveys.check_gate(context_id, respondent_id) do
-        {:ok, %{"required" => false}} ->
-          case User.owns_actor(user, actor_id) do
-            {:is_owned, %Actor{} = owned_actor} ->
-              case do_actor_join_event(owned_actor, event_id, %{actor_id: actor_id, event_id: event_id}) do
-                {:ok, participant} ->
-                  {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
-                error -> error
-              end
-            _ ->
-              {:error, dgettext("errors", "Profile is not owned by authenticated user")}
-          end
-
-        {:ok, %{"required" => true}} ->
-          {:error, dgettext("errors", "Survey not completed")}
-
-        {:error, reason} ->
-          {:error, reason}
-      end
-    else
-      {:has_event, _} ->
-        {:error, dgettext("errors", "Event not found")}
-    end
-  end
-
-  def confirm_event_join(_, _, _) do
-    {:error, dgettext("errors", "You need to be logged-in to confirm event join")}
-  end
-
-  @doc """
   Resolve the waitlist position for a participant.
   Returns the 1-based position in the waitlist, or nil if not on waitlist.
   """
@@ -589,33 +487,4 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     end
   end
 
-  @doc """
-  Get a participant's survey response for an event (organizer-only)
-  """
-  def participant_survey_response(
-        _parent,
-        %{event_id: event_id, actor_id: actor_id},
-        %{context: %{current_actor: %Actor{} = current_actor}}
-      ) do
-    with {:has_event, {:ok, %Event{uuid: event_uuid} = event}} <-
-           {:has_event, Events.get_event_with_preload(event_id)},
-         {:is_organizer, true} <-
-           {:is_organizer, to_string(event.organizer_actor_id) == to_string(current_actor.id)} do
-      context_id = Surveys.event_context_id(event_uuid)
-      respondent_id = Surveys.actor_respondent_id(actor_id)
-
-      case Surveys.get_participant_response(context_id, respondent_id) do
-        {:ok, nil} -> {:ok, nil}
-        {:ok, response} -> {:ok, response}
-        {:error, reason} -> {:error, reason}
-      end
-    else
-      {:has_event, _} -> {:error, dgettext("errors", "Event not found")}
-      {:is_organizer, false} -> {:error, dgettext("errors", "You are not the organizer of this event")}
-    end
-  end
-
-  def participant_survey_response(_, _, _) do
-    {:error, dgettext("errors", "You need to be logged-in to view survey responses")}
-  end
 end

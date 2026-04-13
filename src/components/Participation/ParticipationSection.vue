@@ -156,9 +156,6 @@ import { IPerson } from "@/types/actor";
 import { IAnonymousParticipationConfig } from "@/types/config.model";
 import { usePlugins } from "@/composition/apollo/plugins";
 import SurveyFormWrapper from "@/components/Survey/SurveyFormWrapper.vue";
-import { useMutation } from "@vue/apollo-composable";
-import { CONFIRM_EVENT_JOIN } from "@/graphql/event";
-
 const { t } = useI18n({ useScope: "global" });
 
 const props = withDefaults(
@@ -187,8 +184,16 @@ const emit = defineEmits<{
   "participation-confirmed": [participant: IParticipant];
 }>();
 
-const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
+// Simplified: confirmEventJoin removed since the gate-check flow is not
+// implemented — joinEvent returns the participant directly.
+const handleSurveyCompleted = () => {
+  showSurveyModal.value = false;
+  surveyContextId.value = null;
+  surveySchema.value = null;
+};
 
+// Called by EventActionSection when a survey_required response is received.
+// Kept as a stub so EventActionSection.vue doesn't break at runtime.
 const handleSurveyRequired = (response: {
   status: string;
   surveySchema: object;
@@ -197,28 +202,6 @@ const handleSurveyRequired = (response: {
   surveyContextId.value = response.contextId;
   surveySchema.value = response.surveySchema;
   showSurveyModal.value = true;
-};
-
-// SurveyForm.vue (loaded from the adapter via Module Federation) submits the
-// survey response itself via GraphQL — Mobilizon never sees raw form data.
-// We only need to confirm the participation once the form signals completion.
-const handleSurveyCompleted = async () => {
-  try {
-    const result = await confirmEventJoin({
-      eventId: props.event.id,
-    });
-
-    showSurveyModal.value = false;
-    surveyContextId.value = null;
-    surveySchema.value = null;
-
-    const participant = result?.data?.confirmEventJoin?.participant;
-    if (participant) {
-      emit("participation-confirmed", participant);
-    }
-  } catch (err) {
-    console.error("Failed to confirm event join after survey:", err);
-  }
 };
 
 defineExpose({ handleSurveyRequired });

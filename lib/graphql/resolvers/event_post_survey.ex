@@ -150,7 +150,7 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
 
   defp normalize_survey(other), do: other
 
-  defp enrich_responses(responses, schema \\ %{}) do
+  defp enrich_responses(responses, schema) do
     Enum.map(responses, fn response ->
       {name, username, email} =
         response

@@ -308,19 +308,6 @@ export const SUBMIT_SURVEY_RESPONSE = gql`
   }
 `;
 
-export const CONFIRM_EVENT_JOIN = gql`
-  mutation ConfirmEventJoin($eventId: ID!) {
-    confirmEventJoin(eventId: $eventId) {
-      status
-      surveySchema
-      contextId
-      participant {
-        ...ParticipantQuery
-      }
-    }
-  }
-  ${PARTICIPANT_QUERY_FRAGMENT}
-`;
 
 export const LEAVE_EVENT = gql`
   mutation LeaveEvent($eventId: ID!, $actorId: ID!, $token: String) {
