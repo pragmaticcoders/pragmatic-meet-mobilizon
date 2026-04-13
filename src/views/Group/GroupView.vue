@@ -1037,7 +1037,6 @@
         <GroupSurveysSection
           v-if="surveysEnabled && group && isCurrentActorAGroupMember && !previewPublic"
           :group="group"
-          :current-actor="currentActor"
           :group-member="groupMember"
         />
       </div>

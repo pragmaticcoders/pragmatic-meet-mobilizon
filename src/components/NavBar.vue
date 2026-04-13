@@ -20,7 +20,8 @@
         <!-- Desktop Navigation - Logged In -->
         <div
           v-if="currentUser?.isLoggedIn"
-          class="hidden md:flex md:items-center md:space-x-6"
+          v-show="isDesktop"
+          class="flex items-center space-x-6"
         >
           <nav class="flex items-center space-x-6">
             <router-link
@@ -205,7 +206,7 @@
         </div>
 
         <!-- Desktop Navigation - Not Logged In -->
-        <div v-else class="hidden md:flex md:items-center md:space-x-6">
+        <div v-else v-show="isDesktop" class="flex items-center space-x-6">
           <nav class="flex items-center space-x-6">
             <router-link
               :to="{ name: RouteName.SEARCH }"
@@ -242,9 +243,10 @@
         <button
           @click="showMobileMenu = !showMobileMenu"
           type="button"
-          class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+          v-show="!isDesktop"
+          class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
           aria-controls="mobile-menu"
-          aria-expanded="false"
+          :aria-expanded="showMobileMenu"
         >
           <span class="sr-only">{{ t("Open main menu") }}</span>
           <svg
@@ -265,7 +267,7 @@
       </div>
 
       <!-- Mobile menu -->
-      <div v-show="showMobileMenu" class="md:hidden" id="mobile-menu">
+      <div v-show="showMobileMenu && !isDesktop" id="mobile-menu">
         <div class="px-2 pt-2 pb-3 space-y-1 border-t border-gray-200">
           <!-- Logged In Mobile Menu -->
           <template v-if="currentUser?.isLoggedIn">
@@ -382,6 +384,7 @@ import RouteName from "../router/name";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { useMediaQuery } from "@vueuse/core";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Chat from "vue-material-design-icons/Chat.vue";
 import Plus from "vue-material-design-icons/Plus.vue";
@@ -522,6 +525,16 @@ watch(currentActor, async (currentActorValue, previousActorValue) => {
 onMounted(() => {});
 
 const showMobileMenu = ref(false);
+
+const isDesktop = useMediaQuery("(min-width: 768px)");
+
+// Close mobile menu on route change
+watch(
+  () => route.path,
+  () => {
+    showMobileMenu.value = false;
+  }
+);
 
 const { notification } = useOruga();
 

@@ -11,6 +11,7 @@
  */
 import * as Vue from "vue";
 import * as VueApolloComposable from "@vue/apollo-composable";
+import * as VueI18n from "vue-i18n";
 import { ref } from "vue";
 
 export const surveyModuleReady = ref(false);
@@ -64,6 +65,14 @@ export async function initSurveyModule(
       "@vue/apollo-composable": {
         "4.0.1": {
           get: async () => async () => VueApolloComposable,
+          scope: "default",
+          loaded: 1,
+          from: "mobilizon",
+        },
+      },
+      "vue-i18n": {
+        [VueI18n.VERSION]: {
+          get: async () => async () => VueI18n,
           scope: "default",
           loaded: 1,
           from: "mobilizon",

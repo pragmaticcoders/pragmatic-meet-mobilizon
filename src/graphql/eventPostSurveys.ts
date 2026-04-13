@@ -3,13 +3,11 @@ import gql from "graphql-tag";
 const EVENT_POST_SURVEY_FRAGMENT = gql`
   fragment EventPostSurvey on EventPostSurvey {
     id
-    uuid
     title
     description
     schema
     status
     contextId
-    eventId
   }
 `;
 
@@ -32,8 +30,8 @@ export const CREATE_EVENT_POST_SURVEY = gql`
 `;
 
 export const UPDATE_EVENT_POST_SURVEY = gql`
-  mutation UpdateEventPostSurvey($surveyId: ID!, $title: String!, $description: String, $schema: JSON!) {
-    updateEventPostSurvey(surveyId: $surveyId, title: $title, description: $description, schema: $schema) {
+  mutation UpdateEventPostSurvey($eventId: ID!, $surveyId: String!, $title: String!, $description: String, $schema: JSON!) {
+    updateEventPostSurvey(eventId: $eventId, surveyId: $surveyId, title: $title, description: $description, schema: $schema) {
       ...EventPostSurvey
     }
   }
@@ -41,8 +39,8 @@ export const UPDATE_EVENT_POST_SURVEY = gql`
 `;
 
 export const PUBLISH_EVENT_POST_SURVEY = gql`
-  mutation PublishEventPostSurvey($surveyId: ID!) {
-    publishEventPostSurvey(surveyId: $surveyId) {
+  mutation PublishEventPostSurvey($eventId: ID!, $surveyId: String!) {
+    publishEventPostSurvey(eventId: $eventId, surveyId: $surveyId) {
       ...EventPostSurvey
     }
   }
@@ -50,8 +48,8 @@ export const PUBLISH_EVENT_POST_SURVEY = gql`
 `;
 
 export const CLOSE_EVENT_POST_SURVEY = gql`
-  mutation CloseEventPostSurvey($surveyId: ID!) {
-    closeEventPostSurvey(surveyId: $surveyId) {
+  mutation CloseEventPostSurvey($eventId: ID!, $surveyId: String!) {
+    closeEventPostSurvey(eventId: $eventId, surveyId: $surveyId) {
       ...EventPostSurvey
     }
   }
@@ -59,14 +57,13 @@ export const CLOSE_EVENT_POST_SURVEY = gql`
 `;
 
 export const EVENT_POST_SURVEY_RESPONSES = gql`
-  query EventPostSurveyResponses($surveyId: ID!) {
-    eventPostSurveyResponses(surveyId: $surveyId) {
+  query EventPostSurveyResponses($eventId: ID!, $surveyId: String!) {
+    eventPostSurveyResponses(eventId: $eventId, surveyId: $surveyId) {
       respondentId
       respondentName
       respondentUsername
       respondentEmail
       submittedAt
-      schema
       data
     }
   }
