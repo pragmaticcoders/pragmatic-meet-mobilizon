@@ -79,7 +79,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
         |> Email.Mailer.send_email()
       end
 
-      {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+      {:ok, participant}
     else
       {:error, err} ->
         {:error, err}

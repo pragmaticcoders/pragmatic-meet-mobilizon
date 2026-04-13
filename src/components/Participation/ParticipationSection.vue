@@ -111,31 +111,6 @@
         </section>
       </div>
     </o-modal>
-    <!-- Survey Modal -->
-    <o-modal
-      v-if="surveysEnabled"
-      v-model:active="showSurveyModal"
-      has-modal-card
-      :close-button-aria-label="t('Close')"
-    >
-      <div class="modal-card">
-        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
-          <p class="modal-card-title text-lg font-semibold text-white">
-            {{ t("To join the event, please complete the survey") }}
-          </p>
-        </header>
-        <section class="modal-card-body py-8 px-6" v-if="surveySchema && surveyContextId">
-          <div style="max-width: 560px; margin: 0 auto">
-            <SurveyFormWrapper
-              :context-id="surveyContextId"
-              :survey-schema="surveySchema"
-              @completed="handleSurveyCompleted"
-              @error="(e: Error) => console.error('Survey error:', e)"
-            />
-          </div>
-        </section>
-      </div>
-    </o-modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -154,8 +129,6 @@ import HelpCircleOutline from "vue-material-design-icons/HelpCircleOutline.vue";
 import { useI18n } from "vue-i18n";
 import { IPerson } from "@/types/actor";
 import { IAnonymousParticipationConfig } from "@/types/config.model";
-import { usePlugins } from "@/composition/apollo/plugins";
-import SurveyFormWrapper from "@/components/Survey/SurveyFormWrapper.vue";
 const { t } = useI18n({ useScope: "global" });
 
 const props = withDefaults(
@@ -172,10 +145,6 @@ const props = withDefaults(
 );
 
 const isAnonymousParticipationModalOpen = ref(false);
-
-const { surveysEnabled } = usePlugins();
-
-// Survey state
 const showSurveyModal = ref(false);
 const surveyContextId = ref<string | null>(null);
 const surveySchema = ref<object | null>(null);
