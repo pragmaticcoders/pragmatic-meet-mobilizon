@@ -84,6 +84,7 @@ export default defineConfig(({ command }) => {
     outDir: path.resolve(__dirname, "priv/static"),
     emptyOutDir: true,
     sourcemap: true,
+    target: "esnext",
   };
 
   if (!isStory) {
@@ -95,9 +96,14 @@ export default defineConfig(({ command }) => {
     };
   }
 
+  const esbuild = {
+    target: "esnext",
+  };
+
   return {
     plugins,
     build,
+    esbuild,
     server: {
       host: "0.0.0.0",
       port: 5173,
