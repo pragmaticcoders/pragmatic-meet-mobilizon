@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
+import federation from "@originjs/vite-plugin-federation";
 
 export default defineConfig(({ command }) => {
   const isDev = command !== "build";
@@ -17,7 +18,21 @@ export default defineConfig(({ command }) => {
 
   const isStory = Boolean(process.env.HISTOIRE);
 
-  const plugins = [vue(), visualizer()];
+  const plugins = [
+    federation({
+      name: "mobilizon",
+      remotes: {
+        adapterModule:
+          "https://placeholder-replaced-at-runtime/assets/remoteEntry.js",
+      },
+      // vue and Apollo client are shared so SurveyForm.vue (loaded from the adapter
+      // via Module Federation) uses the same instances — including the Apollo client
+      // that already carries the Guardian JWT of the logged-in user.
+      shared: ["vue", "@vue/apollo-composable", "@apollo/client"],
+    }),
+    vue(),
+    visualizer(),
+  ];
 
   if (!isStory) {
     plugins.push(

@@ -1,0 +1,54 @@
+# Local-forms override for docker-compose.yml.
+#
+# Use this file when you are actively developing pragmatic-forms locally
+# and want hot-reload from your local source code:
+#
+#   make start-local-forms
+#
+# Convention: the pragmatic-forms repository must be a sibling directory
+# of the mobilizon repository, i.e.:
+#
+#   ~/Work/
+#     mobilizon/          ← this repo
+#     pragmatic-forms/    ← pragmatic-forms repo (sibling)
+#
+# This file overrides only build and volumes sections of the two services.
+# All networking, environment variables and dependencies remain unchanged.
+
+services:
+  mobilizon-adapter:
+    build:
+      context: ../../../pragmatic-forms
+      dockerfile: mobilizon-adapter/Dockerfile
+      target: dev
+    volumes:
+      - ../../../pragmatic-forms/tsconfig.json:/app/tsconfig.json:ro
+      - ../../../pragmatic-forms/mobilizon-adapter/src:/app/mobilizon-adapter/src
+      - ../../../pragmatic-forms/mobilizon-adapter/package.json:/app/mobilizon-adapter/package.json:ro
+      - ../../../pragmatic-forms/mobilizon-adapter/bun.lock:/app/mobilizon-adapter/bun.lock:ro
+      - ../../../pragmatic-forms/mobilizon-adapter/tsconfig.json:/app/mobilizon-adapter/tsconfig.json:ro
+      - adapter_node_modules:/app/mobilizon-adapter/node_modules
+
+  forms-api:
+    build:
+      context: ../../../pragmatic-forms
+      dockerfile: forms/Dockerfile
+      target: dev
+    volumes:
+      - ../../../pragmatic-forms/tsconfig.json:/app/tsconfig.json:ro
+      - ../../../pragmatic-forms/forms:/app/forms
+      - forms_node_modules:/app/forms/node_modules
+    # bun install is needed because the dev Dockerfile does not run it —
+    # node_modules come from the anonymous volume populated here.
+    command: sh -c "bun install && bunx prisma db push && bun run dev"
+
+  # adapter-nginx: build frontend from local pragmatic-forms source.
+  # Dockerfile.nginx-local lives inside the context so Docker can find it.
+  adapter-nginx:
+    build:
+      context: ../../../pragmatic-forms/mobilizon-adapter/frontend
+      dockerfile: Dockerfile.nginx-local
+
+volumes:
+  adapter_node_modules:
+  forms_node_modules:

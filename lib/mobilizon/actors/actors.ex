@@ -2006,4 +2006,5 @@ defmodule Mobilizon.Actors do
     |> preload([:user])
     |> Page.chunk(chunk_size)
   end
+
 end

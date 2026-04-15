@@ -46,4 +46,22 @@ defmodule Mobilizon.GraphQL.Resolvers.Event.Utils do
     relay_actor = Relay.get_actor()
     Events.check_if_event_has_instance_follow(url, relay_actor.id)
   end
+
+  @doc """
+  Returns true when the actor can manage post-event surveys:
+  they are the organizer/group admin, OR they are a participant
+  with the :administrator or :creator role on this event.
+  """
+  @spec can_manage_event_surveys?(Event.t(), Actor.t()) :: boolean()
+  def can_manage_event_surveys?(%Event{} = event, %Actor{id: actor_id} = actor) do
+    if can_event_be_updated_by?(event, actor) do
+      true
+    else
+      case Events.get_participant(event.id, actor_id) do
+        {:ok, %{role: role}} when role in [:administrator, :creator] -> true
+        _ -> false
+      end
+    end
+  end
 end
+

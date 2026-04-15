@@ -2219,4 +2219,5 @@ defmodule Mobilizon.Events do
     # Return the element without modification
     invalid
   end
+
 end

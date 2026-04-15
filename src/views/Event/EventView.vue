@@ -216,6 +216,20 @@
               :participations="participations"
               :person="person"
             />
+            <div
+              v-if="surveysEnabled && isRegularParticipant && event"
+              class="mt-3"
+            >
+              <o-button
+                variant="info"
+                outlined
+                size="small"
+                icon-left="clipboard-text-outline"
+                @click="openGateSurveyModal"
+              >
+                {{ t("View my survey response") }}
+              </o-button>
+            </div>
           </div>
         </section>
       </div>
@@ -692,6 +706,12 @@
               />
             </div>
           </section>
+          <EventSurveysSection
+            v-if="surveysEnabled && event"
+            :event="event"
+            :current-actor="currentActor"
+            :participations="participations"
+          />
           <section class="my-4">
             <component
               v-for="(metadata, integration) in integrations"
@@ -764,6 +784,14 @@
         </template>
       </o-modal>
     </div>
+    <!-- Gate-survey response modal for participants -->
+    <SurveyResponseModal
+      v-model:active="gateSurveyModalOpen"
+      :loading="gateSurveyLoading"
+      :error="gateSurveyError ?? undefined"
+      :response-data="gateSurveyData"
+      :title="t('My survey response')"
+    />
   </div>
 </template>
 
@@ -776,6 +804,7 @@ import {
 } from "@/types/enums";
 import {
   EVENT_PERSON_PARTICIPATION,
+  PARTICIPANT_SURVEY_RESPONSE,
   // EVENT_PERSON_PARTICIPATION_SUBSCRIPTION_CHANGED,
 } from "@/graphql/event";
 import {
@@ -797,6 +826,8 @@ import Tag from "@/components/TagElement.vue";
 import EventMetadataSidebar from "@/components/Event/EventMetadataSidebar.vue";
 import EventBanner from "@/components/Event/EventBanner.vue";
 import EventActionSection from "@/components/Event/EventActionSection.vue";
+import EventSurveysSection from "@/components/Event/EventSurveysSection.vue";
+import SurveyResponseModal from "@/components/Survey/SurveyResponseModal.vue";
 import PopoverActorCard from "@/components/Account/PopoverActorCard.vue";
 import { IEventMetadataDescription } from "@/types/event-metadata";
 import { eventMetaDataList } from "@/services/EventMetadata";
@@ -815,7 +846,8 @@ import {
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
 import { useLoggedUser } from "@/composition/apollo/user";
-import { useQuery } from "@vue/apollo-composable";
+import { usePlugins } from "@/composition/apollo/plugins";
+import { useQuery, useLazyQuery } from "@vue/apollo-composable";
 import {
   useEventCategories,
   useRoutingType,
@@ -868,6 +900,7 @@ const eventId = computed(() => event.value?.id);
 const { currentActor } = useCurrentActorClient();
 const currentActorId = computed(() => currentActor.value?.id);
 const { loggedUser } = useLoggedUser();
+const { surveysEnabled } = usePlugins();
 const {
   result: participationsResult,
   // subscribeToMore: subscribeToMoreParticipation,
@@ -1132,6 +1165,43 @@ const organizer = computed((): IActor | null => {
 const organizerDomain = computed((): string | undefined => {
   return organizer.value?.domain ?? undefined;
 });
+
+// Gate-survey "View my response" – shown to regular participants after joining
+const currentParticipation = computed(() => participations.value[0]);
+const isRegularParticipant = computed(
+  () => currentParticipation.value?.role === ParticipantRole.PARTICIPANT
+);
+
+const gateSurveyModalOpen = ref(false);
+const gateSurveyLoading = ref(false);
+const gateSurveyError = ref<string | null>(null);
+const gateSurveyData = ref<{ schema: any; data: Record<string, unknown> } | null>(null);
+
+const { load: loadGateSurveyResponse } = useLazyQuery<{
+  participantSurveyResponse: { schema: any; data: Record<string, unknown> } | null;
+}>(PARTICIPANT_SURVEY_RESPONSE);
+
+const openGateSurveyModal = async () => {
+  if (!event.value?.id || !currentActorId.value) return;
+  gateSurveyModalOpen.value = true;
+  gateSurveyLoading.value = true;
+  gateSurveyError.value = null;
+  gateSurveyData.value = null;
+  try {
+    const result = await loadGateSurveyResponse(PARTICIPANT_SURVEY_RESPONSE, {
+      eventId: event.value.id,
+      actorId: currentActorId.value,
+    });
+    gateSurveyData.value = result?.participantSurveyResponse ?? null;
+  } catch (e: any) {
+    gateSurveyError.value =
+      e?.graphQLErrors?.[0]?.message ??
+      e?.message ??
+      t("Failed to load survey response");
+  } finally {
+    gateSurveyLoading.value = false;
+  }
+};
 
 useHead({
   title: computed(() => eventTitle.value ?? ""),

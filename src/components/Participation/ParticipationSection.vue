@@ -64,8 +64,10 @@
       ref="anonymous-participation-modal"
     >
       <div class="modal-card">
-        <header class="modal-card-head">
-          <p class="modal-card-title">
+        <header
+          class="modal-card-head flex items-center bg-primary-700 px-6 py-4"
+        >
+          <p class="modal-card-title text-lg font-semibold text-white">
             {{ t("About anonymous participation") }}
           </p>
         </header>
@@ -111,6 +113,31 @@
         </section>
       </div>
     </o-modal>
+
+    <!-- Survey modal — shown when joining an event requires completing a survey first -->
+    <o-modal
+      v-model:active="showSurveyModal"
+      has-modal-card
+      :close-button-aria-label="t('Close')"
+    >
+      <div class="modal-card">
+        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+          <p class="modal-card-title text-lg font-semibold text-white">
+            {{ t("To join the event, please complete the survey") }}
+          </p>
+        </header>
+        <section class="modal-card-body py-8 px-6" v-if="surveySchema && surveyContextId">
+          <div style="max-width: 560px; margin: 0 auto">
+            <SurveyFormWrapper
+              :context-id="surveyContextId"
+              :survey-schema="surveySchema"
+              @completed="handleSurveyCompleted"
+              @error="(e: Error) => console.error('Survey error:', e)"
+            />
+          </div>
+        </section>
+      </div>
+    </o-modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -129,7 +156,9 @@ import HelpCircleOutline from "vue-material-design-icons/HelpCircleOutline.vue";
 import { useI18n } from "vue-i18n";
 import { IPerson } from "@/types/actor";
 import { IAnonymousParticipationConfig } from "@/types/config.model";
-
+import { useMutation } from "@vue/apollo-composable";
+import { CONFIRM_EVENT_JOIN } from "@/graphql/event";
+import SurveyFormWrapper from "@/components/Survey/SurveyFormWrapper.vue";
 const { t } = useI18n({ useScope: "global" });
 
 const props = withDefaults(
@@ -146,6 +175,42 @@ const props = withDefaults(
 );
 
 const isAnonymousParticipationModalOpen = ref(false);
+const showSurveyModal = ref(false);
+const surveyContextId = ref<string | null>(null);
+const surveySchema = ref<object | null>(null);
+
+const emit = defineEmits<{
+  "participation-confirmed": [participant: IParticipant];
+}>();
+
+const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
+
+const handleSurveyRequired = (response: {
+  status: string;
+  surveySchema: object;
+  contextId: string;
+}) => {
+  surveyContextId.value = response.contextId;
+  surveySchema.value = response.surveySchema;
+  showSurveyModal.value = true;
+};
+
+const handleSurveyCompleted = async () => {
+  try {
+    const result = await confirmEventJoin({ eventId: props.event.id });
+    showSurveyModal.value = false;
+    surveyContextId.value = null;
+    surveySchema.value = null;
+    const participant = result?.data?.confirmEventJoin?.participant;
+    if (participant) {
+      emit("participation-confirmed", participant);
+    }
+  } catch (err) {
+    console.error("Failed to confirm event join after survey:", err);
+  }
+};
+
+defineExpose({ handleSurveyRequired });
 
 // Logging function
 const logParticipationSectionState = () => {

@@ -189,6 +189,7 @@ export const CREATE_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $surveySchema: JSON
   ) {
     createEvent(
       attributedToId: $attributedToId
@@ -210,6 +211,7 @@ export const CREATE_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      surveySchema: $surveySchema
     ) {
       ...FullEvent
     }
@@ -240,6 +242,7 @@ export const EDIT_EVENT = gql`
     $options: EventOptionsInput
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
+    $surveySchema: JSON
   ) {
     updateEvent(
       eventId: $id
@@ -263,6 +266,7 @@ export const EDIT_EVENT = gql`
       options: $options
       contacts: $contacts
       metadata: $metadata
+      surveySchema: $surveySchema
     ) {
       ...FullEvent
     }
@@ -287,11 +291,37 @@ export const JOIN_EVENT = gql`
       locale: $locale
       timezone: $timezone
     ) {
-      ...ParticipantQuery
+      status
+      surveySchema
+      contextId
+      participant {
+        ...ParticipantQuery
+      }
     }
   }
   ${PARTICIPANT_QUERY_FRAGMENT}
 `;
+
+export const SUBMIT_SURVEY_RESPONSE = gql`
+  mutation SubmitSurveyResponse($contextId: String!, $data: JSON!, $surveyId: String) {
+    submitSurveyResponse(contextId: $contextId, data: $data, surveyId: $surveyId)
+  }
+`;
+
+export const CONFIRM_EVENT_JOIN = gql`
+  mutation ConfirmEventJoin($eventId: ID!) {
+    confirmEventJoin(eventId: $eventId) {
+      status
+      surveySchema
+      contextId
+      participant {
+        ...ParticipantQuery
+      }
+    }
+  }
+  ${PARTICIPANT_QUERY_FRAGMENT}
+`;
+
 
 export const LEAVE_EVENT = gql`
   mutation LeaveEvent($eventId: ID!, $actorId: ID!, $token: String) {
@@ -522,4 +552,16 @@ export const PROFILE_CONVERSATIONS = gql`
     }
   }
   ${CONVERSATIONS_QUERY_FRAGMENT}
+`;
+
+export const PARTICIPANT_SURVEY_RESPONSE = gql`
+  query ParticipantSurveyResponse($eventId: ID!, $actorId: ID) {
+    participantSurveyResponse(eventId: $eventId, actorId: $actorId)
+  }
+`;
+
+export const MY_SURVEY_RESPONSE = gql`
+  query MySurveyResponse($contextId: String!) {
+    mySurveyResponse(contextId: $contextId)
+  }
 `;

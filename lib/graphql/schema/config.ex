@@ -107,6 +107,7 @@ defmodule Mobilizon.GraphQL.Schema.ConfigType do
     )
 
     field(:search, :search_settings, description: "The instance's search settings")
+    field(:plugins, :plugins_config, description: "The instance's plugins configuration")
   end
 
   @desc """
@@ -459,6 +460,13 @@ defmodule Mobilizon.GraphQL.Schema.ConfigType do
     meta(:authorize, :all)
     field(:id, :string, description: "The ID of the event category")
     field(:label, :string, description: "The translated name of the event category")
+  end
+
+  @desc "Plugins configuration"
+  object :plugins_config do
+    meta(:authorize, :all)
+    field(:surveys_enabled, :boolean, description: "Whether the survey plugin is enabled")
+    field(:surveys_adapter_static_url, :string, description: "The survey adapter's static URL for loading frontend module")
   end
 
   object :config_queries do

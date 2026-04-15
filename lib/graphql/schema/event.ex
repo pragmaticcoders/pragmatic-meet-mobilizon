@@ -516,6 +516,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
 
       arg(:contacts, list_of(:contact), default_value: [], description: "The events contacts")
       arg(:language, :string, description: "The event language", default_value: "und")
+      arg(:survey_schema, :json, description: "Survey schema for participant registration (optional)")
 
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
 
@@ -568,6 +569,7 @@ defmodule Mobilizon.GraphQL.Schema.EventType do
       arg(:draft, :boolean, description: "Whether or not the event is a draft")
       arg(:contacts, list_of(:contact), default_value: [], description: "The events contacts")
       arg(:language, :string, description: "The event language", default_value: "und")
+      arg(:survey_schema, :json, description: "Survey schema for participant registration (optional)")
 
       middleware(Rajska.QueryAuthorization,
         permit: :user,

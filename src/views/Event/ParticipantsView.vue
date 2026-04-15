@@ -254,6 +254,16 @@
                 {{ participant.metadata.message }}
               </div>
             </div>
+            <div v-else-if="surveysEnabled && participant.role === ParticipantRole.PARTICIPANT">
+              <o-button
+                size="small"
+                variant="info"
+                icon-left="clipboard-list"
+                @click="openSurveyModal(participant)"
+              >
+                {{ t("Survey") }}
+              </o-button>
+            </div>
 
             <div
               class="flex justify-between items-center text-xs text-gray-500"
@@ -519,9 +529,20 @@
               }}
             </o-button>
           </div>
-          <p v-else class="text-sm text-gray-500">
-            {{ t("No message") }}
-          </p>
+          <div v-else class="flex items-center gap-2">
+            <o-button
+              v-if="surveysEnabled && props.row.role === ParticipantRole.PARTICIPANT"
+              size="small"
+              variant="info"
+              icon-left="clipboard-list"
+              @click="openSurveyModal(props.row)"
+            >
+              {{ t("Survey") }}
+            </o-button>
+            <p v-else class="text-sm text-gray-500">
+              {{ t("No message") }}
+            </p>
+          </div>
         </o-table-column>
         <o-table-column field="insertedAt" :label="t('Date')" v-slot="props">
           <div class="text-xs sm:text-sm">
@@ -593,19 +614,30 @@
         </template>
       </o-table>
     </div>
+    <!-- Survey Response Modal -->
+    <SurveyResponseModal
+      v-model:active="surveyModalOpen"
+      :loading="surveyModalLoading"
+      :error="surveyModalError ?? undefined"
+      :response-data="surveyModalData"
+      :actor-name="surveyModalActorName"
+    />
   </section>
 </template>
 
 <script lang="ts" setup>
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
+import SurveyResponseModal from "@/components/Survey/SurveyResponseModal.vue";
 import {
   useCurrentActorClient,
   usePersonStatusGroup,
 } from "@/composition/apollo/actor";
+import { usePlugins } from "@/composition/apollo/plugins";
 import { formatDateString, formatTimeString } from "@/filters/datetime";
 import {
   EVENT_PERSON_PARTICIPATION,
   EXPORT_EVENT_PARTICIPATIONS,
+  PARTICIPANT_SURVEY_RESPONSE,
   PARTICIPANTS,
   UPDATE_PARTICIPANT,
 } from "@/graphql/event";
@@ -617,7 +649,7 @@ import { IEvent } from "@/types/event.model";
 import { IParticipant } from "@/types/participant.model";
 import { asyncForEach } from "@/utils/asyncForEach";
 import { useHead } from "@/utils/head";
-import { useMutation, useQuery } from "@vue/apollo-composable";
+import { useMutation, useQuery, useLazyQuery } from "@vue/apollo-composable";
 import { computed, inject, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
@@ -642,6 +674,7 @@ const { t } = useI18n({ useScope: "global" });
 const router = useRouter();
 
 const { currentActor } = useCurrentActorClient();
+const { surveysEnabled } = usePlugins();
 
 const ellipsize = (text?: string) =>
   text && text.substring(0, MESSAGE_ELLIPSIS_LENGTH).concat("…");
@@ -1245,6 +1278,47 @@ const toggleQueueDetails = (row: IParticipant): void => {
 };
 
 const openDetailedRows = ref<Record<string, boolean>>({});
+
+// Survey response modal state
+const surveyModalOpen = ref(false);
+const surveyModalActorName = ref("");
+const surveyModalLoading = ref(false);
+const surveyModalError = ref<string | null>(null);
+const surveyModalData = ref<{ schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null>(null);
+
+const { load: loadSurveyResponse } = useLazyQuery<{
+  participantSurveyResponse: { schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null;
+}>(PARTICIPANT_SURVEY_RESPONSE);
+
+const openSurveyModal = async (participant: IParticipant) => {
+  if (!event.value?.id || !participant.actor?.id) return;
+  surveyModalOpen.value = true;
+  surveyModalLoading.value = true;
+  surveyModalError.value = null;
+  surveyModalData.value = null;
+  surveyModalActorName.value =
+    participant.actor.name || participant.actor.preferredUsername || "";
+  try {
+    const result = await loadSurveyResponse(PARTICIPANT_SURVEY_RESPONSE, {
+      eventId: event.value.id,
+      actorId: participant.actor.id,
+    });
+    if (!result) {
+      surveyModalError.value = t("Failed to load survey response");
+    } else {
+      surveyModalData.value = result.participantSurveyResponse ?? null;
+    }
+  } catch (e: any) {
+    const msg =
+      e?.graphQLErrors?.[0]?.message ?? e?.message ?? t("Failed to load survey response");
+    surveyModalError.value = msg;
+  } finally {
+    surveyModalLoading.value = false;
+  }
+};
+
+// Returns only the schema-defined fields (skip form.io internals like "submit")
+// Note: field rendering is now handled by SurveyResponseModal
 
 useHead({
   title: computed(() =>

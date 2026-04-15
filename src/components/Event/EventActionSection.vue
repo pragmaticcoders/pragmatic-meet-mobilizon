@@ -8,6 +8,7 @@
 
     <participation-section
       v-else-if="event"
+      ref="participationSectionRef"
       :participation="participations[0]"
       :event="event"
       :anonymousParticipation="anonymousParticipation"
@@ -17,6 +18,7 @@
       @join-event-with-confirmation="joinEventWithConfirmation"
       @confirm-leave="confirmLeave"
       @cancel-anonymous-participation="cancelAnonymousParticipation"
+      @participation-confirmed="onParticipationConfirmed"
     />
     <div class="flex flex-col gap-1 mt-1">
       <p
@@ -416,7 +418,7 @@ import {
 import { useRouter } from "vue-router";
 import { IParticipant } from "@/types/participant.model";
 import { ApolloCache, FetchResult } from "@apollo/client/core";
-import { useMutation } from "@vue/apollo-composable";
+import { useMutation, useApolloClient } from "@vue/apollo-composable";
 import { useCreateReport } from "@/composition/apollo/report";
 import { useDeleteEvent } from "@/composition/apollo/event";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -754,20 +756,148 @@ const joinEventWithConfirmation = (actor: IPerson): void => {
   actorForConfirmation.value = actor;
 };
 
+interface JoinEventResponse {
+  status: string;
+  surveySchema: object | null;
+  contextId: string | null;
+  participant: IParticipant | null;
+}
+
+const participationSectionRef = ref<InstanceType<typeof ParticipationSection> | null>(null);
+
+const updateCacheWithParticipant = (
+  store: ApolloCache<{ joinEvent: JoinEventResponse }>,
+  participant: IParticipant
+) => {
+  const participationCachedData = store.readQuery<{ person: IPerson }>({
+    query: EVENT_PERSON_PARTICIPATION,
+    variables: { eventId: event.value?.id, actorId: identity.value?.id },
+  });
+
+  if (participationCachedData?.person == undefined) {
+    console.error(
+      "Cannot update participation cache, because of null value."
+    );
+    return;
+  }
+  store.writeQuery({
+    query: EVENT_PERSON_PARTICIPATION,
+    variables: { eventId: event.value?.id, actorId: identity.value?.id },
+    data: {
+      person: {
+        ...participationCachedData?.person,
+        participations: {
+          elements: [participant],
+          total: 1,
+        },
+      },
+    },
+  });
+
+  const cachedData = store.readQuery<{ event: IEvent }>({
+    query: FETCH_EVENT,
+    variables: { uuid: event.value?.uuid },
+  });
+  if (cachedData == null) return;
+  const { event: cachedEvent } = cachedData;
+  if (cachedEvent === null) {
+    console.error(
+      "Cannot update event participant cache, because of null value."
+    );
+    return;
+  }
+  const participantStats = { ...cachedEvent.participantStats };
+
+  if (participant.role === ParticipantRole.NOT_APPROVED) {
+    participantStats.notApproved += 1;
+  } else if (participant.role === ParticipantRole.WAITLIST) {
+    // Waitlist participants don't count toward the participant count
+  } else {
+    participantStats.going += 1;
+    participantStats.participant += 1;
+  }
+
+  store.writeQuery({
+    query: FETCH_EVENT,
+    variables: { uuid: props.event.uuid },
+    data: {
+      event: {
+        ...cachedEvent,
+        participantStats,
+      },
+    },
+  });
+
+  // Update HOME_USER_QUERIES cache to immediately show the event on home page
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const afterDateTime = todayStart.toISOString();
+
+    let homeData;
+    try {
+      homeData = store.readQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+      });
+    } catch (readError) {
+      console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+      homeData = null;
+    }
+
+    if (homeData?.loggedUser?.participations?.elements) {
+      const updatedHomeData = {
+        ...homeData,
+        loggedUser: {
+          ...homeData.loggedUser,
+          participations: {
+            ...homeData.loggedUser.participations,
+            total: homeData.loggedUser.participations.total + 1,
+            elements: [
+              participant,
+              ...homeData.loggedUser.participations.elements,
+            ],
+          },
+        },
+      };
+
+      store.writeQuery({
+        query: HOME_USER_QUERIES,
+        variables: { afterDateTime },
+        data: updatedHomeData,
+      });
+      console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+    } else {
+      console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
+      store.evict({ fieldName: "loggedUser" });
+      store.gc();
+    }
+  } catch (error) {
+    console.warn("Failed to update HOME_USER_QUERIES cache:", error);
+    store.evict({ fieldName: "loggedUser" });
+    store.gc();
+  }
+};
+
 const {
   mutate: joinEventMutation,
   onDone: onJoinEventMutationDone,
   onError: onJoinEventMutationError,
 } = useMutation<{
-  joinEvent: IParticipant;
+  joinEvent: JoinEventResponse;
 }>(JOIN_EVENT, () => ({
   update: (
     store: ApolloCache<{
-      joinEvent: IParticipant;
+      joinEvent: JoinEventResponse;
     }>,
     { data }: FetchResult
   ) => {
     if (data == null) return;
+
+    // JoinEventResponse wraps the participant — extract it here.
+    // When status is SURVEY_REQUIRED, participant is null and there's nothing to cache.
+    const participant = data.joinEvent?.participant;
+    if (!participant) return;
 
     const participationCachedData = store.readQuery<{ person: IPerson }>({
       query: EVENT_PERSON_PARTICIPATION,
@@ -787,7 +917,7 @@ const {
         person: {
           ...participationCachedData?.person,
           participations: {
-            elements: [data.joinEvent],
+            elements: [participant],
             total: 1,
           },
         },
@@ -808,9 +938,9 @@ const {
     }
     const participantStats = { ...cachedEvent.participantStats };
 
-    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+    if (participant.role === ParticipantRole.NOT_APPROVED) {
       participantStats.notApproved += 1;
-    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+    } else if (participant.role === ParticipantRole.WAITLIST) {
       // Waitlist participants don't count toward the participant count
       // They will be moved to participants when spots become available
     } else {
@@ -857,7 +987,7 @@ const {
               ...homeData.loggedUser.participations,
               total: homeData.loggedUser.participations.total + 1,
               elements: [
-                data.joinEvent,
+                participant,
                 ...homeData.loggedUser.participations.elements,
               ],
             },
@@ -915,10 +1045,22 @@ const participationWaitlistMessage = () => {
 };
 
 onJoinEventMutationDone(({ data }) => {
-  if (data) {
-    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+  if (!data) return;
+  const { status, surveySchema, contextId, participant } = data.joinEvent;
+
+  if (status === "SURVEY_REQUIRED" && surveySchema && contextId) {
+    participationSectionRef.value?.handleSurveyRequired({
+      status,
+      surveySchema,
+      contextId,
+    });
+    return;
+  }
+
+  if (participant) {
+    if (participant.role === ParticipantRole.NOT_APPROVED) {
       participationRequestedMessage();
-    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+    } else if (participant.role === ParticipantRole.WAITLIST) {
       participationWaitlistMessage();
     } else {
       participationConfirmedMessage();
@@ -927,6 +1069,13 @@ onJoinEventMutationDone(({ data }) => {
 });
 
 const { notification } = useOruga();
+
+const { resolveClient } = useApolloClient();
+
+const onParticipationConfirmed = (participant: IParticipant) => {
+  updateCacheWithParticipant(resolveClient().cache, participant);
+  participationConfirmedMessage();
+};
 
 onJoinEventMutationError((error) => {
   if (error.message) {

@@ -173,6 +173,23 @@ config :mobilizon, :linkedin,
   redirect_uri:
     System.get_env("LINKEDIN_REDIRECT_URI", "http://localhost:4000/auth/linkedin/callback")
 
+# ── Survey Plugin (dev + Docker) ──────────────────────────────────────────────
+# Mirrors the survey config from docker.exs but without Mobilizon.Service.Config.Helpers
+# (that module isn't available at config compile time in dev mode).
+surveys_enabled_dev =
+  System.get_env("MOBILIZON_PLUGIN_SURVEYS_ENABLED", "false") == "true"
+
+config :mobilizon, Mobilizon.Service.Plugins.Surveys,
+  enabled: surveys_enabled_dev,
+  adapter:
+    if(surveys_enabled_dev,
+      do: Mobilizon.Service.Plugins.Surveys.ExternalAdapter,
+      else: Mobilizon.Service.Plugins.Surveys.NoopAdapter
+    ),
+  adapter_url: System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_URL", ""),
+  adapter_static_url: System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL", ""),
+  api_key: System.get_env("MOBILIZON_PLUGIN_SURVEYS_API_KEY", "")
+
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison
 

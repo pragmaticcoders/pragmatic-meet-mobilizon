@@ -136,6 +136,10 @@ export const CONFIG = gql`
       exportFormats {
         eventParticipants
       }
+      plugins {
+        surveysEnabled
+        surveysAdapterStaticUrl
+      }
     }
   }
 `;
@@ -525,6 +529,17 @@ export const REGISTRATIONS = gql`
       registrationsAllowlist
       auth {
         databaseLogin
+      }
+    }
+  }
+`;
+
+export const PLUGINS_CONFIG = gql`
+  query PluginsConfig {
+    config {
+      plugins {
+        surveysEnabled
+        surveysAdapterStaticUrl
       }
     }
   }

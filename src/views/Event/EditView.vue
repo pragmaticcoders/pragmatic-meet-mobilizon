@@ -509,6 +509,74 @@
           </o-field>
         </fieldset>
       </section>
+      <section v-if="surveysEnabled" class="border-t pt-8 mt-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+          {{ t("Participant survey") }}
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          {{
+            t(
+              "Add a survey that participants must complete before joining this event."
+            )
+          }}
+        </p>
+
+        <!-- Survey configured — show summary + edit/remove actions -->
+        <div v-if="surveySchema" class="flex items-center gap-3">
+          <span class="text-sm text-green-700 font-medium">
+            ✓ {{ t("Survey configured") }}
+          </span>
+          <o-button size="small" @click="openSurveyModal">
+            {{ t("Edit survey") }}
+          </o-button>
+          <o-button size="small" variant="danger" @click="surveySchema = null">
+            {{ t("Remove survey") }}
+          </o-button>
+        </div>
+
+        <!-- No survey yet — single CTA button -->
+        <o-button
+          v-else
+          variant="primary"
+          outlined
+          @click="openSurveyModal"
+        >
+          {{ t("Add survey") }}
+        </o-button>
+
+        <!-- Builder modal — full-size iframe with formio, completely CSS-isolated -->
+        <o-modal
+          v-model:active="showSurveyModal"
+          :width="960"
+          has-modal-card
+          :trap-focus="false"
+          :close-button-aria-label="t('Close')"
+        >
+          <div class="modal-card" style="width: min(960px, 95vw); height: 80vh; display: flex; flex-direction: column">
+            <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+              <p class="modal-card-title text-lg font-semibold text-white">{{ t("Add survey to this event") }}</p>
+            </header>
+            <section class="modal-card-body" style="flex: 1; padding: 0; overflow: hidden">
+              <SurveyBuilderWrapper
+                v-if="showSurveyModal"
+                :context-id="eventSurveyContextId"
+                :initial-schema="surveySchema ?? undefined"
+                @schema-change="(s: object) => (surveySchema = s)"
+                @error="(e: Error) => console.error('SurveyBuilder error:', e)"
+              />
+            </section>
+            <footer class="modal-card-foot flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-white">
+              <o-button variant="danger" @click="cancelSurveyModal">
+                {{ t("Cancel") }}
+              </o-button>
+              <o-button variant="primary" @click="showSurveyModal = false">
+                {{ t("Save") }}
+              </o-button>
+            </footer>
+          </div>
+        </o-modal>
+      </section>
+
       <section class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">
           {{ t("Status") }}
@@ -820,6 +888,8 @@ import {
 } from "@/composition/apollo/config";
 import { useMutation, useQuery } from "@vue/apollo-composable";
 import { Dialog } from "@/plugins/dialog";
+import { usePlugins } from "@/composition/apollo/plugins";
+import SurveyBuilderWrapper from "@/components/Survey/SurveyBuilderWrapper.vue";
 import { Notifier } from "@/plugins/notifier";
 import { useHead } from "@/utils/head";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -862,6 +932,33 @@ const event = ref<IEditableEvent>(new EventModel());
 const unmodifiedEvent = ref<IEditableEvent>(new EventModel());
 
 const pictureFile = ref<File | null>(null);
+
+// Survey plugin
+const { surveysEnabled } = usePlugins();
+const surveySchema = ref<object | null>(null);
+const showSurveyModal = ref(false);
+// Snapshot of surveySchema taken when the modal opens.
+// Restored on Cancel so neither creation nor edits are committed.
+let surveySchemaSnapshot: object | null = null;
+
+function openSurveyModal() {
+  surveySchemaSnapshot = surveySchema.value
+    ? JSON.parse(JSON.stringify(surveySchema.value))
+    : null;
+  showSurveyModal.value = true;
+}
+
+function cancelSurveyModal() {
+  surveySchema.value = surveySchemaSnapshot;
+  showSurveyModal.value = false;
+}
+// context_id is built from the event UUID if editing, or a temp ID for new events.
+// The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
+const eventSurveyContextId = computed(() =>
+  props.eventId
+    ? `mobilizon_event:${props.eventId}`
+    : `mobilizon_event:new`
+);
 
 // Separate state to track if user wants to limit places (independent of current capacity value)
 const limitedPlacesEnabled = ref(false);
@@ -1609,6 +1706,12 @@ const buildVariables = async () => {
     ? event.value?.attributedTo.id
     : null;
   res = { ...res, attributedToId };
+
+  if (surveySchema.value) {
+    // Serialize to JSON string — the Absinthe JSON scalar handles strings
+    // via Jason.decode, bypassing GraphQL input object field validation.
+    res = { ...res, surveySchema: JSON.stringify(surveySchema.value) };
+  }
 
   if (pictureFile.value) {
     const pictureObj = buildFileVariable(pictureFile.value, "picture");

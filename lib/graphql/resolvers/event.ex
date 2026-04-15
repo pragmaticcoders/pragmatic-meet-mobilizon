@@ -15,6 +15,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   alias Mobilizon.Federation.ActivityPub.Activity
   alias Mobilizon.Federation.ActivityPub.Permission
   alias Mobilizon.Service.AntiSpam
+  alias Mobilizon.Service.Plugins.Surveys
   alias Mobilizon.Service.TimezoneDetector
   import Mobilizon.Users.Guards, only: [is_moderator: 1]
   import Mobilizon.Web.Gettext
@@ -306,6 +307,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
         AdminEmail.notify_admins_of_pending_group_event(event)
       end
 
+      maybe_save_survey(event, args)
       {:ok, event}
     else
       {:can_create_event, false} ->
@@ -438,6 +440,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
         AdminEmail.notify_admins_of_pending_group_event(updated_event)
       end
 
+      maybe_save_survey(updated_event, args)
       {:ok, updated_event}
     else
       {:event_can_be_managed, false} ->
@@ -605,5 +608,52 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
       _ ->
         timezone || fallback_tz
     end
+  end
+
+  @doc """
+  Get survey responses for an event
+  """
+  def get_survey_responses(
+        _parent,
+        %{event_id: event_id},
+        %{context: %{current_actor: %Actor{} = actor}}
+      ) do
+    with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
+         true <- can_event_be_updated_by?(event, actor) do
+      context_id = Surveys.event_context_id(event.uuid)
+      Surveys.get_responses(context_id)
+    else
+      false ->
+        {:error, dgettext("errors", "Provided profile doesn't have moderator permissions on this event")}
+
+      {:error, :event_not_found} ->
+        {:error, dgettext("errors", "Event not found")}
+    end
+  end
+
+  def get_survey_responses(_, _, _), do: {:error, :unauthorized}
+
+  @spec maybe_save_survey(Event.t(), map()) :: :ok
+  defp maybe_save_survey(%Event{uuid: uuid} = _event, args) do
+    survey_schema = Map.get(args, :survey_schema)
+
+    # Guard against submission data objects ({data, isValid, metadata}) being
+    # accidentally stored as the survey schema. A valid formio schema must have
+    # a "display" key or a "components" key (list), not an "isValid" key.
+    valid_schema? =
+      is_map(survey_schema) &&
+        (Map.has_key?(survey_schema, "display") || is_list(Map.get(survey_schema, "components"))) &&
+        not Map.has_key?(survey_schema, "isValid")
+
+    if valid_schema? && Surveys.enabled?() do
+      context_id = Surveys.event_context_id(uuid)
+
+      case Surveys.save_survey(context_id, survey_schema) do
+        {:ok, _} -> :ok
+        {:error, reason} -> Logger.error("Failed to save survey: #{inspect(reason)}")
+      end
+    end
+
+    :ok
   end
 end

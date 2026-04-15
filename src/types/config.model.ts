@@ -140,4 +140,8 @@ export interface IConfig {
       isDefault: boolean;
     };
   };
+  plugins: {
+    surveysEnabled: boolean;
+    surveysAdapterStaticUrl: string;
+  };
 }
