@@ -73,7 +73,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                role
+                status
+                participant {
+                  role
+                }
               }
             }
       """
@@ -176,7 +179,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: 1042,
               event_id: #{event.id}
             ) {
-                role
+                status
+                participant {
+                  role
+                }
               }
             }
       """
@@ -200,7 +206,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: 1042
             ) {
-                role
+                status
+                participant {
+                  role
+                }
               }
             }
       """
@@ -678,15 +687,18 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                id,
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
-              }
+                }
             }
       """
 
@@ -758,15 +770,18 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                id,
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
-              }
+                }
             }
       """
 
@@ -822,15 +837,18 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                id,
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
-              }
+                }
             }
       """
 
@@ -901,15 +919,18 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                id,
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
-              }
+                }
             }
       """
 

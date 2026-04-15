@@ -492,6 +492,59 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
     |> Checker.valid?()
   end
 
+  @doc "Return a participant's gate-check survey response (organiser or self)"
+  def get_participant_survey_response(
+        _parent,
+        %{event_id: event_id} = args,
+        %{context: %{current_actor: %Actor{id: current_actor_id} = current_actor}}
+      ) do
+    actor_id = Map.get(args, :actor_id, current_actor_id)
+
+    with {:event, {:ok, %Event{uuid: event_uuid} = event}} <-
+           {:event, Events.get_event_with_preload(event_id)},
+         :ok <- authorize_survey_response_access(event, current_actor, current_actor_id, actor_id) do
+      context_id = Surveys.event_context_id(event_uuid)
+      respondent_id = Surveys.actor_respondent_id(actor_id)
+      Surveys.get_participant_response(context_id, respondent_id)
+    else
+      {:event, _} -> {:error, dgettext("errors", "Event not found")}
+      {:error, _} = err -> err
+    end
+  end
+
+  def get_participant_survey_response(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to view a survey response")}
+  end
+
+  @doc "Return the current actor's own response for any survey context"
+  def get_my_survey_response(
+        _parent,
+        %{context_id: context_id},
+        %{context: %{current_actor: %Actor{id: actor_id}}}
+      ) do
+    respondent_id = Surveys.actor_respondent_id(actor_id)
+    Surveys.get_participant_response(context_id, respondent_id)
+  end
+
+  def get_my_survey_response(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to view a survey response")}
+  end
+
+  defp authorize_survey_response_access(event, current_actor, current_actor_id, actor_id) do
+    cond do
+      # Self-access: participant viewing their own response
+      to_string(current_actor_id) == to_string(actor_id) ->
+        :ok
+
+      # Organiser / group admin can view any participant's response
+      can_event_be_updated_by?(event, current_actor) ->
+        :ok
+
+      true ->
+        {:error, dgettext("errors", "You are not allowed to view this survey response")}
+    end
+  end
+
   @doc "Submit a survey response (gate-check flow before joining)"
   def submit_survey_response(
         _parent,

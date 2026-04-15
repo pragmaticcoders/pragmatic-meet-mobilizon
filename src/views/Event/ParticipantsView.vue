@@ -615,45 +615,19 @@
       </o-table>
     </div>
     <!-- Survey Response Modal -->
-    <o-modal
+    <SurveyResponseModal
       v-model:active="surveyModalOpen"
-      has-modal-card
-      :close-button-aria-label="t('Close')"
-    >
-      <div class="modal-card">
-        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
-          <p class="modal-card-title text-lg font-semibold text-white">
-            {{ t("Survey response") }}
-            <span v-if="surveyModalActorName" class="text-sm font-normal text-primary-200 ml-2">— {{ surveyModalActorName }}</span>
-          </p>
-        </header>
-        <section class="modal-card-body px-6 py-6">
-          <div v-if="surveyModalLoading" class="flex justify-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-          </div>
-          <div v-else-if="surveyModalError" class="flex items-start gap-2 text-error-600 text-sm bg-error-50 border border-error-200 px-4 py-3">
-            <span class="font-medium">{{ surveyModalError }}</span>
-          </div>
-          <div v-else-if="surveyFields.length === 0" class="text-center text-gray-500 text-sm py-6">
-            {{ t("No survey response found for this participant.") }}
-          </div>
-          <dl v-else class="divide-y divide-gray-100">
-            <div v-for="field in surveyFields" :key="field.label" class="py-4 first:pt-0 last:pb-0">
-              <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{{ field.label }}</dt>
-              <dd class="text-gray-900 text-sm leading-relaxed">{{ field.value }}</dd>
-            </div>
-          </dl>
-        </section>
-        <footer class="modal-card-foot flex justify-end px-6 py-4 border-t border-gray-200 bg-white">
-          <o-button @click="surveyModalOpen = false">{{ t("Close") }}</o-button>
-        </footer>
-      </div>
-    </o-modal>
+      :loading="surveyModalLoading"
+      :error="surveyModalError ?? undefined"
+      :response-data="surveyModalData"
+      :actor-name="surveyModalActorName"
+    />
   </section>
 </template>
 
 <script lang="ts" setup>
 import EmptyContent from "@/components/Utils/EmptyContent.vue";
+import SurveyResponseModal from "@/components/Survey/SurveyResponseModal.vue";
 import {
   useCurrentActorClient,
   usePersonStatusGroup,
@@ -1344,22 +1318,7 @@ const openSurveyModal = async (participant: IParticipant) => {
 };
 
 // Returns only the schema-defined fields (skip form.io internals like "submit")
-const surveyFields = computed(() => {
-  if (!surveyModalData.value) return [];
-  const { schema, data } = surveyModalData.value;
-  // Support both form.io schema (components[].key) and native schema (fields[].id/name)
-  const fields: any[] =
-    (schema as any)?.components ?? (schema as any)?.fields ?? [];
-  return fields
-    .filter((f: any) => {
-      const key = f.key ?? f.name;
-      return key && key in data && f.type !== "button";
-    })
-    .map((f: any) => {
-      const key = f.key ?? f.name;
-      return { label: f.label ?? key, value: String(data[key as string] ?? "") };
-    });
-});
+// Note: field rendering is now handled by SurveyResponseModal
 
 useHead({
   title: computed(() =>

@@ -115,6 +115,27 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     field(:actor, :actor, description: "The participant's actor")
   end
 
+  object :participant_queries do
+    @desc "Get a participant's gate-check survey response (organiser or self)"
+    field :participant_survey_response, :json do
+      arg(:event_id, non_null(:id), description: "The event ID")
+
+      arg(:actor_id, :id,
+        description: "The actor ID to look up – defaults to the current actor when omitted"
+      )
+
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
+      resolve(&Participant.get_participant_survey_response/3)
+    end
+
+    @desc "Get the current actor's own response for any survey context (post-event or group)"
+    field :my_survey_response, :json do
+      arg(:context_id, non_null(:string), description: "The survey context ID")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
+      resolve(&Participant.get_my_survey_response/3)
+    end
+  end
+
   object :participant_mutations do
     @desc "Join an event"
     field :join_event, :join_event_response do

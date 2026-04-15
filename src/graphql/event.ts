@@ -555,7 +555,13 @@ export const PROFILE_CONVERSATIONS = gql`
 `;
 
 export const PARTICIPANT_SURVEY_RESPONSE = gql`
-  query ParticipantSurveyResponse($eventId: ID!, $actorId: ID!) {
+  query ParticipantSurveyResponse($eventId: ID!, $actorId: ID) {
     participantSurveyResponse(eventId: $eventId, actorId: $actorId)
+  }
+`;
+
+export const MY_SURVEY_RESPONSE = gql`
+  query MySurveyResponse($contextId: String!) {
+    mySurveyResponse(contextId: $contextId)
   }
 `;

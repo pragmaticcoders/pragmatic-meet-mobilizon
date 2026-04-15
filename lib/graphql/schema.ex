@@ -168,6 +168,7 @@ defmodule Mobilizon.GraphQL.Schema do
     import_fields(:group_queries)
     import_fields(:event_queries)
     # participant_queries removed — no survey gate-check queries needed
+    import_fields(:participant_queries)
     import_fields(:event_post_survey_queries)
     import_fields(:group_post_survey_queries)
     import_fields(:comment_queries)
