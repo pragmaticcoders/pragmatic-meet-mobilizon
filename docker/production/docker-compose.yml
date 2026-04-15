@@ -69,6 +69,7 @@ services:
       start_period: 40s
     networks:
       - mobilizon_network
+      - mobilizon_adapter_net
 
 volumes:
   postgres_data:
@@ -81,3 +82,8 @@ volumes:
 networks:
   mobilizon_network:
     driver: bridge
+  # Created by the forms stack (pragmatic-forms/docker/production/docker-compose.yml).
+  # Start the forms stack before Mobilizon, or set MOBILIZON_PLUGIN_SURVEYS_ENABLED=false.
+  mobilizon_adapter_net:
+    external: true
+    name: forms_mobilizon_adapter_net
