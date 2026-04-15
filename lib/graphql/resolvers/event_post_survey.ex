@@ -131,6 +131,42 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
     {:error, dgettext("errors", "You need to be logged-in to view survey responses")}
   end
 
+  # ── Gate-check survey responses ───────────────────────────────────────────────
+
+  def list_gate_check_survey_responses(
+        _parent,
+        %{event_id: event_id},
+        %{context: %{current_actor: %Actor{} = current_actor}}
+      ) do
+    with {:ok, %Event{uuid: event_uuid} = event} <- Events.get_event_with_preload(event_id),
+         {:authorized, true} <- {:authorized, can_manage_event_surveys?(event, current_actor)} do
+      context_id = Surveys.event_context_id(event_uuid)
+
+      schema =
+        case Surveys.list_surveys(context_id) do
+          {:ok, [survey | _]} ->
+            Map.get(survey, "schema") || Map.get(survey, :schema) || %{}
+
+          _ ->
+            %{}
+        end
+
+      case Surveys.get_responses(context_id) do
+        {:ok, responses} -> {:ok, enrich_responses(responses, schema)}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      {:error, :event_not_found} -> {:error, dgettext("errors", "Event not found")}
+      {:authorized, false} ->
+        {:error, dgettext("errors", "You are not allowed to manage surveys for this event")}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  def list_gate_check_survey_responses(_, _, _) do
+    {:error, dgettext("errors", "You need to be logged-in to view survey responses")}
+  end
+
   # ── Private ───────────────────────────────────────────────────────────────────
 
   # Tesla's JSON middleware returns string-keyed maps. Absinthe's default resolver

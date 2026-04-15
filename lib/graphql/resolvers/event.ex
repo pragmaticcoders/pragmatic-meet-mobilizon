@@ -637,7 +637,15 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   defp maybe_save_survey(%Event{uuid: uuid} = _event, args) do
     survey_schema = Map.get(args, :survey_schema)
 
-    if survey_schema && Surveys.enabled?() do
+    # Guard against submission data objects ({data, isValid, metadata}) being
+    # accidentally stored as the survey schema. A valid formio schema must have
+    # a "display" key or a "components" key (list), not an "isValid" key.
+    valid_schema? =
+      is_map(survey_schema) &&
+        (Map.has_key?(survey_schema, "display") || is_list(Map.get(survey_schema, "components"))) &&
+        not Map.has_key?(survey_schema, "isValid")
+
+    if valid_schema? && Surveys.enabled?() do
       context_id = Surveys.event_context_id(uuid)
 
       case Surveys.save_survey(context_id, survey_schema) do

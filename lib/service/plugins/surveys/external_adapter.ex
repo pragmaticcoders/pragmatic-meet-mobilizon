@@ -31,12 +31,12 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
   end
 
   @impl true
-  def submit_response(context_id, respondent_id, data) do
-    case Tesla.post(client(), "/api/responses", %{
-           context_id: context_id,
-           respondent_id: respondent_id,
-           data: data
-         }) do
+  def submit_response(context_id, respondent_id, data, survey_id \\ nil) do
+    body =
+      %{context_id: context_id, respondent_id: respondent_id, data: data}
+      |> then(fn b -> if survey_id, do: Map.put(b, :survey_id, survey_id), else: b end)
+
+    case Tesla.post(client(), "/api/responses", body) do
       {:ok, %Tesla.Env{status: status, body: body}} when status in [200, 201] ->
         {:ok, body}
 

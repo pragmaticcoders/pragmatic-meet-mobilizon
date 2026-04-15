@@ -13,6 +13,7 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   @callback enabled?() :: boolean()
   @callback check_gate(context_id(), respondent_id()) :: {:ok, map()} | {:error, any()}
   @callback submit_response(context_id(), respondent_id(), map()) :: {:ok, map()} | {:error, any()}
+  @callback submit_response(context_id(), respondent_id(), map(), String.t() | nil) :: {:ok, map()} | {:error, any()}
   @callback get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}
 
   # ── Survey lifecycle callbacks (post-event / post-group surveys) ─────────────
@@ -50,9 +51,9 @@ defmodule Mobilizon.Service.Plugins.Surveys do
     adapter().check_gate(context_id, respondent_id)
   end
 
-  @spec submit_response(context_id(), respondent_id(), map()) :: {:ok, map()} | {:error, any()}
-  def submit_response(context_id, respondent_id, data) do
-    adapter().submit_response(context_id, respondent_id, data)
+  @spec submit_response(context_id(), respondent_id(), map(), String.t() | nil) :: {:ok, map()} | {:error, any()}
+  def submit_response(context_id, respondent_id, data, survey_id \\ nil) do
+    adapter().submit_response(context_id, respondent_id, data, survey_id)
   end
 
   @spec get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}

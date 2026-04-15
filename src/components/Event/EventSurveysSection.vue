@@ -5,6 +5,7 @@
         v-if="surveyModuleReady"
         :context-id="contextId"
         :event-id="event.id"
+        :event-uuid="event.uuid"
         :is-admin="isAdmin"
         :is-member="isMember"
         @error="(e: Error) => console.error('SurveysManager error:', e)"

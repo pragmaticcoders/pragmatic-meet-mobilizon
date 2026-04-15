@@ -42,12 +42,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
               }
             }
@@ -59,9 +63,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "PARTICIPANT"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "PARTICIPANT"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
 
       mutation = """
          mutation {
@@ -100,12 +104,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor_participant.id},
               event_id: #{event.id}
             ) {
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
               }
             }
@@ -117,10 +125,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "PARTICIPANT"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "PARTICIPANT"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
 
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] ==
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] ==
                to_string(actor_participant.id)
 
       user_participant_2 = insert(:user)
@@ -132,12 +140,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor_participant_2.id},
               event_id: #{event.id}
             ) {
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
               }
             }
@@ -684,10 +696,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "NOT_APPROVED"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
-      participation_id = json_response(res, 200)["data"]["joinEvent"]["id"]
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "NOT_APPROVED"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
+      participation_id = json_response(res, 200)["data"]["joinEvent"]["participant"]["id"]
 
       mutation = """
           mutation {
@@ -764,10 +776,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "NOT_APPROVED"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
-      participation_id = json_response(res, 200)["data"]["joinEvent"]["id"]
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "NOT_APPROVED"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
+      participation_id = json_response(res, 200)["data"]["joinEvent"]["participant"]["id"]
 
       mutation = """
           mutation {
@@ -828,10 +840,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "NOT_APPROVED"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
-      participation_id = json_response(res, 200)["data"]["joinEvent"]["id"]
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "NOT_APPROVED"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
+      participation_id = json_response(res, 200)["data"]["joinEvent"]["participant"]["id"]
 
       mutation = """
           mutation {
@@ -907,10 +919,10 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         |> post("/api", AbsintheHelpers.mutation_skeleton(mutation))
 
       assert json_response(res, 200)["errors"] == nil
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "NOT_APPROVED"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
-      participation_id = json_response(res, 200)["data"]["joinEvent"]["id"]
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "NOT_APPROVED"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
+      participation_id = json_response(res, 200)["data"]["joinEvent"]["participant"]["id"]
 
       mutation = """
           mutation {
@@ -948,12 +960,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
             eventId: $eventId,
             email: $email
           ) {
-              role,
-              actor {
+              status
+              participant {
                 id
-              },
-              event {
-                id
+                role
+                actor {
+                  id
+                }
+                event {
+                  id
+                }
               }
             }
           }
@@ -1068,9 +1084,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         )
 
       assert res["errors"] == nil
-      assert res["data"]["joinEvent"]["role"] == "PARTICIPANT"
-      assert res["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert res["data"]["joinEvent"]["actor"]["id"] == to_string(actor_id)
+      assert res["data"]["joinEvent"]["participant"]["role"] == "PARTICIPANT"
+      assert res["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert res["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor_id)
 
       %Participant{} =
         participant = event.id |> Events.list_participants_for_event() |> Map.get(:elements) |> hd
@@ -1106,9 +1122,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
 
       assert res["errors"] == nil
       # Not approved until email confirmation
-      assert res["data"]["joinEvent"]["role"] == "NOT_CONFIRMED"
-      assert res["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert res["data"]["joinEvent"]["actor"]["id"] == to_string(actor_id)
+      assert res["data"]["joinEvent"]["participant"]["role"] == "NOT_CONFIRMED"
+      assert res["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert res["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor_id)
 
       assert %Participant{
                metadata: %{confirmation_token: confirmation_token},
@@ -1165,9 +1181,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         )
 
       assert res["errors"] == nil
-      assert res["data"]["joinEvent"]["role"] == "NOT_CONFIRMED"
-      assert res["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert res["data"]["joinEvent"]["actor"]["id"] == to_string(actor_id)
+      assert res["data"]["joinEvent"]["participant"]["role"] == "NOT_CONFIRMED"
+      assert res["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert res["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor_id)
 
       %Participant{} =
         participant =
@@ -1206,9 +1222,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         )
 
       assert res["errors"] == nil
-      assert res["data"]["joinEvent"]["role"] == "NOT_CONFIRMED"
-      assert res["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert res["data"]["joinEvent"]["actor"]["id"] == to_string(actor_id)
+      assert res["data"]["joinEvent"]["participant"]["role"] == "NOT_CONFIRMED"
+      assert res["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert res["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor_id)
 
       {:ok, %Event{participant_stats: %{not_confirmed: 1}}} = Events.get_event(event.id)
 
@@ -1290,9 +1306,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
         )
 
       assert res["errors"] == nil
-      assert res["data"]["joinEvent"]["role"] == "NOT_CONFIRMED"
-      assert res["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert res["data"]["joinEvent"]["actor"]["id"] == to_string(actor_id)
+      assert res["data"]["joinEvent"]["participant"]["role"] == "NOT_CONFIRMED"
+      assert res["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert res["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor_id)
 
       assert {:ok,
               %Event{
@@ -1795,12 +1811,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
               }
             }
@@ -1813,9 +1833,9 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
 
       assert json_response(res, 200)["errors"] == nil
       # Participant should be placed on WAITLIST, not PARTICIPANT
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "WAITLIST"
-      assert json_response(res, 200)["data"]["joinEvent"]["event"]["id"] == to_string(event.id)
-      assert json_response(res, 200)["data"]["joinEvent"]["actor"]["id"] == to_string(actor.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "WAITLIST"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["event"]["id"] == to_string(event.id)
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["actor"]["id"] == to_string(actor.id)
     end
 
     test "actor_join_event/3 joins normally when waitlist_only is true but enable_waitlist is false",
@@ -1838,12 +1858,16 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
               actor_id: #{actor.id},
               event_id: #{event.id}
             ) {
-                role,
-                actor {
+                status
+                participant {
                   id
-                },
-                event {
-                  id
+                  role
+                  actor {
+                    id
+                  }
+                  event {
+                    id
+                  }
                 }
               }
             }
@@ -1856,7 +1880,7 @@ defmodule Mobilizon.GraphQL.Resolvers.ParticipantTest do
 
       assert json_response(res, 200)["errors"] == nil
       # When enable_waitlist is false, waitlist_only has no effect
-      assert json_response(res, 200)["data"]["joinEvent"]["role"] == "PARTICIPANT"
+      assert json_response(res, 200)["data"]["joinEvent"]["participant"]["role"] == "PARTICIPANT"
     end
   end
 end

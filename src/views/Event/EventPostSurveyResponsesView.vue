@@ -5,6 +5,7 @@
         v-if="surveyModuleReady"
         :event-id="eventId"
         :survey-id="surveyId"
+        :is-gate-check="isGateCheck"
         @error="(e: Error) => console.error('SurveyResponsesView error:', e)"
       />
       <div v-else class="p-8 text-center text-gray-500 text-sm">
@@ -23,16 +24,20 @@
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import { surveyModuleReady, loadRemoteComponent } from "@/plugins/surveyModule";
 
 const { t } = useI18n({ useScope: "global" });
 
-defineProps<{
+const props = defineProps<{
   eventId: string;
   surveyId: string;
 }>();
+
+// When surveyId === "gate-check", the responses view shows the gate-check survey
+// (filled before joining) using a dedicated GraphQL query.
+const isGateCheck = computed(() => props.surveyId === "gate-check");
 
 const SurveyResponsesView = defineAsyncComponent({
   loader: () => loadRemoteComponent("./SurveyResponsesView") as Promise<any>,

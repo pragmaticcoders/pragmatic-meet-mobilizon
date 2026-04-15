@@ -894,6 +894,11 @@ const {
   ) => {
     if (data == null) return;
 
+    // JoinEventResponse wraps the participant — extract it here.
+    // When status is SURVEY_REQUIRED, participant is null and there's nothing to cache.
+    const participant = data.joinEvent?.participant;
+    if (!participant) return;
+
     const participationCachedData = store.readQuery<{ person: IPerson }>({
       query: EVENT_PERSON_PARTICIPATION,
       variables: { eventId: event.value?.id, actorId: identity.value?.id },
@@ -912,7 +917,7 @@ const {
         person: {
           ...participationCachedData?.person,
           participations: {
-            elements: [data.joinEvent],
+            elements: [participant],
             total: 1,
           },
         },
@@ -933,9 +938,9 @@ const {
     }
     const participantStats = { ...cachedEvent.participantStats };
 
-    if (data.joinEvent.role === ParticipantRole.NOT_APPROVED) {
+    if (participant.role === ParticipantRole.NOT_APPROVED) {
       participantStats.notApproved += 1;
-    } else if (data.joinEvent.role === ParticipantRole.WAITLIST) {
+    } else if (participant.role === ParticipantRole.WAITLIST) {
       // Waitlist participants don't count toward the participant count
       // They will be moved to participants when spots become available
     } else {
@@ -982,7 +987,7 @@ const {
               ...homeData.loggedUser.participations,
               total: homeData.loggedUser.participations.total + 1,
               elements: [
-                data.joinEvent,
+                participant,
                 ...homeData.loggedUser.participations.elements,
               ],
             },

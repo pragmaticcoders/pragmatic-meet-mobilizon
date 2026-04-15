@@ -13,7 +13,7 @@ defmodule Mobilizon.Service.Plugins.Surveys.NoopAdapter do
   end
 
   @impl true
-  def submit_response(_context_id, _respondent_id, _data) do
+  def submit_response(_context_id, _respondent_id, _data, _survey_id \\ nil) do
     {:ok, %{}}
   end
 

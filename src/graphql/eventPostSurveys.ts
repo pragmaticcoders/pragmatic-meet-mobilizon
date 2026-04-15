@@ -64,6 +64,21 @@ export const EVENT_POST_SURVEY_RESPONSES = gql`
       respondentUsername
       respondentEmail
       submittedAt
+      schema
+      data
+    }
+  }
+`;
+
+export const EVENT_GATE_CHECK_SURVEY_RESPONSES = gql`
+  query EventGateCheckSurveyResponses($eventId: ID!) {
+    eventGateCheckSurveyResponses(eventId: $eventId) {
+      respondentId
+      respondentName
+      respondentUsername
+      respondentEmail
+      submittedAt
+      schema
       data
     }
   }

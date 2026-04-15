@@ -46,6 +46,13 @@ defmodule Mobilizon.GraphQL.Schema.Events.EventPostSurveyType do
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&EventPostSurvey.list_survey_responses/3)
     end
+
+    @desc "List responses for the gate-check survey (filled before joining, admin only)"
+    field :event_gate_check_survey_responses, list_of(:event_post_survey_response_item) do
+      arg(:event_id, non_null(:id), description: "The event ID")
+      middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
+      resolve(&EventPostSurvey.list_gate_check_survey_responses/3)
+    end
   end
 
   object :event_post_survey_mutations do
