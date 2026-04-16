@@ -99,15 +99,11 @@ services:
 
   mobilizon-adapter:
     container_name: mobilizon_survey_adapter
+    # TODO pin mobilizon-adapter version
+    image: ghcr.io/pragmaticcoders/mobilizon-adapter
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile.adapter
-      secrets:
-        - github_token
-      args:
-        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
-        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
+    depends_on:
+      - forms-api
     ports:
       # Host port 4001 avoids conflict with Mobilizon API on host port 4000.
       # Internally the adapter always listens on :4000 (Docker DNS: mobilizon-adapter:4000).
@@ -132,16 +128,8 @@ services:
 
   adapter-nginx:
     container_name: mobilizon_adapter_nginx
+    image: ghcr.io/pragmaticcoders/adapter-nginx
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile.adapter
-      target: frontend-nginx
-      secrets:
-        - github_token
-      args:
-        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
-        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
     ports:
       # Bind to loopback only — per plan, public access goes through the external Nginx proxy.
       - "127.0.0.1:8081:80"
@@ -150,57 +138,40 @@ services:
 
   # ── Forms Service ────────────────────────────────────────────────────────────
   # Universal survey/forms backend. Runs as infrastructure — not yet connected
-  # to the adapter (pending API contract alignment). ADMIN_API_KEY enables a
-  # bypass for the adapter once it connects.
+  # to the adapter (pending API contract alignment). ADMIN_API_KEY allows
+  # creating a client to use by adapter.
 
   forms-api:
-    container_name: pragmatic_forms_api
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile.forms
-      secrets:
-        - github_token
-      args:
-        PRAGMATIC_FORMS_REPO: ${PRAGMATIC_FORMS_REPO:-pragmaticcoders/pragmatic-forms}
-        PRAGMATIC_FORMS_REF: ${PRAGMATIC_FORMS_REF:-main}
-    ports:
-      - "3000:3000"
-    # Sync Prisma schema to DB before starting. The Dockerfile bakes in the source
-    # so bun install is already done — only the runtime migration step is needed here.
-    command: sh -c "bunx prisma db push && bun run dev"
-    environment:
-      NODE_ENV: development
-      PORT: "3000"
-      DATABASE_URL: "postgresql://postgres:postgres@forms-db:5432/forms?schema=public"
-      # Admin key allows the adapter to authenticate without creating a client first.
-      ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-dev-admin-key}"
+    container_name: pragmatic-forms-api
+    # TODO pin forms version
+    image: ghcr.io/pragmaticcoders/forms-api
     depends_on:
       forms-db:
         condition: service_healthy
+    environment:
+      ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-dev-admin-key}"
+      DATABASE_URL: postgresql://postgres:postgres@forms-db:5432/forms?schema=public
     networks:
+      - pragmatic-forms-net
       - adapter_forms_net
 
   forms-db:
     container_name: pragmatic_forms_db
     restart: unless-stopped
     image: postgres:15-alpine
-    ports:
-      # Host port 5433 — avoids conflict with any local postgres on 5432.
-      - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: forms
     volumes:
-      - forms_pgdata:/var/lib/postgresql/data
+      - pragmatic-forms-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d forms"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - adapter_forms_net
+      - pragmatic-forms-net
 
 # ── Build secrets ─────────────────────────────────────────────────────────────
 # github_token is injected into the clone stage of Dockerfile.adapter and
@@ -227,6 +198,8 @@ networks:
     driver: bridge
   adapter_forms_net:
     driver: bridge
+  pragmatic-forms-net:
+    driver: bridge
 
 # ── Volumes ───────────────────────────────────────────────────────────────────
 
@@ -238,4 +211,4 @@ volumes:
   node_modules_cache:
   priv_static:
   # Forms Service
-  forms_pgdata:
+  pragmatic-forms-data:
