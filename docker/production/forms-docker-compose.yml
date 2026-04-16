@@ -1,0 +1,77 @@
+name: forms
+
+services:
+  mobilizon-adapter:
+    image: ghcr.io/pragmaticcoders/mobilizon-adapter:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      adapter-db:
+        condition: service_healthy
+    networks:
+      - mobilizon_adapter_net
+      - adapter_forms_net
+
+  adapter-nginx:
+    image: ghcr.io/pragmaticcoders/adapter-nginx:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
+    networks:
+      - mobilizon_adapter_net
+
+  forms-api:
+    image: ghcr.io/pragmaticcoders/forms-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      forms-db:
+        condition: service_healthy
+    networks:
+      - adapter_forms_net
+
+  adapter-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${ADAPTER_DB_USER:-adapter}
+      POSTGRES_PASSWORD: ${ADAPTER_DB_PASSWORD}
+      POSTGRES_DB: ${ADAPTER_DB_NAME:-adapter}
+    volumes:
+      - adapter_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ADAPTER_DB_USER:-adapter} -d ${ADAPTER_DB_NAME:-adapter}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - adapter_forms_net
+
+  forms-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${FORMS_DB_USER:-forms}
+      POSTGRES_PASSWORD: ${FORMS_DB_PASSWORD}
+      POSTGRES_DB: ${FORMS_DB_NAME:-forms}
+    volumes:
+      - forms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${FORMS_DB_USER:-forms} -d ${FORMS_DB_NAME:-forms}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - adapter_forms_net
+
+volumes:
+  adapter_pgdata:
+  forms_pgdata:
+
+networks:
+  # Created by this stack — Mobilizon references it as external: true
+  # Docker names it "forms_mobilizon_adapter_net" (project name prefix)
+  mobilizon_adapter_net:
+    driver: bridge
+  adapter_forms_net:
+    driver: bridge
