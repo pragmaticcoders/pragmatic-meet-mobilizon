@@ -344,30 +344,47 @@ jobs:
       (needs.test-e2e-main.result == 'success' || needs.test-e2e-main.result == 'skipped')
 
     steps:
-      - name: Deploy to development server
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read forms image tag
+        id: forms-tag
+        run: echo "tag=$(cat forms-image-tag | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Set up SSH key
         run: |
-          # Set up SSH key
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          # Add SSH key to agent
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
-
-          # Add server to known hosts to avoid host key verification
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST_DEV }} >> ~/.ssh/known_hosts
 
-          # Connect and run deployment commands
+      - name: Copy forms compose file to dev server
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            docker/production/forms-docker-compose.yml \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }}:/srv/forms/docker-compose.yml
+
+      - name: Deploy forms stack to dev
+        env:
+          FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
+        run: |
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << EOF
+            cd /srv/forms
+            IMAGE_TAG=${FORMS_TAG} docker compose pull
+            IMAGE_TAG=${FORMS_TAG} docker compose up -d
+            docker image prune -f
+          EOF
+
+      - name: Deploy Mobilizon to dev
+        run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << 'EOF'
             cd /root/mobilizon
             git pull
             cd /root/mobilizon/docker/production
-            # Pull the latest image from Docker Hub
             docker compose pull
-            # Recreate containers with new image
             docker compose up -d --force-recreate
-            # Clean up old images to free space
             docker image prune -f
           EOF
 
@@ -382,29 +399,46 @@ jobs:
       needs.build.result == 'success'
 
     steps:
-      - name: Deploy to production server
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read forms image tag
+        id: forms-tag
+        run: echo "tag=$(cat forms-image-tag | tr -d '[:space:]')" >> $GITHUB_OUTPUT
+
+      - name: Set up SSH key
         run: |
-          # Set up SSH key
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-
-          # Add SSH key to agent
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_rsa
-
-          # Add server to known hosts to avoid host key verification
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-          # Connect and run deployment commands
+      - name: Copy forms compose file to prod server
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            docker/production/forms-docker-compose.yml \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/srv/forms/docker-compose.yml
+
+      - name: Deploy forms stack to prod
+        env:
+          FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
+        run: |
+          ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << EOF
+            cd /srv/forms
+            IMAGE_TAG=${FORMS_TAG} docker compose pull
+            IMAGE_TAG=${FORMS_TAG} docker compose up -d
+            docker image prune -f
+          EOF
+
+      - name: Deploy Mobilizon to prod
+        run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << 'EOF'
             cd /root/mobilizon
             git pull
             cd /root/mobilizon/docker/production
-            # Pull the latest image from Docker Hub
             docker compose pull
-            # Recreate containers with new image
             docker compose up -d --force-recreate
-            # Clean up old images to free space
             docker image prune -f
           EOF
