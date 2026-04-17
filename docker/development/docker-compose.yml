@@ -101,7 +101,6 @@ services:
     # TODO pin mobilizon-adapter version
     image: ghcr.io/pragmaticcoders/mobilizon-adapter
     restart: unless-stopped
-    image: ghcr.io/pragmaticcoders/mobilizon-adapter:${FORMS_IMAGE_TAG:-latest}
     pull_policy: always
     depends_on:
       forms-api:
@@ -135,6 +134,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: forms-adapter
+    volumes:
+      - adapter_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d forms-adapter"]
       interval: 5s
@@ -173,7 +174,7 @@ services:
       forms-db:
         condition: service_healthy
     environment:
-      ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-dev-admin-key}"
+      ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-admin-dev-key}"
       DATABASE_URL: postgresql://postgres:postgres@forms-db:5432/forms?schema=public
       PORT: "3000"
       NODE_ENV: production
@@ -191,7 +192,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: forms
     volumes:
-      - adapter_pgdata:/var/lib/postgresql/data
+      - forms_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d forms"]
       interval: 5s
