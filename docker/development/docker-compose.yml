@@ -100,8 +100,7 @@ services:
   mobilizon-adapter:
     container_name: pragmatic_forms_adapter
     # TODO pin mobilizon-adapter version
-#    image: ghcr.io/pragmaticcoders/mobilizon-adapter
-    image: pragmatic-forms-mobilizon-adapter
+    image: ghcr.io/pragmaticcoders/mobilizon-adapter
     restart: unless-stopped
     depends_on:
       forms-api:
