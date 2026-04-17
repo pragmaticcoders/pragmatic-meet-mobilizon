@@ -98,12 +98,16 @@ services:
   #   make start-local-forms
 
   mobilizon-adapter:
-    container_name: mobilizon_survey_adapter
+    container_name: pragmatic_forms_adapter
     # TODO pin mobilizon-adapter version
-    image: ghcr.io/pragmaticcoders/mobilizon-adapter
+#    image: ghcr.io/pragmaticcoders/mobilizon-adapter
+    image: pragmatic-forms-mobilizon-adapter
     restart: unless-stopped
     depends_on:
-      - forms-api
+      forms-api:
+        condition: service_started
+      mobilizon-adapter-db:
+        condition: service_healthy
     ports:
       # Host port 4001 avoids conflict with Mobilizon API on host port 4000.
       # Internally the adapter always listens on :4000 (Docker DNS: mobilizon-adapter:4000).
@@ -115,11 +119,27 @@ services:
       MOBILIZON_API_KEY: "${MOBILIZON_PLUGIN_SURVEYS_API_KEY:-}"
       # Forms Service connection — uncomment once API contract is aligned.
       # Also uncomment DATABASE_URL_ADAPTER (adapter needs its own DB in HTTP mode).
-      # FORMS_SERVICE_URL: "http://forms-api:3000"
+      FORMS_SERVICE_URL: "http://forms-api:3000"
       FORMS_SERVICE_API_KEY: "${FORMS_SERVICE_API_KEY:-}"
-      # DATABASE_URL: "${DATABASE_URL_ADAPTER:-}"
+      DATABASE_URL: postgresql://postgres:postgres@mobilizon-adapter-db:5432/forms-adapter?schema=public
     networks:
       - mobilizon_adapter_net
+      - adapter_forms_net
+
+  mobilizon-adapter-db:
+    container_name: pragmatic_forms_adapter_db
+    restart: unless-stopped
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: forms-adapter
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d forms-adapter"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
       - adapter_forms_net
 
   # ── Adapter Nginx — serves Module Federation static files (remoteEntry.js etc.) ──
