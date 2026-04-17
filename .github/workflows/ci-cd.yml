@@ -296,18 +296,24 @@ jobs:
           ssh-add ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST_DEV }} >> ~/.ssh/known_hosts
 
+      - name: Ensure /root/forms exists on dev server
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} \
+            'mkdir -p /root/forms'
+
       - name: Copy forms compose file to dev server
         run: |
           scp -i ~/.ssh/id_rsa \
             docker/production/forms-docker-compose.yml \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }}:/srv/forms/docker-compose.yml
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }}:/root/forms/docker-compose.yml
 
       - name: Deploy forms stack to dev
         env:
           FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << EOF
-            cd /srv/forms
+            cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
             IMAGE_TAG=${FORMS_TAG} docker compose up -d
             docker image prune -f
@@ -351,18 +357,24 @@ jobs:
           ssh-add ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Ensure /root/forms exists on prod server
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} \
+            'mkdir -p /root/forms'
+
       - name: Copy forms compose file to prod server
         run: |
           scp -i ~/.ssh/id_rsa \
             docker/production/forms-docker-compose.yml \
-            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/srv/forms/docker-compose.yml
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/root/forms/docker-compose.yml
 
       - name: Deploy forms stack to prod
         env:
           FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << EOF
-            cd /srv/forms
+            cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
             IMAGE_TAG=${FORMS_TAG} docker compose up -d
             docker image prune -f
