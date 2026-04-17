@@ -5,6 +5,11 @@ services:
     image: ghcr.io/pragmaticcoders/mobilizon-adapter:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
+    # Per-service overrides — prevent collision with forms-api on the shared
+    # env_file (both images read standard DATABASE_URL and PORT).
+    environment:
+      DATABASE_URL: ${ADAPTER_DATABASE_URL}
+      PORT: "4000"
     depends_on:
       adapter-db:
         condition: service_healthy
@@ -24,6 +29,10 @@ services:
     image: ghcr.io/pragmaticcoders/forms-api:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
+    # Per-service overrides — see comment on mobilizon-adapter above.
+    environment:
+      DATABASE_URL: ${FORMS_API_DATABASE_URL}
+      PORT: "3000"
     depends_on:
       forms-db:
         condition: service_healthy
