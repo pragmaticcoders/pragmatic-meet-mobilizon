@@ -87,14 +87,13 @@ services:
 
   # ── Mobilizon Survey Adapter ─────────────────────────────────────────────────
   # Receives check_gate / submit_response calls from Mobilizon Elixir.
-  # Built by cloning the pragmatic-forms private repo via SSH at build time.
-  # Uses InMemoryFormsServiceClient in dev — no Forms Service connection needed yet.
-  # Set FORMS_SERVICE_URL=http://forms-api:3000 once the API contract is aligned.
+  # Pulls prebuilt image from ghcr.io (same image as production).
+  # Tag is read from forms-image-tag file at the repo root by the Makefile.
   #
   # Prerequisites (once per machine):
-  #   Set GITHUB_PAT and PRAGMATIC_FORMS_REPO in .env (see .env.template)
+  #   docker login ghcr.io -u <USERNAME> --password-stdin   # PAT with read:packages
   #
-  # To use a local checkout instead (hot-reload):
+  # To work on pragmatic-forms locally with hot-reload:
   #   make start-local-forms
 
   mobilizon-adapter:
@@ -102,6 +101,8 @@ services:
     # TODO pin mobilizon-adapter version
     image: ghcr.io/pragmaticcoders/mobilizon-adapter
     restart: unless-stopped
+    image: ghcr.io/pragmaticcoders/mobilizon-adapter:${FORMS_IMAGE_TAG:-latest}
+    pull_policy: always
     depends_on:
       forms-api:
         condition: service_started
@@ -114,16 +115,17 @@ services:
     environment:
       NODE_ENV: development
       PORT: "4000"
-      # Auth: adapter accepts any request when MOBILIZON_API_KEY is unset (dev-only bypass).
       MOBILIZON_API_KEY: "${MOBILIZON_PLUGIN_SURVEYS_API_KEY:-}"
-      # Forms Service connection — uncomment once API contract is aligned.
-      # Also uncomment DATABASE_URL_ADAPTER (adapter needs its own DB in HTTP mode).
       FORMS_SERVICE_URL: "http://forms-api:3000"
       FORMS_SERVICE_API_KEY: "${FORMS_SERVICE_API_KEY:-}"
       DATABASE_URL: postgresql://postgres:postgres@mobilizon-adapter-db:5432/forms-adapter
     networks:
       - mobilizon_adapter_net
       - adapter_forms_net
+
+
+  # ── Adapter DB — Postgres for the adapter's SQL migrations ──────────────────
+  # Required by mobilizon-adapter entrypoint.sh which runs SQL migrations on startup.
 
   mobilizon-adapter-db:
     container_name: pragmatic_forms_adapter_db
@@ -141,6 +143,7 @@ services:
     networks:
       - adapter_forms_net
 
+
   # ── Adapter Nginx — serves Module Federation static files (remoteEntry.js etc.) ──
   # Browser downloads SurveyForm.vue and SurveyBuilder.vue from here at runtime.
   # Port 8081 matches MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL in .env.
@@ -149,6 +152,7 @@ services:
     container_name: mobilizon_adapter_nginx
     image: ghcr.io/pragmaticcoders/adapter-nginx
     restart: unless-stopped
+    pull_policy: always
     ports:
       # Bind to loopback only — per plan, public access goes through the external Nginx proxy.
       - "127.0.0.1:8081:80"
@@ -156,23 +160,27 @@ services:
       - mobilizon_adapter_net
 
   # ── Forms Service ────────────────────────────────────────────────────────────
-  # Universal survey/forms backend. Runs as infrastructure — not yet connected
-  # to the adapter (pending API contract alignment). ADMIN_API_KEY allows
-  # creating a client to use by adapter.
+  # Universal survey/forms backend. The prebuilt image runs `prisma migrate deploy`
+  # automatically on startup (see forms/Dockerfile CMD).
 
   forms-api:
     container_name: pragmatic-forms-api
     # TODO pin forms version
     image: ghcr.io/pragmaticcoders/forms-api
+    pull_policy: always
+    restart: unless-stopped
     depends_on:
       forms-db:
         condition: service_healthy
     environment:
       ADMIN_API_KEY: "${FORMS_ADMIN_API_KEY:-dev-admin-key}"
       DATABASE_URL: postgresql://postgres:postgres@forms-db:5432/forms?schema=public
+      PORT: "3000"
+      NODE_ENV: production
     networks:
       - pragmatic-forms-net
       - adapter_forms_net
+
 
   forms-db:
     container_name: pragmatic_forms_db
@@ -183,7 +191,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: forms
     volumes:
-      - pragmatic-forms-data:/var/lib/postgresql/data
+      - adapter_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d forms"]
       interval: 5s
@@ -191,15 +199,6 @@ services:
       retries: 5
     networks:
       - pragmatic-forms-net
-
-# ── Build secrets ─────────────────────────────────────────────────────────────
-# github_token is injected into the clone stage of Dockerfile.adapter and
-# Dockerfile.forms via --mount=type=secret. The token value is read from the
-# GITHUB_PAT environment variable (set in .env). It never enters any image layer.
-
-secrets:
-  github_token:
-    environment: GITHUB_PAT
 
 # ── Networks ──────────────────────────────────────────────────────────────────
 #
@@ -230,4 +229,5 @@ volumes:
   node_modules_cache:
   priv_static:
   # Forms Service
-  pragmatic-forms-data:
+  adapter_pgdata:
+  forms_pgdata:
