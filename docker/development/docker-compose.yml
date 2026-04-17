@@ -121,7 +121,7 @@ services:
       # Also uncomment DATABASE_URL_ADAPTER (adapter needs its own DB in HTTP mode).
       FORMS_SERVICE_URL: "http://forms-api:3000"
       FORMS_SERVICE_API_KEY: "${FORMS_SERVICE_API_KEY:-}"
-      DATABASE_URL: postgresql://postgres:postgres@mobilizon-adapter-db:5432/forms-adapter?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@mobilizon-adapter-db:5432/forms-adapter
     networks:
       - mobilizon_adapter_net
       - adapter_forms_net
