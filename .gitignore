@@ -52,6 +52,7 @@ demo/
 codeclimate.json
 
 node_modules
+.npm-install-checksum
 stats.html
 /coverage
 /playwright-report/

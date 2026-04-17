@@ -4,6 +4,8 @@ COMPOSE_LOCAL = docker compose --env-file .env \
   -f docker/development/docker-compose.local-forms.yml
 
 init:
+	@bash docker/message.sh "Building API container"
+	$(COMPOSE) build
 	@bash docker/message.sh "Start"
 	make start
 

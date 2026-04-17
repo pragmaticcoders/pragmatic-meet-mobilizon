@@ -26,12 +26,19 @@ else
   echo "-- Elixir dependencies already present, skipping..."
 fi
 
-# Check if node_modules needs to be installed
-if [ ! -d "node_modules" ] || [ ! -d "node_modules/vite" ]; then
+# Install Node.js dependencies when package.json / package-lock.json changed or node_modules is missing
+NPM_CHECKSUM_FILE=".npm-install-checksum"
+CURRENT=$({ cat package.json; [ -f package-lock.json ] && cat package-lock.json; } | sha256sum | awk '{print $1}')
+STORED=""
+if [ -f "$NPM_CHECKSUM_FILE" ]; then
+  STORED=$(cat "$NPM_CHECKSUM_FILE")
+fi
+if [ ! -d "node_modules" ] || [ "$STORED" != "$CURRENT" ]; then
   echo "-- Installing Node.js dependencies..."
   npm install
+  echo "$CURRENT" > "$NPM_CHECKSUM_FILE"
 else
-  echo "-- Node.js dependencies already present, skipping..."
+  echo "-- Node.js dependencies up to date, skipping..."
 fi
 
 # Build picture assets if not already built
