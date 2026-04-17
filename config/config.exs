@@ -268,6 +268,21 @@ config :mobilizon, :maps,
     type: :openstreetmap
   ]
 
+# The Survey plugin loads the builder/renderer iframe from the adapter-nginx
+# (Module Federation host). The browser must be allowed to frame that origin,
+# so derive it from MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL.
+surveys_static_url =
+  System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL", "")
+
+surveys_frame_src =
+  case URI.parse(surveys_static_url) do
+    %URI{scheme: scheme, host: host} when is_binary(scheme) and is_binary(host) ->
+      ["#{scheme}://#{host}"]
+
+    _ ->
+      []
+  end
+
 config :mobilizon, :http_security,
   enabled: true,
   sts: false,
@@ -298,12 +313,13 @@ config :mobilizon, :http_security,
       "dev.pragmaticmeet.com"
     ],
     object_src: [],
-    frame_src: [
-      "https://www.youtube.com",
-      "https://www.youtube-nocookie.com",
-      "https://youtu.be",
-      "https://consentcdn.cookiebot.com"
-    ],
+    frame_src:
+      [
+        "https://www.youtube.com",
+        "https://www.youtube-nocookie.com",
+        "https://youtu.be",
+        "https://consentcdn.cookiebot.com"
+      ] ++ surveys_frame_src,
     frame_ancestors: []
   ],
   referrer_policy: "same-origin"
