@@ -21,16 +21,10 @@ services:
     env_file:
       - ../../.env
     environment:
-      MIX_ENV: "prod"
-      DOCKER: "true"
       POSTGRES_USER: ${MOBILIZON_DATABASE_USERNAME:-mobilizon}
       POSTGRES_PASSWORD: ${MOBILIZON_DATABASE_PASSWORD:-mobilizon}
       POSTGRES_DB: ${MOBILIZON_DATABASE_DBNAME:-mobilizon}
       POSTGRES_PORT: ${MOBILIZON_DATABASE_PORT:-5432}
-      MOBILIZON_SMTP_SERVER: ${MOBILIZON_SMTP_SERVER:-email-smtp.eu-north-1.amazonaws.com}
-      MOBILIZON_SMTP_PORT: ${MOBILIZON_SMTP_PORT:-587}
-      MOBILIZON_SMTP_USERNAME: ${MOBILIZON_SMTP_USERNAME}
-      MOBILIZON_SMTP_PASSWORD: ${MOBILIZON_SMTP_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
