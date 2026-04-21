@@ -14,6 +14,7 @@ services:
       - mobilizon
     networks:
       - mobilizon_network
+      - mobilizon_adapter_net
   postgres:
     container_name: mobilizon_postgres_prod
     restart: unless-stopped
