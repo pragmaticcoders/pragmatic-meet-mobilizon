@@ -465,7 +465,7 @@ const loginAction = async (e: Event) => {
 
     // Add a small delay to ensure cache updates are fully processed
     await new Promise((resolve) => setTimeout(resolve, 100));
-    router.replace({ name: RouteName.HOME });
+    router.replace({ name: RouteName.DISCOVER });
 
     // Hard redirect
     // since we fail to refresh the navbar properly, we force a page reload.
