@@ -323,12 +323,16 @@ jobs:
             docker image prune -f
           EOF
 
+      - name: Copy Mobilizon compose file to dev server
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            docker/production/docker-compose.yml \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }}:/root/mobilizon/docker/production/docker-compose.yml
+
       - name: Deploy Mobilizon to dev
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << 'EOF'
-            cd /root/mobilizon
-            git fetch origin main
-            git reset --hard origin/main
+            set -e
             cd /root/mobilizon/docker/production
             docker compose pull
             docker compose up -d --force-recreate
@@ -389,13 +393,16 @@ jobs:
             docker image prune -f
           EOF
 
+      - name: Copy Mobilizon compose file to prod server
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            docker/production/docker-compose.yml \
+            ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/root/mobilizon/docker/production/docker-compose.yml
+
       - name: Deploy Mobilizon to prod
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << 'EOF'
             set -e
-            cd /root/mobilizon
-            git fetch origin main
-            git reset --hard origin/main
             cd /root/mobilizon/docker/production
             docker compose pull
             docker compose up -d --force-recreate
