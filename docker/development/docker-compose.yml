@@ -72,7 +72,7 @@ services:
       MOBILIZON_INSTANCE_SECRET_KEY: "changethis"
       # Pending-group moderators can manage the group before admin approval; override in .env with "false" to disable
       MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS: ${MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS:-true}
-      # Note: Google Analytics env vars are passed through via env_file (../../.env)
+      # Note: Front-end analytics env vars (Google Analytics, GTM, etc.) pass through env_file (../../.env)
 
       # ── Survey Plugin ────────────────────────────────────────────────────────
       # Adapter runs at http://mobilizon-adapter:4000 on the mobilizon_adapter_net network.

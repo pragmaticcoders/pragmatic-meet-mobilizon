@@ -190,6 +190,67 @@ config :mobilizon, Mobilizon.Service.Plugins.Surveys,
   adapter_static_url: System.get_env("MOBILIZON_PLUGIN_SURVEYS_ADAPTER_STATIC_URL", ""),
   api_key: System.get_env("MOBILIZON_PLUGIN_SURVEYS_API_KEY", "")
 
+# ── Front-end analytics from .env (dev / Docker dev via mix phx.server) ───────
+# docker.exs is only used as runtime.exs in the production image; without this
+# block, :analytics providers stay empty and GraphQL never exposes GA/GTM.
+google_analytics_enabled_dev =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_ENABLED", "false") == "true"
+
+google_analytics_measurement_id_dev =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_MEASUREMENT_ID", nil)
+
+google_analytics_anonymize_ip_dev =
+  System.get_env("MOBILIZON_FRONT_END_ANALYTICS_GOOGLE_ANONYMIZE_IP", "true") == "true"
+
+google_tag_manager_enabled_dev =
+  System.get_env("MOBILIZON_GOOGLE_TAG_MANAGER_ENABLED", "false") == "true"
+
+google_tag_manager_container_id_dev =
+  System.get_env("MOBILIZON_GOOGLE_TAG_MANAGER_CONTAINER_ID", nil)
+  |> case do
+    id when is_binary(id) and id != "" -> id
+    _ -> nil
+  end
+
+analytics_providers_dev = []
+
+analytics_providers_dev =
+  if google_analytics_enabled_dev and google_analytics_measurement_id_dev do
+    analytics_providers_dev ++ [Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics]
+  else
+    analytics_providers_dev
+  end
+
+analytics_providers_dev =
+  if google_tag_manager_enabled_dev and google_tag_manager_container_id_dev do
+    analytics_providers_dev ++ [Mobilizon.Service.FrontEndAnalytics.GoogleTagManager]
+  else
+    analytics_providers_dev
+  end
+
+config :mobilizon, :analytics, providers: analytics_providers_dev
+
+config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
+  enabled: google_analytics_enabled_dev,
+  measurementId: google_analytics_measurement_id_dev,
+  anonymizeIp: google_analytics_anonymize_ip_dev,
+  sendPageView: true,
+  csp: [
+    connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    script_src: ["www.googletagmanager.com"],
+    img_src: ["www.google-analytics.com"]
+  ]
+
+config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
+  enabled: google_tag_manager_enabled_dev,
+  containerId: google_tag_manager_container_id_dev,
+  csp: [
+    connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    script_src: ["www.googletagmanager.com"],
+    img_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    frame_src: ["www.googletagmanager.com"]
+  ]
+
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison
 

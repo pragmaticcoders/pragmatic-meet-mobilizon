@@ -34,6 +34,18 @@ export const statistics = async (
       convertConfig(googleAnalyticsConfig.configuration) as any
     );
   }
+
+  const googleTagManagerConfig = checkProviderConfig(
+    configAnalytics,
+    "google_tag_manager"
+  );
+  if (googleTagManagerConfig?.enabled === true) {
+    const { googleTagManager } = await import("./google_tag_manager");
+    googleTagManager(
+      { ...environement, app },
+      convertConfig(googleTagManagerConfig.configuration ?? []) as any
+    );
+  }
 };
 
 export const checkProviderConfig = (
@@ -44,8 +56,11 @@ export const checkProviderConfig = (
 };
 
 export const convertConfig = (
-  configs: IKeyValueConfig[]
+  configs: IKeyValueConfig[] | undefined | null
 ): Record<string, any> => {
+  if (!configs?.length) {
+    return {};
+  }
   return configs.reduce(
     (acc, config) => {
       acc[config.key] = toType(config.value, config.type);
