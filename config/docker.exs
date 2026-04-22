@@ -295,8 +295,6 @@ analytics_providers =
     analytics_providers
   end
 
-config :mobilizon, :analytics, providers: analytics_providers
-
 config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
   enabled: google_analytics_enabled,
   measurementId: google_analytics_measurement_id,
@@ -306,6 +304,36 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
     connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
     script_src: ["www.googletagmanager.com"],
     img_src: ["www.google-analytics.com"]
+  ]
+
+# Google Tag Manager Configuration
+google_tag_manager_enabled =
+  System.get_env("MOBILIZON_GOOGLE_TAG_MANAGER_ENABLED", "false") == "true"
+
+google_tag_manager_container_id =
+  System.get_env("MOBILIZON_GOOGLE_TAG_MANAGER_CONTAINER_ID", nil)
+  |> case do
+    id when is_binary(id) and id != "" -> id
+    _ -> nil
+  end
+
+analytics_providers =
+  if google_tag_manager_enabled and google_tag_manager_container_id do
+    analytics_providers ++ [Mobilizon.Service.FrontEndAnalytics.GoogleTagManager]
+  else
+    analytics_providers
+  end
+
+config :mobilizon, :analytics, providers: analytics_providers
+
+config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
+  enabled: google_tag_manager_enabled,
+  containerId: google_tag_manager_container_id,
+  csp: [
+    connect_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    script_src: ["www.googletagmanager.com"],
+    img_src: ["www.google-analytics.com", "www.googletagmanager.com"],
+    frame_src: ["www.googletagmanager.com"]
   ]
 
 # OAuth Configuration

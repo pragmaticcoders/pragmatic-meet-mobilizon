@@ -420,6 +420,11 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
   sendPageView: true,
   csp: []
 
+config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
+  enabled: false,
+  containerId: nil,
+  csp: []
+
 config :mobilizon, Mobilizon.Service.Pictures, service: Mobilizon.Service.Pictures.Unsplash
 
 config :mobilizon, Mobilizon.Service.Pictures.Unsplash,
