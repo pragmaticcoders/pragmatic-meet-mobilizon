@@ -326,7 +326,6 @@ jobs:
       - name: Deploy Mobilizon to dev
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << 'EOF'
-            set -e
             cd /root/mobilizon
             git fetch origin main
             git reset --hard origin/main
