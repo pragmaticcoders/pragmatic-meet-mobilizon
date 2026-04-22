@@ -303,8 +303,16 @@ export const JOIN_EVENT = gql`
 `;
 
 export const SUBMIT_SURVEY_RESPONSE = gql`
-  mutation SubmitSurveyResponse($contextId: String!, $data: JSON!, $surveyId: String) {
-    submitSurveyResponse(contextId: $contextId, data: $data, surveyId: $surveyId)
+  mutation SubmitSurveyResponse(
+    $contextId: String!
+    $data: JSON!
+    $surveyId: String
+  ) {
+    submitSurveyResponse(
+      contextId: $contextId
+      data: $data
+      surveyId: $surveyId
+    )
   }
 `;
 
@@ -321,7 +329,6 @@ export const CONFIRM_EVENT_JOIN = gql`
   }
   ${PARTICIPANT_QUERY_FRAGMENT}
 `;
-
 
 export const LEAVE_EVENT = gql`
   mutation LeaveEvent($eventId: ID!, $actorId: ID!, $token: String) {

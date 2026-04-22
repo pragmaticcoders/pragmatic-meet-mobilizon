@@ -1,34 +1,34 @@
 <template>
-  <div class="max-w-screen-xl mx-auto px-4 md:px-16">
-    <!-- Hero Section -->
-    <section class="container mx-auto mt-8 mb-12 lg:pl-[20%]">
-      <div class="mx-auto">
-        <!-- Header with slogan -->
-        <div class="relative mb-6">
-          <h1
-            class="dark:text-white font-bold text-3xl md:text-4xl lg:text-5xl leading-[1.4]"
-          >
-            <span class="rhombus-bg text-white px-5 py-1 inline-block">{{
-              t("Free")
-            }}</span>
-            <span class="ml-4">{{ restOfSlogan }}</span>
-          </h1>
-        </div>
-
-        <!-- Description -->
-        <div>
-          <p
-            class="dark:text-white text-lg md:text-xl text-center leading-relaxed text-gray-600"
-          >
-            {{ description }}
-          </p>
-        </div>
+  <div
+    class="relative w-[1280px] mx-auto"
+    style="
+      border-radius: 50px;
+      overflow: hidden;
+      height: 696.304px;
+      background:
+        linear-gradient(
+          180deg,
+          #fff 0%,
+          rgba(255, 255, 255, 0.8) 36.94%,
+          rgba(255, 255, 255, 0) 52.9%
+        ),
+        url(/img/landing.jpg) lightgray 0px -0.057px / 100% 119.319% no-repeat;
+    "
+  >
+    <!-- Content -->
+    <div class="absolute inset-0 flex flex-col items-center px-[300px]">
+      <!-- Hero Text -->
+      <div class="text-center">
+        <h1 class="text-[#121212] text-[36px] font-bold leading-[57.6px] mb-2">
+          {{ t("landingPageHeading") }}
+        </h1>
+        <p class="text-[#121212] text-[17px] font-medium leading-[27.2px]">
+          {{ t("landingPageDescription") }}
+        </p>
       </div>
-    </section>
 
-    <!-- Call-to-Action Buttons -->
-    <section class="container mx-auto mb-12 text-center">
-      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <!-- CTA Button -->
+      <div class="mt-10">
         <o-button
           tag="router-link"
           :to="{ name: RouteName.CREATE_EVENT }"
@@ -37,21 +37,10 @@
           class="min-w-[200px]"
         >
           <o-icon icon="calendar-plus" />
-          <span class="ml-2">{{ t("Create an Event") }}</span>
-        </o-button>
-
-        <o-button
-          tag="router-link"
-          :to="{ name: RouteName.DISCOVER }"
-          size="lg"
-          variant="text"
-          class="min-w-[200px]"
-        >
-          <o-icon icon="compass" />
-          <span class="ml-2">{{ t("Browse Events") }}</span>
+          <span class="ml-2">{{ t("landingPageButton") }}</span>
         </o-button>
       </div>
-    </section>
+    </div>
   </div>
 </template>
 
@@ -65,14 +54,8 @@ import { CURRENT_USER_CLIENT } from "@/graphql/user";
 import { ICurrentUser } from "@/types/current-user.model";
 
 const { t } = useI18n({ useScope: "global" });
-const router = useRouter();
 
-const fullSlogan = computed(() => t("mainPageSlogan"));
-const description = computed(() => t("mainPageDescription"));
-const restOfSlogan = computed(() => {
-  const slogan = fullSlogan.value;
-  return slogan.split(" ").slice(1).join(" ");
-});
+const router = useRouter();
 
 const { result: currentUserResult } = useQuery<{
   currentUser: ICurrentUser;
@@ -100,20 +83,3 @@ watch(currentUserId, (userId) => {
   }
 });
 </script>
-
-<style scoped>
-.rhombus-bg {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  clip-path: polygon(15% 0%, 85% 0%, 100% 50%, 85% 100%, 15% 100%, 0% 50%);
-  position: relative;
-  transform: skew(-20deg);
-  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
-  transition: all 0.3s ease;
-  margin: 0 8px;
-}
-
-.rhombus-bg:hover {
-  transform: skew(-15deg) scale(1.05);
-  box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
-}
-</style>

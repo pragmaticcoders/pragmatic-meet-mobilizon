@@ -121,12 +121,17 @@
       :close-button-aria-label="t('Close')"
     >
       <div class="modal-card">
-        <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+        <header
+          class="modal-card-head flex items-center bg-primary-700 px-6 py-4"
+        >
           <p class="modal-card-title text-lg font-semibold text-white">
             {{ t("To join the event, please complete the survey") }}
           </p>
         </header>
-        <section class="modal-card-body py-8 px-6" v-if="surveySchema && surveyContextId">
+        <section
+          class="modal-card-body py-8 px-6"
+          v-if="surveySchema && surveyContextId"
+        >
           <div style="max-width: 560px; margin: 0 auto">
             <SurveyFormWrapper
               :context-id="surveyContextId"

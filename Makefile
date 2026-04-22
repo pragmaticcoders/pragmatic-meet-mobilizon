@@ -24,7 +24,6 @@ logs:
 #   docker login ghcr.io -u <USERNAME> --password-stdin   # PAT with read:packages
 start: stop
 	@bash docker/message.sh "Starting Mobilizon (forms images: $(FORMS_IMAGE_TAG))"
-	$(COMPOSE) pull mobilizon-adapter adapter-nginx forms-api
 	$(COMPOSE) up -d api
 	@bash docker/message.sh "Docker server started"
 

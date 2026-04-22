@@ -6,13 +6,16 @@
     :close-button-aria-label="t('Close')"
   >
     <div class="modal-card" style="min-width: 480px; max-width: 680px">
-      <header class="modal-card-head flex items-center bg-primary-700 px-6 py-4">
+      <header
+        class="modal-card-head flex items-center bg-primary-700 px-6 py-4"
+      >
         <p class="modal-card-title text-lg font-semibold text-white">
           {{ title || t("Survey response") }}
           <span
             v-if="actorName"
             class="text-sm font-normal text-primary-200 ml-2"
-          >— {{ actorName }}</span>
+            >— {{ actorName }}</span
+          >
         </p>
       </header>
 
@@ -79,8 +82,18 @@ interface SurveyField {
 
 interface SurveyResponseData {
   schema?: {
-    components?: Array<{ key?: string; name?: string; label?: string; type?: string }>;
-    fields?: Array<{ key?: string; name?: string; label?: string; type?: string }>;
+    components?: Array<{
+      key?: string;
+      name?: string;
+      label?: string;
+      type?: string;
+    }>;
+    fields?: Array<{
+      key?: string;
+      name?: string;
+      label?: string;
+      type?: string;
+    }>;
   };
   data?: Record<string, unknown>;
 }

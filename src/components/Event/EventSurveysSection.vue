@@ -90,7 +90,9 @@ const isMember = computed(() => {
 const responseModalOpen = ref(false);
 const responseLoading = ref(false);
 const responseError = ref<string | null>(null);
-const responseData = ref<{ schema: any; data: Record<string, unknown> } | null>(null);
+const responseData = ref<{ schema: any; data: Record<string, unknown> } | null>(
+  null
+);
 
 const { load: loadMyResponse } = useLazyQuery<{
   mySurveyResponse: { schema: any; data: Record<string, unknown> } | null;

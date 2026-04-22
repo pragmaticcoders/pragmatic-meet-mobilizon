@@ -254,7 +254,12 @@
                 {{ participant.metadata.message }}
               </div>
             </div>
-            <div v-else-if="surveysEnabled && participant.role === ParticipantRole.PARTICIPANT">
+            <div
+              v-else-if="
+                surveysEnabled &&
+                participant.role === ParticipantRole.PARTICIPANT
+              "
+            >
               <o-button
                 size="small"
                 variant="info"
@@ -531,7 +536,9 @@
           </div>
           <div v-else class="flex items-center gap-2">
             <o-button
-              v-if="surveysEnabled && props.row.role === ParticipantRole.PARTICIPANT"
+              v-if="
+                surveysEnabled && props.row.role === ParticipantRole.PARTICIPANT
+              "
               size="small"
               variant="info"
               icon-left="clipboard-list"
@@ -1284,10 +1291,16 @@ const surveyModalOpen = ref(false);
 const surveyModalActorName = ref("");
 const surveyModalLoading = ref(false);
 const surveyModalError = ref<string | null>(null);
-const surveyModalData = ref<{ schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null>(null);
+const surveyModalData = ref<{
+  schema: { fields: { key: string; label: string; type?: string }[] };
+  data: Record<string, unknown>;
+} | null>(null);
 
 const { load: loadSurveyResponse } = useLazyQuery<{
-  participantSurveyResponse: { schema: { fields: { key: string; label: string; type?: string }[] }; data: Record<string, unknown> } | null;
+  participantSurveyResponse: {
+    schema: { fields: { key: string; label: string; type?: string }[] };
+    data: Record<string, unknown>;
+  } | null;
 }>(PARTICIPANT_SURVEY_RESPONSE);
 
 const openSurveyModal = async (participant: IParticipant) => {
@@ -1310,7 +1323,9 @@ const openSurveyModal = async (participant: IParticipant) => {
     }
   } catch (e: any) {
     const msg =
-      e?.graphQLErrors?.[0]?.message ?? e?.message ?? t("Failed to load survey response");
+      e?.graphQLErrors?.[0]?.message ??
+      e?.message ??
+      t("Failed to load survey response");
     surveyModalError.value = msg;
   } finally {
     surveyModalLoading.value = false;
