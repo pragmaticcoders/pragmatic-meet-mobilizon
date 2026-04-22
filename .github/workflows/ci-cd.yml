@@ -311,8 +311,12 @@ jobs:
       - name: Deploy forms stack to dev
         env:
           FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USER: ${{ secrets.GHCR_USER }}
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST_DEV }} -A << EOF
+            set -e
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
             cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
             IMAGE_TAG=${FORMS_TAG} docker compose up -d
@@ -372,8 +376,12 @@ jobs:
       - name: Deploy forms stack to prod
         env:
           FORMS_TAG: ${{ steps.forms-tag.outputs.tag }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USER: ${{ secrets.GHCR_USER }}
         run: |
           ssh ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }} -A << EOF
+            set -e
+            echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
             cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
             IMAGE_TAG=${FORMS_TAG} docker compose up -d
