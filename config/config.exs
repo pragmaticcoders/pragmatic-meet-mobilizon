@@ -413,13 +413,6 @@ config :mobilizon, :exports,
 
 config :mobilizon, :analytics, providers: []
 
-config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleAnalytics,
-  enabled: false,
-  measurementId: nil,
-  anonymizeIp: true,
-  sendPageView: true,
-  csp: []
-
 config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
   enabled: false,
   containerId: nil,
