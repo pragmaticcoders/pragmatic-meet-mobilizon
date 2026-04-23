@@ -425,6 +425,12 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
   containerId: nil,
   csp: []
 
+config :mobilizon, Mobilizon.Service.ActiveCampaign,
+  enabled: false,
+  api_url: nil,
+  api_key: nil,
+  list_id: 7
+
 config :mobilizon, Mobilizon.Service.Pictures, service: Mobilizon.Service.Pictures.Unsplash
 
 config :mobilizon, Mobilizon.Service.Pictures.Unsplash,

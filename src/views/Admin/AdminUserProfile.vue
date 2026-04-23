@@ -610,6 +610,7 @@ import { useRouter } from "vue-router";
 import { IPerson } from "@/types/actor";
 import { usernameWithDomain } from "@/types/actor/actor.model";
 import { Dialog } from "@/plugins/dialog";
+import { Notifier } from "@/plugins/notifier";
 import { integerTransformer, useRouteQuery } from "vue-use-route-query";
 import AccountCircle from "vue-material-design-icons/AccountCircle.vue";
 import Tag from "@/components/TagElement.vue";
@@ -775,6 +776,7 @@ const { mutate: deleteUserMutation } = useMutation<
 >(DELETE_USER);
 
 const dialog = inject<Dialog>("dialog");
+const notifier = inject<Notifier>("notifier");
 
 const suspendAccount = async (): Promise<void> => {
   dialog?.confirm({
@@ -824,11 +826,21 @@ const deleteAccount = async (): Promise<void> => {
     cancelText: t("Cancel"),
     variant: "danger",
     onConfirm: async () => {
-      await deleteUserMutation({
-        userId: props.id,
-        permanent: true,
-      });
-      return router.push({ name: RouteName.USERS });
+      try {
+        await deleteUserMutation({
+          userId: props.id,
+          permanent: true,
+        });
+        return router.push({ name: RouteName.USERS });
+      } catch (e: unknown) {
+        const err = e as { graphQLErrors?: Array<{ message: string }> };
+        const msg =
+          err.graphQLErrors?.[0]?.message ??
+          t(
+            "An error has occured. Sorry about that. You may try to reload the page."
+          );
+        notifier?.error(msg);
+      }
     },
   });
 };

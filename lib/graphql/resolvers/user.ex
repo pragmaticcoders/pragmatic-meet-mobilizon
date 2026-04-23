@@ -8,6 +8,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
   alias Mobilizon.{Actors, Admin, Config, Events, FollowedGroupActivity, Users}
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Federation.ActivityPub.Actions
+  alias Mobilizon.Service.ActiveCampaign
   alias Mobilizon.Service.AntiSpam
   alias Mobilizon.Service.Auth.Authenticator
   alias Mobilizon.Storage.{Page, Repo}
@@ -186,6 +187,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
            |> Map.merge(marketing_attrs)
            |> Users.register() do
       Email.User.send_confirmation_email(user, Map.get(args, :locale, "en"))
+      ActiveCampaign.subscribe_if_needed(user)
       {:ok, user}
     else
       {:error, :invalid_email} ->
@@ -739,8 +741,9 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
     Cachex.del(:statistics, :federation_groups)
   end
 
-  @spec do_delete_account(User.t(), Keyword.t()) :: {:ok, User.t()}
-  defp do_delete_account(%User{} = user, options) do
+  @spec do_delete_account(User.t(), Keyword.t()) ::
+          {:ok, User.t()} | {:error, Ecto.Changeset.t()} | {:error, atom()}
+  defp do_delete_account(%User{email: email} = user, options) do
     with actors <- Users.get_actors_for_user(user),
          activated <- not is_nil(user.confirmed_at),
          # Detach actors from user
@@ -750,7 +753,8 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
            Enum.each(actors, fn actor ->
              actor_performing = Keyword.get(options, :actor_performing, actor)
              Actions.Delete.delete(actor, actor_performing, true)
-           end) do
+           end),
+         :ok <- ActiveCampaign.cleanup_contact_on_account_deleted(email) do
       # Delete user
       Users.delete_user(user, reserve_email: Keyword.get(options, :reserve_email, activated))
     end
@@ -830,6 +834,7 @@ defmodule Mobilizon.GraphQL.Resolvers.User do
       }) do
     case Users.update_marketing_consent(user, consent) do
       {:ok, %User{} = updated_user} ->
+        ActiveCampaign.sync_after_marketing_consent_change(updated_user)
         {:ok, updated_user}
 
       {:error, %Ecto.Changeset{} = err} ->

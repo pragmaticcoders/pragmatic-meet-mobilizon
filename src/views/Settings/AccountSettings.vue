@@ -601,6 +601,15 @@ deleteAccountMutationError((err) => {
   deletePasswordErrors.value = err.graphQLErrors.map(
     ({ message }: GraphQLError) => message
   );
+  const first = err.graphQLErrors[0]?.message;
+  if (first) {
+    notification.open({
+      message: first,
+      variant: "danger",
+      position: "bottom-right",
+      duration: 8000,
+    });
+  }
 });
 
 const deleteAccount = () => {
