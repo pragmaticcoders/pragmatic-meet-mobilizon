@@ -23,18 +23,6 @@ export const statistics = async (
     sentry({ ...environement, app }, convertConfig(sentryConfig.configuration));
   }
 
-  const googleAnalyticsConfig = checkProviderConfig(
-    configAnalytics,
-    "google_analytics"
-  );
-  if (googleAnalyticsConfig?.enabled === true) {
-    const { googleAnalytics } = await import("./google_analytics");
-    googleAnalytics(
-      { ...environement, app },
-      convertConfig(googleAnalyticsConfig.configuration) as any
-    );
-  }
-
   const googleTagManagerConfig = checkProviderConfig(
     configAnalytics,
     "google_tag_manager"
