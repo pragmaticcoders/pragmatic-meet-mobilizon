@@ -106,6 +106,12 @@ config :mobilizon, :http_security, report_uri: "https://endpoint.com"
 
 config :mobilizon, Mobilizon.Service.AntiSpam, service: Mobilizon.Service.AntiSpam.Mock
 
+config :mobilizon, Mobilizon.Service.ActiveCampaign,
+  enabled: false,
+  api_url: nil,
+  api_key: nil,
+  list_id: 7
+
 if System.get_env("DOCKER", "false") == "false" && File.exists?("./config/test.secret.exs") do
   import_config "test.secret.exs"
 end

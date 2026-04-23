@@ -251,6 +251,30 @@ config :mobilizon, Mobilizon.Service.FrontEndAnalytics.GoogleTagManager,
     frame_src: ["www.googletagmanager.com"]
   ]
 
+active_campaign_list_id_dev =
+  case Integer.parse(System.get_env("MOBILIZON_ACTIVE_CAMPAIGN_LIST_ID", "7")) do
+    {n, _} -> n
+    :error -> 7
+  end
+
+active_campaign_api_url_dev =
+  case System.get_env("MOBILIZON_ACTIVE_CAMPAIGN_API_URL") do
+    url when is_binary(url) and url != "" -> url |> String.trim() |> String.trim_trailing("/")
+    _ -> nil
+  end
+
+active_campaign_api_key_dev =
+  case System.get_env("MOBILIZON_ACTIVE_CAMPAIGN_API_KEY") do
+    k when is_binary(k) and k != "" -> k
+    _ -> nil
+  end
+
+config :mobilizon, Mobilizon.Service.ActiveCampaign,
+  enabled: System.get_env("MOBILIZON_ACTIVE_CAMPAIGN_ENABLED", "false") == "true",
+  api_url: active_campaign_api_url_dev,
+  api_key: active_campaign_api_key_dev,
+  list_id: active_campaign_list_id_dev
+
 # HTTP client configuration for OAuth requests
 config :oauth2, :http_client, HTTPoison
 
