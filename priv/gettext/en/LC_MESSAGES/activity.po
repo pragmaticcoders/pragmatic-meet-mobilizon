@@ -528,3 +528,17 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "This information is sent privately to you as a person who registered for this event. Share the informations above with other people with caution."
 msgstr ""
+
+#: lib/service/activity/renderer/survey.ex:29
+#: lib/web/templates/email/activity/_survey_activity_item.html.heex:3
+#: lib/web/templates/email/activity/_survey_activity_item.text.eex:1
+#, elixir-autogen, elixir-format
+msgid "The survey %{survey} was published by %{profile} in the event %{event}."
+msgstr ""
+
+#: lib/service/activity/renderer/survey.ex:40
+#: lib/web/templates/email/activity/_survey_activity_item.html.heex:16
+#: lib/web/templates/email/activity/_survey_activity_item.text.eex:10
+#, elixir-autogen, elixir-format
+msgid "The survey %{survey} was published by %{profile} in the group %{group}."
+msgstr ""

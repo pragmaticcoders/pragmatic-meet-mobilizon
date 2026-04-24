@@ -13,7 +13,8 @@ defmodule Mobilizon.Service.Activity.Renderer do
     Group,
     Member,
     Post,
-    Resource
+    Resource,
+    Survey
   }
 
   require Logger
@@ -59,7 +60,8 @@ defmodule Mobilizon.Service.Activity.Renderer do
     member: Member,
     post: Post,
     resource: Resource,
-    comment: Comment
+    comment: Comment,
+    survey: Survey
   }
 
   @spec do_render(Activity.t(), Keyword.t()) :: common_render()

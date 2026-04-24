@@ -655,3 +655,17 @@ msgstr "Zobacz konwersację:"
 #, elixir-format
 msgid "You are receiving this email because you are a participant in this conversation."
 msgstr "Otrzymujesz ten e-mail, ponieważ jesteś uczestnikiem tej konwersacji."
+
+#: lib/service/activity/renderer/survey.ex:29
+#: lib/web/templates/email/activity/_survey_activity_item.html.heex:3
+#: lib/web/templates/email/activity/_survey_activity_item.text.eex:1
+#, elixir-autogen, elixir-format
+msgid "The survey %{survey} was published by %{profile} in the event %{event}."
+msgstr "Ankieta %{survey} została opublikowana przez %{profile} w wydarzeniu %{event}."
+
+#: lib/service/activity/renderer/survey.ex:40
+#: lib/web/templates/email/activity/_survey_activity_item.html.heex:16
+#: lib/web/templates/email/activity/_survey_activity_item.text.eex:10
+#, elixir-autogen, elixir-format
+msgid "The survey %{survey} was published by %{profile} in the group %{group}."
+msgstr "Ankieta %{survey} została opublikowana przez %{profile} w grupie %{group}."

@@ -25,7 +25,8 @@ defmodule Mobilizon.Activities do
     "resource",
     "group",
     "member",
-    "comment"
+    "comment",
+    "survey"
   ]
   @event_activity_subjects ["event_created", "event_updated", "event_deleted", "comment_posted"]
   @participant_activity_subjects ["event_new_participation"]
@@ -61,6 +62,7 @@ defmodule Mobilizon.Activities do
     "member_quit"
   ]
   @settings_activity_subjects ["group_created", "group_updated"]
+  @survey_activity_subjects ["survey_published"]
 
   @subjects @event_activity_subjects ++
               @conversation_activity_subjects ++
@@ -68,7 +70,8 @@ defmodule Mobilizon.Activities do
               @post_activity_subjects ++
               @discussion_activity_subjects ++
               @resource_activity_subjects ++
-              @member_activity_subjects ++ @settings_activity_subjects
+              @member_activity_subjects ++
+              @settings_activity_subjects ++ @survey_activity_subjects
 
   @object_type [
     "event",
@@ -80,7 +83,8 @@ defmodule Mobilizon.Activities do
     "resource",
     "member",
     "group",
-    "comment"
+    "comment",
+    "survey"
   ]
 
   defenum(Type, @activity_types)

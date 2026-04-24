@@ -333,6 +333,7 @@ import { useMutation, useQuery } from "@vue/apollo-composable";
 import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
 import { IConfig } from "@/types/config.model";
 import { useI18n } from "vue-i18n";
+import { usePlugins } from "@/composition/apollo/plugins";
 import { useHead } from "@/utils/head";
 
 type NotificationSubType = { label: string; id: string };
@@ -352,6 +353,7 @@ const webPushEnabled = computed(
 );
 
 const { t } = useI18n({ useScope: "global" });
+const { surveysEnabled } = usePlugins();
 
 useHead({
   title: computed(() => t("Notifications")),
@@ -440,9 +442,13 @@ const defaultNotificationValues = {
     email: { enabled: true, disabled: false },
     push: { enabled: false, disabled: false },
   },
+  survey_published: {
+    email: { enabled: false, disabled: false },
+    push: { enabled: false, disabled: false },
+  },
 };
 
-const notificationTypes: NotificationType[] = [
+const baseNotificationTypes: NotificationType[] = [
   {
     label: t("Mentions") as string,
     subtypes: [
@@ -522,6 +528,10 @@ const notificationTypes: NotificationType[] = [
         label: t("A resource has been created or updated") as string,
       },
       {
+        id: "survey_published",
+        label: t("A survey has been published in one of my groups or events") as string,
+      },
+      {
         id: "member_request",
         label: t("A member requested to join one of my groups") as string,
       },
@@ -541,6 +551,19 @@ const notificationTypes: NotificationType[] = [
     ],
   },
 ];
+
+const SURVEY_SETTING_IDS = new Set(["survey_published"]);
+
+const notificationTypes = computed<NotificationType[]>(() =>
+  baseNotificationTypes
+    .map((type) => ({
+      ...type,
+      subtypes: type.subtypes.filter(
+        (sub) => !SURVEY_SETTING_IDS.has(sub.id) || surveysEnabled.value
+      ),
+    }))
+    .filter((type) => type.subtypes.length > 0)
+);
 
 const userNotificationValues = computed(
   (): Record<
