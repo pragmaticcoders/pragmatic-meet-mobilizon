@@ -220,6 +220,10 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
         {:ok, body}
 
+      # No survey exists yet for this context (e.g. gate-check survey before anyone joins)
+      {:ok, %Tesla.Env{status: 404}} ->
+        {:ok, []}
+
       {:ok, %Tesla.Env{status: status, body: body}} ->
         {:error, "Survey get responses failed with status #{status}: #{inspect(body)}"}
 
