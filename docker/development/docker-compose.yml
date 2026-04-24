@@ -101,7 +101,6 @@ services:
     # TODO pin mobilizon-adapter version
     image: ghcr.io/pragmaticcoders/mobilizon-adapter
     restart: unless-stopped
-    pull_policy: always
     depends_on:
       forms-api:
         condition: service_started
@@ -153,7 +152,6 @@ services:
     container_name: mobilizon_adapter_nginx
     image: ghcr.io/pragmaticcoders/adapter-nginx
     restart: unless-stopped
-    pull_policy: always
     ports:
       # Bind to loopback only — per plan, public access goes through the external Nginx proxy.
       - "127.0.0.1:8081:80"
@@ -168,7 +166,6 @@ services:
     container_name: pragmatic-forms-api
     # TODO pin forms version
     image: ghcr.io/pragmaticcoders/forms-api
-    pull_policy: always
     restart: unless-stopped
     depends_on:
       forms-db:

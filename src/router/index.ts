@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import VueScrollTo from "vue-scrollto";
+import LandingView from "../views/LandingView.vue";
 import HomeView from "../views/HomeView.vue";
 import { eventRoutes } from "./event";
 import { actorRoutes } from "./actor";
@@ -52,10 +53,19 @@ export const routes = [
   {
     path: "/",
     name: RouteName.HOME,
-    component: HomeView,
+    component: LandingView,
     meta: {
       requiredAuth: false,
       announcer: { message: (): string => t("Homepage") as string },
+    },
+  },
+  {
+    path: "/discover",
+    name: RouteName.DISCOVER,
+    component: HomeView,
+    meta: {
+      requiredAuth: false,
+      announcer: { message: (): string => t("Discover") as string },
     },
   },
   {

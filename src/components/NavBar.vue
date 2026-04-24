@@ -11,7 +11,7 @@
           class="flex items-center flex-shrink-0"
         >
           <img
-            :src="instanceLogoUrl ?? '/img/logo.svg'"
+            :src="instanceLogoUrl ?? '/img/pragmatic_logo.svg'"
             :alt="instanceName ?? 'Mobilizon'"
             class="max-h-10"
           />

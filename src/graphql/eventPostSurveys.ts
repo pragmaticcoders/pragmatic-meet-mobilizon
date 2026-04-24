@@ -21,8 +21,18 @@ export const EVENT_POST_SURVEYS = gql`
 `;
 
 export const CREATE_EVENT_POST_SURVEY = gql`
-  mutation CreateEventPostSurvey($eventId: ID!, $title: String!, $description: String, $schema: JSON!) {
-    createEventPostSurvey(eventId: $eventId, title: $title, description: $description, schema: $schema) {
+  mutation CreateEventPostSurvey(
+    $eventId: ID!
+    $title: String!
+    $description: String
+    $schema: JSON!
+  ) {
+    createEventPostSurvey(
+      eventId: $eventId
+      title: $title
+      description: $description
+      schema: $schema
+    ) {
       ...EventPostSurvey
     }
   }
@@ -30,8 +40,20 @@ export const CREATE_EVENT_POST_SURVEY = gql`
 `;
 
 export const UPDATE_EVENT_POST_SURVEY = gql`
-  mutation UpdateEventPostSurvey($eventId: ID!, $surveyId: String!, $title: String!, $description: String, $schema: JSON!) {
-    updateEventPostSurvey(eventId: $eventId, surveyId: $surveyId, title: $title, description: $description, schema: $schema) {
+  mutation UpdateEventPostSurvey(
+    $eventId: ID!
+    $surveyId: String!
+    $title: String!
+    $description: String
+    $schema: JSON!
+  ) {
+    updateEventPostSurvey(
+      eventId: $eventId
+      surveyId: $surveyId
+      title: $title
+      description: $description
+      schema: $schema
+    ) {
       ...EventPostSurvey
     }
   }

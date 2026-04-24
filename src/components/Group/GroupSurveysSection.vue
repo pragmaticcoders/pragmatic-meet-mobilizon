@@ -63,22 +63,30 @@ const props = defineProps<{
 
 const contextId = computed(() => `mobilizon_group_survey:${props.group.id}`);
 
-const isAdmin = computed(() =>
-  props.groupMember?.role === MemberRole.ADMINISTRATOR ||
-  props.groupMember?.role === MemberRole.CREATOR
+const isAdmin = computed(
+  () =>
+    props.groupMember?.role === MemberRole.ADMINISTRATOR ||
+    props.groupMember?.role === MemberRole.CREATOR
 );
 
-const isMember = computed(() =>
-  props.groupMember?.role !== undefined &&
-  [MemberRole.MEMBER, MemberRole.MODERATOR, MemberRole.ADMINISTRATOR, MemberRole.CREATOR]
-    .includes(props.groupMember.role as MemberRole)
+const isMember = computed(
+  () =>
+    props.groupMember?.role !== undefined &&
+    [
+      MemberRole.MEMBER,
+      MemberRole.MODERATOR,
+      MemberRole.ADMINISTRATOR,
+      MemberRole.CREATOR,
+    ].includes(props.groupMember.role as MemberRole)
 );
 
 // "View my response" modal state
 const responseModalOpen = ref(false);
 const responseLoading = ref(false);
 const responseError = ref<string | null>(null);
-const responseData = ref<{ schema: any; data: Record<string, unknown> } | null>(null);
+const responseData = ref<{ schema: any; data: Record<string, unknown> } | null>(
+  null
+);
 
 const { load: loadMyResponse } = useLazyQuery<{
   mySurveyResponse: { schema: any; data: Record<string, unknown> } | null;

@@ -1035,7 +1035,12 @@
 
         <!-- Group surveys (member-only) -->
         <GroupSurveysSection
-          v-if="surveysEnabled && group && isCurrentActorAGroupMember && !previewPublic"
+          v-if="
+            surveysEnabled &&
+            group &&
+            isCurrentActorAGroupMember &&
+            !previewPublic
+          "
           :group="group"
           :group-member="groupMember"
         />

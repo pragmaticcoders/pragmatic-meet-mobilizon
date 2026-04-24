@@ -763,7 +763,9 @@ interface JoinEventResponse {
   participant: IParticipant | null;
 }
 
-const participationSectionRef = ref<InstanceType<typeof ParticipationSection> | null>(null);
+const participationSectionRef = ref<InstanceType<
+  typeof ParticipationSection
+> | null>(null);
 
 const updateCacheWithParticipant = (
   store: ApolloCache<{ joinEvent: JoinEventResponse }>,
@@ -775,9 +777,7 @@ const updateCacheWithParticipant = (
   });
 
   if (participationCachedData?.person == undefined) {
-    console.error(
-      "Cannot update participation cache, because of null value."
-    );
+    console.error("Cannot update participation cache, because of null value.");
     return;
   }
   store.writeQuery({
@@ -841,7 +841,9 @@ const updateCacheWithParticipant = (
         variables: { afterDateTime },
       });
     } catch (readError) {
-      console.debug("HOME_USER_QUERIES not in cache, will evict to force refetch");
+      console.debug(
+        "HOME_USER_QUERIES not in cache, will evict to force refetch"
+      );
       homeData = null;
     }
 
@@ -866,7 +868,9 @@ const updateCacheWithParticipant = (
         variables: { afterDateTime },
         data: updatedHomeData,
       });
-      console.debug("Successfully updated HOME_USER_QUERIES cache with new participation");
+      console.debug(
+        "Successfully updated HOME_USER_QUERIES cache with new participation"
+      );
     } else {
       console.debug("HOME_USER_QUERIES cache miss, evicting to force refetch");
       store.evict({ fieldName: "loggedUser" });

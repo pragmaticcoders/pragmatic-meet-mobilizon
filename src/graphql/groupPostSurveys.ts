@@ -21,8 +21,18 @@ export const GROUP_POST_SURVEYS = gql`
 `;
 
 export const CREATE_GROUP_POST_SURVEY = gql`
-  mutation CreateGroupPostSurvey($groupId: ID!, $title: String!, $description: String, $schema: JSON!) {
-    createGroupPostSurvey(groupId: $groupId, title: $title, description: $description, schema: $schema) {
+  mutation CreateGroupPostSurvey(
+    $groupId: ID!
+    $title: String!
+    $description: String
+    $schema: JSON!
+  ) {
+    createGroupPostSurvey(
+      groupId: $groupId
+      title: $title
+      description: $description
+      schema: $schema
+    ) {
       ...GroupPostSurvey
     }
   }
@@ -30,8 +40,20 @@ export const CREATE_GROUP_POST_SURVEY = gql`
 `;
 
 export const UPDATE_GROUP_POST_SURVEY = gql`
-  mutation UpdateGroupPostSurvey($groupId: ID!, $surveyId: String!, $title: String!, $description: String, $schema: JSON!) {
-    updateGroupPostSurvey(groupId: $groupId, surveyId: $surveyId, title: $title, description: $description, schema: $schema) {
+  mutation UpdateGroupPostSurvey(
+    $groupId: ID!
+    $surveyId: String!
+    $title: String!
+    $description: String
+    $schema: JSON!
+  ) {
+    updateGroupPostSurvey(
+      groupId: $groupId
+      surveyId: $surveyId
+      title: $title
+      description: $description
+      schema: $schema
+    ) {
       ...GroupPostSurvey
     }
   }

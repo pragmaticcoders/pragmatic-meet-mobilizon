@@ -1175,10 +1175,16 @@ const isRegularParticipant = computed(
 const gateSurveyModalOpen = ref(false);
 const gateSurveyLoading = ref(false);
 const gateSurveyError = ref<string | null>(null);
-const gateSurveyData = ref<{ schema: any; data: Record<string, unknown> } | null>(null);
+const gateSurveyData = ref<{
+  schema: any;
+  data: Record<string, unknown>;
+} | null>(null);
 
 const { load: loadGateSurveyResponse } = useLazyQuery<{
-  participantSurveyResponse: { schema: any; data: Record<string, unknown> } | null;
+  participantSurveyResponse: {
+    schema: any;
+    data: Record<string, unknown>;
+  } | null;
 }>(PARTICIPANT_SURVEY_RESPONSE);
 
 const openGateSurveyModal = async () => {
