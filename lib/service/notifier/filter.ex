@@ -78,5 +78,9 @@ defmodule Mobilizon.Service.Notifier.Filter do
 
   defp map_activity_to_activity_setting(%Activity{type: :member}), do: "member_updated"
 
+  # Survey
+  defp map_activity_to_activity_setting(%Activity{subject: :survey_published}),
+    do: "survey_published"
+
   defp map_activity_to_activity_setting(_), do: false
 end

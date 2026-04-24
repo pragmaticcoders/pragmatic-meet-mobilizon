@@ -462,7 +462,8 @@ defmodule Mobilizon.Factory do
       author: actor,
       group: group,
       object_type: :event,
-      object_id: to_string(event.id)
+      object_id: to_string(event.id),
+      inserted_at: DateTime.utc_now() |> DateTime.truncate(:second)
     }
   end
 

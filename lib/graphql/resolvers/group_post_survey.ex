@@ -8,6 +8,7 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
 
   alias Mobilizon.{Actors}
   alias Mobilizon.Actors.{Actor, Member}
+  alias Mobilizon.Service.Activity.Survey, as: SurveyActivity
   alias Mobilizon.Service.Plugins.Surveys
 
   import Mobilizon.Web.Gettext
@@ -71,15 +72,18 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
   def publish_group_post_survey(
         _parent,
         %{group_id: group_id, survey_id: survey_id},
-        %{context: %{current_actor: %Actor{id: actor_id}}}
+        %{context: %{current_actor: %Actor{id: actor_id} = current_actor}}
       ) do
     with {:authorized, true} <- {:authorized, admin?(actor_id, group_id)},
-         {:ok, survey} <- Surveys.publish_survey(survey_id) do
+         {:ok, survey} <- Surveys.publish_survey(survey_id),
+         %Actor{} = group <- Actors.get_actor(group_id) do
+      SurveyActivity.insert_group_survey_activity(survey, group, current_actor)
       {:ok, normalize_survey(survey)}
     else
       {:authorized, false} ->
         {:error, dgettext("errors", "You are not allowed to manage surveys for this group")}
       {:error, reason} -> {:error, reason}
+      nil -> {:error, dgettext("errors", "Group not found")}
     end
   end
 

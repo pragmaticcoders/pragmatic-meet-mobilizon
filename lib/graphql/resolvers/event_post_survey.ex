@@ -9,6 +9,7 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
   alias Mobilizon.{Actors, Events}
   alias Mobilizon.Actors.Actor
   alias Mobilizon.Events.Event
+  alias Mobilizon.Service.Activity.Survey, as: SurveyActivity
   alias Mobilizon.Service.Plugins.Surveys
 
   import Mobilizon.Web.Gettext
@@ -80,6 +81,7 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
     with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
          {:authorized, true} <- {:authorized, can_manage_event_surveys?(event, current_actor)},
          {:ok, survey} <- Surveys.publish_survey(survey_id) do
+      SurveyActivity.insert_event_survey_activity(survey, event, current_actor)
       {:ok, normalize_survey(survey)}
     else
       {:error, :event_not_found} -> {:error, dgettext("errors", "Event not found")}

@@ -66,7 +66,8 @@ defmodule Mobilizon.Service.Notifier.Push do
     "event_comment_mention" => true,
     "conversation_mention" => true,
     "discussion_mention" => false,
-    "event_new_comment" => false
+    "event_new_comment" => false,
+    "survey_published" => false
   }
 
   @spec default_activity_behavior(String.t()) :: boolean()

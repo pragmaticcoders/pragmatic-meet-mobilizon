@@ -1,0 +1,17 @@
+<%= case @activity.subject_params["context_type"] do %><% "event" -> %><%= dgettext("activity", "The survey %{survey} was published by %{profile} in the event %{event}.",
+    %{
+        profile: Mobilizon.Actors.Actor.display_name_and_username(@activity.author),
+        survey: @activity.subject_params["survey_title"],
+        event: @activity.subject_params["event_title"]
+    }
+) %>
+<%= url(~p"/events/#{@activity.subject_params["event_uuid"]}") |> URI.decode() %><%= if @activity.subject_params["survey_description"] do %>
+<%= @activity.subject_params["survey_description"] %><% end %><% _ -> %><%= dgettext("activity", "The survey %{survey} was published by %{profile} in the group %{group}.",
+    %{
+        profile: Mobilizon.Actors.Actor.display_name_and_username(@activity.author),
+        survey: @activity.subject_params["survey_title"],
+        group: Mobilizon.Actors.Actor.display_name_and_username(@activity.group)
+    }
+) %>
+<%= url(~p"/@#{@activity.group.preferred_username}") |> URI.decode() %><%= if @activity.subject_params["survey_description"] do %>
+<%= @activity.subject_params["survey_description"] %><% end %><% end %>

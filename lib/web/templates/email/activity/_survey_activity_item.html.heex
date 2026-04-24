@@ -1,0 +1,28 @@
+<%= case @activity.subject_params["context_type"] do %>
+  <% "event" -> %>
+    <%= dgettext("activity", "The survey %{survey} was published by %{profile} in the event %{event}.", %{
+      profile: "<b>#{escaped_display_name_and_username(@activity.author)}</b>",
+      survey:
+        "<a href=\"#{~p"/events/#{@activity.subject_params["event_uuid"]}" |> url() |> URI.decode()}\">
+                            #{escape_html(@activity.subject_params["survey_title"])}
+                        </a>",
+      event: "<b>#{escape_html(@activity.subject_params["event_title"])}</b>"
+    })
+    |> raw %>
+    <%= if @activity.subject_params["survey_description"] do %>
+      <br /><em><%= escape_html(@activity.subject_params["survey_description"]) %></em>
+    <% end %>
+  <% _ -> %>
+    <%= dgettext("activity", "The survey %{survey} was published by %{profile} in the group %{group}.", %{
+      profile: "<b>#{escaped_display_name_and_username(@activity.author)}</b>",
+      survey:
+        "<a href=\"#{~p"/@#{@activity.group.preferred_username}" |> url() |> URI.decode()}\">
+                            #{escape_html(@activity.subject_params["survey_title"])}
+                        </a>",
+      group: "<b>#{escaped_display_name_and_username(@activity.group)}</b>"
+    })
+    |> raw %>
+    <%= if @activity.subject_params["survey_description"] do %>
+      <br /><em><%= escape_html(@activity.subject_params["survey_description"]) %></em>
+    <% end %>
+<% end %>

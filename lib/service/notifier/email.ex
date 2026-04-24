@@ -182,7 +182,8 @@ defmodule Mobilizon.Service.Notifier.Email do
     "conversation_created" => true,
     "conversation_replied" => true,
     "discussion_mention" => true,
-    "event_new_comment" => true
+    "event_new_comment" => true,
+    "survey_published" => false
   }
 
   @spec default_activity_behavior(String.t()) :: boolean()
