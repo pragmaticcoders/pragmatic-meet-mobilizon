@@ -42,6 +42,14 @@ else
   echo "-- Picture assets already built, skipping..."
 fi
 
+# Build frontend assets if not already built (needed for images to be served)
+if [ ! -f "priv/static/index.html" ]; then
+  echo "-- Building frontend assets to populate priv/static..."
+  npm run build:assets
+else
+  echo "-- Frontend assets already built, skipping..."
+fi
+
 # Compile Elixir assets
 echo "-- Compiling Elixir assets..."
 mix compile
