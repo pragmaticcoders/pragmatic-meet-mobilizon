@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4">
+  <div>
     <Suspense>
       <template #default>
         <SurveysManager
@@ -19,41 +19,17 @@
         <div class="animate-pulse h-32 bg-gray-100" />
       </template>
     </Suspense>
-
-    <!-- "View my response" button for regular members (non-admins) -->
-    <div v-if="isMember && !isAdmin" class="flex justify-end px-1">
-      <o-button
-        variant="info"
-        outlined
-        size="small"
-        icon-left="clipboard-text-outline"
-        @click="openMyResponseModal"
-      >
-        {{ t("View my survey response") }}
-      </o-button>
-    </div>
-
-    <SurveyResponseModal
-      v-model:active="responseModalOpen"
-      :loading="responseLoading"
-      :error="responseError ?? undefined"
-      :response-data="responseData"
-      :title="t('My survey response')"
-    />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, ref } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
-import { useLazyQuery } from "@vue/apollo-composable";
 import type { IEvent } from "@/types/event.model";
 import type { IParticipant } from "@/types/participant.model";
 import type { IPerson } from "@/types/actor";
 import { ParticipantRole } from "@/types/enums";
 import { surveyModuleReady, loadRemoteComponent } from "@/plugins/surveyModule";
-import { MY_SURVEY_RESPONSE } from "@/graphql/event";
-import SurveyResponseModal from "@/components/Survey/SurveyResponseModal.vue";
 
 const { t } = useI18n({ useScope: "global" });
 
@@ -85,38 +61,6 @@ const isMember = computed(() => {
     role === ParticipantRole.ADMINISTRATOR
   );
 });
-
-// "View my response" modal state
-const responseModalOpen = ref(false);
-const responseLoading = ref(false);
-const responseError = ref<string | null>(null);
-const responseData = ref<{ schema: any; data: Record<string, unknown> } | null>(
-  null
-);
-
-const { load: loadMyResponse } = useLazyQuery<{
-  mySurveyResponse: { schema: any; data: Record<string, unknown> } | null;
-}>(MY_SURVEY_RESPONSE);
-
-const openMyResponseModal = async () => {
-  responseModalOpen.value = true;
-  responseLoading.value = true;
-  responseError.value = null;
-  responseData.value = null;
-  try {
-    const result = await loadMyResponse(MY_SURVEY_RESPONSE, {
-      contextId: contextId.value,
-    });
-    responseData.value = result?.mySurveyResponse ?? null;
-  } catch (e: any) {
-    responseError.value =
-      e?.graphQLErrors?.[0]?.message ??
-      e?.message ??
-      t("Failed to load survey response");
-  } finally {
-    responseLoading.value = false;
-  }
-};
 
 const SurveysManager = defineAsyncComponent({
   loader: () => loadRemoteComponent("./SurveysManager") as Promise<any>,
