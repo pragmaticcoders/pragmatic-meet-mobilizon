@@ -4,6 +4,7 @@
       <SurveyResponsesView
         v-if="surveyModuleReady"
         :event-id="eventId"
+        :event-uuid="eventUuid"
         :survey-id="surveyId"
         :is-gate-check="isGateCheck"
         @error="(e: Error) => console.error('SurveyResponsesView error:', e)"
@@ -26,14 +27,20 @@
 <script lang="ts" setup>
 import { computed, defineAsyncComponent } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 import { surveyModuleReady, loadRemoteComponent } from "@/plugins/surveyModule";
 
 const { t } = useI18n({ useScope: "global" });
+const route = useRoute();
 
 const props = defineProps<{
   eventId: string;
   surveyId: string;
 }>();
+
+// UUID passed by SurveysManager as a query param — used to build the correct back-link.
+// Mobilizon event pages are routed by UUID, not by numeric ID.
+const eventUuid = computed(() => route.query.uuid as string | undefined);
 
 // When surveyId === "gate-check", the responses view shows the gate-check survey
 // (filled before joining) using a dedicated GraphQL query.
