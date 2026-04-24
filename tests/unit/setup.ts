@@ -1,3 +1,4 @@
+import "./specs/mocks/localStorage";
 import "./specs/mocks/matchMedia";
 import { config } from "@vue/test-utils";
 import { createHead } from "@unhead/vue";
