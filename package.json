@@ -39,6 +39,7 @@
     "@fullcalendar/daygrid": "^6.1.10",
     "@fullcalendar/interaction": "^6.1.10",
     "@fullcalendar/vue3": "^6.1.10",
+    "@originjs/vite-plugin-federation": "^1.4.1",
     "@oruga-ui/oruga-next": "0.8.12",
     "@oruga-ui/theme-oruga": "^0.2.0",
     "@sentry/tracing": "^7.1",
@@ -113,7 +114,6 @@
   },
   "devDependencies": {
     "@histoire/plugin-vue": "^0.17.1",
-    "@originjs/vite-plugin-federation": "^1.4.1",
     "@playwright/test": "^1.25.1",
     "@rushstack/eslint-patch": "^1.1.4",
     "@tailwindcss/forms": "^0.5.2",

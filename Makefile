@@ -6,6 +6,8 @@ COMPOSE_LOCAL = FORMS_IMAGE_TAG=$(FORMS_IMAGE_TAG) docker compose --env-file .en
   -f docker/development/docker-compose.local-forms.yml
 
 init:
+	@bash docker/message.sh "Building API container"
+	$(COMPOSE) build
 	@bash docker/message.sh "Start"
 	make start
 
