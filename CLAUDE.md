@@ -139,21 +139,12 @@ The frontend uses a custom design system built on Tailwind CSS with two core sty
 - **Typography**: Mulish font family with structured text sizes (xs/sm/md/lg/xl/2xl) and line heights
 - **Spacing Scale**: Consistent spacing from 4px to 80px using CSS custom properties
 - **Component Classes**: Pre-built button, card, form, and utility classes
-- **No Rounded Corners**: Global override removes rounded corners app-wide (except avatar images)
-- **Dark Mode Support**: CSS custom properties for dark theme variants
-
-#### `src/assets/oruga-tailwindcss.css`
-- **Oruga UI Integration**: Styles for Oruga UI components (buttons, inputs, dropdowns, etc.)
-- **Component Theming**: Button variants (primary, danger, success, warning, outlined, text)
-- **Form Controls**: Styled inputs, selects, checkboxes, radios with consistent design
-- **Interactive Elements**: Modals, notifications, tooltips, pagination, tabs
-- **Dark Mode**: Comprehensive dark theme support for all components
-
-**Styling Approach**:
-- CSS custom properties for consistency and theming
-- Utility-first with semantic component classes
-- Design tokens for colors, typography, spacing
-- Zero border-radius policy for sharp, modern aesthetic
+- **No Rounded Corners**: Global override removes rounded corners app-wide (except avatar images and specific high-impact landing elements).
+- **Styling Approach**:
+  - CSS custom properties for consistency and theming
+  - Utility-first with semantic component classes
+  - Design tokens for colors, typography, spacing
+  - Zero border-radius policy for most UI elements to maintain a sharp, modern aesthetic (exceptions allowed for hero/landing sections if requested).
 - Responsive design with mobile-first approach
 
 ### Internationalization (i18n)

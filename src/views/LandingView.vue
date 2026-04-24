@@ -1,10 +1,9 @@
 <template>
   <div
-    class="relative w-[1280px] mx-auto"
+    class="relative max-w-screen-xl mx-auto w-full min-h-[500px] md:min-h-[600px] lg:min-h-[700px]"
     style="
       border-radius: 50px;
       overflow: hidden;
-      height: 696.304px;
       background:
         linear-gradient(
           180deg,
@@ -12,23 +11,29 @@
           rgba(255, 255, 255, 0.8) 36.94%,
           rgba(255, 255, 255, 0) 52.9%
         ),
-        url(/img/landing.jpg) lightgray 0px -0.057px / 100% 119.319% no-repeat;
+        url(/img/landing.jpg) lightgray center / cover no-repeat;
     "
   >
     <!-- Content -->
-    <div class="absolute inset-0 flex flex-col items-center px-[300px]">
+    <div
+      class="absolute inset-0 flex flex-col items-center justify-start px-6 md:px-12 lg:px-[150px] xl:px-[300px]"
+    >
       <!-- Hero Text -->
-      <div class="text-center">
-        <h1 class="text-[#121212] text-[36px] font-bold leading-[57.6px] mb-2">
+      <div class="text-center max-w-2xl">
+        <h1
+          class="text-[#121212] text-2xl md:text-3xl lg:text-4xl font-bold leading-tight mb-4"
+        >
           {{ t("landingPageHeading") }}
         </h1>
-        <p class="text-[#121212] text-[17px] font-medium leading-[27.2px]">
+        <p
+          class="text-[#121212] text-base md:text-lg font-medium leading-relaxed"
+        >
           {{ t("landingPageDescription") }}
         </p>
       </div>
 
       <!-- CTA Button -->
-      <div class="mt-10">
+      <div class="mt-8 md:mt-10">
         <o-button
           tag="router-link"
           :to="{ name: RouteName.CREATE_EVENT }"
