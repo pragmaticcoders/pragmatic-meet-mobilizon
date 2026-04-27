@@ -42,6 +42,7 @@ pull-forms:
 # Requires: pragmatic-forms repo must be a sibling directory of this repo.
 start-local-forms: stop
 	@bash docker/message.sh "Starting Mobilizon with local pragmatic-forms"
+	$(COMPOSE_LOCAL) build forms-api mobilizon-adapter adapter-nginx
 	$(COMPOSE_LOCAL) up -d api
 	@bash docker/message.sh "Docker server started"
 
@@ -49,6 +50,14 @@ start-local-forms: stop
 update-adapter-local: stop
 	@bash docker/message.sh "Rebuilding adapter from local pragmatic-forms"
 	$(COMPOSE_LOCAL) build --no-cache mobilizon-adapter adapter-nginx
+	$(COMPOSE_LOCAL) up -d api
+	@bash docker/message.sh "Docker server started"
+
+# Rebuild only forms-api from local pragmatic-forms checkout (with start-local-forms).
+# Use after changes to forms/Dockerfile or when forms-api fails to start.
+update-forms-local: stop
+	@bash docker/message.sh "Rebuilding forms-api from local pragmatic-forms"
+	$(COMPOSE_LOCAL) build --no-cache forms-api
 	$(COMPOSE_LOCAL) up -d api
 	@bash docker/message.sh "Docker server started"
 
