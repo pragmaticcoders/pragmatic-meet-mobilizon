@@ -33,12 +33,12 @@
               class="hover:underline"
               :to="{ name: RouteName.TERMS }"
             >
-              O Pragmatic Meet
+              {{ t("About Pragmatic Meet") }}
             </router-link>
           </li>
           <li class="text-gray-300">|</li>
           <li>
-            <a class="hover:underline" href="#navbar">Powrót do góry</a>
+            <a class="hover:underline" href="#navbar">{{ t("Back to top") }}</a>
           </li>
         </ul>
       </nav>
@@ -46,7 +46,7 @@
       <!-- Secondary links -->
       <div class="flex items-center gap-3 text-sm text-gray-700">
         <span class="text-green-600">💚</span>
-        <span>Powstało dzięki</span>
+        <span>{{ t("Created by") }}</span>
         <a
           class="underline"
           href="https://www.pragmaticcoders.com"
@@ -55,7 +55,7 @@
         >
         <span class="text-gray-300">|</span>
         <router-link class="underline" :to="{ name: RouteName.TERMS }"
-          >Polityka prywatności</router-link
+          >{{ t("Privacy Policy") }}</router-link
         >
       </div>
     </div>

@@ -42,10 +42,12 @@ export const i18n = createI18n({
   globalInjection: true,
 });
 
-const loadedLanguages = [DEFAULT_LOCALE];
+const loadedLanguages = [DEFAULT_LOCALE, "en"];
 
 function setI18nLanguage(lang: string): string {
-  i18n.global.locale = lang;
+  if (i18n.global.locale.value !== lang) {
+    i18n.global.locale.value = lang;
+  }
   setLanguageInDOM(lang);
   return lang;
 }
@@ -80,15 +82,11 @@ function vueI18NfileForLanguage(lang: string) {
 }
 
 export async function loadLanguageAsync(lang: string): Promise<string> {
-  // If the same language
-  if (i18n.global.locale === lang) {
-    return Promise.resolve(setI18nLanguage(lang));
-  }
-
   // If the language was already loaded
   if (loadedLanguages.includes(lang)) {
     return Promise.resolve(setI18nLanguage(lang));
   }
+
   // If the language hasn't been loaded yet
   const newMessages = await import(
     `../i18n/${vueI18NfileForLanguage(lang)}.json`
