@@ -17,8 +17,6 @@ import { useQuery } from "@vue/apollo-composable";
 import { useHead } from "@/utils/head";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { i18n } from "@/utils/i18n";
-
 const { t, locale } = useI18n({ useScope: "global" });
 
 const currentLocaleCode = computed(() => {
