@@ -27,7 +27,7 @@ import { useI18n } from "vue-i18n";
 
 const { locale } = useI18n({ useScope: "global" });
 
-const localeConverted = locale.replace("_", "-");
+const localeConverted = locale.replace?.("_", "-");
 
 const props = withDefaults(
   defineProps<{
