@@ -33,7 +33,8 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
         %{event_id: event_id, title: title, schema: schema} = args,
         %{context: %{current_actor: %Actor{} = current_actor}}
       ) do
-    with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
+    with {:title_valid, true} <- {:title_valid, String.trim(title) != ""},
+         {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
          {:authorized, true} <- {:authorized, can_manage_event_surveys?(event, current_actor)},
          context_id = Surveys.event_survey_context_id(event_id),
          {:ok, survey} <-
@@ -44,6 +45,7 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
            }) do
       {:ok, normalize_survey(survey)}
     else
+      {:title_valid, false} -> {:error, dgettext("errors", "Survey title cannot be blank")}
       {:error, :event_not_found} -> {:error, dgettext("errors", "Event not found")}
       {:authorized, false} ->
         {:error, dgettext("errors", "You are not allowed to manage surveys for this event")}
@@ -56,7 +58,8 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
         %{event_id: event_id, survey_id: survey_id, title: title, schema: schema} = args,
         %{context: %{current_actor: %Actor{} = current_actor}}
       ) do
-    with {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
+    with {:title_valid, true} <- {:title_valid, String.trim(title) != ""},
+         {:ok, %Event{} = event} <- Events.get_event_with_preload(event_id),
          {:authorized, true} <- {:authorized, can_manage_event_surveys?(event, current_actor)},
          {:ok, survey} <-
            Surveys.update_survey(survey_id, %{
@@ -66,6 +69,7 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
            }) do
       {:ok, normalize_survey(survey)}
     else
+      {:title_valid, false} -> {:error, dgettext("errors", "Survey title cannot be blank")}
       {:error, :event_not_found} -> {:error, dgettext("errors", "Event not found")}
       {:authorized, false} ->
         {:error, dgettext("errors", "You are not allowed to manage surveys for this event")}

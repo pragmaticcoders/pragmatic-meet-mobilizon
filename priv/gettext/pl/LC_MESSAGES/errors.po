@@ -1473,3 +1473,8 @@ msgstr "Musisz być zalogowany, aby zmienić zgodę marketingową"
 #, elixir-autogen, elixir-format
 msgid "Error while updating marketing consent"
 msgstr "Błąd podczas aktualizacji zgody marketingowej"
+
+#: lib/graphql/resolvers/event_post_survey.ex lib/graphql/resolvers/group_post_survey.ex
+#, elixir-autogen, elixir-format
+msgid "Survey title cannot be blank"
+msgstr "Tytuł ankiety nie może być pusty"

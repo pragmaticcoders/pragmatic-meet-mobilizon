@@ -1409,3 +1409,8 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Error while updating marketing consent"
 msgstr ""
+
+#: lib/graphql/resolvers/event_post_survey.ex lib/graphql/resolvers/group_post_survey.ex
+#, elixir-autogen, elixir-format
+msgid "Survey title cannot be blank"
+msgstr ""
