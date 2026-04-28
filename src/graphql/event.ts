@@ -568,7 +568,7 @@ export const PARTICIPANT_SURVEY_RESPONSE = gql`
 `;
 
 export const MY_SURVEY_RESPONSE = gql`
-  query MySurveyResponse($contextId: String!) {
-    mySurveyResponse(contextId: $contextId)
+  query MySurveyResponse($contextId: String!, $surveyId: String) {
+    mySurveyResponse(contextId: $contextId, surveyId: $surveyId)
   }
 `;

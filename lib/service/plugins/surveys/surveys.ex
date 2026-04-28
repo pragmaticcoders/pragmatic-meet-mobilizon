@@ -14,7 +14,8 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   @callback check_gate(context_id(), respondent_id()) :: {:ok, map()} | {:error, any()}
   @callback submit_response(context_id(), respondent_id(), map()) :: {:ok, map()} | {:error, any()}
   @callback submit_response(context_id(), respondent_id(), map(), String.t() | nil) :: {:ok, map()} | {:error, any()}
-  @callback get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}
+  @callback get_participant_response(context_id(), respondent_id(), survey_id() | nil) ::
+              {:ok, map() | nil} | {:error, any()}
 
   # ── Survey lifecycle callbacks (post-event / post-group surveys) ─────────────
 
@@ -56,9 +57,10 @@ defmodule Mobilizon.Service.Plugins.Surveys do
     adapter().submit_response(context_id, respondent_id, data, survey_id)
   end
 
-  @spec get_participant_response(context_id(), respondent_id()) :: {:ok, map() | nil} | {:error, any()}
-  def get_participant_response(context_id, respondent_id) do
-    adapter().get_participant_response(context_id, respondent_id)
+  @spec get_participant_response(context_id(), respondent_id(), survey_id() | nil) ::
+          {:ok, map() | nil} | {:error, any()}
+  def get_participant_response(context_id, respondent_id, survey_id \\ nil) do
+    adapter().get_participant_response(context_id, respondent_id, survey_id)
   end
 
   @spec list_surveys(context_id()) :: {:ok, [map()]} | {:error, any()}

@@ -131,6 +131,12 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     @desc "Get the current actor's own response for any survey context (post-event or group)"
     field :my_survey_response, :json do
       arg(:context_id, non_null(:string), description: "The survey context ID")
+
+      arg(:survey_id, :string,
+        description:
+          "Adapter survey row id (EventPostSurvey.id). Required when several post-event surveys share the same context_id; omit for gate-check (mobilizon_event:…)"
+      )
+
       middleware(Rajska.QueryAuthorization, permit: :user, scope: false)
       resolve(&Participant.get_my_survey_response/3)
     end
