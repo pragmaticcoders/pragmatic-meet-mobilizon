@@ -1942,6 +1942,8 @@
   "Survey configured": "Survey configured",
   "Surveys": "Surveys",
   "Pre-event survey": "Pre-event survey",
+  "Survey title": "Survey title",
+  "Survey title is required": "Survey title is required",
   "Survey description": "Survey description",
   "Survey description placeholder": "Describe the purpose of this survey (optional)",
   "No surveys yet.": "No surveys yet.",

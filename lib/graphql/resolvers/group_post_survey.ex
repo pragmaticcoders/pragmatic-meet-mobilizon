@@ -33,7 +33,8 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
         %{group_id: group_id, title: title, schema: schema} = args,
         %{context: %{current_actor: %Actor{id: actor_id}}}
       ) do
-    with {:authorized, true} <- {:authorized, admin?(actor_id, group_id)},
+    with {:title_valid, true} <- {:title_valid, String.trim(title) != ""},
+         {:authorized, true} <- {:authorized, admin?(actor_id, group_id)},
          context_id = Surveys.group_survey_context_id(group_id),
          {:ok, survey} <-
            Surveys.create_survey(context_id, %{
@@ -43,6 +44,7 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
            }) do
       {:ok, normalize_survey(survey)}
     else
+      {:title_valid, false} -> {:error, dgettext("errors", "Survey title cannot be blank")}
       {:authorized, false} ->
         {:error, dgettext("errors", "You are not allowed to manage surveys for this group")}
       {:error, reason} -> {:error, reason}
@@ -54,7 +56,8 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
         %{group_id: group_id, survey_id: survey_id, title: title, schema: schema} = args,
         %{context: %{current_actor: %Actor{id: actor_id}}}
       ) do
-    with {:authorized, true} <- {:authorized, admin?(actor_id, group_id)},
+    with {:title_valid, true} <- {:title_valid, String.trim(title) != ""},
+         {:authorized, true} <- {:authorized, admin?(actor_id, group_id)},
          {:ok, survey} <-
            Surveys.update_survey(survey_id, %{
              title: title,
@@ -63,6 +66,7 @@ defmodule Mobilizon.GraphQL.Resolvers.GroupPostSurvey do
            }) do
       {:ok, normalize_survey(survey)}
     else
+      {:title_valid, false} -> {:error, dgettext("errors", "Survey title cannot be blank")}
       {:authorized, false} ->
         {:error, dgettext("errors", "You are not allowed to manage surveys for this group")}
       {:error, reason} -> {:error, reason}
