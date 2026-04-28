@@ -505,7 +505,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
          :ok <- authorize_survey_response_access(event, current_actor, current_actor_id, actor_id) do
       context_id = Surveys.event_context_id(event_uuid)
       respondent_id = Surveys.actor_respondent_id(actor_id)
-      Surveys.get_participant_response(context_id, respondent_id)
+      Surveys.get_participant_response(context_id, respondent_id, nil)
     else
       {:event, _} -> {:error, dgettext("errors", "Event not found")}
       {:error, _} = err -> err
@@ -519,11 +519,12 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
   @doc "Return the current actor's own response for any survey context"
   def get_my_survey_response(
         _parent,
-        %{context_id: context_id},
+        %{context_id: context_id} = args,
         %{context: %{current_actor: %Actor{id: actor_id}}}
       ) do
     respondent_id = Surveys.actor_respondent_id(actor_id)
-    Surveys.get_participant_response(context_id, respondent_id)
+    survey_id = Map.get(args, :survey_id)
+    Surveys.get_participant_response(context_id, respondent_id, survey_id)
   end
 
   def get_my_survey_response(_, _, _) do

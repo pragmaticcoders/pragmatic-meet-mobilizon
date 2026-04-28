@@ -52,14 +52,22 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
   end
 
   @impl true
-  def get_participant_response(context_id, respondent_id) do
-    encoded_context = URI.encode(context_id, &URI.char_unreserved?/1)
+  def get_participant_response(context_id, respondent_id, survey_id) do
     encoded_respondent = URI.encode(respondent_id, &URI.char_unreserved?/1)
 
-    case Tesla.get(
-           client(),
-           "/api/responses/by-context/#{encoded_context}/by-respondent/#{encoded_respondent}"
-         ) do
+    path =
+      if survey_id not in [nil, ""] do
+        encoded_survey = URI.encode(survey_id, &URI.char_unreserved?/1)
+        qs = URI.encode_query(%{"context_id" => context_id})
+
+        "/api/responses/by-survey/#{encoded_survey}/by-respondent/#{encoded_respondent}?#{qs}"
+      else
+        encoded_context = URI.encode(context_id, &URI.char_unreserved?/1)
+
+        "/api/responses/by-context/#{encoded_context}/by-respondent/#{encoded_respondent}"
+      end
+
+    case Tesla.get(client(), path) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
         {:ok, body}
 
