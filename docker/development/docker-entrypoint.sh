@@ -33,9 +33,12 @@ STORED=""
 if [ -f "$NPM_CHECKSUM_FILE" ]; then
   STORED=$(cat "$NPM_CHECKSUM_FILE")
 fi
-if [ ! -d "node_modules" ] || [ "$STORED" != "$CURRENT" ]; then
+# NODE_ENV=production (e.g. from .env) makes npm omit devDependencies; vite lives in devDependencies,
+# so always install with NODE_ENV=development for this dev image. Also reinstall if vite is missing
+# (e.g. stale node_modules volume from a production-style install).
+if [ ! -d "node_modules" ] || [ "$STORED" != "$CURRENT" ] || [ ! -f "node_modules/.bin/vite" ]; then
   echo "-- Installing Node.js dependencies..."
-  npm install
+  NODE_ENV=development npm install
   echo "$CURRENT" > "$NPM_CHECKSUM_FILE"
 else
   echo "-- Node.js dependencies up to date, skipping..."
