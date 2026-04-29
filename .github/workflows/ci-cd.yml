@@ -382,7 +382,7 @@ jobs:
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
             cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
-            IMAGE_TAG=${FORMS_TAG} docker compose up -d
+            IMAGE_TAG=${FORMS_TAG} docker compose up -d --force-recreate
             docker image prune -f
           EOF
 
@@ -452,7 +452,7 @@ jobs:
             echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
             cd /root/forms
             IMAGE_TAG=${FORMS_TAG} docker compose pull
-            IMAGE_TAG=${FORMS_TAG} docker compose up -d
+            IMAGE_TAG=${FORMS_TAG} docker compose up -d --force-recreate
             docker image prune -f
           EOF
 
