@@ -402,6 +402,13 @@ jobs:
             docker image prune -f
           EOF
 
+      - name: Purge Cloudflare cache (dev)
+        uses: ./.github/actions/purge-cloudflare-cache
+        with:
+          cloudflare_api_token: ${{ secrets.CF_CACHE_PURGE_TOKEN }}
+          zone_id: 6b2c743671e09fa0f65ea9230483bca1
+          host: dev.pragmaticmeet.com
+
   deploy-prod:
     needs: [build]
     runs-on: ubuntu-latest
@@ -471,3 +478,10 @@ jobs:
             docker compose up -d --force-recreate
             docker image prune -f
           EOF
+
+      - name: Purge Cloudflare cache (prod)
+        uses: ./.github/actions/purge-cloudflare-cache
+        with:
+          cloudflare_api_token: ${{ secrets.CF_CACHE_PURGE_TOKEN }}
+          zone_id: 6b2c743671e09fa0f65ea9230483bca1
+          host: pragmaticmeet.com
