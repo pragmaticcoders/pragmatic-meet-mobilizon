@@ -2061,6 +2061,7 @@
   "Don't have an account?": "Nie masz konta?",
   "Participant survey": "Ankieta uczestnika",
   "Add a survey that participants must complete before joining this event.": "Dodaj ankietę, którą uczestnicy muszą wypełnić przed dołączeniem do wydarzenia.",
+  "A pre-event survey is already configured for this event.": "Ankieta przed wydarzeniem jest już skonfigurowana dla tego wydarzenia.",
   "Survey module is not available": "Moduł ankiet jest niedostępny",
   "Survey": "Ankieta",
   "Survey response": "Odpowiedź ankiety",

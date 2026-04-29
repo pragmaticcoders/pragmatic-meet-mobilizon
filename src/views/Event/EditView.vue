@@ -509,7 +509,19 @@
           </o-field>
         </fieldset>
       </section>
-      <section v-if="surveysEnabled" class="border-t pt-8 mt-8">
+      <section
+        v-if="surveysEnabled && hasExistingGateCheckSurvey"
+        class="border-t pt-8 mt-8"
+      >
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">
+          {{ t("Participant survey") }}
+        </h2>
+        <p class="text-sm text-green-700 font-medium">
+          ✓
+          {{ t("A pre-event survey is already configured for this event.") }}
+        </p>
+      </section>
+      <section v-if="canShowSurveySection" class="border-t pt-8 mt-8">
         <h2 class="text-xl font-semibold text-gray-900 mb-2">
           {{ t("Participant survey") }}
         </h2>
@@ -902,6 +914,7 @@ import { useMutation, useQuery } from "@vue/apollo-composable";
 import { Dialog } from "@/plugins/dialog";
 import { usePlugins } from "@/composition/apollo/plugins";
 import SurveyBuilderWrapper from "@/components/Survey/SurveyBuilderWrapper.vue";
+import { EVENT_GATE_CHECK_SURVEY } from "@/graphql/eventPostSurveys";
 import { Notifier } from "@/plugins/notifier";
 import { useHead } from "@/utils/head";
 import { useOruga } from "@oruga-ui/oruga-next";
@@ -968,6 +981,28 @@ function cancelSurveyModal() {
 // The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
 const eventSurveyContextId = computed(() =>
   props.eventId ? `mobilizon_event:${props.eventId}` : `mobilizon_event:new`
+);
+
+// In edit mode, check whether a gate-check survey is already attached to this event.
+// If it is, we hide the survey-creation section so users can't accidentally overwrite
+// an existing survey from this view.
+const { result: gateCheckSurveyResult } = useQuery<{
+  eventGateCheckSurvey: { id: string; schema: object | null } | null;
+}>(
+  EVENT_GATE_CHECK_SURVEY,
+  () => ({ eventId: event.value?.id }),
+  () => ({
+    enabled: props.isUpdate === true && !!event.value?.id,
+    fetchPolicy: "cache-and-network",
+  })
+);
+
+const hasExistingGateCheckSurvey = computed<boolean>(
+  () => !!gateCheckSurveyResult.value?.eventGateCheckSurvey
+);
+
+const canShowSurveySection = computed<boolean>(
+  () => surveysEnabled.value && !hasExistingGateCheckSurvey.value
 );
 
 // Separate state to track if user wants to limit places (independent of current capacity value)
@@ -1717,9 +1752,11 @@ const buildVariables = async () => {
     : null;
   res = { ...res, attributedToId };
 
-  if (surveySchema.value) {
+  if (surveySchema.value && !hasExistingGateCheckSurvey.value) {
     // Serialize to JSON string — the Absinthe JSON scalar handles strings
     // via Jason.decode, bypassing GraphQL input object field validation.
+    // Skip when a gate-check survey already exists, so we never overwrite it
+    // from this view (managed elsewhere).
     res = { ...res, surveySchema: JSON.stringify(surveySchema.value) };
   }
 

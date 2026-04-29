@@ -1928,6 +1928,7 @@
   "Awaiting group approval": "Awaiting group approval",
   "Participant survey": "Participant survey",
   "Add a survey that participants must complete before joining this event.": "Add a survey that participants must complete before joining this event.",
+  "A pre-event survey is already configured for this event.": "A pre-event survey is already configured for this event.",
   "Survey module is not available": "Survey module is not available",
   "Survey": "Survey",
   "Survey response": "Survey response",

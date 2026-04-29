@@ -20,6 +20,15 @@ export const EVENT_POST_SURVEYS = gql`
   ${EVENT_POST_SURVEY_FRAGMENT}
 `;
 
+export const EVENT_GATE_CHECK_SURVEY = gql`
+  query EventGateCheckSurvey($eventId: ID!) {
+    eventGateCheckSurvey(eventId: $eventId) {
+      ...EventPostSurvey
+    }
+  }
+  ${EVENT_POST_SURVEY_FRAGMENT}
+`;
+
 export const CREATE_EVENT_POST_SURVEY = gql`
   mutation CreateEventPostSurvey(
     $eventId: ID!
