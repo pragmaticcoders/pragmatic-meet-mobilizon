@@ -8,6 +8,7 @@ A comprehensive guide for setting up and running Mobilizon locally for developme
 - [Quick Start](#🚀-quick-start)
 - [Development Setup Options](#🐳-development-setup-options)
   - [Option 1: Docker Development (Recommended)](#option-1-docker-development-recommended)
+    - [Developing surveys (pragmatic-forms)](#developing-surveys-pragmatic-forms)
   - [Option 2: Native Development](#option-2-native-development)
 - [Database Management](#🗄️-database-management)
 - [Environment Variables](#🔧-environment-variables)
@@ -127,6 +128,36 @@ make format    # Format code (Elixir + frontend)
 - **Main Application**: http://localhost:4000
 - **GraphQL Playground**: http://localhost:4000/api/graphql
 - **Mailbox (Local emails)**: http://localhost:4000/dev/mailbox
+
+#### Developing surveys (pragmatic-forms)
+
+To work on the survey plugin stack (forms service, Mobilizon adapter, and the Module Federation frontend served to the browser), build the Docker images from the **pragmatic-forms** repository, not from this repo:
+
+| Image role in `docker/development/docker-compose.yml` | Dockerfile in pragmatic-forms |
+|------------------------------------------------------|-------------------------------|
+| `forms-api` | `forms/Dockerfile` |
+| `mobilizon-adapter` | `mobilizon-adapter/Dockerfile` |
+| `adapter-nginx` (static `remoteEntry.js`, etc.) | `mobilizon-adapter/frontend/Dockerfile.nginx` |
+
+Run these from the root of your **pragmatic-forms** checkout. Image names should match the `image:` fields in [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml):
+
+```bash
+cd /path/to/pragmatic-forms
+
+docker build -f forms/Dockerfile -t forms-api .
+
+docker build -f mobilizon-adapter/Dockerfile -t mobilizon-adapter .
+
+docker build -f mobilizon-adapter/frontend/Dockerfile.nginx \
+  -t adapter-nginx \
+  mobilizon-adapter/frontend
+```
+
+Replace these GHCR images with the ones you built: `ghcr.io/pragmaticcoders/forms-api`, `ghcr.io/pragmaticcoders/mobilizon-adapter`, `ghcr.io/pragmaticcoders/adapter-nginx`.
+
+To use the registry images again, use the `ghcr.io/pragmaticcoders/...` entries commented next to each service in the same compose file. Survey-related environment variables are documented in [`.env.template`](.env.template).
+
+For day-to-day work with a local checkout of pragmatic-forms next to this repository, you can also use `make start-local-forms`, which merges `docker/development/docker-compose.local-forms.yml` and builds those services from source.
 
 ### Option 2: Native Development
 
