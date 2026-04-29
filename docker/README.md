@@ -174,20 +174,49 @@ This limitation does not affect development environments or non-Docker installat
 
 ### Common Issues
 
-1. **Database Connection Issues**
+1. **Survey gate not showing / `forms-api` returns 500 on save**
+
+   **Symptom**: Adding a survey to an event has no effect — joining the event skips the survey form. Mobilizon logs show `Failed to save survey: "Survey save failed with status 502: Forms Service error: 500"`.
+
+   **Root cause**: The `Client` table in `forms-db` is empty. The adapter (`FORMS_SERVICE_API_KEY`) must use a *client* key — not the admin key — to call forms-api. On a fresh environment this client has never been created.
+
+   **Fix**: Register the adapter as a client (once per environment, or after wiping `forms-db`):
+
+   ```bash
+   # 1. Create the client (admin key comes from FORMS_ADMIN_API_KEY in .env)
+   docker exec pragmatic_forms_adapter \
+     wget -qO- \
+     --header "Content-Type: application/json" \
+     --header "Authorization: Bearer $(grep FORMS_ADMIN_API_KEY .env | cut -d= -f2)" \
+     --post-data '{"name": "mobilizon-adapter"}' \
+     http://forms-api:3000/clients
+
+   # 2. Copy the "api_key" from the JSON output, then set it in .env:
+   #    FORMS_SERVICE_API_KEY=<api_key>
+
+   # 3. Restart the adapter
+   docker compose --env-file .env \
+     -f docker/development/docker-compose.yml \
+     -f docker/development/docker-compose.local-forms.yml \
+     up -d --force-recreate mobilizon-adapter
+   ```
+
+   See also: [GUIDES.md](../GUIDES.md) for the full step-by-step instructions.
+
+3. **Database Connection Issues**
    - Verify database credentials in environment file
    - Check if required extensions are installed
    - Ensure database is accessible from container
 
-2. **Health Check Failures**
+4. **Health Check Failures**
    - Check application logs: `docker compose logs mobilizon`
    - Verify database connectivity: `curl http://localhost:4000/health/detailed`
    - Check container status: `docker compose ps`
 
-3. **Permission Issues**
+5. **Permission Issues**
    - Fix upload directory permissions: `docker compose exec mobilizon chown -R nobody:nobody /var/lib/mobilizon/`
 
-4. **CLI Commands (`mobilizon_ctl`) Crash Container** 
+6. **CLI Commands (`mobilizon_ctl`) Crash Container** 
    - **Issue**: Running `docker exec mobilizon_prod /bin/mobilizon_ctl users.new ...` causes container to restart
    - **Root Cause**: Distributed Erlang RPC configuration issue in production release
    - **Workaround**: Add CLI commands to `docker/production/docker-entrypoint.sh` with `MOBILIZON_CTL_RPC_DISABLED=true`
