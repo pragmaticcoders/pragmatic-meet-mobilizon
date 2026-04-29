@@ -137,6 +137,33 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
     {:error, dgettext("errors", "You need to be logged-in to view survey responses")}
   end
 
+  # ── Gate-check survey ─────────────────────────────────────────────────────────
+
+  @doc """
+  Returns the gate-check survey configured for an event (the schema users must
+  fill before joining), or `nil` when no schema has been configured.
+
+  Used by the Adapter's `SurveysManager` micro-frontend to decide whether to
+  render the virtual "Pre-event survey" entry. Public — both admins and members
+  may need to know if a schema exists; the schema itself is already served
+  publicly during the participation flow.
+  """
+  def get_gate_check_survey(_parent, %{event_id: event_id}, _resolution) do
+    case Events.get_event_with_preload(event_id) do
+      {:ok, %Event{uuid: event_uuid}} ->
+        context_id = Surveys.event_context_id(event_uuid)
+
+        case Surveys.list_surveys(context_id) do
+          {:ok, [survey | _]} -> {:ok, normalize_survey(survey)}
+          {:ok, []} -> {:ok, nil}
+          {:error, _} = err -> err
+        end
+
+      {:error, :event_not_found} ->
+        {:error, dgettext("errors", "Event not found")}
+    end
+  end
+
   # ── Gate-check survey responses ───────────────────────────────────────────────
 
   def list_gate_check_survey_responses(
