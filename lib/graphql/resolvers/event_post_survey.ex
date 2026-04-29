@@ -149,17 +149,18 @@ defmodule Mobilizon.GraphQL.Resolvers.EventPostSurvey do
   publicly during the participation flow.
   """
   def get_gate_check_survey(_parent, %{event_id: event_id}, _resolution) do
-    with {:ok, %Event{uuid: event_uuid}} <- Events.get_event_with_preload(event_id) do
-      context_id = Surveys.event_context_id(event_uuid)
+    case Events.get_event_with_preload(event_id) do
+      {:ok, %Event{uuid: event_uuid}} ->
+        context_id = Surveys.event_context_id(event_uuid)
 
-      case Surveys.list_surveys(context_id) do
-        {:ok, [survey | _]} -> {:ok, normalize_survey(survey)}
-        {:ok, []} -> {:ok, nil}
-        _ -> {:ok, nil}
-      end
-    else
-      {:error, :event_not_found} -> {:error, dgettext("errors", "Event not found")}
-      _ -> {:ok, nil}
+        case Surveys.list_surveys(context_id) do
+          {:ok, [survey | _]} -> {:ok, normalize_survey(survey)}
+          {:ok, []} -> {:ok, nil}
+          {:error, _} = err -> err
+        end
+
+      {:error, :event_not_found} ->
+        {:error, dgettext("errors", "Event not found")}
     end
   end
 
