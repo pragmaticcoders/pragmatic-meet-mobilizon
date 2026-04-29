@@ -49,3 +49,31 @@ docker compose -f docker/development/docker-compose.yml exec api \
 ## 4. Register a New User
 
 Register a new account using the Pragmatic Meet UI at http://localhost:4000.
+
+## 5. Developing Surveys (Optional)
+
+Survey functionality is backed by the **pragmatic-forms** repository. To develop or rebuild that stack locally as Docker images, build from these Dockerfiles in pragmatic-forms:
+
+- `forms/Dockerfile` → used as the `forms-api` service
+- `mobilizon-adapter/Dockerfile` → used as the `mobilizon-adapter` service
+- `mobilizon-adapter/frontend/Dockerfile.nginx` → used as the `adapter-nginx` service (serves `remoteEntry.js` and related assets)
+
+From the root of **pragmatic-forms**, build and tag images so their names match the `image:` fields in [`docker/development/docker-compose.yml`](../docker/development/docker-compose.yml) (`forms-api`, `mobilizon-adapter`, `adapter-nginx`):
+
+```bash
+cd /path/to/pragmatic-forms
+
+docker build -f forms/Dockerfile -t forms-api .
+
+docker build -f mobilizon-adapter/Dockerfile -t mobilizon-adapter .
+
+docker build -f mobilizon-adapter/frontend/Dockerfile.nginx \
+  -t adapter-nginx \
+  mobilizon-adapter/frontend
+```
+
+Replace these GHCR images with the ones you built: `ghcr.io/pragmaticcoders/forms-api`, `ghcr.io/pragmaticcoders/mobilizon-adapter`, `ghcr.io/pragmaticcoders/adapter-nginx`.
+
+To switch back to published images, use the `ghcr.io/pragmaticcoders/...` lines commented next to each service in that compose file. Survey env vars are in `.env.template`.
+
+For hot-reload from a sibling `pragmatic-forms` checkout, you can use `make start-local-forms` instead (see [`docker/development/docker-compose.local-forms.yml`](../docker/development/docker-compose.local-forms.yml)).
