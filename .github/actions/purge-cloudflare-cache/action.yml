@@ -1,0 +1,30 @@
+name: Purge Cloudflare cache
+description: >
+  POSTs to Cloudflare zone purge_cache for one hostname (JSON "hosts" array of length 1).
+
+inputs:
+  cloudflare_api_token:
+    description: Cloudflare API token with Zone.Cache Purge (or broader) permission
+    required: true
+  zone_id:
+    description: Cloudflare zone ID
+    required: true
+  host:
+    description: Single hostname to purge from cache
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Purge Cloudflare cache
+      shell: bash
+      env:
+        CF_API_TOKEN: ${{ inputs.cloudflare_api_token }}
+        CF_ZONE_ID: ${{ inputs.zone_id }}
+        CF_HOST: ${{ inputs.host }}
+      run: |
+        curl --fail -X POST \
+          "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+          -H 'Content-Type: application/json' \
+          -H "Authorization: Bearer ${CF_API_TOKEN}" \
+          -d "{\"hosts\":[\"${CF_HOST}\"]}"
