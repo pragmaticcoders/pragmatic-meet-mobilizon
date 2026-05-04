@@ -1160,7 +1160,6 @@ const organizerDomain = computed((): string | undefined => {
   return organizer.value?.domain ?? undefined;
 });
 
-
 useHead({
   title: computed(() => eventTitle.value ?? ""),
   meta: [{ name: "description", content: eventDescription.value }],

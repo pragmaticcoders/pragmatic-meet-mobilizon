@@ -54,9 +54,9 @@
           >Pragmatic Coders</a
         >
         <span class="text-gray-300">|</span>
-        <router-link class="underline" :to="{ name: RouteName.TERMS }"
-          >{{ t("Privacy Policy") }}</router-link
-        >
+        <router-link class="underline" :to="{ name: RouteName.TERMS }">{{
+          t("Privacy Policy")
+        }}</router-link>
       </div>
     </div>
     <div class="border-t border-gray-200">

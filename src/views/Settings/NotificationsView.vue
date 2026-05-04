@@ -529,7 +529,9 @@ const baseNotificationTypes: NotificationType[] = [
       },
       {
         id: "survey_published",
-        label: t("A survey has been published in one of my groups or events") as string,
+        label: t(
+          "A survey has been published in one of my groups or events"
+        ) as string,
       },
       {
         id: "member_request",

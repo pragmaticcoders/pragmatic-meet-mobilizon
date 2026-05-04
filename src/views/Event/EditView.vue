@@ -541,7 +541,7 @@
           <o-button size="small" @click="openSurveyModal">
             {{ t("Edit survey") }}
           </o-button>
-          <o-button size="small" variant="danger" @click="surveySchema = null">
+          <o-button size="small" variant="danger" @click="removeSurvey">
             {{ t("Remove survey") }}
           </o-button>
         </div>
@@ -563,7 +563,7 @@
             class="modal-card"
             style="
               width: min(960px, 95vw);
-              height: 80vh;
+              height: 85vh;
               display: flex;
               flex-direction: column;
             "
@@ -575,6 +575,28 @@
                 {{ t("Add survey to this event") }}
               </p>
             </header>
+            <!--
+              Description input mirrors SurveysManager.vue (post-event surveys).
+              The gate-check survey has no admin-facing title (it is implicitly
+              the event itself), so only the description is editable here.
+            -->
+            <div
+              class="px-6 py-4 border-b border-gray-100 flex flex-col gap-2 bg-white"
+            >
+              <label
+                for="surveyDescription"
+                class="block text-sm font-medium text-gray-700"
+                >{{ t("Survey description") }}</label
+              >
+              <o-input
+                id="surveyDescription"
+                v-model="surveyDescription"
+                type="textarea"
+                rows="2"
+                class="w-full"
+                :placeholder="t('Survey description placeholder')"
+              />
+            </div>
             <section
               class="modal-card-body"
               style="flex: 1; padding: 0; overflow: hidden"
@@ -961,21 +983,33 @@ const pictureFile = ref<File | null>(null);
 // Survey plugin
 const { surveysEnabled } = usePlugins();
 const surveySchema = ref<object | null>(null);
+// Optional admin-authored copy displayed above the survey form when the
+// participant completes the gate-check before joining. Mirrors the
+// "description" field on post-event surveys.
+const surveyDescription = ref<string>("");
 const showSurveyModal = ref(false);
-// Snapshot of surveySchema taken when the modal opens.
+// Snapshot of surveySchema/description taken when the modal opens.
 // Restored on Cancel so neither creation nor edits are committed.
 let surveySchemaSnapshot: object | null = null;
+let surveyDescriptionSnapshot = "";
 
 function openSurveyModal() {
   surveySchemaSnapshot = surveySchema.value
     ? JSON.parse(JSON.stringify(surveySchema.value))
     : null;
+  surveyDescriptionSnapshot = surveyDescription.value;
   showSurveyModal.value = true;
 }
 
 function cancelSurveyModal() {
   surveySchema.value = surveySchemaSnapshot;
+  surveyDescription.value = surveyDescriptionSnapshot;
   showSurveyModal.value = false;
+}
+
+function removeSurvey() {
+  surveySchema.value = null;
+  surveyDescription.value = "";
 }
 // context_id is built from the event UUID if editing, or a temp ID for new events.
 // The Elixir backend re-builds it from event.uuid on save — this is only used by the builder UI.
@@ -1758,6 +1792,10 @@ const buildVariables = async () => {
     // Skip when a gate-check survey already exists, so we never overwrite it
     // from this view (managed elsewhere).
     res = { ...res, surveySchema: JSON.stringify(surveySchema.value) };
+    const trimmedDescription = surveyDescription.value.trim();
+    if (trimmedDescription) {
+      res = { ...res, surveyDescription: trimmedDescription };
+    }
   }
 
   if (pictureFile.value) {
