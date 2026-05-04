@@ -8,6 +8,18 @@ defmodule Mobilizon.Service.AddressTest do
   alias Mobilizon.Service.Address, as: AddressRenderer
 
   describe "render an address" do
+    test "basic full address" do
+      address = %Address{
+        description: "1 rue de la Paix",
+        postal_code: "75001",
+        locality: "Paris",
+        country: "France"
+      }
+
+      assert AddressRenderer.render_address(address) ==
+               "#{address.description}, #{address.postal_code}, #{address.locality}, #{address.country}"
+    end
+
     test "a house" do
       assert AddressRenderer.render_address(%Address{
                description: "somewhere",
