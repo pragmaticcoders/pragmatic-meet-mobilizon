@@ -40,8 +40,6 @@ import { useI18n } from "vue-i18n";
 import { computed } from "vue";
 import { useQuery } from "@vue/apollo-composable";
 import { PRIVACY } from "@/graphql/config";
-import { i18n } from "@/utils/i18n";
-
 interface IPrivacy {
   type: string;
   url: string | null;

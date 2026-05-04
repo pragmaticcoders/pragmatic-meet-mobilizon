@@ -14,8 +14,6 @@ env:
 jobs:
   test-backend:
     runs-on: ubuntu-latest
-    # NOTE: disabled temporarily
-    if: false
 
     services:
       postgres:
@@ -84,8 +82,6 @@ jobs:
 
   test-frontend:
     runs-on: ubuntu-latest
-    # NOTE: disabled temporarily
-    if: false
 
     steps:
       - name: Checkout code
