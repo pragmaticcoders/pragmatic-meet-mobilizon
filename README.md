@@ -1,169 +1,122 @@
-# Mobilizon Development Setup Guide
+# Pragmatic Meet — development
 
-A comprehensive guide for setting up and running Mobilizon locally for development purposes.
+Fork of Mobilizon for local development: Docker (default) or native stack — start in [Quick start](#quick-start).
 
-## 📋 Table of Contents
+## Table of contents
 
-- [Prerequisites](#🔧-prerequisites)
-- [Quick Start](#🚀-quick-start)
-- [Development Setup Options](#🐳-development-setup-options)
-  - [Option 1: Docker Development (Recommended)](#option-1-docker-development-recommended)
-    - [Developing surveys (pragmatic-forms)](#developing-surveys-pragmatic-forms)
-  - [Option 2: Native Development](#option-2-native-development)
-- [Database Management](#🗄️-database-management)
-- [Environment Variables](#🔧-environment-variables)
-- [Useful Commands](#📝-useful-commands)
-- [Troubleshooting](#🔍-troubleshooting)
+- [Quick start](#quick-start)
+- [Docker development](#docker-development)
+- [Native development](#native-development)
+- [Database](#database-management)
+- [Environment variables](#environment-variables)
+- [Useful commands](#useful-commands)
+- [Troubleshooting](#troubleshooting)
 
-## 🔧 Prerequisites
+## Quick start
 
-### Required Software
+Use the **repository root** (`Makefile` and `.env` sit next to each other; do not `cd docker/development` for the default flow).
 
-- **Docker & Docker Compose** (for Docker setup)
-- **PostgreSQL 15+** with PostGIS extension (for native setup)
-- **Elixir 1.15+** and **Erlang/OTP 26+** (for native setup)
-- **Node.js 18+** and **npm** (for frontend)
-- **Git**
+### What you need
 
-### System Requirements
+**Docker (recommended):** Docker & Compose, Git. ~4 GB RAM, ~5 GB disk.
 
-- **RAM**: 4GB minimum, 8GB recommended
-- **Disk**: 5GB free space
-- **OS**: Linux, macOS, or Windows with WSL2
+**GHCR** (pull default **forms** images): create a GitHub [personal access token](https://github.com/settings/tokens) (classic is enough) with the **`read:packages`** scope. Run `docker login ghcr.io`; if the CLI asks for a **sign-in method**, choose **login with token** (not browser / SSO). Enter your **GitHub username** and use the **PAT** as the password. Non-interactive: `echo '<PAT>' | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin`.
 
-## 🚀 Quick Start
+**Native instead:** PostgreSQL 15+ with PostGIS, Elixir 1.15+, Erlang/OTP 26+, Node.js 18+, npm, Git.
 
-### Docker Development via docker-compose (Fastest)
+**OS:** Linux, macOS, or Windows with WSL2.
 
-First create `.env` either from [Environment Configuration](#environment-configuration) or copy `.env.template` and adjust values.
+### Run with Docker
+
+1. Clone the repo and `cd` into it.
+2. `cp .env.template .env` and fill at least **`POSTGRES_DB`**, **`MOBILIZON_SMTP_USERNAME`** / **`MOBILIZON_SMTP_PASSWORD`**, **`GITHUB_PAT`** (classic token, **`repo`** scope). Survey-related variables: [`.env.template`](.env.template).
+3. `make init` — builds and starts the dev stack (`docker/development/docker-compose.yml` + `.env`).
+4. App: http://localhost:4000 · GraphQL: http://localhost:4000/api/graphql · **Swoosh mail preview** (dev/e2e only): http://localhost:4000/sent_emails — shows captured mail only with **Local** adapter (no `MOBILIZON_SMTP_SERVER`; see `config/dev.exs`). Docker dev with SMTP: use your inbox or step 5.
+5. (Optional) Send a test message:  
+   `docker compose --env-file .env -f docker/development/docker-compose.yml exec api mix mobilizon.maintenance.test_emails you@example.com`
+6. Register via the UI, or use mix tasks from [GUIDES.md](GUIDES.md).
+
+**Surveys — `FORMS_SERVICE_API_KEY` (once per fresh `forms-db` volume):** the Forms service expects a **client** key (not `FORMS_ADMIN_API_KEY`). After volume wipe / first run, register the adapter and paste the returned **`api_key`** into `.env`.
+
+1. Ensure **`FORMS_ADMIN_API_KEY`** is set in `.env` (see [`.env.template`](.env.template)).
+2. Create the client (from **repo root**, stack already up — `make start` / `make init` / `make start-local-forms`):
+
+   ```bash
+   docker exec pragmatic_forms_adapter wget -qO- \
+     --header "Content-Type: application/json" \
+     --header "Authorization: Bearer $(grep FORMS_ADMIN_API_KEY .env | cut -d= -f2)" \
+     --post-data '{"name": "mobilizon-adapter"}' \
+     http://forms-api:3000/clients
+   ```
+
+3. Copy **`api_key`** from the JSON → set **`FORMS_SERVICE_API_KEY=<that value>`** in `.env`.
+4. Restart the adapter so it reloads env:
+
+   ```bash
+   # Default stack (e.g. make init / make start)
+   docker compose --env-file .env -f docker/development/docker-compose.yml \
+     up -d --force-recreate mobilizon-adapter
+
+   # If you use make start-local-forms, add the overlay file:
+   docker compose --env-file .env \
+     -f docker/development/docker-compose.yml \
+     -f docker/development/docker-compose.local-forms.yml \
+     up -d --force-recreate mobilizon-adapter
+   ```
+
+   Repeat from step 2 if you recreate the `forms-db` volume. More context: [docker/README — Troubleshooting](docker/README.md#troubleshooting).
+
+**Developing the survey stack in source:** [Developing surveys](#developing-surveys-pragmatic-forms).
+
+Published forms images use the tag from the repo-root file **`forms-image-tag`** (see **`Makefile`**).
+
+### Run natively
+
 ```bash
-cp .env.template .env
-cd docker/development
-
-docker-compose up
-```
-
-This will set your environment up and you're ready to develop.
-
-Changes you make on the Frontend will be reflected in the application via hot reloading.
-Changes you make on the Backend do not require resetting the container.
-
-### Docker Development via make (Fast)
-
-```bash
-# 1. Clone and enter the repository
 git clone <repository-url>
 cd pragmatic-meet-mobilizon
-
-# 2. Start everything with one command
-make init
-
-# 3. Access your local instance
-# Frontend: http://localhost:4000
-# GraphQL API: http://localhost:4000/api/graphql
+mix deps.get && npm install && mix ecto.setup
+# Terminal 1: mix phx.server  |  Terminal 2: npm run dev
 ```
 
-### Native Development
+Install Postgres, env samples, and tips: [Native development](#native-development).
+
+## Docker development
+
+Day-to-day commands and survey builds after you are up from [Quick start](#quick-start).
+
+### Make targets
 
 ```bash
-# 1. Clone repository
-git clone <repository-url>
-cd pragmatic-meet-mobilizon
-
-# 2. Install dependencies
-mix deps.get
-npm install
-
-# 3. Setup database
-mix ecto.setup
-
-# 4. Start development servers
-# Terminal 1: Backend
-mix phx.server
-
-# Terminal 2: Frontend (in another terminal)
-npm run dev
+make init      # build + start (first time or after clone)
+make setup     # deps + create DB + migrate (without full init)
+make start     # start services
+make stop      # stop
+make logs      # follow logs
+make migrate   # run migrations
+make test      # tests
+make format    # Elixir + frontend format / credo
+make start-local-forms   # sibling pragmatic-forms checkout: build forms stack from source
+make pull-forms          # refresh GHCR forms images (see forms-image-tag)
 ```
 
-## 🐳 Development Setup Options
-
-### Option 1: Docker Development (Recommended)
-
-Docker provides the most consistent development environment across different systems.
-
-#### Initial Setup
-
-```bash
-# Start the complete development environment
-make init
-
-# Or step by step:
-make setup    # Install dependencies and setup database
-make start    # Start services
-```
-
-#### Available Make Commands
-
-```bash
-make init      # Complete setup and start
-make setup     # Install deps, create & migrate database
-make start     # Start all services
-make stop      # Stop all services
-make logs      # View container logs
-make migrate   # Run database migrations
-make test      # Run test suite
-make format    # Format code (Elixir + frontend)
-```
-
-#### Docker Services
+### Services and ports
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| API (Phoenix) | 4000 | Backend API and web interface |
-| Vite Dev Server | 5173 | Frontend hot reloading |
-| PostgreSQL | 5432 | Database (internal to containers) |
+| API (Phoenix) | 4000 | Web + API |
+| Vite | 5173 | Frontend dev / hot reload |
+| PostgreSQL | 5432 | DB (in Compose network) |
 
-#### Accessing the Application
+### Developing surveys (pragmatic-forms)
 
-- **Main Application**: http://localhost:4000
-- **GraphQL Playground**: http://localhost:4000/api/graphql
-- **Mailbox (Local emails)**: http://localhost:4000/dev/mailbox
+Survey stack = **pragmatic-forms** repository (images) + env from [`.env.template`](.env.template). Compose service names and manual `docker build` commands for local images are documented in **pragmatic-forms**: [`docs/docker.md`](https://github.com/pragmaticcoders/pragmatic-forms/blob/main/docs/docker.md) (same layout as [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml)).
 
-#### Developing surveys (pragmatic-forms)
+**Images:** by default [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml) uses **GHCR** images (`ghcr.io/pragmaticcoders/forms-api`, `mobilizon-adapter`, `adapter-nginx`). The tag for pulls follows repo-root **`forms-image-tag`** (see [Quick start](#quick-start)). Use **`make pull-forms`** after changing that file. To run from source instead of GHCR, use **`make start-local-forms`** when **pragmatic-forms** is a **sibling** directory; the overlay builds the same Compose service names locally. If you customize Compose or build images by hand, set each service’s `image:` to either those GHCR names or your local tags (`forms-api`, `mobilizon-adapter`, `adapter-nginx`) so names stay consistent with the stack.
 
-To work on the survey plugin stack (forms service, Mobilizon adapter, and the Module Federation frontend served to the browser), build the Docker images from the **pragmatic-forms** repository, not from this repo:
+## Native development
 
-| Image role in `docker/development/docker-compose.yml` | Dockerfile in pragmatic-forms |
-|------------------------------------------------------|-------------------------------|
-| `forms-api` | `forms/Dockerfile` |
-| `mobilizon-adapter` | `mobilizon-adapter/Dockerfile` |
-| `adapter-nginx` (static `remoteEntry.js`, etc.) | `mobilizon-adapter/frontend/Dockerfile.nginx` |
-
-Run these from the root of your **pragmatic-forms** checkout. Image names should match the `image:` fields in [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml):
-
-```bash
-cd /path/to/pragmatic-forms
-
-docker build -f forms/Dockerfile -t forms-api .
-
-docker build -f mobilizon-adapter/Dockerfile -t mobilizon-adapter .
-
-docker build -f mobilizon-adapter/frontend/Dockerfile.nginx \
-  -t adapter-nginx \
-  mobilizon-adapter/frontend
-```
-
-Replace these GHCR images with the ones you built: `ghcr.io/pragmaticcoders/forms-api`, `ghcr.io/pragmaticcoders/mobilizon-adapter`, `ghcr.io/pragmaticcoders/adapter-nginx`.
-
-To use the registry images again, use the `ghcr.io/pragmaticcoders/...` entries commented next to each service in the same compose file. Survey-related environment variables are documented in [`.env.template`](.env.template).
-
-For day-to-day work with a local checkout of pragmatic-forms next to this repository, you can also use `make start-local-forms`, which merges `docker/development/docker-compose.local-forms.yml` and builds those services from source.
-
-### Option 2: Native Development
-
-For developers who prefer running services directly on their system.
-
-#### Database Setup
+### Database setup
 
 ```bash
 # Install PostgreSQL with PostGIS (example for macOS)
@@ -177,7 +130,7 @@ createuser -P mobilizon  # Password: mobilizon
 createdb -O mobilizon mobilizon_dev
 ```
 
-#### Backend Setup
+### Backend setup
 
 ```bash
 # Install Elixir dependencies
@@ -192,7 +145,7 @@ mix run priv/repo/seeds.exs
 mix phx.server
 ```
 
-#### Frontend Setup
+### Frontend setup
 
 ```bash
 # Install Node.js dependencies
@@ -205,7 +158,7 @@ npm run build:pictures
 npm run dev
 ```
 
-#### Environment Configuration
+### Environment (native)
 
 Create a `.env` file in the project root (optional):
 
@@ -461,24 +414,10 @@ mix compile
 - **Use SSD**: Database and compilation benefit from fast storage
 - **Disable unnecessary services**: Stop other databases/servers
 
-## 🎯 Next Steps
+## Next steps
 
-After setup, you can:
-
-1. **Explore the API**: Visit http://localhost:4000/api/graphql
-2. **Create test events**: Use the web interface
-3. **Review the codebase**: Check `/docs/dev.md` for architecture overview
-4. **Read contributing guidelines**: See `CONTRIBUTING.md`
-
----
-
-## 📚 Additional Resources
-
-- **Main Documentation**: https://docs.joinmobilizon.org
-- **Contributing Guide**: `CONTRIBUTING.md`
-- **Architecture Overview**: `docs/dev.md`
-- **Production Deployment**: `docs/PRODUCTION_DEPLOYMENT.md`
-
----
-
-**Happy coding! 🎉**
+- GraphQL: http://localhost:4000/api/graphql  
+- Architecture: [docs/dev.md](docs/dev.md)  
+- Contributing: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md)  
+- Upstream docs: https://docs.joinmobilizon.org  
+- Production: [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md)

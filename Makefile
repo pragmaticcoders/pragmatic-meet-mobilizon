@@ -22,8 +22,8 @@ logs:
 # Default mode: pulls forms images from ghcr.io (same images as production).
 # Tag is read from forms-image-tag file at the repo root.
 #
-# Prerequisites (once per machine):
-#   docker login ghcr.io -u <USERNAME> --password-stdin   # PAT with read:packages
+# Prerequisites (once per machine): README Quick start → GHCR (PAT read:packages; interactive login → token).
+#   echo '<PAT>' | docker login ghcr.io -u <USERNAME> --password-stdin
 start: stop
 	@bash docker/message.sh "Starting Mobilizon (forms images: $(FORMS_IMAGE_TAG))"
 	$(COMPOSE) up -d api
