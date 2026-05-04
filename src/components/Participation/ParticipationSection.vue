@@ -215,6 +215,20 @@ const handleSurveyCompleted = async () => {
   }
 };
 
+// Reset modal state when user dismisses without submitting. Without this,
+// surveySchema stays in memory and a subsequent click on "Join" assigns a
+// new schema reference to the same SurveyFormWrapper instance, causing
+// formio's <Form> to re-initialise its internal state. Repeated open/close
+// cycles accumulate stale formio instances and submitting once at the end
+// can fire the `@submit` event multiple times — producing duplicate empty
+// responses in the admin view.
+watch(showSurveyModal, (active) => {
+  if (!active) {
+    surveyContextId.value = null;
+    surveySchema.value = null;
+  }
+});
+
 defineExpose({ handleSurveyRequired });
 
 // Logging function
