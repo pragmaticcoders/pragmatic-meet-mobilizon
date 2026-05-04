@@ -44,7 +44,7 @@ defmodule Mobilizon.Service.Plugins.Surveys.NoopAdapter do
   def get_survey_responses(_survey_id), do: {:ok, []}
 
   @impl true
-  def save_survey(_context_id, _schema), do: {:ok, %{}}
+  def save_survey(_context_id, _attrs), do: {:ok, %{}}
 
   @impl true
   def get_responses(_context_id), do: {:ok, []}

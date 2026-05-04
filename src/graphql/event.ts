@@ -190,6 +190,7 @@ export const CREATE_EVENT = gql`
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
     $surveySchema: JSON
+    $surveyDescription: String
   ) {
     createEvent(
       attributedToId: $attributedToId
@@ -212,6 +213,7 @@ export const CREATE_EVENT = gql`
       contacts: $contacts
       metadata: $metadata
       surveySchema: $surveySchema
+      surveyDescription: $surveyDescription
     ) {
       ...FullEvent
     }
@@ -243,6 +245,7 @@ export const EDIT_EVENT = gql`
     $contacts: [Contact]
     $metadata: [EventMetadataInput]
     $surveySchema: JSON
+    $surveyDescription: String
   ) {
     updateEvent(
       eventId: $id
@@ -267,6 +270,7 @@ export const EDIT_EVENT = gql`
       contacts: $contacts
       metadata: $metadata
       surveySchema: $surveySchema
+      surveyDescription: $surveyDescription
     ) {
       ...FullEvent
     }
@@ -293,6 +297,7 @@ export const JOIN_EVENT = gql`
     ) {
       status
       surveySchema
+      surveyDescription
       contextId
       participant {
         ...ParticipantQuery
@@ -321,6 +326,7 @@ export const CONFIRM_EVENT_JOIN = gql`
     confirmEventJoin(eventId: $eventId) {
       status
       surveySchema
+      surveyDescription
       contextId
       participant {
         ...ParticipantQuery

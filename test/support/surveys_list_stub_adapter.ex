@@ -50,7 +50,7 @@ defmodule Mobilizon.Test.SurveysListStubAdapter do
   def get_survey_responses(survey_id), do: NoopAdapter.get_survey_responses(survey_id)
 
   @impl true
-  def save_survey(context_id, schema), do: NoopAdapter.save_survey(context_id, schema)
+  def save_survey(context_id, attrs), do: NoopAdapter.save_survey(context_id, attrs)
 
   @impl true
   def get_responses(context_id), do: NoopAdapter.get_responses(context_id)

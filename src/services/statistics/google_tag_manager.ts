@@ -42,19 +42,23 @@ function stripGtmFromDom(containerId: string): void {
   gtmScriptEl = null;
 
   const idParam = encodeURIComponent(containerId);
-  document.querySelectorAll("script[src*='googletagmanager.com/gtm.js']").forEach((el) => {
-    const src = (el as HTMLScriptElement).src;
-    if (src.includes(containerId) || src.includes(idParam)) {
-      el.remove();
-    }
-  });
+  document
+    .querySelectorAll("script[src*='googletagmanager.com/gtm.js']")
+    .forEach((el) => {
+      const src = (el as HTMLScriptElement).src;
+      if (src.includes(containerId) || src.includes(idParam)) {
+        el.remove();
+      }
+    });
 
-  document.querySelectorAll("iframe[src*='googletagmanager.com']").forEach((el) => {
-    const src = (el as HTMLIFrameElement).src;
-    if (src.includes(containerId) || src.includes(idParam)) {
-      el.remove();
-    }
-  });
+  document
+    .querySelectorAll("iframe[src*='googletagmanager.com']")
+    .forEach((el) => {
+      const src = (el as HTMLIFrameElement).src;
+      if (src.includes(containerId) || src.includes(idParam)) {
+        el.remove();
+      }
+    });
 }
 
 function mountGtm(environment: any, config: GoogleTagManagerConfig): void {
@@ -79,7 +83,10 @@ function mountGtm(environment: any, config: GoogleTagManagerConfig): void {
   };
   document.head.appendChild(gtmScriptEl);
 
-  const pushPageView = (to: { fullPath: string; meta?: { title?: string } }) => {
+  const pushPageView = (to: {
+    fullPath: string;
+    meta?: { title?: string };
+  }) => {
     if (!isGtmMounted) return;
     pushToDataLayer({
       event: "page_view",
@@ -90,12 +97,11 @@ function mountGtm(environment: any, config: GoogleTagManagerConfig): void {
   };
 
   if (environment.router) {
-    stopRouter = environment.router.afterEach((to: {
-      fullPath: string;
-      meta?: { title?: string };
-    }) => {
-      pushPageView(to);
-    });
+    stopRouter = environment.router.afterEach(
+      (to: { fullPath: string; meta?: { title?: string } }) => {
+        pushPageView(to);
+      }
+    );
   }
 
   console.debug("GTM initialized");
@@ -123,7 +129,10 @@ function unmountGtm(): void {
  * Mounts GTM when Cookiebot allows statistics; tears it down when consent is withdrawn.
  * Router `page_view` pushes stop after unmount. (GTM: trigger on `page_view`.)
  */
-export const googleTagManager = (environment: any, config: GoogleTagManagerConfig) => {
+export const googleTagManager = (
+  environment: any,
+  config: GoogleTagManagerConfig
+) => {
   removeCookiebotListeners?.();
   removeCookiebotListeners = null;
 
@@ -147,7 +156,11 @@ export const googleTagManager = (environment: any, config: GoogleTagManagerConfi
     }
   };
 
-  const events = ["CookiebotOnAccept", "CookiebotOnConsentReady", "CookiebotOnDecline"];
+  const events = [
+    "CookiebotOnAccept",
+    "CookiebotOnConsentReady",
+    "CookiebotOnDecline",
+  ];
   events.forEach((name) => window.addEventListener(name, sync));
   removeCookiebotListeners = () =>
     events.forEach((name) => window.removeEventListener(name, sync));

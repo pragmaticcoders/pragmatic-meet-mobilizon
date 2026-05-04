@@ -133,6 +133,12 @@
           v-if="surveySchema && surveyContextId"
         >
           <div style="max-width: 560px; margin: 0 auto">
+            <p
+              v-if="surveyDescription"
+              class="text-gray-600 text-sm leading-relaxed mb-6 whitespace-pre-line"
+            >
+              {{ surveyDescription }}
+            </p>
             <SurveyFormWrapper
               :context-id="surveyContextId"
               :survey-schema="surveySchema"
@@ -183,6 +189,9 @@ const isAnonymousParticipationModalOpen = ref(false);
 const showSurveyModal = ref(false);
 const surveyContextId = ref<string | null>(null);
 const surveySchema = ref<object | null>(null);
+// Optional admin-authored copy shown above the survey form. Mirrors the
+// `description` field on post-event surveys (see SurveysManager fill modal).
+const surveyDescription = ref<string | null>(null);
 
 const emit = defineEmits<{
   "participation-confirmed": [participant: IParticipant];
@@ -193,10 +202,12 @@ const { mutate: confirmEventJoin } = useMutation(CONFIRM_EVENT_JOIN);
 const handleSurveyRequired = (response: {
   status: string;
   surveySchema: object;
+  surveyDescription?: string | null;
   contextId: string;
 }) => {
   surveyContextId.value = response.contextId;
   surveySchema.value = response.surveySchema;
+  surveyDescription.value = response.surveyDescription ?? null;
   showSurveyModal.value = true;
 };
 
@@ -206,6 +217,7 @@ const handleSurveyCompleted = async () => {
     showSurveyModal.value = false;
     surveyContextId.value = null;
     surveySchema.value = null;
+    surveyDescription.value = null;
     const participant = result?.data?.confirmEventJoin?.participant;
     if (participant) {
       emit("participation-confirmed", participant);
@@ -226,6 +238,7 @@ watch(showSurveyModal, (active) => {
   if (!active) {
     surveyContextId.value = null;
     surveySchema.value = null;
+    surveyDescription.value = null;
   }
 });
 

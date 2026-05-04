@@ -36,11 +36,12 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
             respondent_id = Surveys.actor_respondent_id(actor_id)
 
             case Surveys.check_gate(context_id, respondent_id) do
-              {:ok, %{"required" => true, "survey_schema" => schema}} ->
+              {:ok, %{"required" => true, "survey_schema" => schema} = gate_result} ->
                 {:ok,
                  %{
                    status: :survey_required,
                    survey_schema: schema,
+                   survey_description: Map.get(gate_result, "survey_description"),
                    context_id: context_id,
                    participant: nil
                  }}
@@ -49,7 +50,13 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
                 case do_actor_join_event(actor, event_id, args) do
                   {:ok, participant} ->
                     {:ok,
-                     %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+                     %{
+                       status: :joined,
+                       survey_schema: nil,
+                       survey_description: nil,
+                       context_id: nil,
+                       participant: participant
+                     }}
 
                   error ->
                     error
@@ -66,7 +73,13 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
           case do_actor_join_event(actor, event_id, args) do
             {:ok, participant} ->
               {:ok,
-               %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+               %{
+                 status: :joined,
+                 survey_schema: nil,
+                 survey_description: nil,
+                 context_id: nil,
+                 participant: participant
+               }}
 
             error ->
               error
@@ -122,7 +135,14 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
         |> Email.Mailer.send_email()
       end
 
-      {:ok, %{status: :joined, survey_schema: nil, context_id: nil, participant: participant}}
+      {:ok,
+       %{
+         status: :joined,
+         survey_schema: nil,
+         survey_description: nil,
+         context_id: nil,
+         participant: participant
+       }}
     else
       {:error, err} ->
         {:error, err}
@@ -589,6 +609,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Participant do
                    %{
                      status: :joined,
                      survey_schema: nil,
+                     survey_description: nil,
                      context_id: nil,
                      participant: participant
                    }}

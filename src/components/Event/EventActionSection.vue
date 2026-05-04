@@ -1050,12 +1050,14 @@ const participationWaitlistMessage = () => {
 
 onJoinEventMutationDone(({ data }) => {
   if (!data) return;
-  const { status, surveySchema, contextId, participant } = data.joinEvent;
+  const { status, surveySchema, surveyDescription, contextId, participant } =
+    data.joinEvent;
 
   if (status === "SURVEY_REQUIRED" && surveySchema && contextId) {
     participationSectionRef.value?.handleSurveyRequired({
       status,
       surveySchema,
+      surveyDescription,
       contextId,
     });
     return;

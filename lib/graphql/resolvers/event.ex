@@ -636,6 +636,7 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
   @spec maybe_save_survey(Event.t(), map()) :: :ok
   defp maybe_save_survey(%Event{uuid: uuid} = _event, args) do
     survey_schema = Map.get(args, :survey_schema)
+    survey_description = args |> Map.get(:survey_description) |> normalize_description()
 
     # Guard against submission data objects ({data, isValid, metadata}) being
     # accidentally stored as the survey schema. A valid formio schema must have
@@ -648,7 +649,9 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
     if valid_schema? && Surveys.enabled?() do
       context_id = Surveys.event_context_id(uuid)
 
-      case Surveys.save_survey(context_id, survey_schema) do
+      attrs = %{schema: survey_schema, description: survey_description}
+
+      case Surveys.save_survey(context_id, attrs) do
         {:ok, _} -> :ok
         {:error, reason} -> Logger.error("Failed to save survey: #{inspect(reason)}")
       end
@@ -656,4 +659,13 @@ defmodule Mobilizon.GraphQL.Resolvers.Event do
 
     :ok
   end
+
+  defp normalize_description(nil), do: nil
+  defp normalize_description(description) when is_binary(description) do
+    case String.trim(description) do
+      "" -> nil
+      trimmed -> trimmed
+    end
+  end
+  defp normalize_description(_), do: nil
 end

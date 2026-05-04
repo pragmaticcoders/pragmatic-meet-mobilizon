@@ -205,15 +205,21 @@ defmodule Mobilizon.Service.Plugins.Surveys.ExternalAdapter do
   # ── Kept for backward compat (gate-check flow) ───────────────────────────────
 
   @impl true
-  def save_survey(context_id, schema) do
+  def save_survey(context_id, attrs) when is_map(attrs) do
     encoded = URI.encode(context_id, &URI.char_unreserved?/1)
 
-    case Tesla.put(client(), "/api/surveys/by-context/#{encoded}", %{schema: schema}) do
-      {:ok, %Tesla.Env{status: status, body: body}} when status in [200, 201] ->
-        {:ok, body}
+    body =
+      attrs
+      |> Map.take([:schema, :description])
+      |> Enum.reject(fn {_k, v} -> is_nil(v) end)
+      |> Map.new()
 
-      {:ok, %Tesla.Env{status: status, body: body}} ->
-        {:error, "Survey save failed with status #{status}: #{inspect(body)}"}
+    case Tesla.put(client(), "/api/surveys/by-context/#{encoded}", body) do
+      {:ok, %Tesla.Env{status: status, body: resp}} when status in [200, 201] ->
+        {:ok, resp}
+
+      {:ok, %Tesla.Env{status: status, body: resp}} ->
+        {:error, "Survey save failed with status #{status}: #{inspect(resp)}"}
 
       {:error, reason} ->
         {:error, "Survey save failed: #{inspect(reason)}"}

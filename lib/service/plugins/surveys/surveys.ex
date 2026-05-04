@@ -28,6 +28,10 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   @callback get_survey_responses(survey_id()) :: {:ok, [map()]} | {:error, any()}
 
   # ── Kept for backward compat (used by gate-check resolvers) ─────────────────
+  #
+  # `save_survey/2` upserts the gate-check survey for a context. The second
+  # argument is an attrs map: %{schema: formio_schema, description: optional_text}.
+  # `description` is shown above the survey form when participants fill it.
 
   @callback save_survey(context_id(), map()) :: {:ok, map()} | {:error, any()}
   @callback get_responses(context_id()) :: {:ok, list(map())} | {:error, any()}
@@ -99,8 +103,8 @@ defmodule Mobilizon.Service.Plugins.Surveys do
   end
 
   @spec save_survey(context_id(), map()) :: {:ok, map()} | {:error, any()}
-  def save_survey(context_id, schema) do
-    adapter().save_survey(context_id, schema)
+  def save_survey(context_id, attrs) do
+    adapter().save_survey(context_id, attrs)
   end
 
   @spec get_responses(context_id()) :: {:ok, list(map())} | {:error, any()}

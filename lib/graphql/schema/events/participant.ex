@@ -103,6 +103,11 @@ defmodule Mobilizon.GraphQL.Schema.Events.ParticipantType do
     meta(:authorize, :all)
     field(:status, :survey_status, description: "Whether joined or survey required")
     field(:survey_schema, :json, description: "Survey schema when status is survey_required")
+
+    field(:survey_description, :string,
+      description: "Optional description shown above the survey form when status is survey_required"
+    )
+
     field(:context_id, :string, description: "Survey context ID when status is survey_required")
     field(:participant, :participant, description: "The joined participant when status is joined")
   end
