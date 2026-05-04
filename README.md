@@ -7,12 +7,18 @@ Fork of Mobilizon for local development: Docker (default) or native stack — st
 - [Quick start](#quick-start)
 - [Docker development](#docker-development)
 - [Native development](#native-development)
-- [Database](#database-management)
+- [Dev Container](#dev-container)
+- [User Management](#user-management)
+- [Testing & Quality](#testing--quality)
+- [Database Management](#database-management)
+- [Operations & Maintenance](#operations--maintenance)
 - [Environment variables](#environment-variables)
-- [Useful commands](#useful-commands)
 - [Troubleshooting](#troubleshooting)
 
+---
+
 ## Quick start
+
 
 Use the **repository root** (`Makefile` and `.env` sit next to each other; do not `cd docker/development` for the default flow).
 
@@ -34,7 +40,7 @@ Use the **repository root** (`Makefile` and `.env` sit next to each other; do no
 4. App: http://localhost:4000 · GraphQL: http://localhost:4000/api/graphql · **Swoosh mail preview** (dev/e2e only): http://localhost:4000/sent_emails — shows captured mail only with **Local** adapter (no `MOBILIZON_SMTP_SERVER`; see `config/dev.exs`). Docker dev with SMTP: use your inbox or step 5.
 5. (Optional) Send a test message:  
    `docker compose --env-file .env -f docker/development/docker-compose.yml exec api mix mobilizon.maintenance.test_emails you@example.com`
-6. Register via the UI, or use mix tasks from [GUIDES.md](GUIDES.md).
+6. Register via the UI, or use mix tasks from [User Management](#user-management).
 
 **Surveys — `FORMS_SERVICE_API_KEY` (once per fresh `forms-db` volume):** the Forms service expects a **client** key (not `FORMS_ADMIN_API_KEY`). After volume wipe / first run, register the adapter and paste the returned **`api_key`** into `.env`.
 
@@ -66,24 +72,9 @@ Use the **repository root** (`Makefile` and `.env` sit next to each other; do no
 
    Repeat from step 2 if you recreate the `forms-db` volume. More context: [docker/README — Troubleshooting](docker/README.md#troubleshooting).
 
-**Developing the survey stack in source:** [Developing surveys](#developing-surveys-pragmatic-forms).
-
-Published forms images use the tag from the repo-root file **`forms-image-tag`** (see **`Makefile`**).
-
-### Run natively
-
-```bash
-git clone <repository-url>
-cd pragmatic-meet-mobilizon
-mix deps.get && npm install && mix ecto.setup
-# Terminal 1: mix phx.server  |  Terminal 2: npm run dev
-```
-
-Install Postgres, env samples, and tips: [Native development](#native-development).
+---
 
 ## Docker development
-
-Day-to-day commands and survey builds after you are up from [Quick start](#quick-start).
 
 ### Make targets
 
@@ -112,7 +103,13 @@ make pull-forms          # refresh GHCR forms images (see forms-image-tag)
 
 Survey stack = **pragmatic-forms** repository (images) + env from [`.env.template`](.env.template). Compose service names and manual `docker build` commands for local images are documented in **pragmatic-forms**: [`docs/docker.md`](https://github.com/pragmaticcoders/pragmatic-forms/blob/main/docs/docker.md) (same layout as [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml)).
 
-**Images:** by default [`docker/development/docker-compose.yml`](docker/development/docker-compose.yml) uses **GHCR** images (`ghcr.io/pragmaticcoders/forms-api`, `mobilizon-adapter`, `adapter-nginx`). The tag for pulls follows repo-root **`forms-image-tag`** (see [Quick start](#quick-start)). Use **`make pull-forms`** after changing that file. To run from source instead of GHCR, use **`make start-local-forms`** when **pragmatic-forms** is a **sibling** directory; the overlay builds the same Compose service names locally. If you customize Compose or build images by hand, set each service’s `image:` to either those GHCR names or your local tags (`forms-api`, `mobilizon-adapter`, `adapter-nginx`) so names stay consistent with the stack.
+**Using local containers:**
+If you want to use local versions of the survey stack containers (e.g., to test changes not yet pushed to GHCR):
+1. **Build them locally:** Go to your local **pragmatic-forms** checkout and build the images from their respective Dockerfiles (refer to their documentation for specific commands).
+2. **Update Image Tags:** In `docker/development/docker-compose.yml`, update the `image:` lines for `mobilizon-adapter`, `forms-api`, and `adapter-nginx` to match your local tags (e.g., `image: mobilizon-adapter:local`).
+3. **Automated Alternative:** Use **`make start-local-forms`** from the Mobilizon root. This requires **pragmatic-forms** to be a **sibling directory**. It uses a Compose overlay (`docker/development/docker-compose.local-forms.yml`) to automatically build those services from source and mount local code for hot-reloading.
+
+---
 
 ## Native development
 
@@ -158,77 +155,98 @@ npm run build:pictures
 npm run dev
 ```
 
-### Environment (native)
+---
 
-Create a `.env` file in the project root (optional):
+## Dev Container
 
-```bash
-# Database
-MOBILIZON_DATABASE_USERNAME=mobilizon
-MOBILIZON_DATABASE_PASSWORD=mobilizon
-MOBILIZON_DATABASE_DBNAME=mobilizon_dev
-MOBILIZON_DATABASE_HOST=localhost
-MOBILIZON_DATABASE_PORT=5432
+For a fully isolated environment using VS Code Dev Containers:
 
-# Instance
-MOBILIZON_INSTANCE_NAME="My Dev Instance"
-MOBILIZON_INSTANCE_HOST=localhost
-MOBILIZON_INSTANCE_HOST_PORT=4000
-MOBILIZON_INSTANCE_EMAIL=dev@localhost
-MOBILIZON_INSTANCE_REGISTRATIONS_OPEN=true
+1. Open the project in VS Code.
+2. Click "Reopen in Container" when prompted (or use the Command Palette).
+3. Once the container is ready, run the startup script:
+   ```bash
+   ./scripts/dev-start.sh
+   ```
+4. To stop the application:
+   ```bash
+   ./scripts/dev-stop.sh
+   ```
 
-# Security (for development only)
-MOBILIZON_INSTANCE_SECRET_KEY_BASE=changethis
-MOBILIZON_INSTANCE_SECRET_KEY=changethis
-```
+---
 
-## 🗄️ Database Management
+## User Management
 
-### Database Operations
+Manage users via Mix tasks. For Docker, prefix commands with `docker compose exec api`.
 
-#### Reset Database (Complete Cleanup)
+### Create a new user
 
 ```bash
-# Docker setup
-docker compose -f docker/development/docker-compose.yml run --rm api mix ecto.reset
+# Docker
+docker compose exec api mix mobilizon.users.new email@example.com --password YourPassword123 --admin
 
-# Native setup
-mix ecto.reset
+# Native
+mix mobilizon.users.new email@example.com --password YourPassword123 --admin
 ```
 
-#### Manual Database Cleanup
+**Options:**
+- `--admin`: Make the user an administrator
+- `--moderator`: Make the user a moderator
+- `--profile_username`: Create a profile with this username
+- `--profile_display_name`: Set the profile display name
 
-For cleaning up user data while preserving schema:
+### Modify an existing user
 
 ```bash
-# Using the provided cleanup script (Docker)
-docker compose -f docker/development/docker-compose.yml run --rm api bash -c "cd scripts && bash database_cleanup.sh"
+# Promote to admin
+mix mobilizon.users.modify email@example.com --admin
 
-# Native setup
-cd scripts
-bash database_cleanup.sh
-psql -h localhost -U mobilizon mobilizon_dev -f final_cleanup_generated.sql
+# Change password
+mix mobilizon.users.modify email@example.com --password NewPassword123
+
+# Disable user
+mix mobilizon.users.modify email@example.com --disable
 ```
 
-#### Migration Commands
+---
+
+## Testing & Quality
+
+### Running Tests
 
 ```bash
-# Run pending migrations
-mix ecto.migrate
+# Backend (Elixir)
+make test      # Docker
+mix test       # Native
 
-# Rollback last migration
-mix ecto.rollback
-
-# Check migration status
-mix ecto.migrations
+# Frontend (Vue/Vitest)
+npm run test
 ```
 
-#### Seeding Test Data
+### Linting & Formatting
 
 ```bash
-# Add sample data for development
-mix run priv/repo/seeds.exs
+# Complete check (Docker)
+make format
+
+# Individual commands (Native)
+mix format         # Format Elixir code
+mix credo --strict # Elixir static analysis
+npm run format     # Format frontend code
+npm run lint       # Lint frontend code
 ```
+
+---
+
+## Database Management
+
+### Operations
+
+| Task | Docker Command | Native Command |
+|------|----------------|----------------|
+| **Reset DB** | `make setup` | `mix ecto.reset` |
+| **Migrate** | `make migrate` | `mix ecto.migrate` |
+| **Rollback** | `docker compose exec api mix ecto.rollback` | `mix ecto.rollback` |
+| **Seed Data** | `docker compose exec api mix run priv/repo/seeds.exs` | `mix run priv/repo/seeds.exs` |
 
 ### Database Access
 
@@ -240,179 +258,70 @@ docker compose -f docker/development/docker-compose.yml exec postgres psql -U mo
 psql -h localhost -U mobilizon mobilizon_dev
 ```
 
-## 🔧 Environment Variables
+---
 
-### Core Configuration
+## Operations & Maintenance
+
+### Remote Server Access (Production/Staging)
+
+To perform maintenance on remote instances:
+
+1. **SSH into the server**:
+   ```bash
+   ssh-add ~/.ssh/id_rsa
+   ssh root@<server_ip> -A
+   ```
+
+2. **Access Database via Docker**:
+   ```bash
+   docker exec -it <postgis_container_id> psql -h postgres -U mobilizon
+   ```
+
+3. **Promote user to Administrator (via SQL)**:
+   ```sql
+   UPDATE users SET role = 'administrator' WHERE email = 'email@example.com';
+   ```
+
+### Manual Data Cleanup
+
+If you need to wipe user data while keeping the schema:
+1. Run the cleanup script: `bash scripts/database_cleanup.sh`
+2. Apply the generated SQL: `psql -h localhost -U mobilizon mobilizon_dev -f final_cleanup_generated.sql`
+
+---
+
+## Environment variables
+
+Core variables in `.env`. See [`.env.template`](.env.template) for full documentation.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `MOBILIZON_INSTANCE_NAME` | "Mobilizon" | Instance display name |
 | `MOBILIZON_INSTANCE_HOST` | "localhost" | Domain name |
-| `MOBILIZON_INSTANCE_HOST_PORT` | "4000" | Port number |
-| `MOBILIZON_INSTANCE_EMAIL` | - | System email address |
-| `MOBILIZON_INSTANCE_REGISTRATIONS_OPEN` | "true" | Allow new registrations |
+| `MOBILIZON_INSTANCE_PORT` | "4000" | Port number |
+| `MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS` | `true` | Workflow for group approval |
 
-### Database Configuration
+---
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MOBILIZON_DATABASE_USERNAME` | "mobilizon" | Database user |
-| `MOBILIZON_DATABASE_PASSWORD` | "mobilizon" | Database password |
-| `MOBILIZON_DATABASE_DBNAME` | "mobilizon_dev" | Database name |
-| `MOBILIZON_DATABASE_HOST` | "localhost" | Database host |
-| `MOBILIZON_DATABASE_PORT` | "5432" | Database port |
-
-### Security (Development Only)
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MOBILIZON_INSTANCE_SECRET_KEY_BASE` | "changethis" | Phoenix secret key |
-| `MOBILIZON_INSTANCE_SECRET_KEY` | "changethis" | Guardian JWT secret |
-
-### Instance restrictions
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MOBILIZON_RESTRICTIONS_ALLOW_MODERATOR_ACTIVITY_FOR_PENDING_GROUPS` | unset / `true` | When `true` (default), group creators, moderators, and administrators can manage members and create content while the group awaits instance approval. Events attributed to that group are stored with `pending_group_approval`: they stay off public listings, search, federation, and “new event” notifications until an administrator approves the group; approval then releases them (unless the event is a draft). Rejected or suspended groups do not auto-release held events. Set to `false` to disable this workflow. Changing this value requires an application restart (and config cache refresh if applicable). |
-
-## 📝 Useful Commands
-
-### Development
-
-```bash
-# Format code
-mix format                    # Elixir code
-npm run format               # Frontend code
-
-# Linting
-mix credo                    # Elixir linting
-npm run lint                 # Frontend linting
-
-# Testing
-mix test                     # Backend tests
-npm test                     # Frontend tests
-npm run coverage             # Test coverage
-```
-
-### Frontend Development
-
-```bash
-npm run dev                  # Start Vite dev server
-npm run build               # Build for production
-npm run preview             # Preview production build
-npm run story:dev           # Start Storybook
-```
-
-### Database
-
-```bash
-mix ecto.create             # Create database
-mix ecto.drop               # Drop database
-mix ecto.migrate            # Run migrations
-mix ecto.rollback           # Rollback migrations
-mix ecto.reset              # Drop, create, migrate, seed
-```
-
-### Utilities
-
-```bash
-# Generate GraphQL schema
-mix absinthe.schema.json --schema Mobilizon.GraphQL.Schema
-
-# Interactive Elixir shell
-iex -S mix
-
-# Check dependencies
-mix deps.tree
-mix hex.outdated
-```
-
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-#### Port Already in Use
-
+**Port Already in Use (4000 or 5173)**
 ```bash
-# Kill processes on port 4000
 lsof -ti:4000 | xargs kill -9
-
-# Kill processes on port 5173 (Vite)
-lsof -ti:5173 | xargs kill -9
 ```
 
-#### Database Connection Issues
-
+**Permission Issues (Docker)**
 ```bash
-# Check PostgreSQL status
-pg_isready -h localhost -p 5432
-
-# Restart PostgreSQL (macOS)
-brew services restart postgresql@15
-
-# Check database exists
-psql -h localhost -U mobilizon -l
-```
-
-#### Permission Issues (Docker)
-
-```bash
-# Fix file permissions
 sudo chown -R $USER:$USER .
-
-# Rebuild containers
 docker compose -f docker/development/docker-compose.yml build --no-cache
 ```
 
-#### Frontend Issues
+**Frontend HMR Not Working**
+Ensure `VITE_HOST=localhost` (Native) or `VITE_HOST=0.0.0.0` (Docker) is set correctly in `.env`.
 
-```bash
-# Clear npm cache
-npm cache clean --force
-
-# Remove node_modules and reinstall
-rm -rf node_modules package-lock.json
-npm install
-```
-
-#### Mix Dependencies Issues
-
-```bash
-# Clean and recompile
-mix deps.clean --all
-mix deps.get
-mix compile
-```
-
-### Getting Help
-
-1. **Check logs**:
-   ```bash
-   # Docker
-   make logs
-   
-   # Native
-   tail -f _build/dev/lib/mobilizon/ebin/mobilizon.log
-   ```
-
-2. **Database state**:
-   ```bash
-   mix ecto.migrations
-   ```
-
-3. **Process status**:
-   ```bash
-   # Check what's running on ports
-   lsof -i :4000
-   lsof -i :5173
-   ```
-
-### Performance Tips
-
-- **Use Docker volumes**: Don't mount the entire project if possible
-- **Increase memory**: Elixir compilation can be memory-intensive
-- **Use SSD**: Database and compilation benefit from fast storage
-- **Disable unnecessary services**: Stop other databases/servers
+---
 
 ## Next steps
 

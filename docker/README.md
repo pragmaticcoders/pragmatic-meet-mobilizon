@@ -201,7 +201,7 @@ This limitation does not affect development environments or non-Docker installat
      up -d --force-recreate mobilizon-adapter
    ```
 
-   See also: [GUIDES.md](../GUIDES.md) for the full step-by-step instructions.
+   See also: [README.md](../README.md#surveys--forms_service_api_key-once-per-fresh-forms-db-volume) for the full step-by-step instructions.
 
 3. **Database Connection Issues**
    - Verify database credentials in environment file
