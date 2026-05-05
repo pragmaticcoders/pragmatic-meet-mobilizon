@@ -1,10 +1,13 @@
 import { test, expect } from "@playwright/test";
+import { dismissCookieConsent } from "./helpers";
 
 test.describe("Search Page - Online Filter", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to search page
-    await page.goto("/search");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/search", { waitUntil: "load" });
+    await dismissCookieConsent(page);
+    // Avoid networkidle — SPAs often keep connections open so it never resolves on CI.
+    await page.waitForLoadState("domcontentloaded");
   });
 
   test("displays online filter checkboxes", async ({ page }) => {
@@ -169,7 +172,7 @@ test.describe("Search Page - Online Filter", () => {
   test("loads with correct filter from URL parameter", async ({ page }) => {
     // Navigate with query parameter
     await page.goto("/search?onlineFilter=online_only");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     const label = page.locator('label:has-text("Show only online events")');
     const checkbox = label.locator('input[type="checkbox"]');
@@ -180,7 +183,7 @@ test.describe("Search Page - Online Filter", () => {
 
   test("defaults to no filter when no query parameter", async ({ page }) => {
     await page.goto("/search");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     const onlineOnlyLabel = page.locator(
       'label:has-text("Show only online events")'
@@ -202,7 +205,7 @@ test.describe("Search Page - Online Filter", () => {
 
   test("filter section is hidden when viewing groups", async ({ page }) => {
     await page.goto("/search");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Click on Groups tab
     const groupsTab = page.getByRole("button", { name: /groups/i });
@@ -220,7 +223,7 @@ test.describe("Search Page - Online Filter", () => {
     // This would test the LoggedSearchBar and SearchFields components
     // Navigate from home page to search with filters
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("load");
 
     // Assuming there's a search form on the home page
     const searchInput = page.locator('input[placeholder*="Keyword"]').first();
@@ -232,7 +235,7 @@ test.describe("Search Page - Online Filter", () => {
         .getByRole("button", { name: /search/i })
         .first();
       await searchButton.click();
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
 
       // Should redirect to search page
       expect(page.url()).toContain("/search");
