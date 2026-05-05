@@ -1,9 +1,42 @@
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 import path from "path";
+import { execSync } from "child_process";
 import { VitePWA } from "vite-plugin-pwa";
 import { visualizer } from "rollup-plugin-visualizer";
 import federation from "@originjs/vite-plugin-federation";
+
+// Resolve build identity once per Vite invocation. Order of preference:
+// 1. Explicit env vars (set by Docker build args / CI) — single source of
+//    truth that also reaches the Elixir VersionController so `/version.json`
+//    and the JS bundle report the same SHA.
+// 2. Local git for `npm run build` / `npm run dev` outside Docker.
+// 3. Hardcoded "dev" sentinel — `useVersionCheck.ts` treats it as "skip
+//    polling", so devs don't get reload loops.
+const resolveAppVersion = () =>
+  process.env.VITE_APP_VERSION ||
+  process.env.npm_package_version ||
+  "dev";
+
+const resolveGitCommit = () => {
+  if (process.env.VITE_GIT_COMMIT) {
+    return process.env.VITE_GIT_COMMIT.slice(0, 7);
+  }
+  try {
+    return execSync("git rev-parse --short=7 HEAD", { stdio: ["ignore", "pipe", "ignore"] })
+      .toString()
+      .trim();
+  } catch {
+    return "dev";
+  }
+};
+
+const resolveBuildTime = () =>
+  process.env.VITE_BUILD_TIME || new Date().toISOString();
+
+const APP_VERSION = resolveAppVersion();
+const GIT_COMMIT = resolveGitCommit();
+const BUILD_TIME = resolveBuildTime();
 
 export default defineConfig(({ command }) => {
   const isDev = command !== "build";
@@ -104,6 +137,15 @@ export default defineConfig(({ command }) => {
     plugins,
     build,
     esbuild,
+    // Bake build identity into the bundle as compile-time constants.
+    // `useVersionCheck.ts` reads `__GIT_COMMIT__` and the `main.ts`
+    // boot banner reads all three. JSON.stringify is required by the
+    // `define:` API so the values are emitted as proper JS literals.
+    define: {
+      __APP_VERSION__: JSON.stringify(APP_VERSION),
+      __GIT_COMMIT__: JSON.stringify(GIT_COMMIT),
+      __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+    },
     server: {
       host: "0.0.0.0",
       port: 5173,

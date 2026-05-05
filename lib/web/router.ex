@@ -141,6 +141,14 @@ defmodule Mobilizon.Web.Router do
     get("/health/detailed", HealthController, :health_detailed)
   end
 
+  # Build identity probe — polled by the SPA every minute to detect a new
+  # release. Must be served with `Cache-Control: no-store` (handled inside
+  # `VersionController`) so neither the browser nor Cloudflare can return a
+  # stale value and defeat the auto-update flow.
+  scope "/", Mobilizon.Web do
+    get("/version.json", VersionController, :show)
+  end
+
   scope "/", Mobilizon.Web do
     pipe_through(:activity_pub_and_html)
     pipe_through(:activity_pub_signature)

@@ -1,5 +1,19 @@
+# Build identity — declared globally so each FROM stage can opt in via
+# bare `ARG VCS_REF` / `ARG BUILD_DATE`. Kept here as a single source so
+# the value reaches both the Vite build (frontend bundle) and the Elixir
+# release (VersionController serves /version.json with the same SHA).
+ARG VCS_REF=dev
+ARG BUILD_DATE=unknown
+
 # First build the application assets
 FROM node:20-alpine as assets
+
+# Re-import the global ARGs and expose them as VITE_* env vars so
+# vite.config.js can bake them into __GIT_COMMIT__ / __BUILD_TIME__.
+ARG VCS_REF
+ARG BUILD_DATE
+ENV VITE_GIT_COMMIT=$VCS_REF
+ENV VITE_BUILD_TIME=$BUILD_DATE
 
 RUN apk add --no-cache python3 build-base libwebp-tools bash imagemagick ncurses
 WORKDIR /build
@@ -18,6 +32,14 @@ FROM elixir:1.16-alpine AS builder
 # See https://github.com/plausible/analytics/pull/2879 and https://github.com/erlang/otp/pull/6340
 ARG ERL_FLAGS=""
 ENV ERL_FLAGS=$ERL_FLAGS
+
+# Re-import the global ARGs. VersionController reads VITE_GIT_COMMIT and
+# VITE_BUILD_TIME at *compile time* via System.get_env, so they must be
+# present in the env when `mix release` runs below.
+ARG VCS_REF
+ARG BUILD_DATE
+ENV VITE_GIT_COMMIT=$VCS_REF
+ENV VITE_BUILD_TIME=$BUILD_DATE
 
 RUN apk add --no-cache build-base git cmake
 
@@ -76,6 +98,15 @@ EXPOSE 4000
 
 ENV MOBILIZON_DOCKER=true
 ENV MOBILIZON_CONFIG_PATH=/etc/mobilizon/config.exs
+
+# `Mobilizon.Web.VersionController` reads these at runtime to answer
+# /version.json. Setting them here means the running container reports
+# the same SHA the JS bundle was built with — without depending on the
+# release-time module attribute that wouldn't survive a future env
+# change. Default to "dev" / "unknown" if the build skipped passing
+# them; the SPA's version-check loop guard handles the sentinel safely.
+ENV VITE_GIT_COMMIT=$VCS_REF
+ENV VITE_BUILD_TIME=$BUILD_DATE
 
 COPY --from=builder --chown=nobody:nobody _build/prod/rel/mobilizon ./
 # Copy e2e seed file for e2e testing
