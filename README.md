@@ -22,7 +22,27 @@ Fork of Mobilizon for local development: Docker (default) or native stack — st
 
 High-level flow: users use **Pragmatic Meet** (Mobilizon-based app). It calls the **Mobilizon Adapter**, which maps Mobilizon concepts to **Pragmatic Forms** (standalone surveys / forms backend).
 
-![System context: User uses Pragmatic Meet; Pragmatic Meet calls Mobilizon Adapter; Mobilizon Adapter adapts data to Pragmatic Forms](docs/images/system-context.png)
+### System landscape
+
+![System landscape: User uses Pragmatic Meet; Pragmatic Meet calls Mobilizon Adapter; Mobilizon Adapter adapts data to Pragmatic Forms](docs/images/system-landscape.svg)
+
+### Container view: Pragmatic Meet
+
+Main app boundary: **Mobilizon**, **Data**, **Mobilizon Plugin**, and outbound **Calls** to the adapter.
+
+![Container view — Pragmatic Meet (Mobilizon)](docs/images/container-pragmatic-meet.svg)
+
+### Container view: Mobilizon Adapter
+
+Internal containers (**API**, **UI**) and how Pragmatic Meet and Pragmatic Forms connect.
+
+![Container view — Mobilizon Adapter](docs/images/container-mobilizon-adapter.svg)
+
+### Container view: Pragmatic Forms
+
+Internal containers (**API**, **Forms Engine**, **Data**) and how the adapter plugs in.
+
+![Container view — Pragmatic Forms](docs/images/container-pragmatic-forms.svg)
 
 ---
 
