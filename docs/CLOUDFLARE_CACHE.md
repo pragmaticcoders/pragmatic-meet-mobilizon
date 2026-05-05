@@ -18,12 +18,19 @@ across releases are:
   pins users on the previous release)
 - `/version.json` (build identity polled by the SPA every minute to
   detect new deploys)
-- `/assets/remoteEntry.js` on the survey adapter (Module Federation
+- `/survey-assets/remoteEntry.js` (Module Federation
   entry point)
 
-These four classes of URL **must not be cached**. Everything under
-`/assets/`, `/img/`, `/media/` or `/proxy/` **can be cached for a
-year**.
+These four classes of URL **must not be cached**:
+
+- HTML routes (`/` and SPA routes),
+- `/service-worker.js`,
+- `/version.json`,
+- `/survey-assets/remoteEntry.js` (fixed filename; keep very short TTL
+  or bypass entirely).
+
+Everything else under `/assets/`, `/img/`, `/media/` or `/proxy/`
+**can be cached for a year** because those files are content-hashed.
 
 This document is the single source of truth for what to configure on
 the Cloudflare dashboard. The matching origin behavior (Phoenix
@@ -31,16 +38,14 @@ controllers + nginx) is already in place — see `lib/web/router.ex`,
 `lib/web/controllers/version_controller.ex` and
 `support/nginx/mobilizon-release.conf`.
 
-## Hostnames
+## Hostname
 
-We assume two hostnames in the examples below:
+We assume a single hostname in the examples below:
 
-- `dev.pragmaticmeet.com` — the main Mobilizon app
-- `adapter.dev.pragmaticmeet.com` — the survey adapter (Module
-  Federation)
+- `dev.pragmaticmeet.com` — main app and survey assets
 
 If you use different hostnames (staging, prod), substitute them
-everywhere or duplicate the rules per zone.
+everywhere.
 
 ---
 
@@ -108,26 +113,26 @@ itself changes whenever the content does. Browser TTL is left to
 "respect existing headers" so the origin's `Cache-Control: public,
 max-age=31536000, immutable` (set in nginx) wins.
 
-### Rule 5 — short cache for the survey adapter remote entry
+### Rule 5 — short cache for the survey remote entry
 
 | Field | Value |
 | --- | --- |
-| Rule name | `Adapter: short cache for remote entry` |
-| When incoming requests match | `(http.host eq "adapter.dev.pragmaticmeet.com" and http.request.uri.path eq "/assets/remoteEntry.js")` |
+| Rule name | `App: short cache for survey remote entry` |
+| When incoming requests match | `(http.host eq "dev.pragmaticmeet.com" and http.request.uri.path eq "/survey-assets/remoteEntry.js")` |
 | Then | **Cache eligibility → Eligible for cache**<br>**Edge TTL → Override origin → 30 seconds**<br>**Browser TTL → Override origin → 30 seconds** |
 
-`remoteEntry.js` is the only file with a fixed name on the adapter
-side. We allow 30 seconds of edge caching to reduce origin load, but
-no more — otherwise users would load survey chunks that no longer
+`remoteEntry.js` is the only survey file with a fixed name. We allow 30
+seconds of edge caching to reduce origin load, but no more — otherwise
+users would load survey chunks that no longer
 exist after a redeploy. Pick **Bypass cache** instead if you prefer
 zero risk over the marginal performance gain.
 
-### Rule 6 — long cache for hashed adapter chunks
+### Rule 6 — long cache for hashed survey chunks
 
 | Field | Value |
 | --- | --- |
-| Rule name | `Adapter: long cache for hashed assets` |
-| When incoming requests match | `(http.host eq "adapter.dev.pragmaticmeet.com" and starts_with(http.request.uri.path, "/assets/") and not http.request.uri.path eq "/assets/remoteEntry.js")` |
+| Rule name | `App: long cache for survey hashed assets` |
+| When incoming requests match | `(http.host eq "dev.pragmaticmeet.com" and starts_with(http.request.uri.path, "/survey-assets/") and not http.request.uri.path eq "/survey-assets/remoteEntry.js")` |
 | Then | **Cache eligibility → Eligible for cache**<br>**Edge TTL → Override origin → 1 year**<br>**Browser TTL → Override origin → 1 year** |
 
 ### Final rule order (top to bottom)
@@ -136,8 +141,8 @@ zero risk over the marginal performance gain.
 2. `App: bypass cache for service worker`
 3. `App: bypass cache for HTML routes`
 4. `App: long cache for hashed assets`
-5. `Adapter: short cache for remote entry`
-6. `Adapter: long cache for hashed assets`
+5. `App: short cache for survey remote entry`
+6. `App: long cache for survey hashed assets`
 
 ---
 
@@ -180,7 +185,7 @@ zero risk over the marginal performance gain.
 
 - Make sure no Worker or Transform Rule rewrites `Cache-Control` for
   the four critical paths (`/`, `/service-worker.js`, `/version.json`,
-  `/assets/remoteEntry.js`). If one does, exclude these paths
+  `/survey-assets/remoteEntry.js`). If one does, exclude these paths
   explicitly.
 
 ### SSL/TLS → Edge Certificates
@@ -206,7 +211,7 @@ production deploy:
    https://dev.pragmaticmeet.com/
    https://dev.pragmaticmeet.com/service-worker.js
    https://dev.pragmaticmeet.com/version.json
-   https://adapter.dev.pragmaticmeet.com/assets/remoteEntry.js
+   https://dev.pragmaticmeet.com/survey-assets/remoteEntry.js
    ```
 3. Click **Purge**.
 
@@ -227,7 +232,7 @@ curl -sI https://dev.pragmaticmeet.com/
 curl -sI https://dev.pragmaticmeet.com/service-worker.js
 curl -sI https://dev.pragmaticmeet.com/version.json
 curl -sI https://dev.pragmaticmeet.com/assets/main-XXXXX.js     # use a real hash
-curl -sI https://adapter.dev.pragmaticmeet.com/assets/remoteEntry.js
+curl -sI https://dev.pragmaticmeet.com/survey-assets/remoteEntry.js
 ```
 
 Expected response headers:
@@ -238,7 +243,7 @@ Expected response headers:
 | `/service-worker.js` | `no-cache, no-store, must-revalidate` | `BYPASS` or `DYNAMIC` |
 | `/version.json` | `no-store, no-cache, must-revalidate` | `BYPASS` or `DYNAMIC` |
 | `/assets/main-HASH.js` | `public, max-age=31536000, immutable` | `HIT` (after the second request) |
-| `/assets/remoteEntry.js` | `public, max-age=30` | `HIT` or `MISS` |
+| `/survey-assets/remoteEntry.js` | `public, max-age=30` | `HIT` or `MISS` |
 
 If you see `HIT` for any of the first three rows, a Cache Rule is
 missing or ordered below a more general rule.
@@ -371,9 +376,9 @@ console should print:
 [sw] controller changed, reloading to pick up the new release.
 ```
 
-…followed by an automatic page reload. After the reload, the console
-banner shows `def2222` — wait, no, it still shows `abc1111` because we
-didn't rebuild the frontend. That's fine: the test confirms the
+…followed by an automatic page reload. If the frontend bundles were not
+rebuilt with `def2222`, the console banner can still show `abc1111`.
+This is expected in this simulation and still confirms that the
 **detection and reload mechanism works**. To complete the end-to-end
 test (banner reflects the new SHA), rebuild the frontend with the new
 SHA after the simulated deploy:
@@ -457,8 +462,8 @@ chrome://settings/siteData           # storage cleanup
 | `/version.json` | `VersionController` → `no-store, no-cache, must-revalidate` | Rule 1 (bypass) |
 | `/assets/*`, `/img/*` | nginx → `public, max-age=31536000, immutable` | Rule 4 (1 year edge) |
 | `/media/*`, `/proxy/*` | nginx → `public, max-age=31536000, immutable` | uses Rule 4's siblings via the regex |
-| `adapter:/assets/remoteEntry.js` | adapter origin | Rule 5 (30s edge) |
-| `adapter:/assets/<hash>.js` | adapter origin | Rule 6 (1 year edge) |
+| `/survey-assets/remoteEntry.js` | app origin | Rule 5 (30s edge) |
+| `/survey-assets/<hash-or-chunk-path>` | app origin | Rule 6 (1 year edge) |
 
 If any row above doesn't match what `curl -I` shows in production,
 fix the origin first (it's the source of truth) and only then revisit
