@@ -4,6 +4,7 @@ Fork of Mobilizon for local development: Docker (default) or native stack — st
 
 ## Table of contents
 
+- [Architecture](#architecture)
 - [Quick start](#quick-start)
 - [Docker development](#docker-development)
 - [Native development](#native-development)
@@ -14,6 +15,14 @@ Fork of Mobilizon for local development: Docker (default) or native stack — st
 - [Operations & Maintenance](#operations--maintenance)
 - [Environment variables](#environment-variables)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Architecture
+
+High-level flow: users use **Pragmatic Meet** (Mobilizon-based app). It calls the **Mobilizon Adapter**, which maps Mobilizon concepts to **Pragmatic Forms** (standalone surveys / forms backend).
+
+![System context: User uses Pragmatic Meet; Pragmatic Meet calls Mobilizon Adapter; Mobilizon Adapter adapts data to Pragmatic Forms](docs/images/system-context.png)
 
 ---
 
