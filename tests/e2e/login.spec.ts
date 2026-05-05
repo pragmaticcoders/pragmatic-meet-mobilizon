@@ -1,4 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { dismissCookieConsent } from "./helpers";
+
+test.beforeEach(async ({ page }) => {
+  await page.goto("/");
+  await dismissCookieConsent(page);
+});
 
 test("Login has everything we need", async ({ page }) => {
   await page.goto("/login");
@@ -72,8 +78,8 @@ test("Tries to login with valid credentials", async ({ page, context }) => {
   await expect(loginButton).toHaveAttribute("type", "submit");
 
   await loginButton.click();
-  await page.waitForURL("/");
-  expect(new URL(page.url()).pathname).toBe("/");
+  await page.waitForURL(/\/discover\/?$/);
+  expect(new URL(page.url()).pathname).toBe("/discover");
   const localStorage = (
     await context.storageState()
   ).origins[0].localStorage.reduce((acc: Record<string, string>, elem) => {

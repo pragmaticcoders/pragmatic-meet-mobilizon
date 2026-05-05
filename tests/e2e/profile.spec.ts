@@ -1,14 +1,16 @@
 import { test, expect } from "@playwright/test";
+import { dismissCookieConsent } from "./helpers";
 
 test("User can update their profile information", async ({ page }) => {
   // Step 1: Login with user that has a profile
   await page.goto("/login");
+  await dismissCookieConsent(page);
   await page.locator("#email").fill("user@email.com");
   await page.locator("#password").fill("some password");
   await page.getByRole("button", { name: "Login" }).click();
 
-  // Wait for redirect to home page
-  await page.waitForURL("/");
+  // Wait for redirect after login (discover is the default post-login route)
+  await page.waitForURL(/\/discover\/?$/);
 
   // Dismiss marketing consent popup if it appears (for legacy users)
   const consentPopup = page.getByText("I consent to receiving messages, updates, and promotional emails");

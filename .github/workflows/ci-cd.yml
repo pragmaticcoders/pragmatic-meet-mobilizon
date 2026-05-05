@@ -103,11 +103,9 @@ jobs:
         run: npm run lint
 
   # Build for PRs (without push) - used for E2E testing
-  # NOTE: disabled until E2E tests are fixed (login redirect /discover vs /)
   build-pr:
     needs: [test-frontend, test-backend]
     runs-on: ubuntu-latest
-    if: false
     outputs:
       image_tag: ${{ steps.build.outputs.imageid }}
 
@@ -199,11 +197,9 @@ jobs:
             VCS_REF=${{ github.sha }}
 
   # E2E tests for PRs - uses locally built Docker image from artifact
-  # NOTE: disabled until E2E tests are fixed (login redirect /discover vs /)
   test-e2e-pr:
     needs: build-pr
     runs-on: ubuntu-22.04
-    if: false
 
     steps:
       - name: Checkout code
@@ -259,11 +255,9 @@ jobs:
         run: docker compose -f docker/e2e/docker-compose.yml down -v
 
   # E2E tests for main branch - uses pushed Docker image from registry
-  # NOTE: disabled until E2E tests are fixed (login redirect /discover vs /)
   test-e2e-main:
     needs: build
     runs-on: ubuntu-22.04
-    if: false
 
     steps:
       - name: Checkout code

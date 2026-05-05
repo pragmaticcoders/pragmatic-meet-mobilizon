@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { dismissCookieConsent } from "./helpers";
 
 test.describe("Search Page - Online Filter", () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to search page
     await page.goto("/search");
+    await dismissCookieConsent(page);
     await page.waitForLoadState("networkidle");
   });
 
