@@ -2,6 +2,20 @@
 
 ==
 <%= case @activity.type do %>
+<% :survey -> %>
+<%= dgettext("activity", "The survey %{survey} was published by %{profile} in the event %{event}.",
+    %{
+        profile: Mobilizon.Actors.Actor.display_name_and_username(@activity.author),
+        survey: @activity.subject_params["survey_title"],
+        event: @activity.subject_params["event_title"]
+    }
+) %>
+<%= if @activity.subject_params["survey_description"] do %>
+<%= @activity.subject_params["survey_description"] %><% end %>
+
+--
+
+<%= ~p"/events/#{@activity.subject_params["event_uuid"]}" |> url() |> URI.decode() %>
 <% :comment -> %>
 <%= dgettext("activity", "%{profile} has posted a public announcement under event %{event}.",
     %{

@@ -228,7 +228,8 @@ config :mobilizon, :cldr,
     "fr",
     "en",
     "ru",
-    "ar"
+    "ar",
+    "pl"
   ]
 
 config :mobilizon, :activitypub,

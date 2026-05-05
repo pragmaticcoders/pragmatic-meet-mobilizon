@@ -530,6 +530,11 @@ msgstr ""
 msgid "Informations about your event %{event}"
 msgstr ""
 
+#: lib/web/email/activity.ex:80
+#, elixir-autogen, elixir-format
+msgid "New survey for your event %{event}"
+msgstr ""
+
 #: lib/web/templates/email/email_anonymous_activity.html.heex:118
 #: lib/web/templates/email/email_anonymous_activity.text.eex:20
 #, elixir-autogen, elixir-format

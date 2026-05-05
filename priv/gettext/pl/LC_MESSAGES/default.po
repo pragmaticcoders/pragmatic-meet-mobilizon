@@ -2014,7 +2014,6 @@ msgstr "Twoja rola została zmieniona przez administratora(-kę)"
 #, elixir-autogen, elixir-format
 msgid "An administrator confirmed your account on %{instance}"
 msgstr "Administrator potwierdził Twoje konto na %{instance}"
-"Twoje konto na %{instance} zostało potwierdzone przez administratora(-kę)"
 
 #: lib/web/templates/email/admin_user_email_changed_new.html.heex:18
 #: lib/web/templates/email/admin_user_email_changed_new.text.eex:1
@@ -2031,8 +2030,6 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "An administrator manually changed the email attached to your account on %{instance}"
 msgstr "Administrator ręcznie zmienił adres e-mail powiązany z Twoim kontem na %{instance}"
-"Adres e-mail powiązany z Twoim kontem na %{instance} został zmieniony przez "
-"administratora(-kę)"
 
 #: lib/web/templates/email/admin_user_confirmation.html.heex:18
 #: lib/web/templates/email/admin_user_confirmation.text.eex:1
@@ -2044,7 +2041,6 @@ msgstr "Twoje konto zostało ręcznie potwierdzone przez administratora(-kę)"
 #, elixir-autogen, elixir-format
 msgid "An administrator updated your role on %{instance}"
 msgstr "Administrator zaktualizował Twoją rolę na %{instance}"
-"Twoja rola na %{instance} została zaktualizowana przez administratora(-kę)"
 
 #: lib/web/templates/email/email_changed_new.text.eex:3
 #, elixir-autogen, elixir-format

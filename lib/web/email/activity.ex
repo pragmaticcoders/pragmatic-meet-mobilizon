@@ -66,6 +66,32 @@ defmodule Mobilizon.Web.Email.Activity do
     })
   end
 
+  def anonymous_activity(
+        email,
+        %Activity{subject_params: subject_params, type: :survey} = activity,
+        options
+      ) do
+    locale = Keyword.get(options, :locale, "en")
+    Gettext.put_locale(locale)
+
+    subject =
+      dgettext(
+        "activity",
+        "New survey for your event %{event}",
+        event: subject_params["event_title"]
+      )
+
+    Logger.debug("Going to send anonymous activity of type #{activity.type} to #{email}")
+
+    [to: email, subject: subject]
+    |> Email.base_email()
+    |> render_body(:email_anonymous_activity, %{
+      subject: subject,
+      activity: activity,
+      locale: locale
+    })
+  end
+
   def anonymous_activity(email, %Activity{subject_params: subject_params} = activity, options) do
     locale = Keyword.get(options, :locale, "en")
     Gettext.put_locale(locale)

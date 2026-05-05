@@ -34,7 +34,7 @@ defmodule Mobilizon.Service.DateTimeTest do
     test "non existing or loaded locale fallbacks to english" do
       {:ok, datetime, _} = DateTime.from_iso8601(@datetime)
 
-      assert DateTimeTools.datetime_to_time_string(datetime, "pl") == "3:25 PM"
+      assert DateTimeTools.datetime_to_time_string(datetime, "xx") == "3:25 PM"
     end
   end
 
@@ -65,7 +65,7 @@ defmodule Mobilizon.Service.DateTimeTest do
     test "non existing or loaded locale fallbacks to english" do
       then = DateTime.add(DateTime.utc_now(), 3600 * -4)
 
-      assert DateTimeTools.datetime_relative(then, "pl") == "4 hours ago"
+      assert DateTimeTools.datetime_relative(then, "xx") == "4 hours ago"
     end
   end
 

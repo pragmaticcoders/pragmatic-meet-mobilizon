@@ -138,8 +138,6 @@ msgstr "Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na %{r
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the resource from %{old_resource_title} to %{resource}."
 msgstr "Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource}."
-"Nazwę zasobu została zmieniona z %{old_resource_title} na %{resource} przez "
-"%{profile}."
 
 #: lib/web/templates/email/activity/_discussion_activity_item.html.heex:11
 #: lib/web/templates/email/activity/_discussion_activity_item.text.eex:7
@@ -222,8 +220,6 @@ msgstr "Profil %{profile} odpowiedział na komentarz do wydarzenia %{event}."
 #, elixir-autogen, elixir-format
 msgid "Don't want to receive activity notifications? You may change frequency or disable them in your settings."
 msgstr "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość lub wyłączyć je w ustawieniach."
-"Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość "
-"lub wyłączyć je w ustawieniach."
 
 #: lib/web/templates/email/email_direct_activity.html.heex:230
 #: lib/web/templates/email/email_direct_activity.text.eex:23
@@ -241,9 +237,9 @@ msgstr[2] "Zobacz jeszcze %{count} aktywności"
 #, elixir-format, elixir-autogen
 msgid "There has been an activity!"
 msgid_plural "There has been some activity!"
-msgstr[0] "Wystąpiła aktywność!"
-msgstr[1] "Zaistniały aktywności!"
-msgstr[2] "Zaistniały aktywności!"
+msgstr[0] "Nowa aktywność z Twoich grup lub wydarzeń:"
+msgstr[1] "Nowe aktywności z Twoich grup lub wydarzeń:"
+msgstr[2] "Nowe aktywności z Twoich grup lub wydarzeń:"
 
 #: lib/service/activity/renderer/renderer.ex:46
 #, elixir-autogen, elixir-format
@@ -263,14 +259,11 @@ msgstr "Profil %{profile} opublikował ogłoszenie w wydarzeniu %{event}."
 #, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in a comment under event %{event}."
 msgstr "Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
-"Profil %{profile} wspomniał o Tobie w komentarzu pod wydarzeniem %{event}."
 
 #: lib/web/templates/email/email_direct_activity.html.heex:260
 #, elixir-autogen, elixir-format
 msgid "Don't want to receive activity notifications? You may change frequency or disable them in %{tag_start}your settings%{tag_end}."
 msgstr "Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość lub wyłączyć je w %{tag_start}ustawieniach%{tag_end}."
-"Nie chcesz otrzymywać powiadomień o aktywności? Możesz zmienić częstotliwość "
-"lub wyłączyć je w %{tag_start}ustawieniach%{tag_end}."
 
 #: lib/web/templates/email/email_direct_activity.html.heex:51
 #: lib/web/templates/email/email_direct_activity.text.eex:5
@@ -306,7 +299,6 @@ msgstr "Tygodniowe podsumowanie aktywności dla %{instance}"
 #, elixir-autogen, elixir-format
 msgid "%{profile} has posted a new comment under your event %{event}."
 msgstr "Profil %{profile} zamieścił nowy komentarz pod Twoim wydarzeniem %{event}."
-"Profil %{profile} zamieścił nowy komentarz pod Twoim wydarzeniem %{event}."
 
 #: lib/service/activity/renderer/comment.ex:52
 #: lib/web/templates/email/activity/_comment_activity_item.html.heex:22
@@ -344,8 +336,6 @@ msgstr "Wpis %{post} z grupy %{group} został zaktualizowany przez %{profile}."
 #, elixir-autogen, elixir-format
 msgid "%{member} accepted the invitation to join the group %{group}."
 msgstr "Członek %{member} zaakceptował(a) zaproszenie do dołączenia do grupy %{group}."
-"Twoje zaproszenie do dołączenia do grupy %{group} zostało zaakceptowane "
-"przez %{member}."
 
 #: lib/service/activity/renderer/member.ex:46
 #, elixir-autogen, elixir-format
@@ -356,8 +346,6 @@ msgstr "%{member} dołączył(a)(o) do grupy %{group}."
 #, elixir-autogen, elixir-format
 msgid "%{member} rejected the invitation to join the group %{group}."
 msgstr "Członek %{member} odrzucił(a) zaproszenie do dołączenia do grupy %{group}."
-"Twoje zaproszenie do dołączenia do grupy %{group} zostało odrzucone przez "
-"%{member}."
 
 #: lib/service/activity/renderer/member.ex:30
 #, elixir-autogen, elixir-format
@@ -378,8 +366,6 @@ msgstr "Profil %{profile} dodał %{member} do grupy %{group}."
 #, elixir-autogen, elixir-format
 msgid "%{profile} approved the membership request from %{member} for group %{group}."
 msgstr "Profil %{profile} zatwierdził prośbę o członkostwo od %{member} w grupie %{group}."
-"Profil %{profile} zatwierdził prośbę o dołączenie %{member} do grupy "
-"%{group}."
 
 #: lib/service/activity/renderer/resource.ex:32
 #, elixir-autogen, elixir-format
@@ -420,21 +406,16 @@ msgstr "Profil %{profile} opuścił grupę %{group}."
 #, elixir-autogen, elixir-format
 msgid "%{profile} rejected the membership request from %{member} for group %{group}."
 msgstr "Profil %{profile} odrzucił prośbę o członkostwo od %{member} w grupie %{group}."
-"Profil %{profile} odrzucił prośbę %{member} o dołączenie do grupy %{group}."
 
 #: lib/service/activity/renderer/resource.ex:44
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the folder from %{old_resource_title} to %{resource} in group %{group}."
 msgstr "Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na %{resource} w grupie %{group}."
-"Profil %{profile} zmienił nazwę folderu z %{old_resource_title} na "
-"%{resource} w grupie %{group}."
 
 #: lib/service/activity/renderer/resource.ex:50
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the resource from %{old_resource_title} to %{resource} in group %{group}."
 msgstr "Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource} w grupie %{group}."
-"Profil %{profile} zmienił nazwę zasobu z %{old_resource_title} na %{resource}"
-" w grupie %{group}."
 
 #: lib/service/activity/renderer/member.ex:70
 #, elixir-autogen, elixir-format
@@ -450,7 +431,6 @@ msgstr "Profil %{profile} utworzył zasób %{resource} w grupie %{group}."
 #, elixir-autogen, elixir-format
 msgid "%{profile} archived the discussion %{discussion} in group %{group}."
 msgstr "Profil %{profile} zarchiwizował dyskusję %{discussion} w grupie %{group}."
-"Profil %{profile} zarchiwizował dyskusję %{discussion} w grupie %{group}."
 
 #: lib/service/activity/renderer/discussion.ex:25
 #, elixir-autogen, elixir-format
@@ -466,20 +446,16 @@ msgstr "Profil %{profile} usunął dyskusję %{discussion} w grupie %{group}."
 #, elixir-autogen, elixir-format
 msgid "%{profile} mentionned you in the discussion %{discussion} in group %{group}."
 msgstr "Profil %{profile} wspomniał o Tobie w dyskusji %{discussion} w grupie %{group}."
-"Profil %{profile} wspomniał o Tobie w dyskusji %{discussion} w grupie "
-"%{group}."
 
 #: lib/service/activity/renderer/discussion.ex:70
 #, elixir-autogen, elixir-format
 msgid "%{profile} renamed the discussion %{discussion} in group %{group}."
 msgstr "Profil %{profile} zmienił nazwę dyskusji %{discussion} w grupie %{group}."
-"Profil %{profile} zmienił nazwę dyskusji %{discussion} w grupie %{group}."
 
 #: lib/service/activity/renderer/discussion.ex:40
 #, elixir-autogen, elixir-format
 msgid "%{profile} replied to the discussion %{discussion} in group %{group}."
 msgstr "Profil %{profile} odpowiedział na dyskusję %{discussion} w grupie %{group}."
-"Profil %{profile} odpowiedział na dyskusję %{discussion} w grupie %{group}."
 
 #: lib/web/templates/email/activity/_member_activity_item.html.heex:36
 #: lib/web/templates/email/activity/_member_activity_item.text.eex:33
@@ -659,13 +635,20 @@ msgstr "Otrzymujesz ten e-mail, ponieważ jesteś uczestnikiem tej konwersacji."
 #: lib/service/activity/renderer/survey.ex:29
 #: lib/web/templates/email/activity/_survey_activity_item.html.heex:3
 #: lib/web/templates/email/activity/_survey_activity_item.text.eex:1
+#: lib/web/templates/email/email_anonymous_activity.html.heex:40
+#: lib/web/templates/email/email_anonymous_activity.text.eex:6
 #, elixir-autogen, elixir-format
 msgid "The survey %{survey} was published by %{profile} in the event %{event}."
-msgstr "Ankieta %{survey} została opublikowana przez %{profile} w wydarzeniu %{event}."
+msgstr "Administrator wydarzenia %{event}, w którym uczestniczysz, zamieścił ankietę w wydarzeniu — %{survey}."
+
+#: lib/web/email/activity.ex:80
+#, elixir-autogen, elixir-format
+msgid "New survey for your event %{event}"
+msgstr "Nowa ankieta dla Twojego wydarzenia %{event}"
 
 #: lib/service/activity/renderer/survey.ex:40
 #: lib/web/templates/email/activity/_survey_activity_item.html.heex:16
 #: lib/web/templates/email/activity/_survey_activity_item.text.eex:10
 #, elixir-autogen, elixir-format
 msgid "The survey %{survey} was published by %{profile} in the group %{group}."
-msgstr "Ankieta %{survey} została opublikowana przez %{profile} w grupie %{group}."
+msgstr "Administrator grupy %{group}, której jesteś członkiem, opublikował nową ankietę grupową — %{survey}."
