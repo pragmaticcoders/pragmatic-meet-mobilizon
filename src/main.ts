@@ -29,9 +29,12 @@ console.info(
 
 // Also expose as plain globals so users can paste these three lines in
 // the DevTools console without needing to know the build flow.
-(window as unknown as Record<string, string>).__APP_VERSION__ = __APP_VERSION__;
-(window as unknown as Record<string, string>).__GIT_COMMIT__ = __GIT_COMMIT__;
-(window as unknown as Record<string, string>).__BUILD_TIME__ = __BUILD_TIME__;
+(window as unknown as Record<string, string>)["__APP_VERSION__"] =
+  __APP_VERSION__;
+(window as unknown as Record<string, string>)["__GIT_COMMIT__"] =
+  __GIT_COMMIT__;
+(window as unknown as Record<string, string>)["__BUILD_TIME__"] =
+  __BUILD_TIME__;
 import Breadcrumbs from "@/components/Utils/NavBreadcrumbs.vue";
 import { DefaultApolloClient } from "@vue/apollo-composable";
 import "./registerServiceWorker";
