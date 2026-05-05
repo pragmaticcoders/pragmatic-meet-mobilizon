@@ -7,9 +7,10 @@ import type { Page } from "@playwright/test";
 export async function dismissCookieConsent(page: Page): Promise<void> {
   const allowAll = page.getByRole("button", { name: /allow all/i });
   try {
-    await allowAll.waitFor({ state: "visible", timeout: 15000 });
+    // Keep under default test budget on CI; banner usually appears quickly.
+    await allowAll.waitFor({ state: "visible", timeout: 12_000 });
     await allowAll.click();
-    await allowAll.waitFor({ state: "detached", timeout: 10000 }).catch(() => {});
+    await allowAll.waitFor({ state: "detached", timeout: 8000 }).catch(() => {});
   } catch {
     // No banner (already consented or Cookiebot blocked)
   }
