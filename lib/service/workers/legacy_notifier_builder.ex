@@ -18,13 +18,20 @@ defmodule Mobilizon.Service.Workers.LegacyNotifierBuilder do
     activity = build_activity(args)
     Logger.debug("Handling activity #{activity.subject} to notify in LegacyNotifierBuilder")
 
-    if args["subject"] in ["participation_event_comment", "conversation_created"] do
-      special_handling(args["subject"], args, activity)
-      :ok
-    else
-      args
-      |> users_to_notify(author_id: args["author_id"], group_id: Map.get(args, "group_id"))
-      |> Enum.each(&notify_user(&1, activity))
+    cond do
+      args["subject"] in ["participation_event_comment", "conversation_created"] ->
+        special_handling(args["subject"], args, activity)
+        :ok
+
+      args["subject"] == "survey_published" and
+          get_in(args, ["subject_params", "context_type"]) == "event" ->
+        special_handling("survey_published_event", args, activity)
+        :ok
+
+      true ->
+        args
+        |> users_to_notify(author_id: args["author_id"], group_id: Map.get(args, "group_id"))
+        |> Enum.each(&notify_user(&1, activity))
     end
   end
 
@@ -41,6 +48,14 @@ defmodule Mobilizon.Service.Workers.LegacyNotifierBuilder do
       get_in(args, ["subject_params", "conversation_event_id"]),
       activity,
       get_in(args, ["participant", "actor_id"]),
+      args["author_id"]
+    )
+  end
+
+  defp special_handling("survey_published_event", args, activity) do
+    notify_event_survey_participants(
+      get_in(args, ["subject_params", "event_id"]),
+      activity,
       args["author_id"]
     )
   end
@@ -140,6 +155,22 @@ defmodule Mobilizon.Service.Workers.LegacyNotifierBuilder do
         locale: Map.get(user, :locale, "en")
       )
     end)
+
+    notify_anonymous_participants(event_id, activity)
+  end
+
+  # Same as notify_participants/3 but routes registered participants through
+  # `Notifier.notify` so that the user's own activity_settings (survey_published
+  # email toggle, group_notifications: :none) are honored. Anonymous
+  # participants still receive the direct email because they have no settings.
+  defp notify_event_survey_participants(nil, _activity, _author_id), do: :ok
+
+  defp notify_event_survey_participants(event_id, activity, author_id) do
+    event_id
+    |> Events.list_actors_participants_for_event()
+    |> Enum.map(& &1.id)
+    |> users_from_actor_ids(author_id)
+    |> Enum.each(&notify_user(&1, activity))
 
     notify_anonymous_participants(event_id, activity)
   end

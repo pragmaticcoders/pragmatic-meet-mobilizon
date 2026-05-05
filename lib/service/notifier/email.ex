@@ -74,7 +74,8 @@ defmodule Mobilizon.Service.Notifier.Email do
     :conversation_created,
     :conversation_replied,
     :discussion_mention,
-    :event_new_comment
+    :event_new_comment,
+    :survey_published
   ]
 
   @spec can_send_activity?(Activity.t(), User.t(), Keyword.t()) :: boolean()
@@ -183,7 +184,7 @@ defmodule Mobilizon.Service.Notifier.Email do
     "conversation_replied" => true,
     "discussion_mention" => true,
     "event_new_comment" => true,
-    "survey_published" => false
+    "survey_published" => true
   }
 
   @spec default_activity_behavior(String.t()) :: boolean()
