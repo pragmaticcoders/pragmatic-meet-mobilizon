@@ -2,7 +2,7 @@
   <section class="mx-auto mt-8 mb-12">
     <!-- Catchy header -->
     <h1 class="text-3xl font-bold text-gray-900 text-center mb-8">
-      {{ t("What will you discover today?") }}
+      {{ t("What will you discover today?") }} (test cache refresh)
     </h1>
 
     <!-- Custom search form with inline button -->

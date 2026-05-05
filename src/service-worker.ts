@@ -24,6 +24,22 @@ declare const self: ServiceWorkerGlobalScope;
 // eslint-disable-next-line no-underscore-dangle
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Without `skipWaiting` in install, a freshly downloaded SW sits in the
+// `waiting` state until every controlled tab is closed — that's the
+// classic "zombie cache" that makes users see the previous release for
+// hours. With it, install promotes the new SW to active immediately.
+self.addEventListener("install", () => {
+  void self.skipWaiting();
+});
+
+// `clients.claim()` lets the new SW take control of already-open pages
+// without forcing a reload first. Combined with the `controllerchange`
+// listener in `registerServiceWorker.ts`, every tab swaps controllers
+// and reloads exactly once after a deploy.
+self.addEventListener("activate", (event: ExtendableEvent) => {
+  event.waitUntil(self.clients.claim());
+});
+
 registerRoute(
   // Check to see if the request is a navigation to a new page
   ({ request }) => request.mode === "navigate",

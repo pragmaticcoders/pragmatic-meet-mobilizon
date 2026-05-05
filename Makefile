@@ -73,4 +73,33 @@ test: stop
 format: 
 	$(COMPOSE) run --rm api bash -c "mix format && mix credo --strict"
 	@bash docker/message.sh "Code is now ready to commit :)"
+
+# ── Cache-flow testing ──────────────────────────────────────────────────────
+# Local end-to-end test of the deploy → SW update → reload mechanism.
+# Two-step usage (see docs/CLOUDFLARE_CACHE.md → "Testing locally"):
+#
+#   1) Initial run with a known SHA — the frontend bundle and the
+#      Phoenix VersionController will both report it:
+#        VITE_GIT_COMMIT=abc1111 make cache-rebuild
+#        VITE_GIT_COMMIT=abc1111 make start
+#      Open http://localhost:4000 — the DevTools banner shows abc1111.
+#
+#   2) Simulate a deploy (no frontend rebuild — we want the mismatch):
+#        VITE_GIT_COMMIT=def2222 make cache-deploy
+#      Within ~1 minute the open tab detects the mismatch, the SW
+#      activates the freshly downloaded worker, and the page reloads.
+#
+# `cache-rebuild` deletes `priv/static/index.html` so the api
+# entrypoint's "build only if missing" check rebuilds with the new env
+# var. Without this, a cached priv/static would silently keep the old
+# bundle.
+cache-rebuild:
+	@bash docker/message.sh "Forcing frontend rebuild with VITE_GIT_COMMIT=$(VITE_GIT_COMMIT)"
+	$(COMPOSE) run --rm api bash -c "rm -f priv/static/index.html priv/static/service-worker.js && npm run build:assets"
+
+cache-deploy:
+	@bash docker/message.sh "Simulating deploy: restarting api with VITE_GIT_COMMIT=$(VITE_GIT_COMMIT) (frontend bundle untouched)"
+	$(COMPOSE) up -d --force-recreate --no-deps api
+	@bash docker/message.sh "Watch the open browser tab — should reload within ~1 minute"
+
 target: init
