@@ -32,7 +32,11 @@
           />
         </div>
         <div class="flex flex-col sm:flex-row gap-2 sm:gap-1 flex-shrink-0">
-          <div class="flex-1 sm:flex-initial min-w-0">
+          <div
+            ref="addressWrapperRef"
+            class="flex-1 sm:flex-initial min-w-0"
+            @keyup.enter="handleSearch"
+          >
             <full-address-auto-complete
               :resultType="AddressSearchType.ADMINISTRATIVE"
               v-model="address"
@@ -54,10 +58,12 @@
           >
             <template #trigger="{ active }">
               <o-button
-                class="w-full sm:w-auto px-3 text-sm"
-                style="height: 48px"
+                class="w-full sm:w-auto px-3 text-sm h-11 sm:h-10"
                 :title="t('Select distance')"
                 :icon-right="active ? 'menu-up' : 'menu-down'"
+                @click="
+                  (e: MouseEvent) => (e.currentTarget as HTMLElement)?.blur()
+                "
               >
                 {{ distanceText }}
               </o-button>
@@ -73,10 +79,9 @@
 
         <!-- Search button inline -->
         <o-button
-          type="submit"
+          native-type="submit"
           variant="primary"
-          class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors flex-shrink-0"
-          style="height: 48px"
+          class="flex-shrink-0 h-11 sm:h-10 px-5"
         >
           {{ t("Search") }}
         </o-button>
@@ -109,6 +114,7 @@ const searchQuery = ref<string>("");
 const address = ref<IAddress | null>(null);
 const distance = ref<number | null>(null);
 const addressDefaultText = ref<string | null>(null);
+const addressWrapperRef = ref<HTMLElement | null>(null);
 
 // Initialize address from localStorage on mount
 onMounted(() => {
@@ -145,21 +151,21 @@ const distanceList = computed(() => {
 // Handle address changes
 const handleAddressChange = (newAddress: IAddress | null) => {
   if (newAddress) {
-    // Set default distance when an address is selected
     if (distance.value === null) {
       distance.value = 10;
     }
-    // Store address in localStorage
     storeAddressInLocal(newAddress);
+    setTimeout(() => {
+      addressWrapperRef.value?.querySelector("input")?.focus();
+    }, 50);
   } else {
-    // Clear distance when address is cleared
     distance.value = null;
-    // Clear address from localStorage
     storeAddressInLocal(null);
   }
 };
 
-const handleSearch = () => {
+const handleSearch = (event?: Event) => {
+  (event as SubmitEvent | undefined)?.submitter?.blur();
   const searchQueryParams: {
     search?: string;
     locationName?: string;

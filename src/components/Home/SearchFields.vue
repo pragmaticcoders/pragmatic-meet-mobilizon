@@ -27,7 +27,11 @@
         />
       </div>
       <div class="flex flex-col sm:flex-row gap-2 sm:gap-1 flex-shrink-0">
-        <div class="flex-1 sm:flex-initial min-w-0">
+        <div
+          ref="addressWrapperRef"
+          class="flex-1 sm:flex-initial min-w-0"
+          @keyup.enter="submit"
+        >
           <full-address-auto-complete
             :resultType="AddressSearchType.ADMINISTRATIVE"
             v-model="address"
@@ -49,10 +53,12 @@
         >
           <template #trigger="{ active }">
             <o-button
-              class="w-full sm:w-auto px-3 text-sm"
-              style="height: 48px"
+              class="w-full sm:w-auto px-3 text-sm h-11 sm:h-10"
               :title="t('Select distance')"
               :icon-right="active ? 'menu-up' : 'menu-down'"
+              @click="
+                (e: MouseEvent) => (e.currentTarget as HTMLElement)?.blur()
+              "
             >
               {{ distanceText }}
             </o-button>
@@ -64,6 +70,13 @@
             :key="distance_item.distance"
           />
         </o-dropdown>
+        <o-button
+          native-type="submit"
+          variant="primary"
+          class="flex-shrink-0 h-11 sm:h-10 px-5"
+        >
+          {{ t("Search") }}
+        </o-button>
       </div>
     </div>
   </form>
@@ -77,7 +90,7 @@ import {
   getAddressFromLocal,
   storeAddressInLocal,
 } from "@/utils/location";
-import { computed, defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter, useRoute } from "vue-router";
 import RouteName from "@/router/name";
@@ -165,12 +178,20 @@ const distanceList = computed(() => {
 
 console.debug("initial", distance.value, search.value, address.value);
 
+const addressWrapperRef = ref<HTMLElement | null>(null);
+
 const modelValueUpdate = (newaddress: IAddress | null) => {
   emit("update:address", newaddress);
+  if (newaddress) {
+    setTimeout(() => {
+      addressWrapperRef.value?.querySelector("input")?.focus();
+    }, 50);
+  }
 };
 
 const submit = (event: Event) => {
   emit("submit");
+  (event as SubmitEvent).submitter?.blur();
   const btn_classes =
     (event as SubmitEvent).submitter?.getAttribute("class")?.split(" ") || [];
   const search_query: {
@@ -185,6 +206,7 @@ const submit = (event: Event) => {
   if (search.value != "") {
     search_query.search = search.value;
   }
+  const baseQuery = { ...route.query };
   if (address.value) {
     const location = addressToLocation(address.value);
     search_query.locationName = address.value.locality ?? address.value.region;
@@ -196,6 +218,11 @@ const submit = (event: Event) => {
       search_query.distance = distance.value.toString() + "_km";
     }
   } else {
+    // Remove stale location params so old city doesn't survive in the URL
+    delete baseQuery.locationName;
+    delete baseQuery.lat;
+    delete baseQuery.lon;
+    delete baseQuery.distance;
     // If no location is selected, automatically include online events
     search_query.onlineFilter = "include_online";
   }
@@ -211,7 +238,7 @@ const submit = (event: Event) => {
   router.push({
     name: RouteName.SEARCH,
     query: {
-      ...route.query,
+      ...baseQuery,
       ...search_query,
     },
   });
